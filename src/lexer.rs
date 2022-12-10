@@ -7,12 +7,14 @@ use std::{num::ParseIntError, str::Chars};
 
 // #TODO lex_all, lex_single
 // #TODO use peekable iterator instead of put_back/lookahead.
+// #TODO introduce SemanticToken, with extra semantic information, _after_ parsing.
 
+// #Insight
 // There is no need for an EOF Token. The end of the Token list marks the end
 // of the input.
 
 /// A lexical Token gives semantic meaning to a Lexeme.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Token {
     LParen,
     RParen,
@@ -42,6 +44,12 @@ impl fmt::Display for Token {
             })
             .as_str(),
         )
+    }
+}
+
+impl AsRef<Token> for Spanned<Token> {
+    fn as_ref(&self) -> &Token {
+        &self.0
     }
 }
 
@@ -87,6 +95,10 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    pub fn input(&self) -> String {
+        self.chars.clone().collect()
+    }
+
     fn next_char(&mut self) -> Option<char> {
         self.index += 1;
 
@@ -103,7 +115,7 @@ impl<'a> Lexer<'a> {
         self.index -= 1;
     }
 
-    // Span is a right-open range.
+    // Span is a right-open range, i.e. [start, end)
     fn span(&self, start: usize) -> Span {
         Span {
             start: start - 1,
@@ -219,12 +231,17 @@ impl<'a> Lexer<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::num::IntErrorKind;
+
+    use crate::{
+        error::pretty_print_error,
+        lexer::{Lexer, LexicalError},
+    };
 
     #[test]
-    fn lex_should_handle_an_empty_string() {
-        let source = "";
-        let tokens = Lexer::new(source).lex();
+    fn lex_handles_an_empty_string() {
+        let input = "";
+        let tokens = Lexer::new(input).lex();
 
         let tokens = tokens.unwrap();
 
@@ -232,16 +249,40 @@ mod tests {
     }
 
     #[test]
-    fn lex_should_tokenize() {
-        let source = "((+ 1   25 399)  )";
-        let tokens = Lexer::new(source).lex();
+    fn lex_returns_tokens() {
+        let input = "((+ 1   25 399)  )";
+        let tokens = Lexer::new(input).lex();
 
         let tokens = tokens.unwrap();
 
-        dbg!(&tokens);
+        // dbg!(&tokens);
 
         assert_eq!(tokens.len(), 8);
 
         // #TODO add specific assertions.
+    }
+
+    #[test]
+    fn lex_reports_number_errors() {
+        let input = "(+ 1 3$%99)";
+        let tokens = Lexer::new(input).lex();
+
+        let result = tokens;
+
+        assert!(result.is_err());
+
+        let err = result.unwrap_err();
+
+        assert!(matches!(err, LexicalError::NumberError(..)));
+
+        println!("{}", pretty_print_error(&err, input));
+
+        if let LexicalError::NumberError(pie, span) = err {
+            // #TODO more detailed Number error!
+            assert_eq!(pie.kind(), &IntErrorKind::InvalidDigit);
+            assert_eq!(span.start, 5);
+            // The span range is 'right-open'.
+            assert_eq!(span.end, 10);
+        }
     }
 }

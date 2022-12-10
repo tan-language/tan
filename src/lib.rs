@@ -1,2 +1,3 @@
-mod lexer;
-mod types;
+pub mod error;
+pub mod lexer;
+pub mod types;

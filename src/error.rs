@@ -1,6 +1,8 @@
 use crate::lexer::LexicalError;
 
-pub fn format_error(error: &LexicalError, chars: &[char]) -> String {
+pub fn pretty_print_error(error: &LexicalError, input: &str) -> String {
+    let chars = input.chars();
+
     match error {
         LexicalError::NumberError(_pie, span) => {
             let mut index: usize = 0;
@@ -11,7 +13,7 @@ pub fn format_error(error: &LexicalError, chars: &[char]) -> String {
             for c in chars {
                 index += 1;
 
-                if *c == '\n' {
+                if c == '\n' {
                     println!("{index} {line} {} {line_str}", span.start);
                     if index > span.start {
                         break;
@@ -25,7 +27,7 @@ pub fn format_error(error: &LexicalError, chars: &[char]) -> String {
                     continue;
                 }
 
-                line_str.push(*c);
+                line_str.push(c);
             }
 
             let line_space = " ".repeat(format!("{}", line + 1).len());
