@@ -1,4 +1,4 @@
-use crate::types::{Span, Spanned};
+use crate::spanned::{Span, Spanned};
 use std::error::Error;
 use std::fmt;
 use std::{num::ParseIntError, str::Chars};
@@ -47,17 +47,17 @@ impl fmt::Display for Token {
     }
 }
 
-impl AsRef<Token> for Spanned<Token> {
-    fn as_ref(&self) -> &Token {
-        &self.0
-    }
-}
+// impl AsRef<Token> for Spanned<Token> {
+//     fn as_ref(&self) -> &Token {
+//         &self.0
+//     }
+// }
 
 // #TODO better name or extract.
 #[derive(Debug)]
 pub enum LexicalError {
-    NumberError(ParseIntError, Span),
-    UnterminatedStringError(Span),
+    NumberError(ParseIntError),
+    UnterminatedStringError,
 }
 
 impl Error for LexicalError {}
@@ -123,7 +123,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    pub fn lex_string(&mut self) -> Result<Spanned<Token>, LexicalError> {
+    pub fn lex_string(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
         let start = self.index;
         let mut text = String::new();
 
@@ -140,22 +140,25 @@ impl<'a> Lexer<'a> {
         }
 
         if char != Some('"') {
-            return Err(LexicalError::UnterminatedStringError(self.span(start)));
+            return Err(Spanned::new(
+                LexicalError::UnterminatedStringError,
+                self.span(start),
+            ));
         }
 
-        Ok((Token::String(text), self.span(start)))
+        Ok(Spanned::new(Token::String(text), self.span(start)))
     }
 
     // #TODO consider passing into array of chars or something more general.
-    pub fn lex(&mut self) -> Result<Vec<Spanned<Token>>, LexicalError> {
+    pub fn lex(&mut self) -> Result<Vec<Spanned<Token>>, Spanned<LexicalError>> {
         let mut tokens: Vec<Spanned<Token>> = Vec::new();
 
         let mut char = self.next_char();
 
         while let Some(ch) = char {
             match ch {
-                '(' => tokens.push((Token::LParen, self.span(self.index))),
-                ')' => tokens.push((Token::RParen, self.span(self.index))),
+                '(' => tokens.push(Spanned::new(Token::LParen, self.span(self.index))),
+                ')' => tokens.push(Spanned::new(Token::RParen, self.span(self.index))),
                 ';' => {
                     let start = self.index;
                     let mut text = String::new();
@@ -173,7 +176,7 @@ impl<'a> Lexer<'a> {
                     let mut span = self.span(start);
                     // Adjust for the trailing '\n'.
                     span.end -= 1;
-                    tokens.push((Token::Comment(text), span));
+                    tokens.push(Spanned::new(Token::Comment(text), span));
                 }
                 '"' => {
                     tokens.push(self.lex_string()?);
@@ -202,9 +205,9 @@ impl<'a> Lexer<'a> {
 
                     let token = if is_number {
                         // #TODO error handling not enough, we need to add context, check error_stack
-                        let n: i64 = text
-                            .parse()
-                            .map_err(|err| LexicalError::NumberError(err, self.span(start)))?;
+                        let n: i64 = text.parse().map_err(|err| {
+                            Spanned::new(LexicalError::NumberError(err), self.span(start))
+                        })?;
 
                         // #TODO support 0b01111 binary numbers
                         // #TODO support 0xaf001 hex numbers
@@ -218,7 +221,7 @@ impl<'a> Lexer<'a> {
                         }
                     };
 
-                    tokens.push((token, self.span(start)));
+                    tokens.push(Spanned::new(token, self.span(start)));
                 }
             }
 
@@ -236,6 +239,7 @@ mod tests {
     use crate::{
         error::pretty_print_error,
         lexer::{Lexer, LexicalError, Token},
+        spanned::Spanned,
     };
 
     #[test]
@@ -260,9 +264,9 @@ mod tests {
         assert_eq!(tokens.len(), 8);
         assert!(matches!(tokens[0].as_ref(), Token::LParen));
         assert!(matches!(tokens[2].as_ref(), Token::Symbol(x) if x == "+"));
-        assert_eq!(tokens[2].1.start, 2);
+        assert_eq!(tokens[2].span.start, 2);
         assert!(matches!(tokens[3].as_ref(), Token::Number(..)));
-        assert_eq!(tokens[3].1.start, 4);
+        assert_eq!(tokens[3].span.start, 4);
         // #TODO add more assertions.
     }
 
@@ -277,16 +281,40 @@ mod tests {
 
         let err = result.unwrap_err();
 
-        assert!(matches!(err, LexicalError::NumberError(..)));
+        assert!(matches!(err.value, LexicalError::NumberError(..)));
 
         println!("{}", pretty_print_error(&err, input));
 
-        if let LexicalError::NumberError(pie, span) = err {
+        if let Spanned {
+            value: LexicalError::NumberError(pie),
+            span,
+        } = err
+        {
             // #TODO more detailed Number error!
             assert_eq!(pie.kind(), &IntErrorKind::InvalidDigit);
             assert_eq!(span.start, 5);
             // The span range is 'right-open'.
             assert_eq!(span.end, 10);
         }
+    }
+
+    #[test]
+    fn lex_reports_unterminated_strings() {
+        let input = r##"(write "Hello)"##;
+        let tokens = Lexer::new(input).lex();
+
+        let result = tokens;
+
+        assert!(result.is_err());
+
+        let err = result.unwrap_err();
+
+        assert!(matches!(err.value, LexicalError::UnterminatedStringError));
+
+        println!("{}", pretty_print_error(&err, input));
+
+        assert_eq!(err.span.start, 7);
+        // The span range is 'right-open'.
+        assert_eq!(err.span.end, 15);
     }
 }

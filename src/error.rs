@@ -1,13 +1,18 @@
-use crate::lexer::LexicalError;
+use std::error::Error;
+
+use crate::{lexer::LexicalError, spanned::Spanned};
+
+impl Error for Spanned<LexicalError> {}
 
 // #TODO handle all kinds of errors, not only LexicalError.
 
-pub fn pretty_print_error(error: &LexicalError, input: &str) -> String {
+pub fn pretty_print_error(error: &Spanned<LexicalError>, input: &str) -> String {
     let chars = input.chars();
+    let Spanned { value: error, span } = error;
 
     match error {
         // #TODO separate formatting from the actual error.
-        LexicalError::NumberError(_pie, span) => {
+        LexicalError::NumberError(..) => {
             let mut index: usize = 0;
             let mut line = 0;
             let mut line_start: usize = 0;
