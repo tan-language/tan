@@ -3,6 +3,7 @@ use std::fmt::Display;
 /// Represents a span in the source code.
 pub type Span = std::ops::Range<usize>;
 
+// #TODO weird name.
 #[derive(Debug)]
 pub struct Spanned<T> {
     pub value: T,

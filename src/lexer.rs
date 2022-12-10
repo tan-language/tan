@@ -148,7 +148,62 @@ impl<'a> Lexer<'a> {
     }
 
     pub fn lex_number(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
-        todo!()
+        let mut char = self.next_char();
+
+        // #TODO extract lexeme/span scanning.
+        // #TODO keep number value as string (and convert to proper Number kind after semantic analysis).
+
+        let start = self.index;
+        let mut text = String::new();
+
+        while let Some(ch) = char {
+            if is_whitespace(ch) || is_delimiter(ch) {
+                self.put_back_char(ch);
+                break;
+            }
+
+            text.push(ch);
+
+            char = self.next_char();
+        }
+
+        // #TODO more detailed Number error!
+        // #TODO error handling not enough, we need to add context, check error_stack
+        let n: i64 = text
+            .parse()
+            .map_err(|err| Spanned::new(LexicalError::NumberError(err), self.span(start)))?;
+
+        // #TODO support 0b01111 binary numbers
+        // #TODO support 0xaf001 hex numbers
+        // #TODO extract to lex_number
+
+        Ok(Spanned::new(Token::Number(n), self.span(start)))
+    }
+
+    pub fn lex_symbol(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
+        let mut char = self.next_char();
+
+        let start = self.index;
+        let mut text = String::new();
+
+        while let Some(ch) = char {
+            if is_whitespace(ch) || is_delimiter(ch) {
+                self.put_back_char(ch);
+                break;
+            }
+
+            text.push(ch);
+
+            char = self.next_char();
+        }
+
+        let token = match text.as_str() {
+            "if" => Token::If,
+            "using" => Token::Using,
+            _ => Token::Symbol(text),
+        };
+
+        Ok(Spanned::new(token, self.span(start)))
     }
 
     pub fn lex_string(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
@@ -195,46 +250,14 @@ impl<'a> Lexer<'a> {
                 _ if is_whitespace(ch) => {
                     // Consume whitespace
                 }
+                _ if ch.is_numeric() => {
+                    self.put_back_char(ch);
+                    tokens.push(self.lex_number()?);
+                    // tokens.push(Spanned::new(token, self.span(start)));
+                }
                 _ => {
-                    // #TODO check for reserved names: if, for, using, pragma
-
-                    let start = self.index;
-                    let mut text = String::new();
-
-                    let is_number = ch.is_numeric();
-
-                    while let Some(ch) = char {
-                        if is_whitespace(ch) || is_delimiter(ch) {
-                            self.put_back_char(ch);
-                            break;
-                        }
-
-                        text.push(ch);
-
-                        char = self.next_char();
-                    }
-
-                    let token = if is_number {
-                        // #TODO more detailed Number error!
-                        // #TODO error handling not enough, we need to add context, check error_stack
-                        let n: i64 = text.parse().map_err(|err| {
-                            Spanned::new(LexicalError::NumberError(err), self.span(start))
-                        })?;
-
-                        // #TODO support 0b01111 binary numbers
-                        // #TODO support 0xaf001 hex numbers
-                        // #TODO extract to lex_number
-
-                        Token::Number(n)
-                    } else {
-                        match text.as_str() {
-                            "if" => Token::If,
-                            "using" => Token::Using,
-                            _ => Token::Symbol(text),
-                        }
-                    };
-
-                    tokens.push(Spanned::new(token, self.span(start)));
+                    self.put_back_char(ch);
+                    tokens.push(self.lex_symbol()?);
                 }
             }
 
