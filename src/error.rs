@@ -4,18 +4,9 @@ use crate::{lexer::LexicalError, spanned::Spanned};
 
 impl Error for Spanned<LexicalError> {}
 
-// #TODO handle all kinds of errors, not only LexicalError.
-
-pub fn pretty_print_error(error: &Spanned<LexicalError>, input: &str) -> String {
+pub fn pretty_print_error<E: Error>(error: &Spanned<E>, input: &str) -> String {
     let chars = input.chars();
     let Spanned { value: error, span } = error;
-
-    let description = match error {
-        LexicalError::NumberError(pie) => {
-            format!("malformed number: {pie}")
-        }
-        LexicalError::UnterminatedStringError => "unterminated string".to_owned(),
-    };
 
     let mut index: usize = 0;
     let mut line = 0;
@@ -56,7 +47,7 @@ pub fn pretty_print_error(error: &Spanned<LexicalError>, input: &str) -> String 
 
     format!(
         "parse error: {}\n{}at input:{}:{}\n{}|\n{}| {}\n{}|{} {}",
-        description,
+        error,
         line_space,
         line + 1,
         col + 1,

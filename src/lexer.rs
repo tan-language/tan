@@ -64,7 +64,14 @@ impl Error for LexicalError {}
 
 impl fmt::Display for LexicalError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{self:?}")
+        match self {
+            LexicalError::NumberError(pie) => {
+                write!(f, "malformed number: {pie}")
+            }
+            LexicalError::UnterminatedStringError => {
+                write!(f, "unterminated string")
+            }
+        }
     }
 }
 
