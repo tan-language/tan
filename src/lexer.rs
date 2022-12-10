@@ -203,6 +203,7 @@ impl<'a> Lexer<'a> {
                     }
 
                     let token = if is_number {
+                        // #TODO more detailed Number error!
                         // #TODO error handling not enough, we need to add context, check error_stack
                         let n: i64 = text.parse().map_err(|err| {
                             Spanned::new(LexicalError::NumberError(err), self.span(start))
@@ -282,17 +283,15 @@ mod tests {
 
         assert!(matches!(err.value, LexicalError::NumberError(..)));
 
-        println!("{}", pretty_print_error(&err, input));
+        eprintln!("{}", pretty_print_error(&err, input));
 
         if let Spanned {
             value: LexicalError::NumberError(pie),
             span,
         } = err
         {
-            // #TODO more detailed Number error!
             assert_eq!(pie.kind(), &IntErrorKind::InvalidDigit);
             assert_eq!(span.start, 5);
-            // The span range is 'right-open'.
             assert_eq!(span.end, 10);
         }
     }
@@ -310,10 +309,9 @@ mod tests {
 
         assert!(matches!(err.value, LexicalError::UnterminatedStringError));
 
-        println!("{}", pretty_print_error(&err, input));
+        eprintln!("{}", pretty_print_error(&err, input));
 
         assert_eq!(err.span.start, 7);
-        // The span range is 'right-open'.
         assert_eq!(err.span.end, 14);
     }
 }

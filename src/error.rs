@@ -26,7 +26,6 @@ pub fn pretty_print_error(error: &Spanned<LexicalError>, input: &str) -> String 
         index += 1;
 
         if c == '\n' {
-            println!("{index} {line} {} {line_str}", span.start);
             if index > span.start {
                 break;
             }
@@ -54,8 +53,6 @@ pub fn pretty_print_error(error: &Spanned<LexicalError>, input: &str) -> String 
 
     let col = span.start - line_start;
     let indicator_space = " ".repeat(col);
-
-    // let description = "malformed number";
 
     format!(
         "parse error: {}\n{}at input:{}:{}\n{}|\n{}| {}\n{}|{} {}",
