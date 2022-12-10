@@ -47,13 +47,7 @@ impl fmt::Display for Token {
     }
 }
 
-// impl AsRef<Token> for Spanned<Token> {
-//     fn as_ref(&self) -> &Token {
-//         &self.0
-//     }
-// }
-
-// #TODO better name or extract.
+// #TODO Consider just having a single `ParseError` or `SyntaxError`?
 #[derive(Debug)]
 pub enum LexicalError {
     NumberError(ParseIntError),
@@ -218,6 +212,7 @@ impl<'a> Lexer<'a> {
 
                         // #TODO support 0b01111 binary numbers
                         // #TODO support 0xaf001 hex numbers
+                        // #TODO extract to lex_number
 
                         Token::Number(n)
                     } else {
