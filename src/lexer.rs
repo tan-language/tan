@@ -223,13 +223,14 @@ impl<'a> Lexer<'a> {
             char = self.next_char();
         }
 
+        let mut span = self.span(start);
+
         if char != Some('"') {
-            let mut span = self.span(start);
             span.end -= 1;
             return Err(Spanned::new(LexicalError::UnterminatedStringError, span));
         }
 
-        Ok(Spanned::new(Token::String(text), self.span(start)))
+        Ok(Spanned::new(Token::String(text), span))
     }
 
     // #TODO consider passing into array of chars or something more general.
@@ -240,8 +241,12 @@ impl<'a> Lexer<'a> {
 
         while let Some(ch) = char {
             match ch {
-                '(' => tokens.push(Spanned::new(Token::LParen, self.span(self.index))),
-                ')' => tokens.push(Spanned::new(Token::RParen, self.span(self.index))),
+                '(' => {
+                    tokens.push(Spanned::new(Token::LParen, self.span(self.index)));
+                }
+                ')' => {
+                    tokens.push(Spanned::new(Token::RParen, self.span(self.index)));
+                }
                 ';' => {
                     tokens.push(self.lex_comment()?);
                 }
@@ -273,7 +278,7 @@ mod tests {
     use std::num::IntErrorKind;
 
     use crate::{
-        error::pretty_print_error,
+        error::format_pretty_spanned_error,
         lexer::{Lexer, LexicalError, Token},
         spanned::Spanned,
     };
@@ -346,7 +351,7 @@ mod tests {
 
         assert!(matches!(err.value, LexicalError::NumberError(..)));
 
-        eprintln!("{}", pretty_print_error(&err, input));
+        eprintln!("{}", format_pretty_spanned_error(&err, input));
 
         if let Spanned {
             value: LexicalError::NumberError(pie),
@@ -372,7 +377,7 @@ mod tests {
 
         assert!(matches!(err.value, LexicalError::UnterminatedStringError));
 
-        eprintln!("{}", pretty_print_error(&err, input));
+        eprintln!("{}", format_pretty_spanned_error(&err, input));
 
         assert_eq!(err.span.start, 7);
         assert_eq!(err.span.end, 14);

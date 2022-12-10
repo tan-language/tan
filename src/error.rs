@@ -5,7 +5,7 @@ use crate::{lexer::LexicalError, spanned::Spanned};
 impl Error for Spanned<LexicalError> {}
 
 // #TODO add as method to Spanned<E: Error>? e.g. `format_pretty`
-pub fn pretty_print_error<E: Error>(error: &Spanned<E>, input: &str) -> String {
+pub fn format_pretty_spanned_error<E: Error>(error: &Spanned<E>, input: &str) -> String {
     let chars = input.chars();
     let Spanned { value: error, span } = error;
 
