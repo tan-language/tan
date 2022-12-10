@@ -131,6 +131,7 @@ impl<'a> Lexer<'a> {
         let mut text = String::new();
 
         while let Some(ch) = char {
+            // #TODO maybe whitespace does not need put_back, but need to adjust span.
             if is_whitespace(ch) || is_delimiter(ch) {
                 self.put_back_char(ch);
                 break;
@@ -172,6 +173,8 @@ impl<'a> Lexer<'a> {
     pub fn lex_number(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
         // #TODO keep number value as string (and convert to proper Number kind after semantic analysis).
 
+        // #TODO needs custom scan to skip `_` characters
+        // #TODO should allow (skip) `,` characters in number lexeme?
         let Spanned {
             value: lexeme,
             span,
@@ -185,7 +188,6 @@ impl<'a> Lexer<'a> {
 
         // #TODO support 0b01111 binary numbers
         // #TODO support 0xaf001 hex numbers
-        // #TODO extract to lex_number
 
         Ok(Spanned::new(Token::Number(n), span))
     }
