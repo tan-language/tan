@@ -140,10 +140,9 @@ impl<'a> Lexer<'a> {
         }
 
         if char != Some('"') {
-            return Err(Spanned::new(
-                LexicalError::UnterminatedStringError,
-                self.span(start),
-            ));
+            let mut span = self.span(start);
+            span.end -= 1;
+            return Err(Spanned::new(LexicalError::UnterminatedStringError, span));
         }
 
         Ok(Spanned::new(Token::String(text), self.span(start)))
@@ -315,6 +314,6 @@ mod tests {
 
         assert_eq!(err.span.start, 7);
         // The span range is 'right-open'.
-        assert_eq!(err.span.end, 15);
+        assert_eq!(err.span.end, 14);
     }
 }
