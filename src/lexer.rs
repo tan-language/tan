@@ -124,6 +124,33 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    pub fn lex_comment(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
+        let start = self.index;
+        let mut text = String::from(";");
+
+        let mut char = self.next_char();
+
+        while let Some(ch) = char {
+            if ch == '\n' {
+                break;
+            }
+
+            text.push(ch);
+
+            char = self.next_char();
+        }
+
+        let mut span = self.span(start);
+        // Adjust for the trailing '\n'.
+        span.end -= 1;
+
+        Ok(Spanned::new(Token::Comment(text), span))
+    }
+
+    pub fn lex_number(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
+        todo!()
+    }
+
     pub fn lex_string(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
         let start = self.index;
         let mut text = String::new();
@@ -160,23 +187,7 @@ impl<'a> Lexer<'a> {
                 '(' => tokens.push(Spanned::new(Token::LParen, self.span(self.index))),
                 ')' => tokens.push(Spanned::new(Token::RParen, self.span(self.index))),
                 ';' => {
-                    let start = self.index;
-                    let mut text = String::new();
-
-                    while let Some(ch) = char {
-                        if ch == '\n' {
-                            break;
-                        }
-
-                        text.push(ch);
-
-                        char = self.next_char();
-                    }
-
-                    let mut span = self.span(start);
-                    // Adjust for the trailing '\n'.
-                    span.end -= 1;
-                    tokens.push(Spanned::new(Token::Comment(text), span));
+                    tokens.push(self.lex_comment()?);
                 }
                 '"' => {
                     tokens.push(self.lex_string()?);
@@ -270,6 +281,33 @@ mod tests {
         assert!(matches!(tokens[3].as_ref(), Token::Number(..)));
         assert_eq!(tokens[3].span.start, 4);
         // #TODO add more assertions.
+    }
+
+    #[test]
+    fn lex_parses_comments() {
+        let input = "; This is a comment\n;; Another comment\n(write \"hello\")";
+        let tokens = Lexer::new(input).lex();
+
+        let tokens = tokens.unwrap();
+
+        assert!(matches!(tokens[0].as_ref(), Token::Comment(x) if x == "; This is a comment"));
+        assert!(matches!(tokens[1].as_ref(), Token::Comment(x) if x == ";; Another comment"));
+    }
+
+    #[test]
+    fn lex_handles_radix_numbers() {
+        // let input = "0b11111";
+        // let tokens = Lexer::new(input).lex().unwrap();
+
+        // assert_eq!(tokens.len(), 1);
+        // assert_eq!(tokens[0].text, "0b11111");
+
+        // let input = "0x0f";
+        // let chars: Vec<char> = input.chars().collect();
+        // let tokens = lex(&chars).unwrap();
+
+        // assert_eq!(tokens.len(), 1);
+        // assert_eq!(tokens[0].text, "0x0f");
     }
 
     #[test]
