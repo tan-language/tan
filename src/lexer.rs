@@ -124,6 +124,28 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    fn scan_lexeme(&mut self) -> Spanned<String> {
+        let mut char = self.next_char();
+
+        let start = self.index;
+        let mut text = String::new();
+
+        while let Some(ch) = char {
+            if is_whitespace(ch) || is_delimiter(ch) {
+                self.put_back_char(ch);
+                break;
+            }
+
+            text.push(ch);
+
+            char = self.next_char();
+        }
+
+        let span = self.span(start);
+
+        Spanned::new(text, span)
+    }
+
     pub fn lex_comment(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
         let start = self.index;
         let mut text = String::from(";");
@@ -148,62 +170,39 @@ impl<'a> Lexer<'a> {
     }
 
     pub fn lex_number(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
-        let mut char = self.next_char();
-
-        // #TODO extract lexeme/span scanning.
         // #TODO keep number value as string (and convert to proper Number kind after semantic analysis).
 
-        let start = self.index;
-        let mut text = String::new();
-
-        while let Some(ch) = char {
-            if is_whitespace(ch) || is_delimiter(ch) {
-                self.put_back_char(ch);
-                break;
-            }
-
-            text.push(ch);
-
-            char = self.next_char();
-        }
+        let Spanned {
+            value: lexeme,
+            span,
+        } = self.scan_lexeme();
 
         // #TODO more detailed Number error!
         // #TODO error handling not enough, we need to add context, check error_stack
-        let n: i64 = text
+        let n: i64 = lexeme
             .parse()
-            .map_err(|err| Spanned::new(LexicalError::NumberError(err), self.span(start)))?;
+            .map_err(|err| Spanned::new(LexicalError::NumberError(err), span.clone()))?;
 
         // #TODO support 0b01111 binary numbers
         // #TODO support 0xaf001 hex numbers
         // #TODO extract to lex_number
 
-        Ok(Spanned::new(Token::Number(n), self.span(start)))
+        Ok(Spanned::new(Token::Number(n), span))
     }
 
     pub fn lex_symbol(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
-        let mut char = self.next_char();
+        let Spanned {
+            value: lexeme,
+            span,
+        } = self.scan_lexeme();
 
-        let start = self.index;
-        let mut text = String::new();
-
-        while let Some(ch) = char {
-            if is_whitespace(ch) || is_delimiter(ch) {
-                self.put_back_char(ch);
-                break;
-            }
-
-            text.push(ch);
-
-            char = self.next_char();
-        }
-
-        let token = match text.as_str() {
+        let token = match lexeme.as_str() {
             "if" => Token::If,
             "using" => Token::Using,
-            _ => Token::Symbol(text),
+            _ => Token::Symbol(lexeme),
         };
 
-        Ok(Spanned::new(token, self.span(start)))
+        Ok(Spanned::new(token, span))
     }
 
     pub fn lex_string(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
@@ -253,7 +252,6 @@ impl<'a> Lexer<'a> {
                 _ if ch.is_numeric() => {
                     self.put_back_char(ch);
                     tokens.push(self.lex_number()?);
-                    // tokens.push(Spanned::new(token, self.span(start)));
                 }
                 _ => {
                     self.put_back_char(ch);

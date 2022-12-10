@@ -4,7 +4,7 @@ use std::fmt::Display;
 pub type Span = std::ops::Range<usize>;
 
 // #TODO weird name.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Spanned<T> {
     pub value: T,
     pub span: Span,
