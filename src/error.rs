@@ -1,9 +1,12 @@
 use crate::lexer::LexicalError;
 
+// #TODO handle all kinds of errors, not only LexicalError.
+
 pub fn pretty_print_error(error: &LexicalError, input: &str) -> String {
     let chars = input.chars();
 
     match error {
+        // #TODO separate formatting from the actual error.
         LexicalError::NumberError(_pie, span) => {
             let mut index: usize = 0;
             let mut line = 0;

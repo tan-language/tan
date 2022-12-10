@@ -235,7 +235,7 @@ mod tests {
 
     use crate::{
         error::pretty_print_error,
-        lexer::{Lexer, LexicalError},
+        lexer::{Lexer, LexicalError, Token},
     };
 
     #[test]
@@ -255,11 +255,15 @@ mod tests {
 
         let tokens = tokens.unwrap();
 
-        // dbg!(&tokens);
+        dbg!(&tokens);
 
         assert_eq!(tokens.len(), 8);
-
-        // #TODO add specific assertions.
+        assert!(matches!(tokens[0].as_ref(), Token::LParen));
+        assert!(matches!(tokens[2].as_ref(), Token::Symbol(x) if x == "+"));
+        assert_eq!(tokens[2].1.start, 2);
+        assert!(matches!(tokens[3].as_ref(), Token::Number(..)));
+        assert_eq!(tokens[3].1.start, 4);
+        // #TODO add more assertions.
     }
 
     #[test]
