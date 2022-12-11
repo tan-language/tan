@@ -81,6 +81,9 @@ fn is_delimiter(ch: char) -> bool {
 
 // #TODO stateful lexer vs buffer
 
+/// The Lexer performs the lexical analysis stage of the compilation pipeline.
+/// The input text is scanned into lexemes and then evaluated into lexical tokens.
+/// The tokens are associated with spans (ranges within the input text).
 pub struct Lexer<'a> {
     chars: Chars<'a>,
     index: usize,
@@ -171,14 +174,14 @@ impl<'a> Lexer<'a> {
     }
 
     pub fn lex_number(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
-        // #TODO keep number value as string (and convert to proper Number kind after semantic analysis).
-
-        // #TODO needs custom scan to skip `_` characters
-        // #TODO should allow (skip) `,` characters in number lexeme?
         let Spanned {
             value: lexeme,
             span,
         } = self.scan_lexeme();
+
+        // Ignore `_`, it is considered a number separator.
+        // #Insight fo _not_ consider `,` as number separator, bad idea!
+        let lexeme = lexeme.replace('_', "");
 
         // #TODO more detailed Number error!
         // #TODO error handling not enough, we need to add context, check error_stack
@@ -323,7 +326,17 @@ mod tests {
     }
 
     #[test]
-    fn lex_handles_radix_numbers() {
+    fn lex_handles_number_separators() {
+        let input = "(+ 1 3_000)";
+        let tokens = Lexer::new(input).lex().unwrap();
+
+        // dbg!(&tokens);
+
+        assert!(matches!(tokens[3].as_ref(), Token::Number(n) if n == &3000));
+    }
+
+    #[test]
+    fn lex_handles_numbers_with_radix() {
         // let input = "0b11111";
         // let tokens = Lexer::new(input).lex().unwrap();
 
