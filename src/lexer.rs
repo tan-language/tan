@@ -186,6 +186,8 @@ impl<'a> Lexer<'a> {
         // #Insight fo _not_ consider `,` as number separator, bad idea!
         let mut lexeme = lexeme.replace('_', "");
 
+        // #TODO support radix-8
+        // #TODO support arbitrary radix
         let mut radix = 10;
 
         if lexeme.starts_with("0x") {
