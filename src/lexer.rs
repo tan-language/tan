@@ -91,6 +91,7 @@ pub struct Lexer<'a> {
 }
 
 impl<'a> Lexer<'a> {
+    /// Makes a new Lexer with the given input text.
     pub fn new(input: &'a str) -> Self {
         Self {
             chars: input.chars(),
@@ -99,6 +100,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    /// Returns the input text as a String.
     pub fn input(&self) -> String {
         self.chars.clone().collect()
     }
@@ -127,6 +129,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    // #TODO try to reuse in more lexers!
     fn scan_lexeme(&mut self) -> Spanned<String> {
         let mut char = self.next_char();
 
@@ -150,7 +153,7 @@ impl<'a> Lexer<'a> {
         Spanned::new(text, span)
     }
 
-    pub fn lex_comment(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
+    fn lex_comment(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
         let start = self.index;
         let mut text = String::from(";");
 
@@ -173,7 +176,7 @@ impl<'a> Lexer<'a> {
         Ok(Spanned::new(Token::Comment(text), span))
     }
 
-    pub fn lex_number(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
+    fn lex_number(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
         let Spanned {
             value: lexeme,
             span,
@@ -181,21 +184,28 @@ impl<'a> Lexer<'a> {
 
         // Ignore `_`, it is considered a number separator.
         // #Insight fo _not_ consider `,` as number separator, bad idea!
-        let lexeme = lexeme.replace('_', "");
+        let mut lexeme = lexeme.replace('_', "");
+
+        let mut radix = 10;
+
+        if lexeme.starts_with("0x") {
+            lexeme = lexeme.replace("0x", "");
+            radix = 16
+        } else if lexeme.starts_with("0b") {
+            lexeme = lexeme.replace("0b", "");
+            radix = 2
+        }
 
         // #TODO more detailed Number error!
         // #TODO error handling not enough, we need to add context, check error_stack
-        let n: i64 = lexeme
-            .parse()
-            .map_err(|err| Spanned::new(LexicalError::NumberError(err), span.clone()))?;
 
-        // #TODO support 0b01111 binary numbers
-        // #TODO support 0xaf001 hex numbers
+        let n = i64::from_str_radix(&lexeme, radix)
+            .map_err(|err| Spanned::new(LexicalError::NumberError(err), span.clone()))?;
 
         Ok(Spanned::new(Token::Number(n), span))
     }
 
-    pub fn lex_symbol(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
+    fn lex_symbol(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
         let Spanned {
             value: lexeme,
             span,
@@ -210,7 +220,7 @@ impl<'a> Lexer<'a> {
         Ok(Spanned::new(token, span))
     }
 
-    pub fn lex_string(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
+    fn lex_string(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
         let start = self.index;
         let mut text = String::new();
 
@@ -336,19 +346,31 @@ mod tests {
     }
 
     #[test]
-    fn lex_handles_numbers_with_radix() {
-        // let input = "0b11111";
+    fn lex_handles_number_signs() {
+        // let input = "(+ 1 +3_000)";
         // let tokens = Lexer::new(input).lex().unwrap();
 
-        // assert_eq!(tokens.len(), 1);
-        // assert_eq!(tokens[0].text, "0b11111");
+        // // dbg!(&tokens);
 
-        // let input = "0x0f";
-        // let chars: Vec<char> = input.chars().collect();
-        // let tokens = lex(&chars).unwrap();
+        // assert!(matches!(tokens[3].as_ref(), Token::Number(n) if n == &3000));
+    }
 
-        // assert_eq!(tokens.len(), 1);
-        // assert_eq!(tokens[0].text, "0x0f");
+    #[test]
+    fn lex_handles_numbers_with_radix() {
+        let input = "(let a 0xfe)";
+        let tokens = Lexer::new(input).lex().unwrap();
+
+        assert!(matches!(tokens[3].as_ref(), Token::Number(n) if n == &254));
+
+        let input = "(let a 0b1010)";
+        let tokens = Lexer::new(input).lex().unwrap();
+
+        assert!(matches!(tokens[3].as_ref(), Token::Number(n) if n == &10));
+
+        let input = "(let a 0b00000)";
+        let tokens = Lexer::new(input).lex().unwrap();
+
+        assert!(matches!(tokens[3].as_ref(), Token::Number(n) if n == &0));
     }
 
     #[test]
