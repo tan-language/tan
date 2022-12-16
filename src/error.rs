@@ -4,6 +4,8 @@ use crate::{lexer::LexicalError, spanned::Spanned};
 
 impl Error for Spanned<LexicalError> {}
 
+// #TODO add methods to find positions (line, col) from span index!
+
 // #TODO add as method to Spanned<E: Error>? e.g. `format_pretty`
 pub fn format_pretty_spanned_error<E: Error>(error: &Spanned<E>, input: &str) -> String {
     let chars = input.chars();

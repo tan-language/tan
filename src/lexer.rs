@@ -59,6 +59,7 @@ impl fmt::Display for Token {
 pub enum LexicalError {
     NumberError(ParseIntError),
     UnterminatedStringError,
+    UnterminatedAnnotationError,
 }
 
 impl Error for LexicalError {}
@@ -71,6 +72,9 @@ impl fmt::Display for LexicalError {
             }
             LexicalError::UnterminatedStringError => {
                 write!(f, "unterminated string")
+            }
+            LexicalError::UnterminatedAnnotationError => {
+                write!(f, "unterminated annotation")
             }
         }
     }
@@ -262,11 +266,6 @@ impl<'a> Lexer<'a> {
     }
 
     fn lex_annotation(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
-        // let Spanned {
-        //     value: lexeme,
-        //     span,
-        // } = self.scan_lexeme();
-
         let mut char = self.next_char();
 
         let start = self.index;
@@ -274,7 +273,7 @@ impl<'a> Lexer<'a> {
 
         let mut nesting = 0;
 
-        // #TODO check for unclosed annotation.
+        // #TODO only allow one level of nesting?
 
         while let Some(ch) = char {
             if ch == '(' {
@@ -292,7 +291,16 @@ impl<'a> Lexer<'a> {
             char = self.next_char();
         }
 
-        let span = self.span(start);
+        let mut span = self.span(start);
+
+        if nesting != 0 {
+            span.start -= 1;
+            span.end -= 1;
+            return Err(Spanned::new(
+                LexicalError::UnterminatedAnnotationError,
+                span,
+            ));
+        }
 
         Ok(Spanned::new(Token::Annotation(text), span))
     }
@@ -485,5 +493,30 @@ mod tests {
 
         assert_eq!(err.span.start, 7);
         assert_eq!(err.span.end, 14);
+    }
+
+    #[test]
+    fn lex_reports_unterminated_annotations() {
+        let input = r##"
+        #deprecated
+        #(inline true
+        (write "Hello)
+        "##;
+        let tokens = Lexer::new(input).lex();
+
+        let result = tokens;
+
+        assert!(result.is_err());
+
+        let err = result.unwrap_err();
+
+        assert!(matches!(
+            err.value,
+            LexicalError::UnterminatedAnnotationError
+        ));
+
+        eprintln!("{}", format_pretty_spanned_error(&err, input));
+
+        assert_eq!(err.span.start, 29);
     }
 }
