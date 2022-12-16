@@ -1,5 +1,8 @@
 use std::fmt::Display;
 
+// #TODO keep the name `Range` instead of `Span`?
+// #TODO add methods to find positions (line, col) from span index!
+
 /// Represents a span in the source code.
 pub type Span = std::ops::Range<usize>;
 

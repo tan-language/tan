@@ -353,9 +353,9 @@ mod tests {
     use std::num::IntErrorKind;
 
     use crate::{
-        error::format_pretty_spanned_error,
         lexer::{Lexer, LexicalError, Token},
         spanned::Spanned,
+        util::format::format_pretty_spanned_error,
     };
 
     #[test]
