@@ -12,6 +12,7 @@ use std::{num::ParseIntError, str::Chars};
 // #TODO parse signed numbers
 // #TODO use annotations before number literals to set the type?
 // #TODO use (doc_comment ...) for doc-comments.
+// #TODO support `\ ` for escaped space in symbols.
 
 // #Insight
 // There is no need for an EOF Token. The end of the Token list marks the end
@@ -85,6 +86,10 @@ fn is_delimiter(ch: char) -> bool {
     ch == '(' || ch == ')'
 }
 
+fn is_eol(ch: char) -> bool {
+    ch == '\n'
+}
+
 // #TODO stateful lexer vs buffer
 
 /// The Lexer performs the lexical analysis stage of the compilation pipeline.
@@ -135,6 +140,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    // #TODO add unit tests
     // #TODO try to reuse in more lexers!
     fn scan_lexeme(&mut self) -> Spanned<String> {
         let mut char = self.next_char();
@@ -144,7 +150,7 @@ impl<'a> Lexer<'a> {
 
         while let Some(ch) = char {
             // #TODO maybe whitespace does not need put_back, but need to adjust span.
-            if is_whitespace(ch) || is_delimiter(ch) {
+            if is_whitespace(ch) || is_delimiter(ch) || is_eol(ch) {
                 self.put_back_char(ch);
                 break;
             }
@@ -228,6 +234,7 @@ impl<'a> Lexer<'a> {
         Ok(Spanned::new(token, span))
     }
 
+    // #TODO support multi-line strings
     fn lex_string(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
         let start = self.index;
         let mut text = String::new();
@@ -254,6 +261,42 @@ impl<'a> Lexer<'a> {
         Ok(Spanned::new(Token::String(text), span))
     }
 
+    fn lex_annotation(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
+        // let Spanned {
+        //     value: lexeme,
+        //     span,
+        // } = self.scan_lexeme();
+
+        let mut char = self.next_char();
+
+        let start = self.index;
+        let mut text = String::new();
+
+        let mut nesting = 0;
+
+        // #TODO check for unclosed annotation.
+
+        while let Some(ch) = char {
+            if ch == '(' {
+                nesting += 1;
+            } else if ch == ')' {
+                nesting -= 1;
+            } else if nesting == 0 && (is_whitespace(ch) || is_eol(ch)) {
+                // #TODO maybe whitespace does not need put_back, but need to adjust span.
+                self.put_back_char(ch);
+                break;
+            }
+
+            text.push(ch);
+
+            char = self.next_char();
+        }
+
+        let span = self.span(start);
+
+        Ok(Spanned::new(Token::Annotation(text), span))
+    }
+
     // #TODO consider passing into array of chars or something more general.
     pub fn lex(&mut self) -> Result<Vec<Spanned<Token>>, Spanned<LexicalError>> {
         let mut tokens: Vec<Spanned<Token>> = Vec::new();
@@ -273,6 +316,9 @@ impl<'a> Lexer<'a> {
                 }
                 '"' => {
                     tokens.push(self.lex_string()?);
+                }
+                '#' => {
+                    tokens.push(self.lex_annotation()?);
                 }
                 _ if is_whitespace(ch) => {
                     // Consume whitespace
@@ -341,6 +387,21 @@ mod tests {
 
         assert!(matches!(tokens[0].as_ref(), Token::Comment(x) if x == "; This is a comment"));
         assert!(matches!(tokens[1].as_ref(), Token::Comment(x) if x == ";; Another comment"));
+    }
+
+    #[test]
+    fn lex_parses_annotations() {
+        let input = "
+            #deprecated
+            #(inline 'always)
+            (let #public (add x y) (+ x y))
+        ";
+        let tokens = Lexer::new(input).lex();
+
+        let tokens = tokens.unwrap();
+
+        assert!(matches!(tokens[0].as_ref(), Token::Annotation(x) if x == "deprecated"));
+        assert!(matches!(tokens[1].as_ref(), Token::Annotation(x) if x == "(inline 'always)"));
     }
 
     #[test]
