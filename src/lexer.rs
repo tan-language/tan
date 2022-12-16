@@ -1,7 +1,8 @@
-use crate::spanned::{Span, Spanned};
-use std::error::Error;
 use std::fmt;
-use std::{num::ParseIntError, str::Chars};
+use std::str::Chars;
+
+use crate::error::LexicalError;
+use crate::spanned::{Span, Spanned};
 
 // https://en.wikipedia.org/wiki/Lexical_analysis
 
@@ -51,32 +52,6 @@ impl fmt::Display for Token {
             })
             .as_str(),
         )
-    }
-}
-
-// #TODO Consider just having a single `ParseError` or `SyntaxError`?
-#[derive(Debug)]
-pub enum LexicalError {
-    NumberError(ParseIntError),
-    UnterminatedStringError,
-    UnterminatedAnnotationError,
-}
-
-impl Error for LexicalError {}
-
-impl fmt::Display for LexicalError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            LexicalError::NumberError(pie) => {
-                write!(f, "malformed number: {pie}")
-            }
-            LexicalError::UnterminatedStringError => {
-                write!(f, "unterminated string")
-            }
-            LexicalError::UnterminatedAnnotationError => {
-                write!(f, "unterminated annotation")
-            }
-        }
     }
 }
 
