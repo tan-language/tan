@@ -8,6 +8,10 @@ use std::{num::ParseIntError, str::Chars};
 // #TODO lex_all, lex_single
 // #TODO use peekable iterator instead of put_back/lookahead.
 // #TODO introduce SemanticToken, with extra semantic information, _after_ parsing.
+// #TODO parse Annotations #.. #(..)
+// #TODO parse signed numbers
+// #TODO use annotations before number literals to set the type?
+// #TODO use (doc_comment ...) for doc-comments.
 
 // #Insight
 // There is no need for an EOF Token. The end of the Token list marks the end
@@ -23,6 +27,7 @@ pub enum Token {
     Symbol(String),
     If,
     Using,
+    Annotation(String),
     // True,
     // False,
     Comment(String),
@@ -30,17 +35,18 @@ pub enum Token {
 
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use Token::*;
+        // #TODO optimize this!
         f.write_str(
             (match self {
-                LParen => "(".to_string(),
-                RParen => ")".to_string(),
-                Number(n) => format!("{}", n),
-                String(s) => s.to_string(),
-                Symbol(s) => s.to_string(),
-                If => "if".to_string(),
-                Using => "using".to_string(),
-                Comment(s) => s.to_string(),
+                Token::LParen => "(".to_owned(),
+                Token::RParen => ")".to_owned(),
+                Token::Number(n) => format!("{}", n),
+                Token::String(s) => s.clone(),
+                Token::Symbol(s) => s.clone(),
+                Token::If => "if".to_owned(),
+                Token::Using => "using".to_owned(),
+                Token::Annotation(s) => s.clone(),
+                Token::Comment(s) => s.clone(),
             })
             .as_str(),
         )
