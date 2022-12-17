@@ -40,33 +40,39 @@ impl<'a> Parser<'a> {
         self.index -= 1;
     }
 
-    pub fn parse_atom() {
+    pub fn parse_atom(&mut self) -> Result<Expr, Spanned<ParseError>> {
         todo!()
     }
 
-    pub fn parse_list() {
+    pub fn parse_list(&mut self) -> Result<Expr, Spanned<ParseError>> {
         todo!()
     }
 
     // #TODO returns AST
     pub fn parse(&mut self) -> Result<Expr, Spanned<ParseError>> {
-        let mut ast = Expr::List(Vec::new());
+        let mut exprs = Vec::new();
 
         let mut token = self.next_token();
 
         while let Some(st) = token {
             let Spanned { value: t, span } = st;
-            match t {
-                Token::Comment(..) => (),
-                Token::LParen => (),
-                Token::RParen => (),
-                _ => print!("Unhandled"),
-            }
+            let expr = match t {
+                Token::Comment(..) => break,
+                Token::LParen => self.parse_list()?,
+                _ => {
+                    return Err(Spanned::new(
+                        ParseError::UnexpectedToken(t.clone()),
+                        span.clone(),
+                    ));
+                }
+            };
+
+            exprs.push(expr);
 
             token = self.next_token();
         }
 
-        Ok(ast)
+        Ok(Expr::List(exprs))
     }
 }
 
@@ -76,21 +82,40 @@ mod tests {
         lexer::{token::Token, Lexer},
         parser::expr::Expr,
         span::Spanned,
+        util::format::format_pretty_spanned_error,
     };
 
     use super::Parser;
 
-    fn read_tokens(filename: &str) -> Vec<Spanned<Token>> {
-        let input = std::fs::read_to_string(format!("tests/fixtures/{filename}")).unwrap();
-        let mut lexer = Lexer::new(&input);
+    fn read_input(filename: &str) -> String {
+        std::fs::read_to_string(format!("tests/fixtures/{filename}")).unwrap()
+    }
+
+    fn lex_tokens(input: &str) -> Vec<Spanned<Token>> {
+        let mut lexer = Lexer::new(input);
         lexer.lex().unwrap()
     }
 
     #[test]
     fn parse_handles_an_empty_token_list() {
-        let tokens = read_tokens("empty.tan");
+        let input = &read_input("empty.tan");
+        let tokens = lex_tokens(input);
         let mut parser = Parser::new(&tokens);
         let ast = parser.parse().unwrap();
         assert!(matches!(ast, Expr::List(x) if x.is_empty()));
+    }
+
+    #[test]
+    fn parse_reports_unexpected_tokens() {
+        let input = ")";
+        let tokens = lex_tokens(&input);
+        let mut parser = Parser::new(&tokens);
+
+        let result = parser.parse();
+        assert!(result.is_err());
+
+        let err = result.unwrap_err();
+
+        eprintln!("{}", format_pretty_spanned_error(&err, input));
     }
 }
