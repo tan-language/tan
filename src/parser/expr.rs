@@ -5,7 +5,7 @@
 
 #[derive(Debug)]
 pub enum Expr {
-    One,        // Unit
+    One,        // Unit == List(Vec::new())
     Bool(bool), // #TODO remove?
     Int(i64),
     Symbol(String),

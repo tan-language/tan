@@ -296,10 +296,14 @@ mod tests {
         util::format::format_pretty_spanned_error,
     };
 
+    fn read_input(filename: &str) -> String {
+        std::fs::read_to_string(format!("tests/fixtures/{filename}")).unwrap()
+    }
+
     #[test]
     fn lex_handles_an_empty_string() {
-        let input = "";
-        let tokens = Lexer::new(input).lex();
+        let input = read_input("empty.tan");
+        let tokens = Lexer::new(&input).lex();
 
         let tokens = tokens.unwrap();
 
