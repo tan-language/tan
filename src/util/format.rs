@@ -1,8 +1,11 @@
 use std::error::Error;
 
-use crate::spanned::Spanned;
+use crate::span::Spanned;
 
+// #TODO make more beautiful than Rust.
+// #TODO print filename if it exists.
 // #TODO add as method to Spanned<E: Error>? e.g. `format_pretty`
+
 pub fn format_pretty_spanned_error<E: Error>(error: &Spanned<E>, input: &str) -> String {
     let chars = input.chars();
     let Spanned { value: error, span } = error;
@@ -45,7 +48,7 @@ pub fn format_pretty_spanned_error<E: Error>(error: &Spanned<E>, input: &str) ->
     let indicator_space = " ".repeat(col);
 
     format!(
-        "parse error: {}\n{}at input:{}:{}\n{}|\n{}| {}\n{}|{} {}",
+        "error: {}\n{}at input:{}:{}\n{}|\n{}| {}\n{}|{} {}",
         error,
         line_space,
         line + 1,

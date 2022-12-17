@@ -1,59 +1,21 @@
-use std::fmt;
 use std::str::Chars;
 
-use crate::error::LexicalError;
-use crate::spanned::{Span, Spanned};
+use crate::span::{Span, Spanned};
+
+use self::{error::LexicalError, token::Token};
+
+pub mod error;
+pub mod token;
 
 // https://en.wikipedia.org/wiki/Lexical_analysis
 
 // #TODO lex_all, lex_single
 // #TODO use peekable iterator instead of put_back/lookahead.
 // #TODO introduce SemanticToken, with extra semantic information, _after_ parsing.
-// #TODO parse Annotations #.. #(..)
 // #TODO parse signed numbers
 // #TODO use annotations before number literals to set the type?
 // #TODO use (doc_comment ...) for doc-comments.
 // #TODO support `\ ` for escaped space in symbols.
-
-// #Insight
-// There is no need for an EOF Token. The end of the Token list marks the end
-// of the input.
-
-/// A lexical Token gives semantic meaning to a Lexeme.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Token {
-    LParen,
-    RParen,
-    Number(i64),
-    String(String),
-    Symbol(String),
-    If,
-    Using,
-    Annotation(String),
-    // True,
-    // False,
-    Comment(String),
-}
-
-impl fmt::Display for Token {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        // #TODO optimize this!
-        f.write_str(
-            (match self {
-                Token::LParen => "(".to_owned(),
-                Token::RParen => ")".to_owned(),
-                Token::Number(n) => format!("{}", n),
-                Token::String(s) => s.clone(),
-                Token::Symbol(s) => s.clone(),
-                Token::If => "if".to_owned(),
-                Token::Using => "using".to_owned(),
-                Token::Annotation(s) => s.clone(),
-                Token::Comment(s) => s.clone(),
-            })
-            .as_str(),
-        )
-    }
-}
 
 /// Returns true if ch is considered whitespace.
 /// The `,` character is considered whitespace, in the Lisp tradition.
@@ -77,6 +39,7 @@ fn is_eol(ch: char) -> bool {
 pub struct Lexer<'a> {
     chars: Chars<'a>,
     index: usize,
+    // #TODO use stack to support 'unlimited' lookahead?
     lookahead: Option<char>, // #TODO find better name!
 }
 
@@ -329,7 +292,7 @@ mod tests {
 
     use crate::{
         lexer::{Lexer, LexicalError, Token},
-        spanned::Spanned,
+        span::Spanned,
         util::format::format_pretty_spanned_error,
     };
 
