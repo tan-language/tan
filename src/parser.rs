@@ -1,10 +1,14 @@
-use crate::{lexer::token::Token, span::Spanned};
+use crate::{
+    lexer::token::Token,
+    span::{Span, Spanned},
+};
 
 use self::{error::ParseError, expr::Expr};
 
 pub mod error;
 pub mod expr;
 
+// #TODO consider moving the tokens into the parser (tokens are useless outside of parser)
 pub struct Parser<'a> {
     tokens: &'a [Spanned<Token>],
     index: usize,
@@ -40,14 +44,6 @@ impl<'a> Parser<'a> {
         self.index -= 1;
     }
 
-    pub fn parse_atom(&mut self) -> Result<Expr, Spanned<ParseError>> {
-        todo!()
-    }
-
-    pub fn parse_list(&mut self) -> Result<Expr, Spanned<ParseError>> {
-        todo!()
-    }
-
     // #TODO returns AST
     pub fn parse(&mut self) -> Result<Expr, Spanned<ParseError>> {
         let mut exprs = Vec::new();
@@ -58,7 +54,26 @@ impl<'a> Parser<'a> {
             let Spanned { value: t, span } = st;
             let expr = match t {
                 Token::Comment(..) => break,
-                Token::LParen => self.parse_list()?,
+                Token::String(s) => Expr::String(s.clone()),
+                Token::Symbol(s) => Expr::Symbol(s.clone()),
+                Token::LParen => {
+                    let mut exprs = Vec::new();
+                    loop {
+                        let token = self.next_token();
+
+                        if let Some(st) = token {
+                            let Spanned { value: t, .. } = st;
+                            if let Token::RParen = t {
+                                return Ok(Expr::List(exprs));
+                            } else {
+                                self.put_back_token(st);
+                                exprs.push(self.parse()?);
+                            }
+                        } else {
+                            return Err(Spanned::new(ParseError::UnterminatedList, span.clone()));
+                        }
+                    }
+                }
                 _ => {
                     return Err(Spanned::new(
                         ParseError::UnexpectedToken(t.clone()),
@@ -108,7 +123,7 @@ mod tests {
     #[test]
     fn parse_reports_unexpected_tokens() {
         let input = ")";
-        let tokens = lex_tokens(&input);
+        let tokens = lex_tokens(input);
         let mut parser = Parser::new(&tokens);
 
         let result = parser.parse();
@@ -117,5 +132,17 @@ mod tests {
         let err = result.unwrap_err();
 
         eprintln!("{}", format_pretty_spanned_error(&err, input));
+    }
+
+    #[test]
+    fn parse_handles_a_simple_expression() {
+        let input = r#"
+        (print "hello")
+        "#;
+        let tokens = lex_tokens(input);
+        let mut parser = Parser::new(&tokens);
+
+        let result = parser.parse();
+        dbg!(&result);
     }
 }
