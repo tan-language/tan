@@ -1,8 +1,6 @@
 // #Insight
 // AST = Expr = Value = Object
 
-// #TODO Introduce annotated value
-
 use crate::ann::Annotated;
 
 #[derive(Debug)]
