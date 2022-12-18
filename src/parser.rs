@@ -20,7 +20,7 @@ pub struct Parser<'a> {
     index: usize,
     // #TODO use stack to support 'unlimited' lookahead?
     lookahead: Option<&'a Spanned<Token>>, // #TODO find better name!
-    active_annotations: Vec<Spanned<String>>,
+    active_annotations: Option<Vec<Spanned<String>>>,
 }
 
 impl<'a> Parser<'a> {
@@ -29,7 +29,7 @@ impl<'a> Parser<'a> {
             tokens,
             index: 0,
             lookahead: None,
-            active_annotations: Vec::new(),
+            active_annotations: None,
         }
     }
 
@@ -51,22 +51,7 @@ impl<'a> Parser<'a> {
     // }
 
     pub fn apply_annotations(&mut self, expr: Expr) -> Annotated<Expr> {
-        if self.active_annotations.is_empty() {
-            // #TODO add span?
-            return Annotated::new(expr);
-        }
-
-        // let annotations = self
-        //     .active_annotations
-        //     .iter()
-        //     .map(|Spanned(a, ..)| a.clone())
-        //     .collect();
-
-        let ae = Annotated(expr, self.active_annotations.clone());
-
-        self.active_annotations.clear();
-
-        ae
+        Annotated(expr, self.active_annotations.take())
     }
 
     // #TODO AST = Vec<Spanned<Annotated<Expr>>>
@@ -112,7 +97,13 @@ impl<'a> Parser<'a> {
                     exprs.push(expr);
                 }
                 Token::Annotation(s) => {
+                    if self.active_annotations.is_none() {
+                        self.active_annotations = Some(Vec::new());
+                    }
+
                     self.active_annotations
+                        .as_mut()
+                        .unwrap()
                         .push(Spanned(s.clone(), span.clone()));
                 }
                 Token::LeftParen => {
@@ -230,7 +221,7 @@ mod tests {
     #[test]
     fn parse_handles_annotations() {
         let input = r#"
-        (let a #zonk #Int8 25 b 1)
+        (let a #zonk #Int8 25 b #(inline true) 1)
         "#;
         let tokens = lex_tokens(input);
         let mut parser = Parser::new(&tokens);

@@ -1,14 +1,13 @@
 use crate::span::Spanned;
 
-pub type Ann = Vec<Spanned<String>>;
+// #TODO consider `Ann`?
 
-// #TODO consider Anned?
 #[derive(Debug)]
-pub struct Annotated<T>(pub T, pub Ann);
+pub struct Annotated<T>(pub T, pub Option<Vec<Spanned<String>>>);
 
 impl<T> Annotated<T> {
     pub fn new(value: T) -> Self {
-        Self(value, Vec::new())
+        Self(value, None)
     }
 }
 
