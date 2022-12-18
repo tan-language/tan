@@ -3,6 +3,8 @@
 
 // #TODO Introduce annotated value
 
+use crate::ann::Annotated;
+
 #[derive(Debug)]
 pub enum Expr {
     One,        // Unit == List(Vec::new())
@@ -11,6 +13,6 @@ pub enum Expr {
     Float(f64),
     Symbol(String),
     String(String),
-    List(Vec<Expr>),
-    Func(Vec<Expr>, Box<Expr>), // #TODO is there a need to use Rc instead of Box?
+    List(Vec<Annotated<Expr>>),
+    Func(Vec<Annotated<Expr>>, Box<Annotated<Expr>>), // #TODO is there a need to use Rc instead of Box?
 }

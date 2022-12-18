@@ -1,14 +1,14 @@
-use std::collections::HashMap;
+use crate::span::Spanned;
 
-pub type Ann = HashMap<String, String>;
+pub type Ann = Vec<Spanned<String>>;
 
 // #TODO consider Anned?
 #[derive(Debug)]
-pub struct Annotated<T>(T, Ann);
+pub struct Annotated<T>(pub T, pub Ann);
 
 impl<T> Annotated<T> {
     pub fn new(value: T) -> Self {
-        Self(value, HashMap::new())
+        Self(value, Vec::new())
     }
 }
 

@@ -1,4 +1,5 @@
 use crate::{
+    ann::Annotated,
     lexer::token::Token,
     span::{Span, Spanned},
 };
@@ -19,7 +20,7 @@ pub struct Parser<'a> {
     index: usize,
     // #TODO use stack to support 'unlimited' lookahead?
     lookahead: Option<&'a Spanned<Token>>, // #TODO find better name!
-    active_annotations: Vec<&'a Spanned<Token>>,
+    active_annotations: Vec<Spanned<String>>,
 }
 
 impl<'a> Parser<'a> {
@@ -49,17 +50,34 @@ impl<'a> Parser<'a> {
     //     self.index -= 1;
     // }
 
-    pub fn apply_annotations(&mut self) {
+    pub fn apply_annotations(&mut self, expr: Expr) -> Annotated<Expr> {
+        if self.active_annotations.is_empty() {
+            // #TODO add span?
+            return Annotated::new(expr);
+        }
+
+        // let annotations = self
+        //     .active_annotations
+        //     .iter()
+        //     .map(|Spanned(a, ..)| a.clone())
+        //     .collect();
+
+        let ae = Annotated(expr, self.active_annotations.clone());
+
         self.active_annotations.clear();
+
+        ae
     }
+
+    // #TODO AST = Vec<Spanned<Annotated<Expr>>>
 
     // #TODO better name!
     // #TODO this could be parse if we automatically add pseudo `(`, `)` tokens.
     pub fn parse_tokens(
         &mut self,
-        exprs: Vec<Expr>,
+        exprs: Vec<Annotated<Expr>>,
         list_span: Option<Span>,
-    ) -> Result<Vec<Expr>, Spanned<ParseError>> {
+    ) -> Result<Vec<Annotated<Expr>>, Spanned<ParseError>> {
         let mut exprs = exprs;
 
         let mut token: Option<&Spanned<Token>>;
@@ -82,24 +100,25 @@ impl<'a> Parser<'a> {
             match t {
                 Token::Comment(..) => (),
                 Token::String(s) => {
-                    self.apply_annotations();
-                    exprs.push(Expr::String(s.clone()))
+                    let expr = self.apply_annotations(Expr::String(s.clone()));
+                    exprs.push(expr);
                 }
                 Token::Symbol(s) => {
-                    self.apply_annotations();
-                    exprs.push(Expr::Symbol(s.clone()))
+                    let expr = self.apply_annotations(Expr::Symbol(s.clone()));
+                    exprs.push(expr);
                 }
                 Token::Number(n) => {
-                    self.apply_annotations();
-                    exprs.push(Expr::Int(*n))
+                    let expr = self.apply_annotations(Expr::Int(*n));
+                    exprs.push(expr);
                 }
-                Token::Annotation(..) => {
-                    self.active_annotations.push(st);
+                Token::Annotation(s) => {
+                    self.active_annotations
+                        .push(Spanned(s.clone(), span.clone()));
                 }
                 Token::LeftParen => {
-                    self.apply_annotations();
                     let list_exprs = self.parse_tokens(Vec::new(), Some(span.clone()))?;
-                    exprs.push(Expr::List(list_exprs))
+                    let expr = self.apply_annotations(Expr::List(list_exprs));
+                    exprs.push(expr);
                 }
                 Token::RightParen => {
                     if list_span.is_some() {
@@ -127,18 +146,19 @@ impl<'a> Parser<'a> {
     }
 
     // #TODO handle annotations
-    pub fn parse(&mut self) -> Result<Expr, Spanned<ParseError>> {
+    pub fn parse(&mut self) -> Result<Annotated<Expr>, Spanned<ParseError>> {
         let exprs = Vec::new();
 
         let exprs = self.parse_tokens(exprs, None)?;
 
-        Ok(Expr::List(exprs))
+        Ok(Annotated::new(Expr::List(exprs)))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
+        ann::Annotated,
         lexer::{token::Token, Lexer},
         parser::expr::Expr,
         span::Spanned,
@@ -162,7 +182,7 @@ mod tests {
         let tokens = lex_tokens(input);
         let mut parser = Parser::new(&tokens);
         let ast = parser.parse().unwrap();
-        assert!(matches!(ast, Expr::List(x) if x.is_empty()));
+        assert!(matches!(ast, Annotated(Expr::List(x), ..) if x.is_empty()));
     }
 
     #[test]
@@ -216,6 +236,7 @@ mod tests {
         let mut parser = Parser::new(&tokens);
 
         let expr = parser.parse().unwrap();
-        println!("{expr:?}");
+        // println!("{expr:?}");
+        dbg!(&expr);
     }
 }
