@@ -1,0 +1,3 @@
+; The classic example
+
+(print "hello, world")

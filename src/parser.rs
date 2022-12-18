@@ -155,15 +155,12 @@ mod tests {
 
         let err = result.unwrap_err();
 
-        eprintln!("{}", format_pretty_spanned_error(&err, input));
+        eprintln!("{}", format_pretty_spanned_error(&err, input, None));
     }
 
     #[test]
     fn parse_handles_a_simple_expression() {
-        let input = r#"
-        ; Simple expression
-        (print "hello")
-        "#;
+        let input = &read_input("hello_world.tan");
         let tokens = lex_tokens(input);
         let mut parser = Parser::new(&tokens);
 
@@ -173,10 +170,8 @@ mod tests {
 
     #[test]
     fn parse_reports_unterminated_lists() {
-        let input = r#"
-        (print "well")
-        (print "hello") (print "world"
-        "#;
+        let filename = "unterminated_list_expr.tan";
+        let input = &read_input(filename);
         let tokens = lex_tokens(input);
         let mut parser = Parser::new(&tokens);
 
@@ -185,6 +180,9 @@ mod tests {
 
         let err = result.unwrap_err();
 
-        eprintln!("{}", format_pretty_spanned_error(&err, input));
+        eprintln!(
+            "{}",
+            format_pretty_spanned_error(&err, input, Some(filename))
+        );
     }
 }

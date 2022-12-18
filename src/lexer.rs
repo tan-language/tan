@@ -319,9 +319,9 @@ mod tests {
         assert_eq!(tokens.len(), 8);
         assert!(matches!(tokens[0].as_ref(), Token::LeftParen));
         assert!(matches!(tokens[2].as_ref(), Token::Symbol(x) if x == "+"));
-        assert_eq!(tokens[2].span().start, 2);
+        assert_eq!(tokens[2].1.start, 2);
         assert!(matches!(tokens[3].as_ref(), Token::Number(..)));
-        assert_eq!(tokens[3].span().start, 4);
+        assert_eq!(tokens[3].1.start, 4);
         // #TODO add more assertions.
     }
 
@@ -402,7 +402,7 @@ mod tests {
 
         assert!(matches!(err.0, LexicalError::NumberError(..)));
 
-        eprintln!("{}", format_pretty_spanned_error(&err, input));
+        eprintln!("{}", format_pretty_spanned_error(&err, input, None));
 
         if let Spanned(LexicalError::NumberError(pie), span) = err {
             assert_eq!(pie.kind(), &IntErrorKind::InvalidDigit);
@@ -424,10 +424,10 @@ mod tests {
 
         assert!(matches!(err.0, LexicalError::UnterminatedStringError));
 
-        eprintln!("{}", format_pretty_spanned_error(&err, input));
+        eprintln!("{}", format_pretty_spanned_error(&err, input, None));
 
-        assert_eq!(err.span().start, 7);
-        assert_eq!(err.span().end, 14);
+        assert_eq!(err.1.start, 7);
+        assert_eq!(err.1.end, 14);
     }
 
     #[test]
@@ -447,8 +447,8 @@ mod tests {
 
         assert!(matches!(err.0, LexicalError::UnterminatedAnnotationError));
 
-        eprintln!("{}", format_pretty_spanned_error(&err, input));
+        eprintln!("{}", format_pretty_spanned_error(&err, input, None));
 
-        assert_eq!(err.span().start, 29);
+        assert_eq!(err.1.start, 29);
     }
 }

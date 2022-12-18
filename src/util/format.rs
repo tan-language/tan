@@ -6,7 +6,11 @@ use crate::span::Spanned;
 // #TODO print filename if it exists.
 // #TODO add as method to Spanned<E: Error>? e.g. `format_pretty`
 
-pub fn format_pretty_spanned_error<E: Error>(error: &Spanned<E>, input: &str) -> String {
+pub fn format_pretty_spanned_error<E: Error>(
+    error: &Spanned<E>,
+    input: &str,
+    url: Option<&str>,
+) -> String {
     let chars = input.chars();
     let Spanned(error, span) = error;
 
@@ -47,9 +51,10 @@ pub fn format_pretty_spanned_error<E: Error>(error: &Spanned<E>, input: &str) ->
     let col = span.start - line_start;
     let indicator_space = " ".repeat(col);
 
+    let url = url.unwrap_or("input");
+
     format!(
-        "error: {}\n{}at input:{}:{}\n{}|\n{}| {}\n{}|{} {}",
-        error,
+        "error: {error}\n{}at {url}:{}:{}\n{}|\n{}| {}\n{}|{} {}",
         line_space,
         line + 1,
         col + 1,
