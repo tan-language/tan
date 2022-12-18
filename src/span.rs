@@ -8,17 +8,14 @@ pub type Span = std::ops::Range<usize>;
 
 // #TODO weird name.
 #[derive(Debug, Clone)]
-pub struct Spanned<T> {
-    pub value: T,
-    pub span: Span,
-}
+pub struct Spanned<T>(pub T, pub Span);
 
 impl<T> Display for Spanned<T>
 where
     T: Display,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.value.fmt(f)
+        self.0.fmt(f)
     }
 }
 
@@ -33,12 +30,12 @@ where
 
 impl<T> AsRef<T> for Spanned<T> {
     fn as_ref(&self) -> &T {
-        &self.value
+        &self.0
     }
 }
 
 impl<T> Spanned<T> {
-    pub fn new(value: T, span: Span) -> Self {
-        Self { value, span }
+    pub fn span(&self) -> Span {
+        self.1.clone()
     }
 }

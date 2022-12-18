@@ -8,7 +8,7 @@ use crate::span::Spanned;
 
 pub fn format_pretty_spanned_error<E: Error>(error: &Spanned<E>, input: &str) -> String {
     let chars = input.chars();
-    let Spanned { value: error, span } = error;
+    let Spanned(error, span) = error;
 
     let mut index: usize = 0;
     let mut line = 0;

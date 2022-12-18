@@ -63,7 +63,7 @@ impl<'a> Parser<'a> {
 
             let Some(st) = token  else {
                 if let Some(span) = list_span {
-                    return Err(Spanned::new(
+                    return Err(Spanned(
                         ParseError::UnterminatedList,
                         span,
                     ));
@@ -71,7 +71,7 @@ impl<'a> Parser<'a> {
                 break;
             };
 
-            let Spanned { value: t, span } = st;
+            let Spanned(t, span) = st;
 
             match t {
                 Token::Comment(..) => (),
@@ -86,14 +86,14 @@ impl<'a> Parser<'a> {
                         return Ok(exprs);
                     } else {
                         // #TODO custom error here?
-                        return Err(Spanned::new(
+                        return Err(Spanned(
                             ParseError::UnexpectedToken(t.clone()),
                             span.clone(),
                         ));
                     }
                 }
                 _ => {
-                    return Err(Spanned::new(
+                    return Err(Spanned(
                         ParseError::UnexpectedToken(t.clone()),
                         span.clone(),
                     ));

@@ -106,7 +106,7 @@ impl<'a> Lexer<'a> {
 
         let span = self.span(start);
 
-        Spanned::new(text, span)
+        Spanned(text, span)
     }
 
     fn lex_comment(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
@@ -129,14 +129,11 @@ impl<'a> Lexer<'a> {
         // Adjust for the trailing '\n'.
         span.end -= 1;
 
-        Ok(Spanned::new(Token::Comment(text), span))
+        Ok(Spanned(Token::Comment(text), span))
     }
 
     fn lex_number(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
-        let Spanned {
-            value: lexeme,
-            span,
-        } = self.scan_lexeme();
+        let Spanned(lexeme, span) = self.scan_lexeme();
 
         // Ignore `_`, it is considered a number separator.
         // #Insight fo _not_ consider `,` as number separator, bad idea!
@@ -158,16 +155,13 @@ impl<'a> Lexer<'a> {
         // #TODO error handling not enough, we need to add context, check error_stack
 
         let n = i64::from_str_radix(&lexeme, radix)
-            .map_err(|err| Spanned::new(LexicalError::NumberError(err), span.clone()))?;
+            .map_err(|err| Spanned(LexicalError::NumberError(err), span.clone()))?;
 
-        Ok(Spanned::new(Token::Number(n), span))
+        Ok(Spanned(Token::Number(n), span))
     }
 
     fn lex_symbol(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
-        let Spanned {
-            value: lexeme,
-            span,
-        } = self.scan_lexeme();
+        let Spanned(lexeme, span) = self.scan_lexeme();
 
         let token = match lexeme.as_str() {
             "if" => Token::If,
@@ -175,7 +169,7 @@ impl<'a> Lexer<'a> {
             _ => Token::Symbol(lexeme),
         };
 
-        Ok(Spanned::new(token, span))
+        Ok(Spanned(token, span))
     }
 
     // #TODO support multi-line strings
@@ -199,10 +193,10 @@ impl<'a> Lexer<'a> {
 
         if char != Some('"') {
             span.end -= 1;
-            return Err(Spanned::new(LexicalError::UnterminatedStringError, span));
+            return Err(Spanned(LexicalError::UnterminatedStringError, span));
         }
 
-        Ok(Spanned::new(Token::String(text), span))
+        Ok(Spanned(Token::String(text), span))
     }
 
     fn lex_annotation(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
@@ -236,13 +230,10 @@ impl<'a> Lexer<'a> {
         if nesting != 0 {
             span.start -= 1;
             span.end -= 1;
-            return Err(Spanned::new(
-                LexicalError::UnterminatedAnnotationError,
-                span,
-            ));
+            return Err(Spanned(LexicalError::UnterminatedAnnotationError, span));
         }
 
-        Ok(Spanned::new(Token::Annotation(text), span))
+        Ok(Spanned(Token::Annotation(text), span))
     }
 
     // #TODO consider passing into array of chars or something more general.
@@ -260,10 +251,10 @@ impl<'a> Lexer<'a> {
 
             match ch {
                 '(' => {
-                    tokens.push(Spanned::new(Token::LeftParen, self.span(self.index)));
+                    tokens.push(Spanned(Token::LeftParen, self.span(self.index)));
                 }
                 ')' => {
-                    tokens.push(Spanned::new(Token::RightParen, self.span(self.index)));
+                    tokens.push(Spanned(Token::RightParen, self.span(self.index)));
                 }
                 ';' => {
                     tokens.push(self.lex_comment()?);
@@ -328,9 +319,9 @@ mod tests {
         assert_eq!(tokens.len(), 8);
         assert!(matches!(tokens[0].as_ref(), Token::LeftParen));
         assert!(matches!(tokens[2].as_ref(), Token::Symbol(x) if x == "+"));
-        assert_eq!(tokens[2].span.start, 2);
+        assert_eq!(tokens[2].span().start, 2);
         assert!(matches!(tokens[3].as_ref(), Token::Number(..)));
-        assert_eq!(tokens[3].span.start, 4);
+        assert_eq!(tokens[3].span().start, 4);
         // #TODO add more assertions.
     }
 
@@ -409,15 +400,11 @@ mod tests {
 
         let err = result.unwrap_err();
 
-        assert!(matches!(err.value, LexicalError::NumberError(..)));
+        assert!(matches!(err.0, LexicalError::NumberError(..)));
 
         eprintln!("{}", format_pretty_spanned_error(&err, input));
 
-        if let Spanned {
-            value: LexicalError::NumberError(pie),
-            span,
-        } = err
-        {
+        if let Spanned(LexicalError::NumberError(pie), span) = err {
             assert_eq!(pie.kind(), &IntErrorKind::InvalidDigit);
             assert_eq!(span.start, 5);
             assert_eq!(span.end, 10);
@@ -435,12 +422,12 @@ mod tests {
 
         let err = result.unwrap_err();
 
-        assert!(matches!(err.value, LexicalError::UnterminatedStringError));
+        assert!(matches!(err.0, LexicalError::UnterminatedStringError));
 
         eprintln!("{}", format_pretty_spanned_error(&err, input));
 
-        assert_eq!(err.span.start, 7);
-        assert_eq!(err.span.end, 14);
+        assert_eq!(err.span().start, 7);
+        assert_eq!(err.span().end, 14);
     }
 
     #[test]
@@ -458,13 +445,10 @@ mod tests {
 
         let err = result.unwrap_err();
 
-        assert!(matches!(
-            err.value,
-            LexicalError::UnterminatedAnnotationError
-        ));
+        assert!(matches!(err.0, LexicalError::UnterminatedAnnotationError));
 
         eprintln!("{}", format_pretty_spanned_error(&err, input));
 
-        assert_eq!(err.span.start, 29);
+        assert_eq!(err.span().start, 29);
     }
 }
