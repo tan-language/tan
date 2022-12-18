@@ -9,6 +9,7 @@ pub mod error;
 pub mod expr;
 
 // #TODO consider moving the tokens into the parser (tokens are useless outside of parser)
+// #TODO try to minimize the clones
 
 /// The Parser performs the syntax analysis stage of the compilation pipeline.
 /// The input token stream is reduced into and Abstract Syntax Tree (AST).
@@ -28,8 +29,6 @@ impl<'a> Parser<'a> {
             lookahead: None,
         }
     }
-
-    // #TODO peek_token() (next+put_back)
 
     fn next_token(&mut self) -> Option<&'a Spanned<Token>> {
         if let Some(ch) = self.lookahead {

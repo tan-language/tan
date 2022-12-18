@@ -58,6 +58,8 @@ impl<'a> Lexer<'a> {
         self.chars.clone().collect()
     }
 
+    // #TODO peek_char() (next+put_back)
+
     fn next_char(&mut self) -> Option<char> {
         self.index += 1;
 
