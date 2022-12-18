@@ -140,8 +140,8 @@ impl<'a> Lexer<'a> {
         // #Insight fo _not_ consider `,` as number separator, bad idea!
         let mut lexeme = lexeme.replace('_', "");
 
-        // #TODO support radix-8
-        // #TODO support arbitrary radix
+        // #TODO support radix-8 -> no, leave for arbitrary radix.
+        // #TODO support arbitrary radix https://github.com/golang/go/issues/28256
         let mut radix = 10;
 
         if lexeme.starts_with("0x") {

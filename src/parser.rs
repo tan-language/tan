@@ -40,15 +40,19 @@ impl<'a> Parser<'a> {
         token
     }
 
-    fn put_back_token(&mut self, token: &'a Spanned<Token>) {
-        self.lookahead = Some(token);
-        self.index -= 1;
-    }
+    // fn put_back_token(&mut self, token: &'a Spanned<Token>) {
+    //     self.lookahead = Some(token);
+    //     self.index -= 1;
+    // }
 
-    // #TODO returns AST
-    // #TODO handle annotations
-    pub fn parse(&mut self) -> Result<Expr, Spanned<ParseError>> {
-        let mut exprs = Vec::new();
+    // #TODO better name!
+    // #TODO this could be parse if we automatically add pseudo `(`, `)` tokens.
+    pub fn parse_tokens(
+        &mut self,
+        exprs: Vec<Expr>,
+        in_list: bool,
+    ) -> Result<Vec<Expr>, Spanned<ParseError>> {
+        let mut exprs = exprs;
 
         let mut token: Option<&Spanned<Token>>;
 
@@ -60,26 +64,24 @@ impl<'a> Parser<'a> {
             };
 
             let Spanned { value: t, span } = st;
-            let expr = match t {
-                Token::Comment(..) => break,
-                Token::String(s) => Expr::String(s.clone()),
-                Token::Symbol(s) => Expr::Symbol(s.clone()),
-                Token::LeftParen => {
-                    let mut exprs = Vec::new();
-                    loop {
-                        let token = self.next_token();
 
-                        if let Some(st) = token {
-                            let Spanned { value: t, .. } = st;
-                            if let Token::RightParen = t {
-                                return Ok(Expr::List(exprs));
-                            } else {
-                                self.put_back_token(st);
-                                exprs.push(self.parse()?);
-                            }
-                        } else {
-                            return Err(Spanned::new(ParseError::UnterminatedList, span.clone()));
-                        }
+            match t {
+                Token::Comment(..) => (),
+                Token::String(s) => exprs.push(Expr::String(s.clone())),
+                Token::Symbol(s) => exprs.push(Expr::Symbol(s.clone())),
+                Token::LeftParen => {
+                    let list_exprs = self.parse_tokens(Vec::new(), true)?;
+                    exprs.push(Expr::List(list_exprs))
+                }
+                Token::RightParen => {
+                    if in_list {
+                        return Ok(exprs);
+                    } else {
+                        // #TODO custom error here?
+                        return Err(Spanned::new(
+                            ParseError::UnexpectedToken(t.clone()),
+                            span.clone(),
+                        ));
                     }
                 }
                 _ => {
@@ -88,10 +90,20 @@ impl<'a> Parser<'a> {
                         span.clone(),
                     ));
                 }
-            };
+            }
 
-            exprs.push(expr);
+            println!("-- {exprs:?}");
         }
+
+        Ok(exprs)
+    }
+
+    // #TODO returns AST
+    // #TODO handle annotations
+    pub fn parse(&mut self) -> Result<Expr, Spanned<ParseError>> {
+        let exprs = Vec::new();
+
+        let exprs = self.parse_tokens(exprs, false)?;
 
         Ok(Expr::List(exprs))
     }
@@ -143,6 +155,7 @@ mod tests {
     #[test]
     fn parse_handles_a_simple_expression() {
         let input = r#"
+        ; Simple expression
         (print "hello")
         "#;
         let tokens = lex_tokens(input);
