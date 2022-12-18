@@ -258,10 +258,10 @@ impl<'a> Lexer<'a> {
 
             match ch {
                 '(' => {
-                    tokens.push(Spanned::new(Token::LParen, self.span(self.index)));
+                    tokens.push(Spanned::new(Token::LeftParen, self.span(self.index)));
                 }
                 ')' => {
-                    tokens.push(Spanned::new(Token::RParen, self.span(self.index)));
+                    tokens.push(Spanned::new(Token::RightParen, self.span(self.index)));
                 }
                 ';' => {
                     tokens.push(self.lex_comment()?);
@@ -324,7 +324,7 @@ mod tests {
         dbg!(&tokens);
 
         assert_eq!(tokens.len(), 8);
-        assert!(matches!(tokens[0].as_ref(), Token::LParen));
+        assert!(matches!(tokens[0].as_ref(), Token::LeftParen));
         assert!(matches!(tokens[2].as_ref(), Token::Symbol(x) if x == "+"));
         assert_eq!(tokens[2].span.start, 2);
         assert!(matches!(tokens[3].as_ref(), Token::Number(..)));

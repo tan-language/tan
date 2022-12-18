@@ -7,12 +7,12 @@ use std::fmt;
 /// A lexical Token gives semantic meaning to a Lexeme.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Token {
-    LParen,
-    RParen,
-    LBracket,
-    RBracket,
-    LBrace,
-    RBrace,
+    LeftParen,
+    RightParen,
+    LeftBracket,
+    RightBracket,
+    LeftBrace,
+    RightBrace,
     Number(i64),
     String(String),
     Symbol(String),
@@ -29,12 +29,12 @@ impl fmt::Display for Token {
         // #TODO optimize this!
         f.write_str(
             (match self {
-                Token::LParen => "(".to_owned(),
-                Token::RParen => ")".to_owned(),
-                Token::LBracket => "[".to_owned(),
-                Token::RBracket => "]".to_owned(),
-                Token::LBrace => "{".to_owned(),
-                Token::RBrace => "}".to_owned(),
+                Token::LeftParen => "(".to_owned(),
+                Token::RightParen => ")".to_owned(),
+                Token::LeftBracket => "[".to_owned(),
+                Token::RightBracket => "]".to_owned(),
+                Token::LeftBrace => "{".to_owned(),
+                Token::RightBrace => "}".to_owned(),
                 Token::Number(n) => format!("{}", n),
                 Token::String(s) => s.clone(),
                 Token::Symbol(s) => s.clone(),

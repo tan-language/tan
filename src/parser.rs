@@ -64,14 +64,14 @@ impl<'a> Parser<'a> {
                 Token::Comment(..) => break,
                 Token::String(s) => Expr::String(s.clone()),
                 Token::Symbol(s) => Expr::Symbol(s.clone()),
-                Token::LParen => {
+                Token::LeftParen => {
                     let mut exprs = Vec::new();
                     loop {
                         let token = self.next_token();
 
                         if let Some(st) = token {
                             let Spanned { value: t, .. } = st;
-                            if let Token::RParen = t {
+                            if let Token::RightParen = t {
                                 return Ok(Expr::List(exprs));
                             } else {
                                 self.put_back_token(st);
