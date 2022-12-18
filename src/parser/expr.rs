@@ -8,6 +8,7 @@ pub enum Expr {
     One,        // Unit == List(Vec::new())
     Bool(bool), // #TODO remove?
     Int(i64),
+    Float(f64),
     Symbol(String),
     String(String),
     List(Vec<Expr>),

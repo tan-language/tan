@@ -104,7 +104,6 @@ impl<'a> Parser<'a> {
         Ok(exprs)
     }
 
-    // #TODO returns AST
     // #TODO handle annotations
     pub fn parse(&mut self) -> Result<Expr, Spanned<ParseError>> {
         let exprs = Vec::new();

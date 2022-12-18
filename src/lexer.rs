@@ -77,7 +77,7 @@ impl<'a> Lexer<'a> {
     }
 
     // Span is a right-open range, i.e. [start, end)
-    fn span(&self, start: usize) -> Span {
+    fn make_span(&self, start: usize) -> Span {
         Span {
             start: start - 1,
             end: self.index,
@@ -104,7 +104,7 @@ impl<'a> Lexer<'a> {
             char = self.next_char();
         }
 
-        let span = self.span(start);
+        let span = self.make_span(start);
 
         Spanned(text, span)
     }
@@ -125,7 +125,7 @@ impl<'a> Lexer<'a> {
             char = self.next_char();
         }
 
-        let mut span = self.span(start);
+        let mut span = self.make_span(start);
         // Adjust for the trailing '\n'.
         span.end -= 1;
 
@@ -189,7 +189,7 @@ impl<'a> Lexer<'a> {
             char = self.next_char();
         }
 
-        let mut span = self.span(start);
+        let mut span = self.make_span(start);
 
         if char != Some('"') {
             span.end -= 1;
@@ -225,7 +225,7 @@ impl<'a> Lexer<'a> {
             char = self.next_char();
         }
 
-        let mut span = self.span(start);
+        let mut span = self.make_span(start);
 
         if nesting != 0 {
             span.start -= 1;
@@ -251,10 +251,10 @@ impl<'a> Lexer<'a> {
 
             match ch {
                 '(' => {
-                    tokens.push(Spanned(Token::LeftParen, self.span(self.index)));
+                    tokens.push(Spanned(Token::LeftParen, self.make_span(self.index)));
                 }
                 ')' => {
-                    tokens.push(Spanned(Token::RightParen, self.span(self.index)));
+                    tokens.push(Spanned(Token::RightParen, self.make_span(self.index)));
                 }
                 ';' => {
                     tokens.push(self.lex_comment()?);
