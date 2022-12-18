@@ -247,9 +247,15 @@ impl<'a> Lexer<'a> {
     pub fn lex(&mut self) -> Result<Vec<Spanned<Token>>, Spanned<LexicalError>> {
         let mut tokens: Vec<Spanned<Token>> = Vec::new();
 
-        let mut char = self.next_char();
+        let mut char;
 
-        while let Some(ch) = char {
+        loop {
+            char = self.next_char();
+
+            let Some(ch) = char  else {
+                break;
+            };
+
             match ch {
                 '(' => {
                     tokens.push(Spanned::new(Token::LParen, self.span(self.index)));
@@ -278,8 +284,6 @@ impl<'a> Lexer<'a> {
                     tokens.push(self.lex_symbol()?);
                 }
             }
-
-            char = self.next_char();
         }
 
         Ok(tokens)

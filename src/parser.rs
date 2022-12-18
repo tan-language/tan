@@ -1,7 +1,4 @@
-use crate::{
-    lexer::token::Token,
-    span::{Span, Spanned},
-};
+use crate::{lexer::token::Token, span::Spanned};
 
 use self::{error::ParseError, expr::Expr};
 
@@ -9,6 +6,10 @@ pub mod error;
 pub mod expr;
 
 // #TODO consider moving the tokens into the parser (tokens are useless outside of parser)
+
+/// The Parser performs the syntax analysis stage of the compilation pipeline.
+/// The input token stream is reduced into and Abstract Syntax Tree (AST).
+/// The nodes of the AST are associated with annotations.
 pub struct Parser<'a> {
     tokens: &'a [Spanned<Token>],
     index: usize,
@@ -45,12 +46,19 @@ impl<'a> Parser<'a> {
     }
 
     // #TODO returns AST
+    // #TODO handle annotations
     pub fn parse(&mut self) -> Result<Expr, Spanned<ParseError>> {
         let mut exprs = Vec::new();
 
-        let mut token = self.next_token();
+        let mut token: Option<&Spanned<Token>>;
 
-        while let Some(st) = token {
+        loop {
+            token = self.next_token();
+
+            let Some(st) = token  else {
+                break;
+            };
+
             let Spanned { value: t, span } = st;
             let expr = match t {
                 Token::Comment(..) => break,
@@ -83,8 +91,6 @@ impl<'a> Parser<'a> {
             };
 
             exprs.push(expr);
-
-            token = self.next_token();
         }
 
         Ok(Expr::List(exprs))
