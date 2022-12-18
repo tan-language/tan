@@ -19,6 +19,7 @@ pub struct Parser<'a> {
     index: usize,
     // #TODO use stack to support 'unlimited' lookahead?
     lookahead: Option<&'a Spanned<Token>>, // #TODO find better name!
+    active_annotations: Vec<&'a Spanned<Token>>,
 }
 
 impl<'a> Parser<'a> {
@@ -27,6 +28,7 @@ impl<'a> Parser<'a> {
             tokens,
             index: 0,
             lookahead: None,
+            active_annotations: Vec::new(),
         }
     }
 
@@ -46,6 +48,10 @@ impl<'a> Parser<'a> {
     //     self.lookahead = Some(token);
     //     self.index -= 1;
     // }
+
+    pub fn apply_annotations(&mut self) {
+        self.active_annotations.clear();
+    }
 
     // #TODO better name!
     // #TODO this could be parse if we automatically add pseudo `(`, `)` tokens.
@@ -75,9 +81,23 @@ impl<'a> Parser<'a> {
 
             match t {
                 Token::Comment(..) => (),
-                Token::String(s) => exprs.push(Expr::String(s.clone())),
-                Token::Symbol(s) => exprs.push(Expr::Symbol(s.clone())),
+                Token::String(s) => {
+                    self.apply_annotations();
+                    exprs.push(Expr::String(s.clone()))
+                }
+                Token::Symbol(s) => {
+                    self.apply_annotations();
+                    exprs.push(Expr::Symbol(s.clone()))
+                }
+                Token::Number(n) => {
+                    self.apply_annotations();
+                    exprs.push(Expr::Int(*n))
+                }
+                Token::Annotation(..) => {
+                    self.active_annotations.push(st);
+                }
                 Token::LeftParen => {
+                    self.apply_annotations();
                     let list_exprs = self.parse_tokens(Vec::new(), Some(span.clone()))?;
                     exprs.push(Expr::List(list_exprs))
                 }
@@ -99,6 +119,8 @@ impl<'a> Parser<'a> {
                     ));
                 }
             }
+
+            println!("-- {:?}", self.active_annotations);
         }
 
         Ok(exprs)
@@ -183,5 +205,17 @@ mod tests {
             "{}",
             format_pretty_spanned_error(&err, input, Some(filename))
         );
+    }
+
+    #[test]
+    fn parse_handles_annotations() {
+        let input = r#"
+        (let a #zonk #Int8 25 b 1)
+        "#;
+        let tokens = lex_tokens(input);
+        let mut parser = Parser::new(&tokens);
+
+        let expr = parser.parse().unwrap();
+        println!("{expr:?}");
     }
 }
