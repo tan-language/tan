@@ -9,22 +9,29 @@ use self::{error::ParseError, expr::Expr};
 pub mod error;
 pub mod expr;
 
-// #TODO consider moving the tokens into the parser (tokens are useless outside of parser)
-// #TODO try to minimize the clones
+// #Insight We move the tokens into the parser to simplify the code. The tokens are useless outside the parser.
 
 /// The Parser performs the syntax analysis stage of the compilation pipeline.
 /// The input token stream is reduced into and Abstract Syntax Tree (AST).
 /// The nodes of the AST are associated with annotations.
-pub struct Parser<'a> {
-    tokens: &'a [Spanned<Token>],
+pub struct Parser<I>
+where
+    I: IntoIterator<Item = Spanned<Token>>,
+{
+    tokens: I::IntoIter,
     index: usize,
     // #TODO use stack to support 'unlimited' lookahead?
-    lookahead: Option<&'a Spanned<Token>>, // #TODO find better name!
+    lookahead: Option<Spanned<Token>>,
     active_annotations: Option<Vec<Spanned<String>>>,
 }
 
-impl<'a> Parser<'a> {
-    pub fn new(tokens: &'a [Spanned<Token>]) -> Self {
+impl<I> Parser<I>
+where
+    I: IntoIterator<Item = Spanned<Token>>,
+{
+    pub fn new(tokens: I) -> Self {
+        let tokens = tokens.into_iter();
+
         Self {
             tokens,
             index: 0,
@@ -33,16 +40,14 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn next_token(&mut self) -> Option<&'a Spanned<Token>> {
-        if let Some(ch) = self.lookahead {
-            self.lookahead = None;
-            return Some(ch);
+    fn next_token(&mut self) -> Option<Spanned<Token>> {
+        if self.lookahead.is_some() {
+            return self.lookahead.take();
         }
 
-        // #TODO iterator
-        let token = self.tokens.get(self.index);
         self.index += 1;
-        token
+
+        self.tokens.next()
     }
 
     // fn put_back_token(&mut self, token: &'a Spanned<Token>) {
@@ -57,7 +62,6 @@ impl<'a> Parser<'a> {
     // #TODO AST = Vec<Spanned<Annotated<Expr>>>
 
     // #TODO better name!
-    // #TODO this could be parse if we automatically add pseudo `(`, `)` tokens.
     pub fn parse_tokens(
         &mut self,
         exprs: Vec<Annotated<Expr>>,
@@ -65,7 +69,7 @@ impl<'a> Parser<'a> {
     ) -> Result<Vec<Annotated<Expr>>, Spanned<ParseError>> {
         let mut exprs = exprs;
 
-        let mut token: Option<&Spanned<Token>>;
+        let mut token: Option<Spanned<Token>>;
 
         loop {
             token = self.next_token();
@@ -85,15 +89,15 @@ impl<'a> Parser<'a> {
             match t {
                 Token::Comment(..) => (),
                 Token::String(s) => {
-                    let expr = self.apply_annotations(Expr::String(s.clone()));
+                    let expr = self.apply_annotations(Expr::String(s));
                     exprs.push(expr);
                 }
                 Token::Symbol(s) => {
-                    let expr = self.apply_annotations(Expr::Symbol(s.clone()));
+                    let expr = self.apply_annotations(Expr::Symbol(s));
                     exprs.push(expr);
                 }
                 Token::Number(n) => {
-                    let expr = self.apply_annotations(Expr::Int(*n));
+                    let expr = self.apply_annotations(Expr::Int(n));
                     exprs.push(expr);
                 }
                 Token::Annotation(s) => {
@@ -104,10 +108,10 @@ impl<'a> Parser<'a> {
                     self.active_annotations
                         .as_mut()
                         .unwrap()
-                        .push(Spanned(s.clone(), span.clone()));
+                        .push(Spanned(s, span));
                 }
                 Token::LeftParen => {
-                    let list_exprs = self.parse_tokens(Vec::new(), Some(span.clone()))?;
+                    let list_exprs = self.parse_tokens(Vec::new(), Some(span))?;
                     let expr = self.apply_annotations(Expr::List(list_exprs));
                     exprs.push(expr);
                 }
@@ -116,17 +120,11 @@ impl<'a> Parser<'a> {
                         return Ok(exprs);
                     } else {
                         // #TODO custom error here?
-                        return Err(Spanned(
-                            ParseError::UnexpectedToken(t.clone()),
-                            span.clone(),
-                        ));
+                        return Err(Spanned(ParseError::UnexpectedToken(t), span));
                     }
                 }
                 _ => {
-                    return Err(Spanned(
-                        ParseError::UnexpectedToken(t.clone()),
-                        span.clone(),
-                    ));
+                    return Err(Spanned(ParseError::UnexpectedToken(t), span));
                 }
             }
 
@@ -171,7 +169,7 @@ mod tests {
     fn parse_handles_an_empty_token_list() {
         let input = &read_input("empty.tan");
         let tokens = lex_tokens(input);
-        let mut parser = Parser::new(&tokens);
+        let mut parser = Parser::new(tokens);
         let ast = parser.parse().unwrap();
         assert!(matches!(ast, Annotated(Expr::List(x), ..) if x.is_empty()));
     }
@@ -180,7 +178,7 @@ mod tests {
     fn parse_reports_unexpected_tokens() {
         let input = ")";
         let tokens = lex_tokens(input);
-        let mut parser = Parser::new(&tokens);
+        let mut parser = Parser::new(tokens);
 
         let result = parser.parse();
         assert!(result.is_err());
@@ -194,7 +192,7 @@ mod tests {
     fn parse_handles_a_simple_expression() {
         let input = &read_input("hello_world.tan");
         let tokens = lex_tokens(input);
-        let mut parser = Parser::new(&tokens);
+        let mut parser = Parser::new(tokens);
 
         let result = parser.parse();
         dbg!(&result);
@@ -205,7 +203,7 @@ mod tests {
         let filename = "unterminated_list_expr.tan";
         let input = &read_input(filename);
         let tokens = lex_tokens(input);
-        let mut parser = Parser::new(&tokens);
+        let mut parser = Parser::new(tokens);
 
         let result = parser.parse();
         assert!(result.is_err());
@@ -224,7 +222,7 @@ mod tests {
         (let a #zonk #Int8 25 b #(inline true) 1)
         "#;
         let tokens = lex_tokens(input);
-        let mut parser = Parser::new(&tokens);
+        let mut parser = Parser::new(tokens);
 
         let expr = parser.parse().unwrap();
         // println!("{expr:?}");
