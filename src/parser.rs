@@ -1,4 +1,7 @@
-use crate::{lexer::token::Token, span::Spanned};
+use crate::{
+    lexer::token::Token,
+    span::{Span, Spanned},
+};
 
 use self::{error::ParseError, expr::Expr};
 
@@ -50,7 +53,7 @@ impl<'a> Parser<'a> {
     pub fn parse_tokens(
         &mut self,
         exprs: Vec<Expr>,
-        in_list: bool,
+        list_span: Option<Span>,
     ) -> Result<Vec<Expr>, Spanned<ParseError>> {
         let mut exprs = exprs;
 
@@ -60,6 +63,12 @@ impl<'a> Parser<'a> {
             token = self.next_token();
 
             let Some(st) = token  else {
+                if let Some(span) = list_span {
+                    return Err(Spanned::new(
+                        ParseError::UnterminatedList,
+                        span,
+                    ));
+                }
                 break;
             };
 
@@ -70,11 +79,11 @@ impl<'a> Parser<'a> {
                 Token::String(s) => exprs.push(Expr::String(s.clone())),
                 Token::Symbol(s) => exprs.push(Expr::Symbol(s.clone())),
                 Token::LeftParen => {
-                    let list_exprs = self.parse_tokens(Vec::new(), true)?;
+                    let list_exprs = self.parse_tokens(Vec::new(), Some(span.clone()))?;
                     exprs.push(Expr::List(list_exprs))
                 }
                 Token::RightParen => {
-                    if in_list {
+                    if list_span.is_some() {
                         return Ok(exprs);
                     } else {
                         // #TODO custom error here?
@@ -91,8 +100,6 @@ impl<'a> Parser<'a> {
                     ));
                 }
             }
-
-            println!("-- {exprs:?}");
         }
 
         Ok(exprs)
@@ -103,7 +110,7 @@ impl<'a> Parser<'a> {
     pub fn parse(&mut self) -> Result<Expr, Spanned<ParseError>> {
         let exprs = Vec::new();
 
-        let exprs = self.parse_tokens(exprs, false)?;
+        let exprs = self.parse_tokens(exprs, None)?;
 
         Ok(Expr::List(exprs))
     }
@@ -163,5 +170,22 @@ mod tests {
 
         let result = parser.parse();
         dbg!(&result);
+    }
+
+    #[test]
+    fn parse_reports_unterminated_lists() {
+        let input = r#"
+        (print "well")
+        (print "hello") (print "world"
+        "#;
+        let tokens = lex_tokens(input);
+        let mut parser = Parser::new(&tokens);
+
+        let result = parser.parse();
+        assert!(result.is_err());
+
+        let err = result.unwrap_err();
+
+        eprintln!("{}", format_pretty_spanned_error(&err, input));
     }
 }
