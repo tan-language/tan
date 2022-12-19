@@ -2,8 +2,6 @@ use std::{error::Error, fmt};
 
 use crate::lexer::token::Token;
 
-// #TODO Consider just having a single `ParseError` or `SyntaxError`?
-
 #[derive(Debug)]
 pub enum ParseError {
     UnexpectedToken(Token),

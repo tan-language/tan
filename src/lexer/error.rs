@@ -2,10 +2,9 @@ use std::error::Error;
 use std::fmt;
 use std::num::ParseIntError;
 
-// #TODO Consider just having a single `ParseError` or `SyntaxError`?
-
 #[derive(Debug)]
 pub enum LexicalError {
+    UnexpectedEol,
     NumberError(ParseIntError),
     UnterminatedStringError,
     UnterminatedAnnotationError,
@@ -16,6 +15,9 @@ impl Error for LexicalError {}
 impl fmt::Display for LexicalError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            LexicalError::UnexpectedEol => {
+                write!(f, "unexpected EOL")
+            }
             LexicalError::NumberError(pie) => {
                 write!(f, "malformed number: {pie}")
             }

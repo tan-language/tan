@@ -261,11 +261,15 @@ impl<'a> Lexer<'a> {
                     tokens.push(self.lex_string()?);
                 }
                 '-' => {
+                    // #TODO support for `--` line comments!
+
                     let char1 = self.next_char();
 
                     let Some(ch1) = char1 else {
-                        todo!()
-                        // #TODO report error!
+                        let mut span = self.make_span(self.index);
+                        span.start -= 1;
+                        span.end -= 1;
+                        return Err(Spanned(LexicalError::UnexpectedEol, span));
                     };
 
                     if ch1.is_numeric() {
@@ -392,6 +396,20 @@ mod tests {
     }
 
     #[test]
+    fn lex_reports_unexpected_eol() {
+        let input = "(let a -";
+        let result = Lexer::new(input).lex();
+
+        assert!(result.is_err());
+
+        let err = result.unwrap_err();
+
+        eprintln!("{}", format_pretty_spanned_error(&err, input, None));
+
+        assert!(matches!(err.0, LexicalError::UnexpectedEol));
+    }
+
+    #[test]
     fn lex_handles_numbers_with_radix() {
         let input = "(let a 0xfe)";
         let tokens = Lexer::new(input).lex().unwrap();
@@ -412,9 +430,7 @@ mod tests {
     #[test]
     fn lex_reports_number_errors() {
         let input = "(+ 1 3$%99)";
-        let tokens = Lexer::new(input).lex();
-
-        let result = tokens;
+        let result = Lexer::new(input).lex();
 
         assert!(result.is_err());
 
