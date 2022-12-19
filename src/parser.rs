@@ -9,6 +9,8 @@ use self::{error::ParseError, expr::Expr};
 pub mod error;
 pub mod expr;
 
+// #TODO can the parser be just a function?
+
 // #Insight We move the tokens into the parser to simplify the code. The tokens are useless outside the parser.
 
 /// The Parser performs the syntax analysis stage of the compilation pipeline.

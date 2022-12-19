@@ -16,6 +16,7 @@ pub mod token;
 // #TODO use annotations before number literals to set the type?
 // #TODO use (doc_comment ...) for doc-comments.
 // #TODO support `\ ` for escaped space in symbols.
+// #TODO can the lexer be just a function?
 
 /// Returns true if ch is considered whitespace.
 /// The `,` character is considered whitespace, in the Lisp tradition.

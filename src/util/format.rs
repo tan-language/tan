@@ -2,8 +2,8 @@ use std::error::Error;
 
 use crate::span::Spanned;
 
+// #TODO format the error as symbolic expression.
 // #TODO make more beautiful than Rust.
-// #TODO print filename if it exists.
 // #TODO add as method to Spanned<E: Error>? e.g. `format_pretty`
 
 pub fn format_pretty_spanned_error<E: Error>(
