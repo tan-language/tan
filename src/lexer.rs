@@ -39,8 +39,7 @@ fn is_eol(ch: char) -> bool {
 pub struct Lexer<'a> {
     chars: Chars<'a>,
     index: usize,
-    // #TODO use stack to support 'unlimited' lookahead?
-    lookahead: Option<char>, // #TODO find better name!
+    lookahead: Vec<char>,
 }
 
 impl<'a> Lexer<'a> {
@@ -49,7 +48,7 @@ impl<'a> Lexer<'a> {
         Self {
             chars: input.chars(),
             index: 0,
-            lookahead: None,
+            lookahead: Vec::new(),
         }
     }
 
@@ -63,8 +62,7 @@ impl<'a> Lexer<'a> {
     fn next_char(&mut self) -> Option<char> {
         self.index += 1;
 
-        if let Some(ch) = self.lookahead {
-            self.lookahead = None;
+        if let Some(ch) = self.lookahead.pop() {
             return Some(ch);
         }
 
@@ -72,7 +70,7 @@ impl<'a> Lexer<'a> {
     }
 
     fn put_back_char(&mut self, ch: char) {
-        self.lookahead = Some(ch);
+        self.lookahead.push(ch);
         self.index -= 1;
     }
 
@@ -262,6 +260,27 @@ impl<'a> Lexer<'a> {
                 '"' => {
                     tokens.push(self.lex_string()?);
                 }
+                '-' => {
+                    let char1 = self.next_char();
+
+                    let Some(ch1) = char1 else {
+                        todo!()
+                        // #TODO report error!
+                    };
+
+                    if ch1.is_numeric() {
+                        // Negative number
+                        self.put_back_char(ch1);
+                        self.put_back_char(ch);
+                        tokens.push(self.lex_number()?);
+                    } else {
+                        // #TODO lint warning for this!
+                        // Symbol
+                        self.put_back_char(ch1);
+                        self.put_back_char(ch);
+                        tokens.push(self.lex_symbol()?);
+                    }
+                }
                 '#' => {
                     tokens.push(self.lex_annotation()?);
                 }
@@ -362,13 +381,14 @@ mod tests {
     }
 
     #[test]
-    fn lex_handles_number_signs() {
-        // let input = "(+ 1 +3_000)";
-        // let tokens = Lexer::new(input).lex().unwrap();
+    fn lex_handles_signed_numbers() {
+        let input = read_input("signed_number.tan");
+        let tokens = Lexer::new(&input).lex();
 
-        // // dbg!(&tokens);
+        let tokens = tokens.unwrap();
 
-        // assert!(matches!(tokens[3].as_ref(), Token::Number(n) if n == &3000));
+        assert!(matches!(tokens[3].as_ref(), Token::Number(n) if n == &-123));
+        assert!(matches!(tokens[7].as_ref(), Token::Symbol(s) if s == "-variable"));
     }
 
     #[test]
