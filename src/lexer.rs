@@ -33,6 +33,10 @@ fn is_eol(ch: char) -> bool {
 
 // #TODO stateful lexer vs buffer
 
+// #Insight Rust's `Peekable` iterator is not used, as multiple-lookahead is
+// required to scan e.g. signed-numbers. Additionally, the 'put_back' interface
+// seems more intuitive and ergonomic.
+
 /// The Lexer performs the lexical analysis stage of the compilation pipeline.
 /// The input text is scanned into lexemes and then evaluated into lexical tokens.
 /// The tokens are associated with spans (ranges within the input text).
@@ -74,10 +78,11 @@ impl<'a> Lexer<'a> {
         self.index -= 1;
     }
 
-    // Span is a right-open range, i.e. [start, end)
-    fn make_span(&self, start: usize) -> Span {
+    /// Returns a span from `start` to the current index. Span is a right-open
+    /// range, i.e. [start, end).
+    fn span_from(&self, start: usize) -> Span {
         Span {
-            start: start - 1,
+            start,
             end: self.index,
         }
     }
@@ -85,12 +90,19 @@ impl<'a> Lexer<'a> {
     // #TODO add unit tests
     // #TODO try to reuse in more lexers!
     fn scan_lexeme(&mut self) -> Spanned<String> {
-        let mut char = self.next_char();
-
-        let start = self.index;
         let mut text = String::new();
 
-        while let Some(ch) = char {
+        let start = self.index;
+
+        let mut char;
+
+        loop {
+            char = self.next_char();
+
+            let Some(ch) = char  else {
+                break;
+            };
+
             // #TODO maybe whitespace does not need put_back, but need to adjust span.
             if is_whitespace(ch) || is_delimiter(ch) || is_eol(ch) {
                 self.put_back_char(ch);
@@ -98,34 +110,41 @@ impl<'a> Lexer<'a> {
             }
 
             text.push(ch);
-
-            char = self.next_char();
         }
 
-        let span = self.make_span(start);
+        let span = Span {
+            start,
+            end: self.index,
+        };
 
         Spanned(text, span)
     }
 
     fn lex_comment(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
-        let start = self.index;
         let mut text = String::from(";");
 
-        let mut char = self.next_char();
+        let start = self.index - 1; // adjust for leading `;`
 
-        while let Some(ch) = char {
+        let mut char;
+
+        loop {
+            char = self.next_char();
+
+            let Some(ch) = char  else {
+                break;
+            };
+
             if ch == '\n' {
                 break;
             }
 
             text.push(ch);
-
-            char = self.next_char();
         }
 
-        let mut span = self.make_span(start);
-        // Adjust for the trailing '\n'.
-        span.end -= 1;
+        let span = Span {
+            start,
+            end: self.index - 1, // adjust for the trailing '\n'
+        };
 
         Ok(Spanned(Token::Comment(text), span))
     }
@@ -134,7 +153,7 @@ impl<'a> Lexer<'a> {
         let Spanned(lexeme, span) = self.scan_lexeme();
 
         // Ignore `_`, it is considered a number separator.
-        // #Insight fo _not_ consider `,` as number separator, bad idea!
+        // #Insight do _not_ consider `,` as number separator, bad idea!
         let mut lexeme = lexeme.replace('_', "");
 
         // #TODO support radix-8 -> no, leave for arbitrary radix.
@@ -172,22 +191,30 @@ impl<'a> Lexer<'a> {
 
     // #TODO support multi-line strings
     fn lex_string(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
-        let start = self.index;
         let mut text = String::new();
 
-        let mut char = self.next_char();
+        let start = self.index - 1; // adjust for leading '"'
 
-        while let Some(ch) = char {
+        let mut char;
+
+        loop {
+            char = self.next_char();
+
+            let Some(ch) = char  else {
+                break;
+            };
+
             if ch == '"' {
                 break;
             }
 
             text.push(ch);
-
-            char = self.next_char();
         }
 
-        let mut span = self.make_span(start);
+        let mut span = Span {
+            start,
+            end: self.index,
+        };
 
         if char != Some('"') {
             span.end -= 1;
@@ -198,16 +225,23 @@ impl<'a> Lexer<'a> {
     }
 
     fn lex_annotation(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
-        let mut char = self.next_char();
-
-        let start = self.index;
         let mut text = String::new();
+
+        let start = self.index - 1; // adjust for leading '#'
 
         let mut nesting = 0;
 
         // #TODO only allow one level of nesting?
 
-        while let Some(ch) = char {
+        let mut char;
+
+        loop {
+            char = self.next_char();
+
+            let Some(ch) = char  else {
+                break;
+            };
+
             if ch == '(' {
                 nesting += 1;
             } else if ch == ')' {
@@ -219,15 +253,14 @@ impl<'a> Lexer<'a> {
             }
 
             text.push(ch);
-
-            char = self.next_char();
         }
 
-        let mut span = self.make_span(start);
+        let span = Span {
+            start,
+            end: self.index,
+        };
 
         if nesting != 0 {
-            span.start -= 1;
-            span.end -= 1;
             return Err(Spanned(LexicalError::UnterminatedAnnotationError, span));
         }
 
@@ -249,10 +282,10 @@ impl<'a> Lexer<'a> {
 
             match ch {
                 '(' => {
-                    tokens.push(Spanned(Token::LeftParen, self.make_span(self.index)));
+                    tokens.push(Spanned(Token::LeftParen, self.span_from(self.index)));
                 }
                 ')' => {
-                    tokens.push(Spanned(Token::RightParen, self.make_span(self.index)));
+                    tokens.push(Spanned(Token::RightParen, self.span_from(self.index)));
                 }
                 ';' => {
                     tokens.push(self.lex_comment()?);
@@ -266,7 +299,7 @@ impl<'a> Lexer<'a> {
                     let char1 = self.next_char();
 
                     let Some(ch1) = char1 else {
-                        let mut span = self.make_span(self.index);
+                        let mut span = self.span_from(self.index);
                         span.start -= 1;
                         span.end -= 1;
                         return Err(Spanned(LexicalError::UnexpectedEol, span));
