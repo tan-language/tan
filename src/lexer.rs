@@ -106,10 +106,7 @@ impl<'a> Lexer<'a> {
             text.push(ch);
         }
 
-        let range = Range {
-            start,
-            end: self.index,
-        };
+        let range = start..self.index;
 
         Ranged(text, range)
     }
@@ -206,10 +203,7 @@ impl<'a> Lexer<'a> {
             text.push(ch);
         }
 
-        let mut range = Range {
-            start,
-            end: self.index,
-        };
+        let mut range = start..self.index;
 
         if char != Some('"') {
             range.end -= 1;
@@ -250,10 +244,7 @@ impl<'a> Lexer<'a> {
             text.push(ch);
         }
 
-        let range = Range {
-            start,
-            end: self.index,
-        };
+        let range = start..self.index;
 
         if nesting != 0 {
             return Err(Ranged(LexicalError::UnterminatedAnnotationError, range));
