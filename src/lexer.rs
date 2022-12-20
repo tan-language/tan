@@ -1,6 +1,6 @@
 use std::str::Chars;
 
-use crate::span::{Span, Spanned};
+use crate::range::{Range, Ranged};
 
 use self::{error::LexicalError, token::Token};
 
@@ -10,13 +10,15 @@ pub mod token;
 // https://en.wikipedia.org/wiki/Lexical_analysis
 
 // #TODO lex_all, lex_single
-// #TODO use peekable iterator instead of put_back/lookahead.
 // #TODO introduce SemanticToken, with extra semantic information, _after_ parsing.
-// #TODO parse signed numbers
 // #TODO use annotations before number literals to set the type?
 // #TODO use (doc_comment ...) for doc-comments.
 // #TODO support `\ ` for escaped space in symbols.
 // #TODO can the lexer be just a function?
+// #TODO implement PutBackIterator
+// #TODO use Range literal for ranges?
+// #TODO no need to keep iterator as state in Lexer!
+// #TODO accept IntoIterator
 
 /// Returns true if ch is considered whitespace.
 /// The `,` character is considered whitespace, in the Lisp tradition.
@@ -40,7 +42,7 @@ fn is_eol(ch: char) -> bool {
 
 /// The Lexer performs the lexical analysis stage of the compilation pipeline.
 /// The input text is scanned into lexemes and then evaluated into lexical tokens.
-/// The tokens are associated with spans (ranges within the input text).
+/// The tokens are associated with ranges (ranges within the input text).
 pub struct Lexer<'a> {
     chars: Chars<'a>,
     index: usize,
@@ -79,18 +81,9 @@ impl<'a> Lexer<'a> {
         self.index -= 1;
     }
 
-    /// Returns a span from `start` to the current index. Span is a right-open
-    /// range, i.e. [start, end).
-    fn span_from(&self, start: usize) -> Span {
-        Span {
-            start,
-            end: self.index,
-        }
-    }
-
     // #TODO add unit tests
     // #TODO try to reuse in more lexers!
-    fn scan_lexeme(&mut self) -> Spanned<String> {
+    fn scan_lexeme(&mut self) -> Ranged<String> {
         let mut text = String::new();
 
         let start = self.index;
@@ -104,7 +97,7 @@ impl<'a> Lexer<'a> {
                 break;
             };
 
-            // #TODO maybe whitespace does not need put_back, but need to adjust span.
+            // #TODO maybe whitespace does not need put_back, but need to adjust range.
             if is_whitespace(ch) || is_delimiter(ch) || is_eol(ch) {
                 self.put_back_char(ch);
                 break;
@@ -113,15 +106,15 @@ impl<'a> Lexer<'a> {
             text.push(ch);
         }
 
-        let span = Span {
+        let range = Range {
             start,
             end: self.index,
         };
 
-        Spanned(text, span)
+        Ranged(text, range)
     }
 
-    fn lex_comment(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
+    fn lex_comment(&mut self) -> Result<Ranged<Token>, Ranged<LexicalError>> {
         let mut text = String::from(";");
 
         let start = self.index - 1; // adjust for leading `;`
@@ -142,16 +135,17 @@ impl<'a> Lexer<'a> {
             text.push(ch);
         }
 
-        let span = Span {
+        let range = Range {
             start,
             end: self.index - 1, // adjust for the trailing '\n'
         };
 
-        Ok(Spanned(Token::Comment(text), span))
+        Ok(Ranged(Token::Comment(text), range))
     }
 
-    fn lex_number(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
-        let Spanned(lexeme, span) = self.scan_lexeme();
+    // #TODO the lexer should keep the Number token as String.
+    fn lex_number(&mut self) -> Result<Ranged<Token>, Ranged<LexicalError>> {
+        let Ranged(lexeme, range) = self.scan_lexeme();
 
         // Ignore `_`, it is considered a number separator.
         // #Insight do _not_ consider `,` as number separator, bad idea!
@@ -173,13 +167,13 @@ impl<'a> Lexer<'a> {
         // #TODO error handling not enough, we need to add context, check error_stack
 
         let n = i64::from_str_radix(&lexeme, radix)
-            .map_err(|err| Spanned(LexicalError::NumberError(err), span.clone()))?;
+            .map_err(|err| Ranged(LexicalError::NumberError(err), range.clone()))?;
 
-        Ok(Spanned(Token::Number(n), span))
+        Ok(Ranged(Token::Number(n), range))
     }
 
-    fn lex_symbol(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
-        let Spanned(lexeme, span) = self.scan_lexeme();
+    fn lex_symbol(&mut self) -> Result<Ranged<Token>, Ranged<LexicalError>> {
+        let Ranged(lexeme, range) = self.scan_lexeme();
 
         let token = match lexeme.as_str() {
             "if" => Token::If,
@@ -187,11 +181,11 @@ impl<'a> Lexer<'a> {
             _ => Token::Symbol(lexeme),
         };
 
-        Ok(Spanned(token, span))
+        Ok(Ranged(token, range))
     }
 
     // #TODO support multi-line strings
-    fn lex_string(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
+    fn lex_string(&mut self) -> Result<Ranged<Token>, Ranged<LexicalError>> {
         let mut text = String::new();
 
         let start = self.index - 1; // adjust for leading '"'
@@ -212,20 +206,20 @@ impl<'a> Lexer<'a> {
             text.push(ch);
         }
 
-        let mut span = Span {
+        let mut range = Range {
             start,
             end: self.index,
         };
 
         if char != Some('"') {
-            span.end -= 1;
-            return Err(Spanned(LexicalError::UnterminatedStringError, span));
+            range.end -= 1;
+            return Err(Ranged(LexicalError::UnterminatedStringError, range));
         }
 
-        Ok(Spanned(Token::String(text), span))
+        Ok(Ranged(Token::String(text), range))
     }
 
-    fn lex_annotation(&mut self) -> Result<Spanned<Token>, Spanned<LexicalError>> {
+    fn lex_annotation(&mut self) -> Result<Ranged<Token>, Ranged<LexicalError>> {
         let mut text = String::new();
 
         let start = self.index - 1; // adjust for leading '#'
@@ -248,7 +242,7 @@ impl<'a> Lexer<'a> {
             } else if ch == ')' {
                 nesting -= 1;
             } else if nesting == 0 && (is_whitespace(ch) || is_eol(ch)) {
-                // #TODO maybe whitespace does not need put_back, but need to adjust span.
+                // #TODO maybe whitespace does not need put_back, but need to adjust range.
                 self.put_back_char(ch);
                 break;
             }
@@ -256,21 +250,21 @@ impl<'a> Lexer<'a> {
             text.push(ch);
         }
 
-        let span = Span {
+        let range = Range {
             start,
             end: self.index,
         };
 
         if nesting != 0 {
-            return Err(Spanned(LexicalError::UnterminatedAnnotationError, span));
+            return Err(Ranged(LexicalError::UnterminatedAnnotationError, range));
         }
 
-        Ok(Spanned(Token::Annotation(text), span))
+        Ok(Ranged(Token::Annotation(text), range))
     }
 
     // #TODO consider passing into array of chars or something more general.
-    pub fn lex(&mut self) -> Result<Vec<Spanned<Token>>, Spanned<LexicalError>> {
-        let mut tokens: Vec<Spanned<Token>> = Vec::new();
+    pub fn lex(&mut self) -> Result<Vec<Ranged<Token>>, Ranged<LexicalError>> {
+        let mut tokens: Vec<Ranged<Token>> = Vec::new();
 
         let mut char;
 
@@ -283,10 +277,10 @@ impl<'a> Lexer<'a> {
 
             match ch {
                 '(' => {
-                    tokens.push(Spanned(Token::LeftParen, self.span_from(self.index)));
+                    tokens.push(Ranged(Token::LeftParen, self.index..self.index));
                 }
                 ')' => {
-                    tokens.push(Spanned(Token::RightParen, self.span_from(self.index)));
+                    tokens.push(Ranged(Token::RightParen, self.index..self.index));
                 }
                 ';' => {
                     tokens.push(self.lex_comment()?);
@@ -300,10 +294,8 @@ impl<'a> Lexer<'a> {
                     let char1 = self.next_char();
 
                     let Some(ch1) = char1 else {
-                        let mut span = self.span_from(self.index);
-                        span.start -= 1;
-                        span.end -= 1;
-                        return Err(Spanned(LexicalError::UnexpectedEol, span));
+                        let range = (self.index-1)..(self.index-1);
+                        return Err(Ranged(LexicalError::UnexpectedEol, range));
                     };
 
                     if ch1.is_numeric() {
@@ -346,8 +338,8 @@ mod tests {
 
     use crate::{
         lexer::{Lexer, LexicalError, Token},
-        span::Spanned,
-        util::format::format_pretty_spanned_error,
+        range::Ranged,
+        util::format::format_pretty_error,
     };
 
     fn read_input(filename: &str) -> String {
@@ -438,7 +430,7 @@ mod tests {
 
         let err = result.unwrap_err();
 
-        eprintln!("{}", format_pretty_spanned_error(&err, input, None));
+        eprintln!("{}", format_pretty_error(&err, input, None));
 
         assert!(matches!(err.0, LexicalError::UnexpectedEol));
     }
@@ -472,12 +464,12 @@ mod tests {
 
         assert!(matches!(err.0, LexicalError::NumberError(..)));
 
-        eprintln!("{}", format_pretty_spanned_error(&err, input, None));
+        eprintln!("{}", format_pretty_error(&err, input, None));
 
-        if let Spanned(LexicalError::NumberError(pie), span) = err {
+        if let Ranged(LexicalError::NumberError(pie), range) = err {
             assert_eq!(pie.kind(), &IntErrorKind::InvalidDigit);
-            assert_eq!(span.start, 5);
-            assert_eq!(span.end, 10);
+            assert_eq!(range.start, 5);
+            assert_eq!(range.end, 10);
         }
     }
 
@@ -494,7 +486,7 @@ mod tests {
 
         assert!(matches!(err.0, LexicalError::UnterminatedStringError));
 
-        eprintln!("{}", format_pretty_spanned_error(&err, input, None));
+        eprintln!("{}", format_pretty_error(&err, input, None));
 
         assert_eq!(err.1.start, 7);
         assert_eq!(err.1.end, 14);
@@ -517,7 +509,7 @@ mod tests {
 
         assert!(matches!(err.0, LexicalError::UnterminatedAnnotationError));
 
-        eprintln!("{}", format_pretty_spanned_error(&err, input, None));
+        eprintln!("{}", format_pretty_error(&err, input, None));
 
         assert_eq!(err.1.start, 29);
     }

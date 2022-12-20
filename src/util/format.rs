@@ -1,18 +1,14 @@
 use std::error::Error;
 
-use crate::span::Spanned;
+use crate::range::Ranged;
 
 // #TODO format the error as symbolic expression.
 // #TODO make more beautiful than Rust.
-// #TODO add as method to Spanned<E: Error>? e.g. `format_pretty`
+// #TODO add as method to Ranged<E: Error>? e.g. `format_pretty`
 
-pub fn format_pretty_spanned_error<E: Error>(
-    error: &Spanned<E>,
-    input: &str,
-    url: Option<&str>,
-) -> String {
+pub fn format_pretty_error<E: Error>(error: &Ranged<E>, input: &str, url: Option<&str>) -> String {
     let chars = input.chars();
-    let Spanned(error, span) = error;
+    let Ranged(error, span) = error;
 
     let mut index: usize = 0;
     let mut line = 0;
