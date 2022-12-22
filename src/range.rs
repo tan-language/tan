@@ -1,4 +1,4 @@
-use std::fmt::{Debug, Display};
+use std::fmt;
 
 // #TODO add methods to find positions (line, col) from span index!
 
@@ -12,11 +12,12 @@ pub type Range = std::ops::Range<usize>;
 #[derive(Debug, Clone)]
 pub struct Ranged<T>(pub T, pub Range);
 
-impl<T> Display for Ranged<T>
+// #TODO is this good? it hides the wrapped data.
+impl<T> fmt::Display for Ranged<T>
 where
-    T: Display,
+    T: fmt::Display,
 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.0.fmt(f)
     }
 }

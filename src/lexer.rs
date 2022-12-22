@@ -19,6 +19,7 @@ pub mod token;
 // #TODO use Range literal for ranges?
 // #TODO no need to keep iterator as state in Lexer!
 // #TODO accept IntoIterator
+// #TODO try to use `let mut reader = BufReader::new(source.as_bytes());` like an older version?
 
 /// Returns true if ch is considered whitespace.
 /// The `,` character is considered whitespace, in the Lisp tradition.
@@ -182,6 +183,7 @@ impl<'a> Lexer<'a> {
     }
 
     // #TODO support multi-line strings
+    // #TODO support 'raw' strings, e.g. (write #raw "this is \ cool")
     fn lex_string(&mut self) -> Result<Ranged<Token>, Ranged<LexicalError>> {
         let mut text = String::new();
 

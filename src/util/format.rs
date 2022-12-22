@@ -3,6 +3,7 @@ use std::error::Error;
 use crate::range::Ranged;
 
 // #TODO format the error as symbolic expression.
+// #TODO format the error as JSON.
 // #TODO make more beautiful than Rust.
 // #TODO add as method to Ranged<E: Error>? e.g. `format_pretty`
 

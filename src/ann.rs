@@ -1,3 +1,5 @@
+// use std::fmt;
+
 use crate::range::Ranged;
 
 // #TODO consider `Ann`?
@@ -11,6 +13,16 @@ impl<T> Annotated<T> {
         Self(value, None)
     }
 }
+
+// #TODO is this good? it hides the wrapped data.
+// impl<T> fmt::Display for Annotated<T>
+// where
+//     T: fmt::Display,
+// {
+//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//         self.0.fmt(f)
+//     }
+// }
 
 impl<T> AsRef<T> for Annotated<T> {
     fn as_ref(&self) -> &T {
