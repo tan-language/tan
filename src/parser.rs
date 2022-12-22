@@ -139,11 +139,9 @@ where
 
     // #TODO handle annotations
     pub fn parse(&mut self) -> Result<Annotated<Expr>, Ranged<ParseError>> {
-        let exprs = Vec::new();
+        let exprs = self.parse_tokens(Vec::new(), None)?;
 
-        let exprs = self.parse_tokens(exprs, None)?;
-
-        Ok(Annotated::new(Expr::List(exprs)))
+        Ok(Annotated::new(Expr::Do(exprs)))
     }
 }
 

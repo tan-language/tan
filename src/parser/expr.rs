@@ -2,10 +2,12 @@ use std::fmt;
 
 use crate::ann::Annotated;
 
+// #TODO just a trivial eval!
+
 // #Insight
 // AST = Expr = Value = Object
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Expr {
     One,        // Unit == List(Vec::new())
     Bool(bool), // #TODO remove?
@@ -13,6 +15,7 @@ pub enum Expr {
     Float(f64),
     Symbol(String),
     String(String),
+    Do(Vec<Annotated<Expr>>),
     List(Vec<Annotated<Expr>>),
     Func(Vec<Annotated<Expr>>, Box<Annotated<Expr>>), // #TODO is there a need to use Rc instead of Box?
 }
@@ -28,6 +31,16 @@ impl fmt::Display for Expr {
                 Expr::Float(n) => n.to_string(),
                 Expr::Symbol(s) => s.clone(),
                 Expr::String(s) => s.clone(),
+                Expr::Do(terms) => {
+                    format!(
+                        "(do {})",
+                        terms
+                            .iter()
+                            .map(|term| format!("{}", term.as_ref()))
+                            .collect::<Vec<String>>()
+                            .join(" ")
+                    )
+                }
                 Expr::List(terms) => {
                     format!(
                         "({})",

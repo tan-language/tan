@@ -18,6 +18,7 @@ pub enum Token {
     Symbol(String),
     If,
     Using,
+    Do,
     Annotation(String),
     // True,
     // False,
@@ -40,6 +41,7 @@ impl fmt::Display for Token {
                 Token::Symbol(s) => s.clone(),
                 Token::If => "if".to_owned(),
                 Token::Using => "using".to_owned(),
+                Token::Do => "do".to_owned(),
                 Token::Annotation(s) => s.clone(),
                 Token::Comment(s) => s.clone(),
             })
