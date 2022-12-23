@@ -1,9 +1,10 @@
 pub mod env;
 pub mod error;
+pub mod scope;
 
-use crate::parser::expr::Expr;
+use crate::expr::Expr;
 
-use self::{error::EvalError, env::Env};
+use self::{env::Env, error::EvalError};
 
 // tree-walk interpreter
 

@@ -1,13 +1,13 @@
 use crate::{
     ann::Annotated,
+    expr::Expr,
     lexer::token::Token,
     range::{Range, Ranged},
 };
 
-use self::{error::ParseError, expr::Expr};
+use self::error::ParseError;
 
 pub mod error;
-pub mod expr;
 
 // #TODO no need to keep iterator as state in parser!
 // #TODO can the parser be just a function?
@@ -149,8 +149,8 @@ where
 mod tests {
     use crate::{
         ann::Annotated,
+        expr::Expr,
         lexer::{token::Token, Lexer},
-        parser::expr::Expr,
         range::Ranged,
         util::format::format_pretty_error,
     };

@@ -2,7 +2,8 @@ use std::fmt;
 
 use crate::ann::Annotated;
 
-// #TODO just a trivial eval!
+// #TODO Expr/Value is the _central_ datastructure, should be moved to the top-level.
+// #TODO should be part of eval?
 
 // #Insight
 // AST = Expr = Value = Object
