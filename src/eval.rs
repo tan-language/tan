@@ -11,12 +11,13 @@ use self::{env::Env, error::EvalError};
 // #TODO alternative names: Processor, Runner
 
 // #TODO accept AsRef<Expr>
-pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, EvalError> {
+pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
+    let expr = expr.as_ref();
     let result = match expr {
         Expr::Do(list) => {
             let mut result = Ok(Expr::One);
             for expr in list {
-                result = eval(expr.as_ref(), env)
+                result = eval(expr, env)
             }
             result
         }
@@ -31,19 +32,41 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, EvalError> {
                 return Err(EvalError::UnknownError);
             };
 
-            if s != "write" {
-                return Err(EvalError::UnknownError);
+            // Evaluate the arguments before calling the function.
+            let mut args = Vec::new();
+            for x in tail {
+                // #Insight cannot use map() because of the `?` operator.
+                args.push(eval(x, env)?);
             }
 
-            // #TODO should eval the function arguments!
-            let output = tail.iter().fold(String::new(), |mut str, x| {
-                str.push_str(&format!("{}", x.as_ref()));
-                str
-            });
+            match s.as_str() {
+                "write" => {
+                    let output = args.iter().fold(String::new(), |mut str, x| {
+                        str.push_str(&format!("{}", x));
+                        str
+                    });
 
-            println!("{output}");
+                    println!("{output}");
 
-            Ok(Expr::One)
+                    Ok(Expr::One)
+                }
+                "+" => {
+                    let mut sum = 0;
+
+                    for arg in args {
+                        let Expr::Int(n) = arg else {
+                            // #TODO proper error!
+                            return Err(EvalError::UnknownError);
+                        };
+                        sum += n;
+                    }
+
+                    Ok(Expr::Int(sum))
+                }
+                _ => {
+                    return Err(EvalError::UnknownError);
+                }
+            }
         }
         _ => {
             // Unhandled expression variants evaluate to themselves.
