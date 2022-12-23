@@ -33,3 +33,9 @@ impl<T> AsRef<T> for Annotated<T> {
         &self.0
     }
 }
+
+impl<T> From<T> for Annotated<T> {
+    fn from(value: T) -> Self {
+        Annotated::new(value)
+    }
+}

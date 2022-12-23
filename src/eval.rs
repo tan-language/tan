@@ -1,6 +1,5 @@
 pub mod env;
 pub mod error;
-pub mod scope;
 
 use crate::expr::Expr;
 
