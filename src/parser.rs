@@ -172,7 +172,7 @@ mod tests {
         let tokens = lex_tokens(input);
         let mut parser = Parser::new(tokens);
         let ast = parser.parse().unwrap();
-        assert!(matches!(ast, Annotated(Expr::List(x), ..) if x.is_empty()));
+        assert!(matches!(ast, Annotated(Expr::Do(x), ..) if x.is_empty()));
     }
 
     #[test]

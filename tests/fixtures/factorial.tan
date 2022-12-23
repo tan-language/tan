@@ -1,0 +1,5 @@
+; Computes `x!`, the factorial of `x`.
+(let (fact x)
+    (* (fact (- x 1))
+        x)
+)

@@ -1,31 +1,14 @@
-use std::{error::Error, fmt};
+pub mod env;
+pub mod error;
 
 use crate::parser::expr::Expr;
+
+use self::{error::EvalError, env::Env};
 
 // tree-walk interpreter
 
 // #TODO interpret or eval or execute?
 // #TODO alternative names: Processor, Runner
-
-pub struct Env {
-    // #TODO
-}
-
-#[derive(Debug)]
-pub enum EvalError {
-    UnknownError,
-}
-
-impl Error for EvalError {}
-
-impl fmt::Display for EvalError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let err = match self {
-            EvalError::UnknownError => "unknown error".to_string(),
-        };
-        write!(f, "eval error: {}", err)
-    }
-}
 
 // #TODO accept AsRef<Expr>
 pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, EvalError> {
@@ -52,6 +35,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, EvalError> {
                 return Err(EvalError::UnknownError);
             }
 
+            // #TODO should eval the function arguments!
             let output = tail.iter().fold(String::new(), |mut str, x| {
                 str.push_str(&format!("{}", x.as_ref()));
                 str
