@@ -1,6 +1,6 @@
 // use std::fmt;
 
-use crate::{expr::Expr, range::Ranged};
+use crate::expr::Expr;
 
 // #TODO consider `Ann`?
 // #TODO keep the annotation as Expr, not String.
