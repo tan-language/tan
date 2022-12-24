@@ -15,12 +15,14 @@ use range::Ranged;
 
 pub fn lex_string(input: &str) -> Vec<Ranged<Token>> {
     let mut lexer = Lexer::new(input);
+    // #TODO remove unwrap!
     lexer.lex().unwrap()
 }
 
 pub fn parse_string(input: &str) -> Annotated<Expr> {
     let tokens = lex_string(input);
     let mut parser = Parser::new(tokens);
+    // #TODO remove unwrap!
     parser.parse().unwrap()
 }
 

@@ -27,7 +27,6 @@ where
     I: IntoIterator<Item = Ranged<Token>>,
 {
     tokens: I::IntoIter,
-    // index: usize,
     active_annotations: Option<Vec<Ranged<String>>>,
 }
 
@@ -40,13 +39,11 @@ where
 
         Self {
             tokens,
-            // index: 0,
             active_annotations: None,
         }
     }
 
     fn next_token(&mut self) -> Option<Ranged<Token>> {
-        // self.index += 1;
         self.tokens.next()
     }
 
@@ -62,6 +59,7 @@ where
         // #TODO really messy code, cleanup!
 
         for a in annotations {
+            // #TODO don't use parse_string
             let ae = parse_string(&a.0);
             let Expr::Do(ae) = ae.0 else {
                 continue;
