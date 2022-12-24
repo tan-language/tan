@@ -1,6 +1,6 @@
 // use std::fmt;
 
-use crate::range::Ranged;
+use crate::{expr::Expr, range::Ranged};
 
 // #TODO consider `Ann`?
 // #TODO keep the annotation as Expr, not String.
@@ -10,7 +10,7 @@ use crate::range::Ranged;
 // Option to avoid unnecessary HashMap allocations.
 
 #[derive(Debug, Clone)]
-pub struct Annotated<T>(pub T, pub Option<Vec<Ranged<String>>>);
+pub struct Annotated<T>(pub T, pub Option<Vec<Expr>>);
 
 impl<T> Annotated<T> {
     pub fn new(value: T) -> Self {

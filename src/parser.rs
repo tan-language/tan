@@ -1,15 +1,15 @@
+pub mod error;
+
 use crate::{
     ann::Annotated,
     expr::Expr,
     lexer::token::Token,
+    parse_string,
     range::{Range, Ranged},
 };
 
 use self::error::ParseError;
 
-pub mod error;
-
-// #TODO should we keep tokens index?
 // #TODO no need to keep iterator as state in parser!
 // #TODO can the parser be just a function? -> yes, if we use a custom iterator to keep the parsing state.
 
@@ -50,8 +50,27 @@ where
         self.tokens.next()
     }
 
-    pub fn apply_annotations(&mut self, expr: Expr) -> Annotated<Expr> {
-        Annotated(expr, self.active_annotations.take())
+    /// Wrap the `expr` with the active (prefix) annotations.
+    /// The annotations are parsed into an Expr representation.
+    fn apply_annotations(&mut self, expr: Expr) -> Annotated<Expr> {
+        let Some(annotations) = self.active_annotations.take() else {
+            return Annotated::new(expr);
+        };
+
+        let mut ann_exprs = Vec::new();
+
+        // #TODO really messy code, cleanup!
+
+        for a in annotations {
+            let ae = parse_string(&a.0);
+            let Expr::Do(ae) = ae.0 else {
+                continue;
+            };
+            let ae = ae.first().unwrap();
+            ann_exprs.push(ae.0.clone());
+        }
+
+        Annotated(expr, Some(ann_exprs))
     }
 
     // #TODO better name!
