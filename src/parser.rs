@@ -9,6 +9,7 @@ use self::error::ParseError;
 
 pub mod error;
 
+// #TODO should we keep tokens index?
 // #TODO no need to keep iterator as state in parser!
 // #TODO can the parser be just a function? -> yes, if we use a custom iterator to keep the parsing state.
 
@@ -26,7 +27,7 @@ where
     I: IntoIterator<Item = Ranged<Token>>,
 {
     tokens: I::IntoIter,
-    index: usize,
+    // index: usize,
     active_annotations: Option<Vec<Ranged<String>>>,
 }
 
@@ -39,21 +40,19 @@ where
 
         Self {
             tokens,
-            index: 0,
+            // index: 0,
             active_annotations: None,
         }
     }
 
     fn next_token(&mut self) -> Option<Ranged<Token>> {
-        self.index += 1;
+        // self.index += 1;
         self.tokens.next()
     }
 
     pub fn apply_annotations(&mut self, expr: Expr) -> Annotated<Expr> {
         Annotated(expr, self.active_annotations.take())
     }
-
-    // #TODO AST = Vec<Spanned<Annotated<Expr>>>
 
     // #TODO better name!
     pub fn parse_tokens(
