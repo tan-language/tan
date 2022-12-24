@@ -68,13 +68,12 @@ where
     }
 
     // #TODO better name!
-    // #TODO what is list_span?
+    // #TODO what is list_range?
     pub fn parse_tokens(
         &mut self,
-        exprs: Vec<Annotated<Expr>>,
         list_range: Option<Range>,
     ) -> Result<Vec<Annotated<Expr>>, Ranged<ParseError>> {
-        let mut exprs = exprs;
+        let mut exprs = Vec::new();
 
         let mut token: Option<Ranged<Token>>;
 
@@ -82,16 +81,16 @@ where
             token = self.tokens.next();
 
             let Some(st) = token  else {
-                if let Some(span) = list_range {
+                if let Some(range) = list_range {
                     return Err(Ranged(
                         ParseError::UnterminatedList,
-                        span,
+                        range,
                     ));
                 }
                 break;
             };
 
-            let Ranged(t, span) = st;
+            let Ranged(t, range) = st;
 
             match t {
                 Token::Comment(..) => (),
@@ -115,10 +114,10 @@ where
                     self.active_annotations
                         .as_mut()
                         .unwrap()
-                        .push(Ranged(s, span));
+                        .push(Ranged(s, range));
                 }
                 Token::LeftParen => {
-                    let list_exprs = self.parse_tokens(Vec::new(), Some(span))?;
+                    let list_exprs = self.parse_tokens(Some(range))?;
                     let expr = self.apply_annotations(Expr::List(list_exprs));
                     exprs.push(expr);
                 }
@@ -127,11 +126,11 @@ where
                         return Ok(exprs);
                     } else {
                         // #TODO custom error here?
-                        return Err(Ranged(ParseError::UnexpectedToken(t), span));
+                        return Err(Ranged(ParseError::UnexpectedToken(t), range));
                     }
                 }
                 _ => {
-                    return Err(Ranged(ParseError::UnexpectedToken(t), span));
+                    return Err(Ranged(ParseError::UnexpectedToken(t), range));
                 }
             }
         }
@@ -141,7 +140,7 @@ where
 
     // #TODO handle annotations
     pub fn parse(&mut self) -> Result<Annotated<Expr>, Ranged<ParseError>> {
-        let exprs = self.parse_tokens(Vec::new(), None)?;
+        let exprs = self.parse_tokens(None)?;
 
         Ok(Annotated::new(Expr::Do(exprs)))
     }
