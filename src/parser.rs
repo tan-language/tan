@@ -10,7 +10,7 @@ use self::error::ParseError;
 pub mod error;
 
 // #TODO no need to keep iterator as state in parser!
-// #TODO can the parser be just a function?
+// #TODO can the parser be just a function? -> yes, if we use a custom iterator to keep the parsing state.
 
 // #Insight We move the tokens into the parser to simplify the code. The tokens are useless outside the parser.
 
@@ -130,8 +130,6 @@ where
                     return Err(Ranged(ParseError::UnexpectedToken(t), span));
                 }
             }
-
-            // println!("-- {:?}", self.active_annotations);
         }
 
         Ok(exprs)
