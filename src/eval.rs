@@ -20,12 +20,11 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
             }
             result
         }
-        Expr::Symbol(s) => {
-            let result = env.get(s);
+        Expr::Symbol(sym) => {
+            let result = env.get(sym);
 
             let Some(Annotated(expr, ..)) = result else {
-                // #TODO proper error!
-                return Err(EvalError::UnknownError);
+                return Err(EvalError::UndefinedSymbol(sym.clone()));
             };
 
             // #TODO hm, can we somehow work with references?
@@ -82,28 +81,6 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
             // Functions
 
             match s.as_str() {
-                "let" => {
-                    let mut args = args.into_iter();
-
-                    loop {
-                        let Some(sym) = args.next() else {
-                            break;
-                        };
-                        let Some(value) = args.next() else {
-                            // #TODO error?
-                            break;
-                        };
-                        let Expr::Symbol(s) = sym else {
-                            // #TODO proper error!
-                            return Err(EvalError::UnknownError);
-                        };
-                        // #TODO notify about overrides? use `set`?
-                        env.insert(s, value);
-                    }
-
-                    // #TODO return last value!
-                    Ok(Expr::One)
-                }
                 "write" => {
                     let output = args.iter().fold(String::new(), |mut str, x| {
                         str.push_str(&format!("{}", x));
