@@ -23,8 +23,6 @@ where
 {
     tokens: I::IntoIter,
     index: usize,
-    // #TODO use stack to support 'unlimited' lookahead?
-    lookahead: Option<Ranged<Token>>,
     active_annotations: Option<Vec<Ranged<String>>>,
 }
 
@@ -38,25 +36,14 @@ where
         Self {
             tokens,
             index: 0,
-            lookahead: None,
             active_annotations: None,
         }
     }
 
     fn next_token(&mut self) -> Option<Ranged<Token>> {
-        if self.lookahead.is_some() {
-            return self.lookahead.take();
-        }
-
         self.index += 1;
-
         self.tokens.next()
     }
-
-    // fn put_back_token(&mut self, token: &'a Spanned<Token>) {
-    //     self.lookahead = Some(token);
-    //     self.index -= 1;
-    // }
 
     pub fn apply_annotations(&mut self, expr: Expr) -> Annotated<Expr> {
         Annotated(expr, self.active_annotations.take())
