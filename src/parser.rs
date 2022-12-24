@@ -43,10 +43,6 @@ where
         }
     }
 
-    fn next_token(&mut self) -> Option<Ranged<Token>> {
-        self.tokens.next()
-    }
-
     /// Wrap the `expr` with the active (prefix) annotations.
     /// The annotations are parsed into an Expr representation.
     fn apply_annotations(&mut self, expr: Expr) -> Annotated<Expr> {
@@ -72,20 +68,21 @@ where
     }
 
     // #TODO better name!
+    // #TODO what is list_span?
     pub fn parse_tokens(
         &mut self,
         exprs: Vec<Annotated<Expr>>,
-        list_span: Option<Range>,
+        list_range: Option<Range>,
     ) -> Result<Vec<Annotated<Expr>>, Ranged<ParseError>> {
         let mut exprs = exprs;
 
         let mut token: Option<Ranged<Token>>;
 
         loop {
-            token = self.next_token();
+            token = self.tokens.next();
 
             let Some(st) = token  else {
-                if let Some(span) = list_span {
+                if let Some(span) = list_range {
                     return Err(Ranged(
                         ParseError::UnterminatedList,
                         span,
@@ -126,7 +123,7 @@ where
                     exprs.push(expr);
                 }
                 Token::RightParen => {
-                    if list_span.is_some() {
+                    if list_range.is_some() {
                         return Ok(exprs);
                     } else {
                         // #TODO custom error here?
