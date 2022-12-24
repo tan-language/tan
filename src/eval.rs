@@ -5,11 +5,15 @@ use crate::{ann::Annotated, expr::Expr};
 
 use self::{env::Env, error::EvalError};
 
-// tree-walk interpreter
+// #Insight
+// _Not_ a pure evaluator, performs side-effects.
 
+// #TODO encode effects in the type-system.
 // #TODO interpret or eval or execute?
 // #TODO alternative names: Processor, Runner
 
+/// Evaluates via expression rewriting. The expression `expr` evaluates to
+/// a fixed point. In essence this is a 'tree-walk' interpreter.
 pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
     let expr = expr.as_ref();
     let result = match expr {

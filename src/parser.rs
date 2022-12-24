@@ -43,6 +43,7 @@ where
         }
     }
 
+    // #TODO rename to `attach_annotations`?
     /// Wrap the `expr` with the active (prefix) annotations.
     /// The annotations are parsed into an Expr representation.
     fn apply_annotations(&mut self, expr: Expr) -> Annotated<Expr> {
