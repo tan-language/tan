@@ -30,12 +30,14 @@ pub fn parse_file(filename: &str) -> Annotated<Expr> {
     parse_string(input)
 }
 
+#[allow(dead_code)]
 pub fn eval_string(input: &str) -> Result<Expr, EvalError> {
     let expr = parse_string(input);
     let mut env = Env::default();
     eval(&expr, &mut env)
 }
 
+#[allow(dead_code)]
 pub fn eval_file(filename: &str) -> Result<Expr, EvalError> {
     let input = &read_file(filename);
     eval_string(input)
