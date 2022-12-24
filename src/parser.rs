@@ -12,7 +12,11 @@ pub mod error;
 // #TODO no need to keep iterator as state in parser!
 // #TODO can the parser be just a function? -> yes, if we use a custom iterator to keep the parsing state.
 
-// #Insight We move the tokens into the parser to simplify the code. The tokens are useless outside the parser.
+// #Insight
+// The syntax of the language is explicitly designed to _not_ require a lookahead buffer.
+
+// #Insight
+// We move the tokens into the parser to simplify the code. The tokens are useless outside the parser.
 
 /// The Parser performs the syntax analysis stage of the compilation pipeline.
 /// The input token stream is reduced into and Abstract Syntax Tree (AST).
