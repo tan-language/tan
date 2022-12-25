@@ -131,12 +131,13 @@ where
     }
 
     /// Tries to parse at least one expression.
-    pub fn parse_expr(&mut self) -> Result<Option<Annotated<Expr>>, Ranged<ParseError>> {
+    pub fn parse(&mut self) -> Result<Annotated<Expr>, Ranged<ParseError>> {
         loop {
             let token = self.tokens.next();
 
             let Some(token) = token  else {
-                return Ok(None);
+                // #TODO what should we return on empty tokens list? Never? Error?
+                return Ok(Annotated::new(Expr::One));
             };
 
             let expr = match token.0 {
@@ -148,15 +149,8 @@ where
             };
 
             if let Some(expr) = expr {
-                return Ok(Some(self.attach_buffered_annotations(expr)));
+                return Ok(self.attach_buffered_annotations(expr));
             }
         }
-    }
-
-    pub fn parse(&mut self) -> Result<Annotated<Expr>, Ranged<ParseError>> {
-        let expr = self.parse_expr()?;
-
-        // #TODO what should we return on empty tokens list? Never? Error?
-        Ok(expr.unwrap_or_else(|| Annotated::new(Expr::One)))
     }
 }
