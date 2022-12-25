@@ -16,7 +16,6 @@ pub mod token;
 // #TODO support `\ ` for escaped space in symbols.
 // #TODO can the lexer be just a function?
 // #TODO implement PutBackIterator
-// #TODO use Range literal for ranges?
 // #TODO no need to keep iterator as state in Lexer!
 // #TODO accept IntoIterator
 // #TODO try to use `let mut reader = BufReader::new(source.as_bytes());` like an older version
@@ -64,8 +63,6 @@ impl<'a> Lexer<'a> {
     pub fn input(&self) -> String {
         self.chars.clone().collect()
     }
-
-    // #TODO peek_char() (next+put_back)
 
     fn next_char(&mut self) -> Option<char> {
         self.index += 1;

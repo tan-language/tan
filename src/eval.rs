@@ -75,12 +75,13 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
 
                     match s.as_str() {
                         "write" => {
+                            // #TODO for some reason, "\n" is not working.
                             let output = args.iter().fold(String::new(), |mut str, x| {
                                 str.push_str(&format!("{}", x));
                                 str
                             });
 
-                            println!("{output}");
+                            print!("{output}");
 
                             Ok(Expr::One)
                         }
