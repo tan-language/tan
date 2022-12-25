@@ -82,6 +82,7 @@ where
             Token::String(s) => Some(Expr::String(s)),
             Token::Symbol(s) => match s.as_str() {
                 "do" => Some(Expr::Do),
+                "let" => Some(Expr::Let),
                 _ => Some(Expr::Symbol(s)),
             },
             Token::Number(n) => Some(Expr::Int(n)),

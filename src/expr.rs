@@ -17,6 +17,7 @@ pub enum Expr {
     Symbol(String),
     String(String),
     Do,
+    Let,
     List(Vec<Annotated<Expr>>),
     Func(Vec<Annotated<Expr>>, Box<Annotated<Expr>>), // #TODO is there a need to use Rc instead of Box?
 }
@@ -33,6 +34,7 @@ impl fmt::Display for Expr {
                 Expr::Symbol(s) => s.clone(),
                 Expr::String(s) => s.clone(),
                 Expr::Do => "do".to_owned(),
+                Expr::Let => "let".to_owned(),
                 Expr::List(terms) => {
                     format!(
                         "({})",
