@@ -17,13 +17,6 @@ use self::{env::Env, error::EvalError};
 pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
     let expr = expr.as_ref();
     let result = match expr {
-        Expr::Do(list) => {
-            let mut result = Ok(Expr::One);
-            for expr in list {
-                result = eval(expr, env)
-            }
-            result
-        }
         Expr::Symbol(sym) => {
             let result = env.get(sym);
 
@@ -42,71 +35,82 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
             let head = list.first().ok_or(EvalError::UnknownError)?;
             let tail = &list[1..];
 
-            let Expr::Symbol(s) = head.as_ref() else {
-                return Err(EvalError::UnknownError);
-            };
+            match head.as_ref() {
+                Expr::Do => {
+                    // #TODO do should be 'monadic', propagate Eff (effect) wrapper.
+                    let mut result = Ok(Expr::One);
+                    for expr in tail {
+                        result = eval(expr, env)
+                    }
+                    return result;
+                }
+                Expr::Symbol(s) => {
+                    // Special forms
 
-            // Special forms
+                    #[allow(clippy::single_match)]
+                    match s.as_str() {
+                        "let" => {
+                            let mut args = tail.iter();
 
-            #[allow(clippy::single_match)]
-            match s.as_str() {
-                "let" => {
-                    let mut args = tail.iter();
+                            loop {
+                                let Some(sym) = args.next() else {
+                                    break;
+                                };
+                                let Some(value) = args.next() else {
+                                    // #TODO error?
+                                    break;
+                                };
+                                let Annotated(Expr::Symbol(s), ..) = sym else {
+                                    // #TODO proper error!
+                                    return Err(EvalError::UnknownError);
+                                };
+                                // #TODO notify about overrides? use `set`?
+                                env.insert(s, value.clone());
+                            }
 
-                    loop {
-                        let Some(sym) = args.next() else {
-                            break;
-                        };
-                        let Some(value) = args.next() else {
-                            // #TODO error?
-                            break;
-                        };
-                        let Annotated(Expr::Symbol(s), ..) = sym else {
-                            // #TODO proper error!
-                            return Err(EvalError::UnknownError);
-                        };
-                        // #TODO notify about overrides? use `set`?
-                        env.insert(s, value.clone());
+                            // #TODO return last value!
+                            return Ok(Expr::One);
+                        }
+                        _ => (),
                     }
 
-                    // #TODO return last value!
-                    return Ok(Expr::One);
-                }
-                _ => (),
-            }
-
-            // Evaluate the arguments before calling the function.
-            let mut args = Vec::new();
-            for x in tail {
-                // #Insight cannot use map() because of the `?` operator.
-                args.push(eval(x, env)?);
-            }
-
-            // Functions
-
-            match s.as_str() {
-                "write" => {
-                    let output = args.iter().fold(String::new(), |mut str, x| {
-                        str.push_str(&format!("{}", x));
-                        str
-                    });
-
-                    println!("{output}");
-
-                    Ok(Expr::One)
-                }
-                "+" => {
-                    let mut sum = 0;
-
-                    for arg in args {
-                        let Expr::Int(n) = arg else {
-                            // #TODO proper error!
-                            return Err(EvalError::UnknownError);
-                        };
-                        sum += n;
+                    // Evaluate the arguments before calling the function.
+                    let mut args = Vec::new();
+                    for x in tail {
+                        // #Insight cannot use map() because of the `?` operator.
+                        args.push(eval(x, env)?);
                     }
 
-                    Ok(Expr::Int(sum))
+                    // Functions
+
+                    match s.as_str() {
+                        "write" => {
+                            let output = args.iter().fold(String::new(), |mut str, x| {
+                                str.push_str(&format!("{}", x));
+                                str
+                            });
+
+                            println!("{output}");
+
+                            Ok(Expr::One)
+                        }
+                        "+" => {
+                            let mut sum = 0;
+
+                            for arg in args {
+                                let Expr::Int(n) = arg else {
+                                    // #TODO proper error!
+                                    return Err(EvalError::UnknownError);
+                                };
+                                sum += n;
+                            }
+
+                            Ok(Expr::Int(sum))
+                        }
+                        _ => {
+                            return Err(EvalError::UndefinedSymbol(s.clone()));
+                        }
+                    }
                 }
                 _ => {
                     return Err(EvalError::UnknownError);

@@ -21,8 +21,8 @@ fn parse_handles_an_empty_token_list() {
     let input = &read_input("empty.tan");
     let tokens = lex_tokens(input);
     let mut parser = Parser::new(tokens);
-    let ast = parser.parse().unwrap();
-    assert!(matches!(ast, Annotated(Expr::Do(x), ..) if x.is_empty()));
+    let expr = parser.parse();
+    assert!(matches!(expr, Ok(Annotated(Expr::One, ..))));
 }
 
 #[test]
@@ -73,6 +73,5 @@ fn parse_handles_annotations() {
     let mut parser = Parser::new(tokens);
 
     let expr = parser.parse().unwrap();
-    // println!("{expr:?}");
     dbg!(&expr);
 }

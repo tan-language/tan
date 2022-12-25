@@ -1,1 +1,1 @@
-(print "hello") (print "world"
+(do (print "hello") (print "world"
