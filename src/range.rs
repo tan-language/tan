@@ -22,15 +22,6 @@ where
     }
 }
 
-// impl<T> Debug for Ranged<T>
-// where
-//     T: Debug,
-// {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         self.value.fmt(f)
-//     }
-// }
-
 impl<T> AsRef<T> for Ranged<T> {
     fn as_ref(&self) -> &T {
         &self.0

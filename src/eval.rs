@@ -118,6 +118,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
             }
         }
         _ => {
+            // #TODO hm, maybe need to report an error here? or even select the desired behavior?
             // Unhandled expression variants evaluate to themselves.
             return Ok(expr.clone());
         }

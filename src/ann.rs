@@ -18,16 +18,6 @@ impl<T> Annotated<T> {
     }
 }
 
-// #TODO is this good? it hides the wrapped data.
-// impl<T> fmt::Display for Annotated<T>
-// where
-//     T: fmt::Display,
-// {
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         self.0.fmt(f)
-//     }
-// }
-
 impl<T> AsRef<T> for Annotated<T> {
     fn as_ref(&self) -> &T {
         &self.0
