@@ -6,6 +6,7 @@ use crate::lexer::token::Token;
 pub enum ParseError {
     UnexpectedToken(Token),
     UnterminatedList,
+    MalformedAnnotationError(String),
 }
 
 impl Error for ParseError {}
@@ -15,6 +16,7 @@ impl fmt::Display for ParseError {
         let err = match self {
             ParseError::UnexpectedToken(token) => format!("unexpected `{token}`"),
             ParseError::UnterminatedList => "unterminated list".to_owned(),
+            ParseError::MalformedAnnotationError(ann) => format!("malformed annotation `{ann}`"),
         };
         write!(f, "parse error: {}", err)
     }

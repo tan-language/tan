@@ -1,8 +1,12 @@
 //! Common testing-support functions and utilities.
 
 use tan::{
-    ann::Annotated, eval::error::EvalError, eval_string, expr::Expr, lex_string,
-    lexer::token::Token, parse_string, range::Ranged,
+    ann::Annotated,
+    eval::{env::Env, error::EvalError, eval},
+    expr::Expr,
+    lexer::{token::Token, Lexer},
+    parser::Parser,
+    range::Ranged,
 };
 
 pub fn read_file(filename: &str) -> String {
@@ -25,4 +29,21 @@ pub fn parse_file(filename: &str) -> Annotated<Expr> {
 pub fn eval_file(filename: &str) -> Result<Expr, EvalError> {
     let input = &read_file(filename);
     eval_string(input)
+}
+
+pub fn lex_string(input: &str) -> Vec<Ranged<Token>> {
+    let mut lexer = Lexer::new(input);
+    lexer.lex().unwrap()
+}
+
+pub fn parse_string(input: &str) -> Annotated<Expr> {
+    let tokens = lex_string(input);
+    let mut parser = Parser::new(tokens);
+    parser.parse().unwrap()
+}
+
+pub fn eval_string(input: &str) -> Result<Expr, EvalError> {
+    let expr = parse_string(input);
+    let mut env = Env::default();
+    eval(&expr, &mut env)
 }

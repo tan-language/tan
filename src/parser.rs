@@ -3,8 +3,7 @@ pub mod error;
 use crate::{
     ann::Annotated,
     expr::Expr,
-    lexer::token::Token,
-    parse_string,
+    lexer::{token::Token, Lexer},
     range::{Range, Ranged},
 };
 
@@ -45,20 +44,31 @@ where
 
     /// Wrap the `expr` with the buffered (prefix) annotations.
     /// The annotations are parsed into an Expr representation.
-    fn attach_buffered_annotations(&mut self, expr: Expr) -> Annotated<Expr> {
+    fn attach_buffered_annotations(
+        &mut self,
+        expr: Expr,
+    ) -> Result<Annotated<Expr>, Ranged<ParseError>> {
         let Some(annotations) = self.buffered_annotations.take() else {
-            return Annotated::new(expr);
+            return Ok(Annotated::new(expr));
         };
 
         let mut ann_exprs = Vec::new();
 
-        for Ranged(s, ..) in annotations {
-            // #TODO don't use parse_string
-            let Annotated(ae, ..) = parse_string(&s);
-            ann_exprs.push(ae);
+        for Ranged(ann_str, ann_range) in annotations {
+            let mut lexer = Lexer::new(&ann_str);
+
+            let Ok(tokens) = lexer.lex() else {
+                return Err(Ranged(ParseError::MalformedAnnotationError(ann_str), ann_range));
+            };
+
+            let mut parser = Parser::new(tokens);
+
+            let Annotated(ann_expr, ..) = parser.parse()?;
+
+            ann_exprs.push(ann_expr);
         }
 
-        Annotated(expr, Some(ann_exprs))
+        Ok(Annotated(expr, Some(ann_exprs)))
     }
 
     pub fn parse_atom(&mut self, token: Ranged<Token>) -> Result<Option<Expr>, Ranged<ParseError>> {
@@ -120,7 +130,7 @@ where
                 }
                 _ => {
                     if let Some(e) = self.parse_atom(token)? {
-                        let e = self.attach_buffered_annotations(e);
+                        let e = self.attach_buffered_annotations(e)?;
                         exprs.push(e);
                     }
                 }
@@ -149,7 +159,7 @@ where
             };
 
             if let Some(expr) = expr {
-                return Ok(self.attach_buffered_annotations(expr));
+                return self.attach_buffered_annotations(expr);
             }
         }
     }
