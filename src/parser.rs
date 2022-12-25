@@ -71,6 +71,9 @@ where
         Ok(Annotated(expr, Some(ann_exprs)))
     }
 
+    // #Insight
+    // Parsing built-ins as Exprs optimizes runtime evaluation, with more efficient
+    // matching.
     pub fn parse_atom(&mut self, token: Ranged<Token>) -> Result<Option<Expr>, Ranged<ParseError>> {
         let Ranged(t, range) = token;
 
@@ -99,6 +102,7 @@ where
                 Some(Expr::List(list_exprs))
             }
             Token::RightParen => {
+                // #TODO custom error for this?
                 return Err(Ranged(ParseError::UnexpectedToken(t), range));
             }
             _ => {
@@ -109,6 +113,7 @@ where
         Ok(expr)
     }
 
+    // #TODO parse tokens here, to be consistent with parse_atom?
     pub fn parse_list(
         &mut self,
         list_range: Range,

@@ -38,11 +38,11 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
             match head.as_ref() {
                 Expr::Do => {
                     // #TODO do should be 'monadic', propagate Eff (effect) wrapper.
-                    let mut result = Ok(Expr::One);
+                    let mut result = Expr::One;
                     for expr in tail {
-                        result = eval(expr, env)
+                        result = eval(expr, env)?;
                     }
-                    return result;
+                    return Ok(result);
                 }
                 Expr::Symbol(s) => {
                     // Special forms
