@@ -81,7 +81,17 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                                 str
                             });
 
-                            print!("{output}");
+                            // #TODO shenanigans to handle `\n` in string, how can we do this better?
+                            for line in output.split_inclusive("\\n") {
+                                if line.ends_with("\\n") {
+                                    let mut line: String = line.to_owned();
+                                    line.pop();
+                                    line.pop();
+                                    println!("{line}");
+                                } else {
+                                    print!("{line}");
+                                }
+                            }
 
                             Ok(Expr::One)
                         }
