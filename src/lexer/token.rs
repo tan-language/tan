@@ -16,9 +16,12 @@ pub enum Token {
     Number(i64),
     String(String),
     Symbol(String),
+    Quote,
+    // #TODO are the keywords really useful here?
     If,
-    Using,
+    Use, // #TODO consider `using`, to make more 'peculiar'?
     Do,
+    Let,
     Annotation(String),
     // True,
     // False,
@@ -39,9 +42,11 @@ impl fmt::Display for Token {
                 Token::Number(n) => format!("{}", n),
                 Token::String(s) => s.clone(),
                 Token::Symbol(s) => s.clone(),
+                Token::Quote => "'".to_owned(),
                 Token::If => "if".to_owned(),
-                Token::Using => "using".to_owned(),
+                Token::Use => "use".to_owned(),
                 Token::Do => "do".to_owned(),
+                Token::Let => "let".to_owned(),
                 Token::Annotation(s) => s.clone(),
                 Token::Comment(s) => s.clone(),
             })

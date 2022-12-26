@@ -171,8 +171,10 @@ impl<'a> Lexer<'a> {
         let Ranged(lexeme, range) = self.scan_lexeme();
 
         let token = match lexeme.as_str() {
+            "do" => Token::Do,
+            "let" => Token::Let,
             "if" => Token::If,
-            "using" => Token::Using,
+            "use" => Token::Use,
             _ => Token::Symbol(lexeme),
         };
 

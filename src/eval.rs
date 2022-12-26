@@ -66,6 +66,28 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                     // #TODO return last value!
                     return Ok(Expr::One);
                 }
+                Expr::If => {
+                    let mut tail = tail.iter();
+
+                    let Some(predicate, ..) = tail.next() else {
+                        // #TODO proper error!
+                        return Err(EvalError::UnknownError);
+                    };
+                    let predicate = eval(predicate, env)?;
+                    let Expr::Bool(predicate) = predicate else {
+                        // #TODO proper error!
+                        return Err(EvalError::UnknownError);
+                    };
+
+                    let body = if predicate { tail.next() } else { tail.nth(1) };
+                    let Some(body, ..) = body else {
+                        // #TODO proper error!
+                        return Err(EvalError::UnknownError);
+                    };
+
+                    // #TODO check that eval accepts plain Expr.
+                    eval(body, env)
+                }
                 Expr::Symbol(s) => {
                     // Evaluate the arguments before calling the function.
                     let args = tail
@@ -107,6 +129,25 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                             }
 
                             Ok(Expr::Int(sum))
+                        }
+                        ">" => {
+                            // #TODO support multiple arguments.
+                            let [a, b] = &args[..] else {
+                                // #TODO proper error!
+                                return Err(EvalError::UnknownError);
+                            };
+
+                            let Expr::Int(a) = a else {
+                                // #TODO proper error!
+                                return Err(EvalError::UnknownError);
+                            };
+
+                            let Expr::Int(b) = b else {
+                                // #TODO proper error!
+                                return Err(EvalError::UnknownError);
+                            };
+
+                            Ok(Expr::Bool(a > b))
                         }
                         _ => {
                             return Err(EvalError::UndefinedSymbol(s.clone()));

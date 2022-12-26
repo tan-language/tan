@@ -9,6 +9,9 @@ use crate::expr::Expr;
 // The Annotated struct will be used a lot, it makes sense to use
 // Option to avoid unnecessary HashMap allocations.
 
+// #Insight
+// Annotations are 'culled' in the parser, so we can use them for 'shebang'.
+
 #[derive(Debug, Clone)]
 pub struct Annotated<T>(pub T, pub Option<Vec<Expr>>);
 

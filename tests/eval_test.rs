@@ -10,10 +10,10 @@ fn eval_processes_arithmetic_expressions() {
 
     assert!(result.is_ok());
 
-    let result = format!("{}", result.unwrap());
-    let expected_result = read_file("sum.result.tan");
+    let value = format!("{}", result.unwrap());
+    let expected_value = read_file("sum.value.tan");
 
-    assert_eq!(result, expected_result);
+    assert_eq!(value, expected_value);
 }
 
 #[test]
@@ -25,4 +25,16 @@ fn do_reports_intermediate_errors() {
     let err = result.unwrap_err();
 
     assert!(matches!(err, EvalError::UndefinedSymbol(s) if s == "write33"));
+}
+
+#[test]
+fn eval_processes_conditionals() {
+    let result = eval_file("conditional.tan");
+
+    assert!(result.is_ok());
+
+    let value = format!("{}", result.unwrap());
+    let expected_value = read_file("conditional.value.tan");
+
+    assert_eq!(value, expected_value);
 }

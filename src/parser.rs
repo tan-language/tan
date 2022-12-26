@@ -80,11 +80,10 @@ where
         let expr = match t {
             Token::Comment(..) => None,
             Token::String(s) => Some(Expr::String(s)),
-            Token::Symbol(s) => match s.as_str() {
-                "do" => Some(Expr::Do),
-                "let" => Some(Expr::Let),
-                _ => Some(Expr::Symbol(s)),
-            },
+            Token::Do => Some(Expr::Do),
+            Token::Let => Some(Expr::Let),
+            Token::If => Some(Expr::If),
+            Token::Symbol(s) => Some(Expr::Symbol(s)),
             Token::Number(n) => Some(Expr::Int(n)),
             Token::Annotation(s) => {
                 if self.buffered_annotations.is_none() {
