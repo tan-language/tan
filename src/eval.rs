@@ -11,6 +11,7 @@ use self::{env::Env, error::EvalError};
 // #TODO encode effects in the type-system.
 // #TODO interpret or eval or execute?
 // #TODO alternative names: Processor, Runner
+// #TODO check that eval accepts plain Expr.
 
 /// Evaluates via expression rewriting. The expression `expr` evaluates to
 /// a fixed point. In essence this is a 'tree-walk' interpreter.
@@ -28,9 +29,6 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
             Ok(expr.clone())
         }
         Expr::If(predicate, true_clause, false_clause) => {
-            // #TODO check that eval accepts plain Expr.
-
-            let predicate = &**predicate;
             let predicate = eval(predicate, env)?;
 
             let Expr::Bool(predicate) = predicate else {
@@ -39,12 +37,11 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
             };
 
             if predicate {
-                let clause = &**true_clause;
-                eval(clause, env)
+                eval(true_clause, env)
             } else if let Some(false_clause) = false_clause {
-                let clause = &**false_clause;
-                eval(clause, env)
+                eval(false_clause, env)
             } else {
+                // #TODO what should we return if there is no false-clause? Zero/Never?
                 Ok(Expr::One)
             }
         }

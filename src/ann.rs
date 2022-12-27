@@ -1,9 +1,6 @@
-// use std::fmt;
-
 use crate::expr::Expr;
 
 // #TODO consider `Ann`?
-// #TODO keep the annotation as Expr, not String.
 
 // #Insight
 // The Annotated struct will be used a lot, it makes sense to use
@@ -22,6 +19,12 @@ impl<T> Annotated<T> {
 }
 
 impl<T> AsRef<T> for Annotated<T> {
+    fn as_ref(&self) -> &T {
+        &self.0
+    }
+}
+
+impl<T> AsRef<T> for Box<Annotated<T>> {
     fn as_ref(&self) -> &T {
         &self.0
     }
