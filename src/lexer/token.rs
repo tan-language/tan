@@ -18,6 +18,7 @@ pub enum Token {
     Symbol(String),
     Quote,
     // #TODO are the keywords really useful here?
+    // #Insight if we differentiate them from Symbols we can enforce 'reserved' status.
     If,
     Use, // #TODO consider `using`, to make more 'peculiar'?
     Do,
