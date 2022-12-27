@@ -32,6 +32,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
             let predicate = eval(predicate, env)?;
 
             let Expr::Bool(predicate) = predicate else {
+                // #TODO can we range this error?
                 return Err(EvalError::ArgumentError("the if predicate is not a boolean value".to_owned()));
             };
 

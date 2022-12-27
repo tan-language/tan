@@ -164,6 +164,8 @@ where
 
     /// Tries to parse at least one expression.
     pub fn parse(&mut self) -> Result<Annotated<Expr>, Ranged<ParseError>> {
+        // #TODO can consolidate more with parse_atom
+
         loop {
             let token = self.tokens.next();
 
@@ -172,13 +174,7 @@ where
                 return Ok(Annotated::new(Expr::One));
             };
 
-            let expr = match token.0 {
-                Token::LeftParen => {
-                    let list_exprs = self.parse_list(token.1)?;
-                    Some(Expr::List(list_exprs))
-                }
-                _ => self.parse_atom(token)?,
-            };
+            let expr = self.parse_atom(token)?;
 
             if let Some(expr) = expr {
                 return self.attach_buffered_annotations(expr);
