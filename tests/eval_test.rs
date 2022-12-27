@@ -24,7 +24,7 @@ fn do_reports_intermediate_errors() {
 
     let err = result.unwrap_err();
 
-    assert!(matches!(err, EvalError::UndefinedSymbol(s) if s == "write33"));
+    assert!(matches!(err, EvalError::UndefinedSymbolError(s) if s == "write33"));
 }
 
 #[test]

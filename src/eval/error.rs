@@ -2,8 +2,9 @@ use std::{error::Error, fmt};
 
 #[derive(Debug)]
 pub enum EvalError {
-    UndefinedSymbol(String),
+    UndefinedSymbolError(String),
     IoError(std::io::Error),
+    ArgumentError(String),
     UnknownError,
 }
 
@@ -12,9 +13,10 @@ impl Error for EvalError {}
 impl fmt::Display for EvalError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let err = match self {
-            EvalError::UndefinedSymbol(sym) => format!("`{sym}` is undefined"),
-            EvalError::IoError(io_err) => format!("I/O error: {io_err}"),
-            EvalError::UnknownError => "unknown error".to_string(),
+            EvalError::UndefinedSymbolError(sym) => format!("`{sym}` is undefined"),
+            EvalError::IoError(io_err) => format!("i/o error: {io_err}"),
+            EvalError::ArgumentError(text) => text.to_owned(),
+            EvalError::UnknownError => "unknown error".to_owned(),
         };
         write!(f, "eval error: {}", err)
     }

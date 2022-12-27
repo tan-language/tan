@@ -22,7 +22,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
             let result = env.get(sym);
 
             let Some(Annotated(expr, ..)) = result else {
-                return Err(EvalError::UndefinedSymbol(sym.clone()));
+                return Err(EvalError::UndefinedSymbolError(sym.clone()));
             };
 
             // #TODO hm, can we somehow work with references?
@@ -32,8 +32,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
             let predicate = eval(predicate, env)?;
 
             let Expr::Bool(predicate) = predicate else {
-                // #TODO proper error!
-                return Err(EvalError::UnknownError);
+                return Err(EvalError::ArgumentError("the if predicate is not a boolean value".to_owned()));
             };
 
             if predicate {
@@ -146,7 +145,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                             Ok(Expr::Bool(a > b))
                         }
                         _ => {
-                            return Err(EvalError::UndefinedSymbol(s.clone()));
+                            return Err(EvalError::UndefinedSymbolError(s.clone()));
                         }
                     }
                 }
