@@ -30,7 +30,6 @@ fn do_reports_intermediate_errors() {
 #[test]
 fn eval_processes_conditionals() {
     let result = eval_file("conditional.tan");
-
     assert!(result.is_ok());
 
     let value = format!("{}", result.unwrap());

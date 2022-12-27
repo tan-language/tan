@@ -173,7 +173,6 @@ impl<'a> Lexer<'a> {
         let token = match lexeme.as_str() {
             "do" => Token::Do,
             "let" => Token::Let,
-            "if" => Token::If,
             "use" => Token::Use,
             _ => Token::Symbol(lexeme),
         };

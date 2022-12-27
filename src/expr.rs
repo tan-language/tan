@@ -20,6 +20,9 @@ use crate::ann::Annotated;
 // #Insight
 // AST = Expr = Value = Object
 
+// #Insight
+// The use of Vec in the Expr enum, keeps the nested expressions in the heap.
+
 #[derive(Debug, Clone)]
 /// A symbolic expression. This is the 'universal' data type in the language,
 /// all values are expressions (and expressions are values). Evaluation is expression
@@ -36,7 +39,11 @@ pub enum Expr {
     // #TODO let should contain the expressions also, pre-parsed!
     Let,
     // #TODO if should contain the expressions also, pre-parsed!
-    If,
+    If(
+        Box<Annotated<Expr>>,
+        Box<Annotated<Expr>>,
+        Option<Box<Annotated<Expr>>>,
+    ),
     List(Vec<Annotated<Expr>>),
     Func(Vec<Annotated<Expr>>, Box<Annotated<Expr>>), // #TODO is there a need to use Rc instead of Box?
 }
@@ -54,7 +61,8 @@ impl fmt::Display for Expr {
                 Expr::String(s) => s.clone(),
                 Expr::Do => "do".to_owned(),
                 Expr::Let => "let".to_owned(),
-                Expr::If => "if".to_owned(),
+                // #TODO properly format if!
+                Expr::If(..) => "if".to_owned(),
                 Expr::List(terms) => {
                     format!(
                         "({})",

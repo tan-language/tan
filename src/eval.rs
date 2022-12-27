@@ -27,6 +27,27 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
             // #TODO hm, can we somehow work with references?
             Ok(expr.clone())
         }
+        Expr::If(predicate, true_clause, false_clause) => {
+            // #TODO check that eval accepts plain Expr.
+
+            let predicate = &**predicate;
+            let predicate = eval(predicate, env)?;
+
+            let Expr::Bool(predicate) = predicate else {
+                // #TODO proper error!
+                return Err(EvalError::UnknownError);
+            };
+
+            if predicate {
+                let clause = &**true_clause;
+                eval(clause, env)
+            } else if let Some(false_clause) = false_clause {
+                let clause = &**false_clause;
+                eval(clause, env)
+            } else {
+                Ok(Expr::One)
+            }
+        }
         Expr::List(list) => {
             // #TODO replace head/tail with first/rest
             // #TODO empty list should also be found in read/parse phase
@@ -65,28 +86,6 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
 
                     // #TODO return last value!
                     return Ok(Expr::One);
-                }
-                Expr::If => {
-                    let mut tail = tail.iter();
-
-                    let Some(predicate, ..) = tail.next() else {
-                        // #TODO proper error!
-                        return Err(EvalError::UnknownError);
-                    };
-                    let predicate = eval(predicate, env)?;
-                    let Expr::Bool(predicate) = predicate else {
-                        // #TODO proper error!
-                        return Err(EvalError::UnknownError);
-                    };
-
-                    let body = if predicate { tail.next() } else { tail.nth(1) };
-                    let Some(body, ..) = body else {
-                        // #TODO proper error!
-                        return Err(EvalError::UnknownError);
-                    };
-
-                    // #TODO check that eval accepts plain Expr.
-                    eval(body, env)
                 }
                 Expr::Symbol(s) => {
                     // Evaluate the arguments before calling the function.

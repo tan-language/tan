@@ -82,7 +82,6 @@ where
             Token::String(s) => Some(Expr::String(s)),
             Token::Do => Some(Expr::Do),
             Token::Let => Some(Expr::Let),
-            Token::If => Some(Expr::If),
             Token::Symbol(s) => Some(Expr::Symbol(s)),
             Token::Number(n) => Some(Expr::Int(n)),
             Token::Annotation(s) => {
@@ -99,7 +98,25 @@ where
             }
             Token::LeftParen => {
                 let list_exprs = self.parse_list(range)?;
-                Some(Expr::List(list_exprs))
+
+                if list_exprs.is_empty() {
+                    // `()` == One/Unit/Top
+                    Some(Expr::One)
+                } else {
+                    let head = list_exprs[0].clone();
+                    match head {
+                        // #TODO detailed checking and error-reporting
+                        Annotated(Expr::Symbol(s), ..) if s == "if" => {
+                            Some(Expr::If(
+                                Box::new(list_exprs[1].clone()),
+                                Box::new(list_exprs[2].clone()),
+                                // #TODO optional parsing!
+                                Some(Box::new(list_exprs[3].clone())),
+                            ))
+                        }
+                        _ => Some(Expr::List(list_exprs)),
+                    }
+                }
             }
             Token::RightParen => {
                 // #TODO custom error for this?
