@@ -23,6 +23,9 @@ use crate::ann::Annotated;
 // #Insight
 // The use of Vec in the Expr enum, keeps the nested expressions in the heap.
 
+// #TODO consider parsing to 'simple' Expr, only List and Symbols
+// #TODO optimize 'simple' Expr to 'execution' Expr
+
 #[derive(Debug, Clone)]
 /// A symbolic expression. This is the 'universal' data type in the language,
 /// all values are expressions (and expressions are values). Evaluation is expression
@@ -38,7 +41,7 @@ pub enum Expr {
     Do,
     // #TODO let should contain the expressions also, pre-parsed!
     Let,
-    // #TODO if should contain the expressions also, pre-parsed!
+    // #TODO maybe this 'compound' if prohibits homoiconicity?
     If(
         Box<Annotated<Expr>>,
         Box<Annotated<Expr>>,

@@ -2,7 +2,7 @@ mod common;
 
 use tan::eval::error::EvalError;
 
-use crate::common::{eval_file, read_file};
+use crate::common::{eval_file, eval_string, read_file};
 
 #[test]
 fn eval_processes_arithmetic_expressions() {
@@ -36,4 +36,23 @@ fn eval_processes_conditionals() {
     let expected_value = read_file("conditional.value.tan");
 
     assert_eq!(value, expected_value);
+}
+
+#[test]
+fn eval_processes_let() {
+    let result = eval_string("(do (let a (+ 1 2 3)) a)");
+    dbg!(&result);
+}
+
+#[test]
+fn eval_processes_function_definition_and_application() {
+    // let result = eval_file("factorial.tan");
+    // dbg!(&result);
+
+    // assert!(result.is_ok());
+
+    // let value = format!("{}", result.unwrap());
+    // let expected_value = read_file("conditional.value.tan");
+
+    // assert_eq!(value, expected_value);
 }

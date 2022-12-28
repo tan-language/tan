@@ -77,76 +77,111 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                             // #TODO proper error!
                             return Err(EvalError::UnknownError);
                         };
+
+                        let value = eval(value, env)?;
+
                         // #TODO notify about overrides? use `set`?
-                        env.insert(s, value.clone());
+                        env.insert(s, value);
                     }
 
                     // #TODO return last value!
                     return Ok(Expr::One);
                 }
                 Expr::Symbol(s) => {
-                    // Evaluate the arguments before calling the function.
-                    let args = tail
-                        .iter()
-                        .map(|x| eval(x, env))
-                        .collect::<Result<Vec<_>, _>>()?;
-
                     match s.as_str() {
-                        "write" => {
-                            // #TODO for some reason, "\n" is not working.
-                            let output = args.iter().fold(String::new(), |mut str, x| {
-                                str.push_str(&format!("{}", x));
-                                str
-                            });
-
-                            // #TODO shenanigans to handle `\n` in string, how can we do this better?
-                            for line in output.split_inclusive("\\n") {
-                                if line.ends_with("\\n") {
-                                    let mut line: String = line.to_owned();
-                                    line.pop();
-                                    line.pop();
-                                    println!("{line}");
-                                } else {
-                                    print!("{line}");
-                                }
-                            }
-
-                            Ok(Expr::One)
-                        }
-                        "+" => {
-                            let mut sum = 0;
-
-                            for arg in args {
-                                let Expr::Int(n) = arg else {
-                                    // #TODO proper error!
-                                    return Err(EvalError::UnknownError);
-                                };
-                                sum += n;
-                            }
-
-                            Ok(Expr::Int(sum))
-                        }
-                        ">" => {
-                            // #TODO support multiple arguments.
-                            let [a, b] = &args[..] else {
-                                // #TODO proper error!
-                                return Err(EvalError::UnknownError);
-                            };
-
-                            let Expr::Int(a) = a else {
-                                // #TODO proper error!
-                                return Err(EvalError::UnknownError);
-                            };
-
-                            let Expr::Int(b) = b else {
-                                // #TODO proper error!
-                                return Err(EvalError::UnknownError);
-                            };
-
-                            Ok(Expr::Bool(a > b))
+                        "Func" => {
+                            todo!()
                         }
                         _ => {
-                            return Err(EvalError::UndefinedSymbolError(s.clone()));
+                            // non-special term -> application.
+
+                            // Evaluate the arguments before calling the function.
+                            let args = tail
+                                .iter()
+                                .map(|x| eval(x, env))
+                                .collect::<Result<Vec<_>, _>>()?;
+
+                            match s.as_str() {
+                                // #TODO also eval 'if', 'do', 'for' and other keywords here!
+                                "write" => {
+                                    // #TODO for some reason, "\n" is not working.
+                                    let output = args.iter().fold(String::new(), |mut str, x| {
+                                        str.push_str(&format!("{}", x));
+                                        str
+                                    });
+
+                                    // #TODO shenanigans to handle `\n` in string, how can we do this better?
+                                    for line in output.split_inclusive("\\n") {
+                                        if line.ends_with("\\n") {
+                                            let mut line: String = line.to_owned();
+                                            line.pop();
+                                            line.pop();
+                                            println!("{line}");
+                                        } else {
+                                            print!("{line}");
+                                        }
+                                    }
+
+                                    Ok(Expr::One)
+                                }
+                                "+" => {
+                                    let mut sum = 0;
+
+                                    for arg in args {
+                                        let Expr::Int(n) = arg else {
+                                            // #TODO proper error!
+                                            return Err(EvalError::UnknownError);
+                                        };
+                                        sum += n;
+                                    }
+
+                                    Ok(Expr::Int(sum))
+                                }
+                                ">" => {
+                                    // #TODO support multiple arguments.
+                                    let [a, b] = &args[..] else {
+                                        // #TODO proper error!
+                                        return Err(EvalError::UnknownError);
+                                    };
+
+                                    let Expr::Int(a) = a else {
+                                        // #TODO proper error!
+                                        return Err(EvalError::UnknownError);
+                                    };
+
+                                    let Expr::Int(b) = b else {
+                                        // #TODO proper error!
+                                        return Err(EvalError::UnknownError);
+                                    };
+
+                                    Ok(Expr::Bool(a > b))
+                                }
+                                "=" => {
+                                    // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
+                                    // #TODO make equality a method of Expr?
+                                    // #TODO support non-Int types
+                                    // #TODO support multiple arguments.
+                                    let [a, b] = &args[..] else {
+                                        // #TODO proper error!
+                                        return Err(EvalError::UnknownError);
+                                    };
+
+                                    let Expr::Int(a) = a else {
+                                        // #TODO proper error!
+                                        return Err(EvalError::UnknownError);
+                                    };
+
+                                    let Expr::Int(b) = b else {
+                                        // #TODO proper error!
+                                        return Err(EvalError::UnknownError);
+                                    };
+
+                                    Ok(Expr::Bool(a == b))
+                                }
+                                _ => {
+                                    return Err(EvalError::UndefinedSymbolError(s.clone()));
+                                }
+                            }
                         }
                     }
                 }

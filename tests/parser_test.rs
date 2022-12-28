@@ -39,6 +39,18 @@ fn parse_reports_unexpected_tokens() {
     eprintln!("{}", format_pretty_error(&err, input, None));
 }
 
+// () == Expr::One (Unit)
+#[test]
+fn parse_handles_one() {
+    let input = "()";
+    let tokens = lex_tokens(input);
+    let mut parser = Parser::new(tokens);
+
+    let expr = parser.parse().unwrap();
+
+    assert!(matches!(expr, Annotated(Expr::One, ..)));
+}
+
 #[test]
 fn parse_handles_a_simple_expression() {
     let input = &read_input("hello_world.tan");

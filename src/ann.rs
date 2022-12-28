@@ -9,6 +9,8 @@ use crate::expr::Expr;
 // #Insight
 // Annotations are 'culled' in the parser, so we can use them for 'shebang'.
 
+// #TODO get range from annotation.
+
 #[derive(Debug, Clone)]
 pub struct Annotated<T>(pub T, pub Option<Vec<Expr>>);
 

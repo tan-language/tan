@@ -1,5 +1,19 @@
-; Computes `x!`, the factorial of `x`.
-(let (fact x)
-    (* (fact (- x 1))
-        x)
+(do
+    ; Computes `x!`, the factorial of `x`.
+    (let fact (Func (x)
+        (if (= x 0)
+            1
+            (* (fact (- x 1)) x)
+        )
+    ))
+
+    (fact 5)
 )
+
+; Computes `x!`, the factorial of `x`.
+; (let (fact x)
+;     (if (= x 0)
+;         1
+;         (* (fact (- x 1)) x)
+;     )
+; )
