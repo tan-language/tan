@@ -7,7 +7,7 @@
         )
     ))
 
-    (fact 5)
+   (fact 5)
 )
 
 ; Computes `x!`, the factorial of `x`.

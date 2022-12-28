@@ -5,6 +5,8 @@ use crate::{ann::Annotated, expr::Expr};
 
 use self::{env::Env, error::EvalError};
 
+// #TODO Stack-trace is needed!
+
 // #Insight
 // _Not_ a pure evaluator, performs side-effects.
 
@@ -89,8 +91,20 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                 }
                 Expr::Symbol(s) => {
                     match s.as_str() {
+                        // special term
                         "Func" => {
-                            todo!()
+                            let [args, body] = tail else {
+                                // #TODO proper error!
+                                return Err(EvalError::UnknownError);
+                            };
+
+                            let Annotated(Expr::List(params), ..) = args else {
+                                // #TODO proper error!
+                                return Err(EvalError::UnknownError);
+                            };
+
+                            // #TODO optimize!
+                            Ok(Expr::Func(params.clone(), Box::new(body.clone())))
                         }
                         _ => {
                             // non-special term -> application.
@@ -137,6 +151,39 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
 
                                     Ok(Expr::Int(sum))
                                 }
+                                "-" => {
+                                    // #TODO support multiple arguments.
+                                    let [a, b] = &args[..] else {
+                                        // #TODO proper error!
+                                        return Err(EvalError::UnknownError);
+                                    };
+
+                                    let Expr::Int(a) = a else {
+                                        // #TODO proper error!
+                                        return Err(EvalError::UnknownError);
+                                    };
+
+                                    let Expr::Int(b) = b else {
+                                        // #TODO proper error!
+                                        return Err(EvalError::UnknownError);
+                                    };
+
+                                    Ok(Expr::Int(a - b))
+                                }
+                                "*" => {
+                                    // #TODO optimize!
+                                    let mut prod = 1;
+
+                                    for arg in args {
+                                        let Expr::Int(n) = arg else {
+                                            // #TODO proper error!
+                                            return Err(EvalError::UnknownError);
+                                        };
+                                        prod *= n;
+                                    }
+
+                                    Ok(Expr::Int(prod))
+                                }
                                 ">" => {
                                     // #TODO support multiple arguments.
                                     let [a, b] = &args[..] else {
@@ -179,7 +226,43 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                                     Ok(Expr::Bool(a == b))
                                 }
                                 _ => {
-                                    return Err(EvalError::UndefinedSymbolError(s.clone()));
+                                    // Try to apply an op!
+
+                                    // #Insight `op` = 'callable` (func, macro, collection, actor, etc)
+
+                                    let Some(op) = env.get(s) else {
+                                        return Err(EvalError::UndefinedSymbolError(s.clone()));
+                                    };
+
+                                    let Annotated(Expr::Func(params, body), ..) = op else {
+                                        // #TODO non-callable error!
+                                        return Err(EvalError::UnknownError);
+                                    };
+
+                                    // #TODO ultra-hack to kill shared ref to `env`.
+                                    let params = params.clone();
+                                    let body = body.clone();
+
+                                    // Dynamic scoping
+
+                                    env.push_new_scope();
+
+                                    for (param, arg) in params.iter().zip(args) {
+                                        let Annotated(Expr::Symbol(param), ..) = param else {
+                                            // #TODO non-callable error!
+                                            return Err(EvalError::UnknownError);
+                                        };
+
+                                        env.insert(param, arg);
+                                    }
+
+                                    let result = eval(body, env);
+
+                                    // let result = Ok(Expr::One);
+
+                                    env.pop();
+
+                                    result
                                 }
                             }
                         }
