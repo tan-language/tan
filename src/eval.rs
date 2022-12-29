@@ -203,6 +203,26 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
 
                                     Ok(Expr::Bool(a > b))
                                 }
+                                // #TODO helper function or macro for arithmetic operations!
+                                "<" => {
+                                    // #TODO support multiple arguments.
+                                    let [a, b] = &args[..] else {
+                                        // #TODO proper error!
+                                        return Err(EvalError::UnknownError);
+                                    };
+
+                                    let Expr::Int(a) = a else {
+                                        // #TODO proper error!
+                                        return Err(EvalError::UnknownError);
+                                    };
+
+                                    let Expr::Int(b) = b else {
+                                        // #TODO proper error!
+                                        return Err(EvalError::UnknownError);
+                                    };
+
+                                    Ok(Expr::Bool(a < b))
+                                }
                                 "=" => {
                                     // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
                                     // #TODO make equality a method of Expr?

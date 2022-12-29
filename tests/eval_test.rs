@@ -54,4 +54,13 @@ fn eval_processes_function_definition_and_application() {
     let expected_value = read_file("factorial.value.tan");
 
     assert_eq!(value, expected_value);
+
+    let result = eval_file("fibonacci.tan");
+
+    assert!(result.is_ok());
+
+    let value = format!("{}", result.unwrap());
+    let expected_value = read_file("fibonacci.value.tan");
+
+    assert_eq!(value, expected_value);
 }

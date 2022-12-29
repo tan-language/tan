@@ -1,0 +1,11 @@
+(do
+    ; The fibonacci function.
+    (let fib (Func (x)
+        (if (< x 3)
+            1
+            (+ (fib (- x 1)) (fib (- x 2)))
+        )
+    ))
+
+    (fib 10)
+)
