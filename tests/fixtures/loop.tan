@@ -1,0 +1,7 @@
+(do
+    (let i 0)
+    (for (< i 5) (do
+        (write "hello " i "\n")
+        (let i (+ 1 i))
+    ))
+)

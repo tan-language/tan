@@ -64,13 +64,43 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                 Expr::Symbol(s) => {
                     match s.as_str() {
                         // special term
+                        // #TODO the low-level handling of special forms should use the above high-level cases.
+                        // #TODO use the `optimize`/`raise` function, here to prepare high-level expression for evaluation, to avoid duplication.
                         "do" => {
                             // #TODO do should be 'monadic', propagate Eff (effect) wrapper.
-                            let mut result = Expr::One;
+                            let mut value = Expr::One;
                             for expr in tail {
-                                result = eval(expr, env)?;
+                                value = eval(expr, env)?;
                             }
-                            return Ok(result);
+                            return Ok(value);
+                        }
+                        "for" => {
+                            // #Insight
+                            // `for` is a generalization of `if`.
+                            // `for` is also related with `do`.
+                            let [predicate, body] = tail else {
+                                // #TODO proper error!
+                                return Err(EvalError::UnknownError);
+                            };
+
+                            let mut value = Expr::One;
+
+                            loop {
+                                let predicate = eval(predicate, env)?;
+
+                                let Expr::Bool(predicate) = predicate else {
+                                    // #TODO can we range this error?
+                                    return Err(EvalError::ArgumentError("the for predicate is not a boolean value".to_owned()));
+                                };
+
+                                if !predicate {
+                                    break;
+                                }
+
+                                value = eval(body, env)?;
+                            }
+
+                            return Ok(value);
                         }
                         "let" => {
                             let mut args = tail.iter();
