@@ -1,6 +1,9 @@
-use std::fmt;
+use std::{fmt, rc::Rc};
 
-use crate::ann::Annotated;
+use crate::{
+    ann::Annotated,
+    eval::{env::Env, error::EvalError},
+};
 
 // #TODO separate variant for list and apply/call (can this be defined statically?)
 // #TODO List, MaybeList, Call
@@ -26,7 +29,7 @@ use crate::ann::Annotated;
 // #TODO consider parsing to 'simple' Expr, only List and Symbols
 // #TODO optimize 'simple' Expr to 'execution' Expr
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 /// A symbolic expression. This is the 'universal' data type in the language,
 /// all values are expressions (and expressions are values). Evaluation is expression
 /// rewriting to a fixed point.
@@ -49,6 +52,38 @@ pub enum Expr {
     ),
     List(Vec<Annotated<Expr>>),
     Func(Vec<Annotated<Expr>>, Box<Annotated<Expr>>), // #TODO is there a need to use Rc instead of Box?
+    ForeignFunc(Rc<dyn Fn(&[Expr], &Env) -> Result<Expr, EvalError>>), // #TODO for some reason, Box is not working here!
+}
+
+impl fmt::Debug for Expr {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let text = match self {
+            Expr::One => "()".to_owned(),
+            Expr::Bool(b) => format!("Bool({})", b),
+            Expr::Symbol(s) => format!("Symbol({})", s),
+            Expr::String(s) => format!("String({})", s),
+            Expr::Int(num) => format!("Int({})", num),
+            Expr::Float(num) => format!("Float({})", num),
+            Expr::Do => "do".to_owned(),
+            Expr::List(terms) => {
+                format!(
+                    "List({})",
+                    terms
+                        .iter()
+                        .map(|term| format!("{:?}", term))
+                        .collect::<Vec<String>>()
+                        .join(", ")
+                )
+            }
+            Expr::Func(..) => "#<fn>".to_owned(),
+            Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
+            Expr::Let => "let".to_owned(),
+            // #TODO properly format do, let, if, etc.
+            Expr::If(_, _, _) => "if".to_owned(),
+        };
+
+        write!(f, "{}", text)
+    }
 }
 
 impl fmt::Display for Expr {
@@ -77,6 +112,7 @@ impl fmt::Display for Expr {
                     )
                 }
                 Expr::Func(..) => "#<func>".to_owned(),
+                Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
             })
             .as_str(),
         )

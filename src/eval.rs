@@ -1,5 +1,6 @@
 pub mod env;
 pub mod error;
+pub mod prelude;
 
 use crate::{ann::Annotated, expr::Expr};
 
@@ -186,19 +187,17 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
 
                                     Ok(Expr::One)
                                 }
-                                "+" => {
-                                    let mut sum = 0;
-
-                                    for arg in args {
-                                        let Expr::Int(n) = arg else {
-                                            // #TODO proper error!
-                                            return Err(EvalError::UnknownError);
-                                        };
-                                        sum += n;
-                                    }
-
-                                    Ok(Expr::Int(sum))
-                                }
+                                // "+" => {
+                                //     let mut sum = 0;
+                                //     for arg in args {
+                                //         let Expr::Int(n) = arg else {
+                                //             // #TODO proper error!
+                                //             return Err(EvalError::UnknownError);
+                                //         };
+                                //         sum += n;
+                                //     }
+                                //     Ok(Expr::Int(sum))
+                                // }
                                 "-" => {
                                     // #TODO support multiple arguments.
                                     let [a, b] = &args[..] else {
@@ -303,33 +302,41 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                                         return Err(EvalError::UndefinedSymbolError(s.clone()));
                                     };
 
-                                    let Annotated(Expr::Func(params, body), ..) = op else {
-                                        // #TODO non-callable error!
-                                        return Err(EvalError::UnknownError);
-                                    };
+                                    match op {
+                                        Annotated(Expr::Func(params, body), ..) => {
+                                            // #TODO ultra-hack to kill shared ref to `env`.
+                                            let params = params.clone();
+                                            let body = body.clone();
 
-                                    // #TODO ultra-hack to kill shared ref to `env`.
-                                    let params = params.clone();
-                                    let body = body.clone();
+                                            // Dynamic scoping
 
-                                    // Dynamic scoping
+                                            env.push_new_scope();
 
-                                    env.push_new_scope();
+                                            for (param, arg) in params.iter().zip(args) {
+                                                let Annotated(Expr::Symbol(param), ..) = param else {
+                                                    // #TODO non-callable error!
+                                                    return Err(EvalError::UnknownError);
+                                                };
 
-                                    for (param, arg) in params.iter().zip(args) {
-                                        let Annotated(Expr::Symbol(param), ..) = param else {
+                                                env.insert(param, arg);
+                                            }
+
+                                            let result = eval(body, env);
+
+                                            env.pop();
+
+                                            result
+                                        }
+                                        Annotated(Expr::ForeignFunc(foreign_function), ..) => {
+                                            // Foreign Functions do NOT change the environment, hmm...
+                                            // #TODO use RefCell / interior mutability instead, to allow for changing the environment (with Mutation Effect)
+                                            foreign_function(&args, env)
+                                        }
+                                        _ => {
                                             // #TODO non-callable error!
                                             return Err(EvalError::UnknownError);
-                                        };
-
-                                        env.insert(param, arg);
+                                        }
                                     }
-
-                                    let result = eval(body, env);
-
-                                    env.pop();
-
-                                    result
                                 }
                             }
                         }
