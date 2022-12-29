@@ -82,3 +82,9 @@ impl fmt::Display for Expr {
         )
     }
 }
+
+impl AsRef<Expr> for Expr {
+    fn as_ref(&self) -> &Expr {
+        self
+    }
+}

@@ -1,6 +1,7 @@
 use std::fmt;
 
 // #TODO add methods to find positions (line, col) from span index!
+// #TODO use Annotated instead of Ranged.
 
 /// Represents a range in the source code.
 pub type Range = std::ops::Range<usize>;

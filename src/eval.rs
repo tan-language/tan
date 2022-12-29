@@ -10,10 +10,15 @@ use self::{env::Env, error::EvalError};
 // #Insight
 // _Not_ a pure evaluator, performs side-effects.
 
+// #Insight
+// I don't like the name `interpreter`.
+
 // #TODO encode effects in the type-system.
 // #TODO interpret or eval or execute?
 // #TODO alternative names: Processor, Runner
 // #TODO check that eval accepts plain Expr.
+
+// #TODO split eval_special, eval_func
 
 /// Evaluates via expression rewriting. The expression `expr` evaluates to
 /// a fixed point. In essence this is a 'tree-walk' interpreter.
@@ -49,10 +54,20 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
         }
         Expr::List(list) => {
             // #TODO replace head/tail with first/rest
-            // #TODO empty list should also be found in read/parse phase
             // #TODO could this arise in self-modifying code?
             // #TODO also eval the head?
-            let head = list.first().ok_or(EvalError::UnknownError)?;
+
+            if list.is_empty() {
+                // () == One (Unit)
+                // This is handled statically, in the parser, but an extra, dynamic
+                // check is needed in the evaluator to handle the case where the
+                // expression is constructed programmatically (and the parser is
+                // skipped).
+                return Ok(Expr::One);
+            }
+
+            // The unwrap here is safe.
+            let head = list.first().unwrap();
             let tail = &list[1..];
 
             match head.as_ref() {
@@ -260,6 +275,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                                 }
                                 "=" => {
                                     // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
+                                    // #TODO support overloading, 
                                     // #TODO make equality a method of Expr?
                                     // #TODO support non-Int types
                                     // #TODO support multiple arguments.
@@ -312,8 +328,6 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                                     }
 
                                     let result = eval(body, env);
-
-                                    // let result = Ok(Expr::One);
 
                                     env.pop();
 
