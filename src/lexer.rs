@@ -170,12 +170,11 @@ impl<'a> Lexer<'a> {
     fn lex_symbol(&mut self) -> Result<Ranged<Token>, Ranged<LexicalError>> {
         let Ranged(lexeme, range) = self.scan_lexeme();
 
-        let token = match lexeme.as_str() {
-            "do" => Token::Do,
-            "let" => Token::Let,
-            "use" => Token::Use,
-            _ => Token::Symbol(lexeme),
-        };
+        let token = Token::Symbol(lexeme);
+
+        // #Insight
+        // It's not worth it to have token variants for reserved words.
+        // Expr variants for reserved words will be used.
 
         Ok(Ranged(token, range))
     }

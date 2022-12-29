@@ -1,8 +1,16 @@
+use std::fmt;
+
 // #Insight
 // There is no need for an EOF Token. The end of the Token list marks the end
 // of the input.
 
-use std::fmt;
+// #Insight
+// It's not worth it to have token variants for reserved words.
+// The is a benefit, to differentiate reserved words from other symbols, but
+// we will do it in another way.
+
+// #Insight
+// Reserved _word_ is a bad name because it can be more than one word.
 
 /// A lexical Token gives semantic meaning to a Lexeme.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -17,11 +25,6 @@ pub enum Token {
     String(String),
     Symbol(String),
     Quote,
-    // #TODO are the keywords really useful here?
-    // #Insight if we differentiate them from Symbols we can enforce 'reserved' status.
-    Use, // #TODO consider `using`, to make more 'peculiar'?
-    Do,
-    Let,
     Annotation(String),
     // True,
     // False,
@@ -43,9 +46,6 @@ impl fmt::Display for Token {
                 Token::String(s) => s.clone(),
                 Token::Symbol(s) => s.clone(),
                 Token::Quote => "'".to_owned(),
-                Token::Use => "use".to_owned(),
-                Token::Do => "do".to_owned(),
-                Token::Let => "let".to_owned(),
                 Token::Annotation(s) => s.clone(),
                 Token::Comment(s) => s.clone(),
             })

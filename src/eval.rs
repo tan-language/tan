@@ -56,42 +56,47 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
             let tail = &list[1..];
 
             match head.as_ref() {
-                Expr::Do => {
-                    // #TODO do should be 'monadic', propagate Eff (effect) wrapper.
-                    let mut result = Expr::One;
-                    for expr in tail {
-                        result = eval(expr, env)?;
-                    }
-                    return Ok(result);
-                }
-                Expr::Let => {
-                    let mut args = tail.iter();
-
-                    loop {
-                        let Some(sym) = args.next() else {
-                            break;
-                        };
-                        let Some(value) = args.next() else {
-                            // #TODO error?
-                            break;
-                        };
-                        let Annotated(Expr::Symbol(s), ..) = sym else {
-                            // #TODO proper error!
-                            return Err(EvalError::UnknownError);
-                        };
-
-                        let value = eval(value, env)?;
-
-                        // #TODO notify about overrides? use `set`?
-                        env.insert(s, value);
-                    }
-
-                    // #TODO return last value!
-                    return Ok(Expr::One);
-                }
+                // #TODO add handling of 'high-level', compound expressions here.
+                // #TODO Expr::If
+                // #TODO Expr::Let
+                // #TODO Expr::Do
+                // #TODO Expr::..
                 Expr::Symbol(s) => {
                     match s.as_str() {
                         // special term
+                        "do" => {
+                            // #TODO do should be 'monadic', propagate Eff (effect) wrapper.
+                            let mut result = Expr::One;
+                            for expr in tail {
+                                result = eval(expr, env)?;
+                            }
+                            return Ok(result);
+                        }
+                        "let" => {
+                            let mut args = tail.iter();
+
+                            loop {
+                                let Some(sym) = args.next() else {
+                                    break;
+                                };
+                                let Some(value) = args.next() else {
+                                    // #TODO error?
+                                    break;
+                                };
+                                let Annotated(Expr::Symbol(s), ..) = sym else {
+                                    // #TODO proper error!
+                                    return Err(EvalError::UnknownError);
+                                };
+
+                                let value = eval(value, env)?;
+
+                                // #TODO notify about overrides? use `set`?
+                                env.insert(s, value);
+                            }
+
+                            // #TODO return last value!
+                            return Ok(Expr::One);
+                        }
                         "Func" => {
                             let [args, body] = tail else {
                                 // #TODO proper error!

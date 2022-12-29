@@ -80,8 +80,6 @@ where
         let expr = match t {
             Token::Comment(..) => None,
             Token::String(s) => Some(Expr::String(s)),
-            Token::Do => Some(Expr::Do),
-            Token::Let => Some(Expr::Let),
             Token::Symbol(s) => Some(Expr::Symbol(s)),
             Token::Number(n) => Some(Expr::Int(n)),
             Token::Annotation(s) => {
@@ -105,8 +103,9 @@ where
                 } else {
                     let head = list_exprs[0].clone();
                     match head {
-                        // #TODO detailed checking and error-reporting
+                        // `if` expression
                         Annotated(Expr::Symbol(s), ..) if s == "if" => {
+                            // #TODO detailed checking and error-reporting
                             Some(Expr::If(
                                 Box::new(list_exprs[1].clone()),
                                 Box::new(list_exprs[2].clone()),
