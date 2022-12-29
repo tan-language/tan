@@ -10,12 +10,12 @@ use crate::ann::Annotated;
 
 // #TODO support Quote _and_ QuasiQuote.
 // #TODO (recursive) quoting is not trivial.
-// `(koko zonk lala)
-// #quot (koko zonk lala)
-// #quot koko
-// (quot koko zonk lala)
-// (List koko zonk lala)
-// [koko zonk lala]
+// `(nice zonk lala)
+// #quot (nice zonk lala)
+// #quot nice
+// (quot nice zonk lala)
+// (List nice zonk lala)
+// [nice zonk lala]
 
 // #Insight
 // AST = Expr = Value = Object
