@@ -16,7 +16,6 @@ use self::{env::Env, error::EvalError};
 // #TODO encode effects in the type-system.
 // #TODO interpret or eval or execute?
 // #TODO alternative names: Processor, Runner
-// #TODO check that eval accepts plain Expr.
 
 // #TODO split eval_special, eval_func
 
@@ -54,15 +53,14 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
         }
         Expr::List(list) => {
             // #TODO replace head/tail with first/rest
-            // #TODO could this arise in self-modifying code?
             // #TODO also eval the head?
 
             if list.is_empty() {
                 // () == One (Unit)
                 // This is handled statically, in the parser, but an extra, dynamic
                 // check is needed in the evaluator to handle the case where the
-                // expression is constructed programmatically (and the parser is
-                // skipped).
+                // expression is constructed programmatically (e.g. self-modifying code,
+                // dynamically constructed expression, homoiconicity, etc).
                 return Ok(Expr::One);
             }
 
@@ -275,7 +273,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                                 }
                                 "=" => {
                                     // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
-                                    // #TODO support overloading, 
+                                    // #TODO support overloading,
                                     // #TODO make equality a method of Expr?
                                     // #TODO support non-Int types
                                     // #TODO support multiple arguments.
