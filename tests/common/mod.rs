@@ -1,7 +1,7 @@
 //! Common testing-support functions and utilities.
 
 use tan::{
-    ann::Annotated,
+    ann::Ann,
     eval::{env::Env, error::EvalError, eval, prelude::setup_prelude},
     expr::Expr,
     lexer::{token::Token, Lexer},
@@ -20,7 +20,7 @@ pub fn lex_file(filename: &str) -> Vec<Ranged<Token>> {
 }
 
 #[allow(dead_code)]
-pub fn parse_file(filename: &str) -> Annotated<Expr> {
+pub fn parse_file(filename: &str) -> Ann<Expr> {
     let input = &read_file(filename);
     parse_string(input)
 }
@@ -36,7 +36,7 @@ pub fn lex_string(input: &str) -> Vec<Ranged<Token>> {
     lexer.lex().unwrap()
 }
 
-pub fn parse_string(input: &str) -> Annotated<Expr> {
+pub fn parse_string(input: &str) -> Ann<Expr> {
     let tokens = lex_string(input);
     let mut parser = Parser::new(tokens);
     parser.parse().unwrap()

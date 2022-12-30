@@ -1,5 +1,7 @@
 use std::{error::Error, fmt};
 
+// #TODO Use Expr for errors!! enjoy the generality/flexibility!
+
 #[derive(Debug)]
 pub enum EvalError {
     UndefinedSymbolError(String), // #TODO maybe pass the whole Symbol expression?

@@ -2,7 +2,7 @@ pub mod env;
 pub mod error;
 pub mod prelude;
 
-use crate::{ann::Annotated, expr::Expr};
+use crate::{ann::Ann, expr::Expr};
 
 use self::{env::Env, error::EvalError};
 
@@ -28,7 +28,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
         Expr::Symbol(sym) => {
             let result = env.get(sym);
 
-            let Some(Annotated(expr, ..)) = result else {
+            let Some(Ann(expr, ..)) = result else {
                 return Err(EvalError::UndefinedSymbolError(sym.clone()));
             };
 
@@ -135,7 +135,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                                     // #TODO error?
                                     break;
                                 };
-                                let Annotated(Expr::Symbol(s), ..) = sym else {
+                                let Ann(Expr::Symbol(s), ..) = sym else {
                                     // #TODO proper error!
                                     return Err(EvalError::UnknownError);
                                 };
@@ -155,7 +155,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                                 return Err(EvalError::UnknownError);
                             };
 
-                            let Annotated(Expr::List(params), ..) = args else {
+                            let Ann(Expr::List(params), ..) = args else {
                                 // #TODO proper error!
                                 return Err(EvalError::UnknownError);
                             };
@@ -311,7 +311,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                                     };
 
                                     match op {
-                                        Annotated(Expr::Func(params, body), ..) => {
+                                        Ann(Expr::Func(params, body), ..) => {
                                             // #TODO ultra-hack to kill shared ref to `env`.
                                             let params = params.clone();
                                             let body = body.clone();
@@ -321,7 +321,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                                             env.push_new_scope();
 
                                             for (param, arg) in params.iter().zip(args) {
-                                                let Annotated(Expr::Symbol(param), ..) = param else {
+                                                let Ann(Expr::Symbol(param), ..) = param else {
                                                     // #TODO non-callable error!
                                                     return Err(EvalError::UnknownError);
                                                 };
@@ -335,7 +335,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
 
                                             result
                                         }
-                                        Annotated(Expr::ForeignFunc(foreign_function), ..) => {
+                                        Ann(Expr::ForeignFunc(foreign_function), ..) => {
                                             // Foreign Functions do NOT change the environment, hmm...
                                             // #TODO use RefCell / interior mutability instead, to allow for changing the environment (with Mutation Effect)
                                             foreign_function(&args, env)

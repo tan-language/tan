@@ -1,5 +1,5 @@
 use tan::{
-    ann::Annotated,
+    ann::Ann,
     expr::Expr,
     lexer::{token::Token, Lexer},
     parser::Parser,
@@ -22,7 +22,7 @@ fn parse_handles_an_empty_token_list() {
     let tokens = lex_tokens(input);
     let mut parser = Parser::new(tokens);
     let expr = parser.parse();
-    assert!(matches!(expr, Ok(Annotated(Expr::One, ..))));
+    assert!(matches!(expr, Ok(Ann(Expr::One, ..))));
 }
 
 #[test]
@@ -48,7 +48,7 @@ fn parse_handles_one() {
 
     let expr = parser.parse().unwrap();
 
-    assert!(matches!(expr, Annotated(Expr::One, ..)));
+    assert!(matches!(expr, Ann(Expr::One, ..)));
 }
 
 #[test]

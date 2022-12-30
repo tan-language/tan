@@ -1,7 +1,7 @@
 pub mod error;
 
 use crate::{
-    ann::Annotated,
+    ann::Ann,
     expr::Expr,
     lexer::{token::Token, Lexer},
     range::{Range, Ranged},
@@ -44,12 +44,9 @@ where
 
     /// Wrap the `expr` with the buffered (prefix) annotations.
     /// The annotations are parsed into an Expr representation.
-    fn attach_buffered_annotations(
-        &mut self,
-        expr: Expr,
-    ) -> Result<Annotated<Expr>, Ranged<ParseError>> {
+    fn attach_buffered_annotations(&mut self, expr: Expr) -> Result<Ann<Expr>, Ranged<ParseError>> {
         let Some(annotations) = self.buffered_annotations.take() else {
-            return Ok(Annotated::new(expr));
+            return Ok(Ann::new(expr));
         };
 
         let mut ann_exprs = Vec::new();
@@ -63,12 +60,12 @@ where
 
             let mut parser = Parser::new(tokens);
 
-            let Annotated(ann_expr, ..) = parser.parse()?;
+            let Ann(ann_expr, ..) = parser.parse()?;
 
             ann_exprs.push(ann_expr);
         }
 
-        Ok(Annotated(expr, Some(ann_exprs)))
+        Ok(Ann(expr, Some(ann_exprs)))
     }
 
     pub fn parse_expr(&mut self, token: Ranged<Token>) -> Result<Option<Expr>, Ranged<ParseError>> {
@@ -102,8 +99,8 @@ where
                 };
                 // #TODO check for `''`
                 Some(Expr::List(vec![
-                    Annotated::new(Expr::Symbol("quot".to_owned())),
-                    Annotated::new(target),
+                    Ann::new(Expr::Symbol("quot".to_owned())),
+                    Ann::new(target),
                 ]))
             }
             Token::LeftParen => {
@@ -122,7 +119,7 @@ where
                         // matching.
 
                         // `if` expression
-                        Annotated(Expr::Symbol(s), ..) if s == "if" => {
+                        Ann(Expr::Symbol(s), ..) if s == "if" => {
                             // #TODO detailed checking and error-reporting
                             Some(Expr::If(
                                 Box::new(list_exprs[1].clone()),
@@ -148,10 +145,7 @@ where
     }
 
     // #TODO parse tokens here, to be consistent with parse_atom?
-    pub fn parse_list(
-        &mut self,
-        list_range: Range,
-    ) -> Result<Vec<Annotated<Expr>>, Ranged<ParseError>> {
+    pub fn parse_list(&mut self, list_range: Range) -> Result<Vec<Ann<Expr>>, Ranged<ParseError>> {
         let mut exprs = Vec::new();
 
         let mut token: Option<Ranged<Token>>;
@@ -180,7 +174,7 @@ where
     }
 
     /// Tries to parse at least one expression.
-    pub fn parse(&mut self) -> Result<Annotated<Expr>, Ranged<ParseError>> {
+    pub fn parse(&mut self) -> Result<Ann<Expr>, Ranged<ParseError>> {
         // #TODO can consolidate more with parse_atom
 
         loop {
@@ -188,7 +182,7 @@ where
 
             let Some(token) = token  else {
                 // #TODO what should we return on empty tokens list? Never? Error?
-                return Ok(Annotated::new(Expr::One));
+                return Ok(Ann::new(Expr::One));
             };
 
             let expr = self.parse_expr(token)?;

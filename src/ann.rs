@@ -1,6 +1,6 @@
 use crate::expr::Expr;
 
-// #TODO consider `Ann`?
+// #TODO consider `Ann`, `Ax`, `An`, `Av`, `Anned`
 
 // #Insight
 // The Annotated struct will be used a lot, it makes sense to use
@@ -12,28 +12,28 @@ use crate::expr::Expr;
 // #TODO get range from annotation.
 
 #[derive(Debug, Clone)]
-pub struct Annotated<T>(pub T, pub Option<Vec<Expr>>);
+pub struct Ann<T>(pub T, pub Option<Vec<Expr>>);
 
-impl<T> Annotated<T> {
+impl<T> Ann<T> {
     pub fn new(value: T) -> Self {
         Self(value, None)
     }
 }
 
-impl<T> AsRef<T> for Annotated<T> {
+impl<T> AsRef<T> for Ann<T> {
     fn as_ref(&self) -> &T {
         &self.0
     }
 }
 
-impl<T> AsRef<T> for Box<Annotated<T>> {
+impl<T> AsRef<T> for Box<Ann<T>> {
     fn as_ref(&self) -> &T {
         &self.0
     }
 }
 
-impl<T> From<T> for Annotated<T> {
+impl<T> From<T> for Ann<T> {
     fn from(value: T) -> Self {
-        Annotated::new(value)
+        Ann::new(value)
     }
 }

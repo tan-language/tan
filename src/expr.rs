@@ -1,7 +1,7 @@
 use std::{fmt, rc::Rc};
 
 use crate::{
-    ann::Annotated,
+    ann::Ann,
     eval::{env::Env, error::EvalError},
 };
 
@@ -33,13 +33,9 @@ pub enum Expr {
     // #TODO let should contain the expressions also, pre-parsed!
     Let,
     // #TODO maybe this 'compound' if prohibits homoiconicity?
-    If(
-        Box<Annotated<Expr>>,
-        Box<Annotated<Expr>>,
-        Option<Box<Annotated<Expr>>>,
-    ),
-    List(Vec<Annotated<Expr>>),
-    Func(Vec<Annotated<Expr>>, Box<Annotated<Expr>>), // #TODO is there a need to use Rc instead of Box? YES! fast clones? INVESTIGATE!
+    If(Box<Ann<Expr>>, Box<Ann<Expr>>, Option<Box<Ann<Expr>>>),
+    List(Vec<Ann<Expr>>),
+    Func(Vec<Ann<Expr>>, Box<Ann<Expr>>), // #TODO is there a need to use Rc instead of Box? YES! fast clones? INVESTIGATE!
     ForeignFunc(Rc<dyn Fn(&[Expr], &Env) -> Result<Expr, EvalError>>), // #TODO for some reason, Box is not working here!
 }
 

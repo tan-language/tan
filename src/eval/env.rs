@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
-use crate::{ann::Annotated, expr::Expr};
+use crate::{ann::Ann, expr::Expr};
 
 // #TODO find another name than `Scope`?
-pub type Scope = HashMap<String, Annotated<Expr>>;
+pub type Scope = HashMap<String, Ann<Expr>>;
 
 // #Insight
 // It's better to model with a stack instead of pointers to outer environment.
@@ -52,8 +52,8 @@ impl Env {
     pub fn insert(
         &mut self,
         name: impl Into<String>,
-        value: impl Into<Annotated<Expr>>,
-    ) -> Option<Annotated<Expr>> {
+        value: impl Into<Ann<Expr>>,
+    ) -> Option<Ann<Expr>> {
         let last = self.scopes.len() - 1;
         let scope = &mut self.scopes[last];
         scope.insert(name.into(), value.into())
@@ -61,7 +61,7 @@ impl Env {
 
     // #TODO extract the stack walking?
 
-    pub fn get(&self, name: &str) -> Option<&Annotated<Expr>> {
+    pub fn get(&self, name: &str) -> Option<&Ann<Expr>> {
         let nesting = self.scopes.len();
 
         // #TODO optimize here!
