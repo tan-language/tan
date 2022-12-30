@@ -4,6 +4,7 @@ use crate::{
     expr::Expr,
     ops::{
         arithmetic::{add, mul, sub},
+        eq::{eq, gt, lt},
         io::write,
     },
 };
@@ -20,6 +21,12 @@ pub fn setup_prelude(env: Env) -> Env {
     env.insert("+", Expr::ForeignFunc(Rc::new(add)));
     env.insert("-", Expr::ForeignFunc(Rc::new(sub)));
     env.insert("*", Expr::ForeignFunc(Rc::new(mul)));
+
+    // eq
+
+    env.insert("=", Expr::ForeignFunc(Rc::new(eq)));
+    env.insert(">", Expr::ForeignFunc(Rc::new(gt)));
+    env.insert("<", Expr::ForeignFunc(Rc::new(lt)));
 
     // io
 

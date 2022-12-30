@@ -163,120 +163,53 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                         _ => {
                             // non-special term -> application.
 
+                            // #TODO maybe delay evaluation to see if there is an actual invocable?
                             // Evaluate the arguments before calling the function.
                             let args = tail
                                 .iter()
                                 .map(|x| eval(x, env))
                                 .collect::<Result<Vec<_>, _>>()?;
 
-                            match s.as_str() {
-                                // #TODO also eval 'if', 'do', 'for' and other keywords here!
-                                ">" => {
-                                    // #TODO support multiple arguments.
-                                    let [a, b] = &args[..] else {
-                                        // #TODO proper error!
-                                        return Err(EvalError::UnknownError);
-                                    };
+                            // Try to apply an op!
+                            // #Insight `op` = 'callable` (func, macro, collection, actor, etc)
 
-                                    let Expr::Int(a) = a else {
-                                        // #TODO proper error!
-                                        return Err(EvalError::UnknownError);
-                                    };
+                            let Some(op) = env.get(s) else {
+                                return Err(EvalError::UndefinedSymbolError(s.clone()));
+                            };
 
-                                    let Expr::Int(b) = b else {
-                                        // #TODO proper error!
-                                        return Err(EvalError::UnknownError);
-                                    };
+                            match op {
+                                Ann(Expr::Func(params, body), ..) => {
+                                    // #TODO ultra-hack to kill shared ref to `env`.
+                                    let params = params.clone();
+                                    let body = body.clone();
 
-                                    Ok(Expr::Bool(a > b))
+                                    // Dynamic scoping
+
+                                    env.push_new_scope();
+
+                                    for (param, arg) in params.iter().zip(args) {
+                                        let Ann(Expr::Symbol(param), ..) = param else {
+                                                // #TODO non-callable error!
+                                                return Err(EvalError::UnknownError);
+                                            };
+
+                                        env.insert(param, arg);
+                                    }
+
+                                    let result = eval(body, env);
+
+                                    env.pop();
+
+                                    result
                                 }
-                                // #TODO helper function or macro for arithmetic operations!
-                                "<" => {
-                                    // #TODO support multiple arguments.
-                                    let [a, b] = &args[..] else {
-                                        // #TODO proper error!
-                                        return Err(EvalError::UnknownError);
-                                    };
-
-                                    let Expr::Int(a) = a else {
-                                        // #TODO proper error!
-                                        return Err(EvalError::UnknownError);
-                                    };
-
-                                    let Expr::Int(b) = b else {
-                                        // #TODO proper error!
-                                        return Err(EvalError::UnknownError);
-                                    };
-
-                                    Ok(Expr::Bool(a < b))
-                                }
-                                "=" => {
-                                    // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
-                                    // #TODO support overloading,
-                                    // #TODO make equality a method of Expr?
-                                    // #TODO support non-Int types
-                                    // #TODO support multiple arguments.
-                                    let [a, b] = &args[..] else {
-                                        // #TODO proper error!
-                                        return Err(EvalError::UnknownError);
-                                    };
-
-                                    let Expr::Int(a) = a else {
-                                        // #TODO proper error!
-                                        return Err(EvalError::UnknownError);
-                                    };
-
-                                    let Expr::Int(b) = b else {
-                                        // #TODO proper error!
-                                        return Err(EvalError::UnknownError);
-                                    };
-
-                                    Ok(Expr::Bool(a == b))
+                                Ann(Expr::ForeignFunc(foreign_function), ..) => {
+                                    // Foreign Functions do NOT change the environment, hmm...
+                                    // #TODO use RefCell / interior mutability instead, to allow for changing the environment (with Mutation Effect)
+                                    foreign_function(&args, env)
                                 }
                                 _ => {
-                                    // Try to apply an op!
-
-                                    // #Insight `op` = 'callable` (func, macro, collection, actor, etc)
-
-                                    let Some(op) = env.get(s) else {
-                                        return Err(EvalError::UndefinedSymbolError(s.clone()));
-                                    };
-
-                                    match op {
-                                        Ann(Expr::Func(params, body), ..) => {
-                                            // #TODO ultra-hack to kill shared ref to `env`.
-                                            let params = params.clone();
-                                            let body = body.clone();
-
-                                            // Dynamic scoping
-
-                                            env.push_new_scope();
-
-                                            for (param, arg) in params.iter().zip(args) {
-                                                let Ann(Expr::Symbol(param), ..) = param else {
-                                                    // #TODO non-callable error!
-                                                    return Err(EvalError::UnknownError);
-                                                };
-
-                                                env.insert(param, arg);
-                                            }
-
-                                            let result = eval(body, env);
-
-                                            env.pop();
-
-                                            result
-                                        }
-                                        Ann(Expr::ForeignFunc(foreign_function), ..) => {
-                                            // Foreign Functions do NOT change the environment, hmm...
-                                            // #TODO use RefCell / interior mutability instead, to allow for changing the environment (with Mutation Effect)
-                                            foreign_function(&args, env)
-                                        }
-                                        _ => {
-                                            // #TODO non-callable error!
-                                            return Err(EvalError::UnknownError);
-                                        }
-                                    }
+                                    // #TODO non-callable error!
+                                    return Err(EvalError::UnknownError);
                                 }
                             }
                         }
@@ -288,7 +221,8 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
             }
         }
         _ => {
-            // #TODO hm, maybe need to report an error here? or even select the desired behavior?
+            // #TODO hm, maybe need to report an error here? or even select the desired behavior? -> NO ERROR
+            // #TODO can we avoid the clone?
             // Unhandled expression variants evaluate to themselves.
             return Ok(expr.clone());
         }
