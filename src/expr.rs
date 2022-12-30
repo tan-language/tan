@@ -51,7 +51,7 @@ pub enum Expr {
         Option<Box<Annotated<Expr>>>,
     ),
     List(Vec<Annotated<Expr>>),
-    Func(Vec<Annotated<Expr>>, Box<Annotated<Expr>>), // #TODO is there a need to use Rc instead of Box?
+    Func(Vec<Annotated<Expr>>, Box<Annotated<Expr>>), // #TODO is there a need to use Rc instead of Box? YES! fast clones? INVESTIGATE!
     ForeignFunc(Rc<dyn Fn(&[Expr], &Env) -> Result<Expr, EvalError>>), // #TODO for some reason, Box is not working here!
 }
 

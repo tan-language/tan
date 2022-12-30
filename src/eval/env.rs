@@ -10,6 +10,8 @@ pub type Scope = HashMap<String, Annotated<Expr>>;
 // A stack better describes the actual construct, is easier to reason about (no sea-of-objects)
 // is borrow-checker friendly (no lifecycles), and is more efficient on contemporary hardware.
 
+// ~~Scope is static, Environment is dynamic~~ <-- nah (static/dynamic scoping)
+
 /// An evaluation environment.
 ///
 /// An environment is a stack of scopes.
