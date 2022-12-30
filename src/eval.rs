@@ -6,8 +6,6 @@ use crate::{ann::Ann, expr::Expr};
 
 use self::{env::Env, error::EvalError};
 
-// #TODO Stack-trace is needed!
-
 // #Insight
 // _Not_ a pure evaluator, performs side-effects.
 
@@ -15,10 +13,9 @@ use self::{env::Env, error::EvalError};
 // I don't like the name `interpreter`.
 
 // #TODO encode effects in the type-system.
-// #TODO interpret or eval or execute?
-// #TODO alternative names: Processor, Runner
-
+// #TODO alternative names: Processor, Runner, Interpreter
 // #TODO split eval_special, eval_func
+// #TODO Stack-trace is needed!
 
 /// Evaluates via expression rewriting. The expression `expr` evaluates to
 /// a fixed point. In essence this is a 'tree-walk' interpreter.

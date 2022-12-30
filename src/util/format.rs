@@ -2,6 +2,7 @@ use std::error::Error;
 
 use crate::range::Ranged;
 
+// #TODO implement this in ...Tan :)
 // #TODO move to other crate? e.g. tan_fmt, or tan_analysis, or tan_cli?
 // #TODO format the error as symbolic expression.
 // #TODO format the error as JSON.
