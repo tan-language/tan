@@ -1,11 +1,11 @@
+pub mod error;
+pub mod token;
+
 use std::str::Chars;
 
 use crate::range::{Range, Ranged};
 
 use self::{error::LexicalError, token::Token};
-
-pub mod error;
-pub mod token;
 
 // https://en.wikipedia.org/wiki/Lexical_analysis
 

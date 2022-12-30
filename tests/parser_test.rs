@@ -77,10 +77,8 @@ fn parse_reports_unterminated_lists() {
 
     // eprintln!("{}", format_pretty_error(&err, input, Some(filename)));
 
-    // #TODO the end is wrong!
-
     assert_eq!(err.1.start, 20);
-    assert_eq!(err.1.end, 21);
+    assert_eq!(err.1.end, 33);
 }
 
 #[test]

@@ -150,6 +150,8 @@ where
 
         let mut token: Option<Ranged<Token>>;
 
+        let mut index = list_range.start;
+
         loop {
             token = self.tokens.next();
 
@@ -157,11 +159,15 @@ where
                 break;
             };
 
+            index = token.1.end;
+
             match token.0 {
                 Token::RightParen => {
+                    // #TODO set correct range
                     return Ok(exprs);
                 }
                 _ => {
+                    // #TODO set correct range
                     if let Some(e) = self.parse_expr(token)? {
                         let e = self.attach_buffered_annotations(e)?;
                         exprs.push(e);
@@ -170,7 +176,8 @@ where
             };
         }
 
-        Err(Ranged(ParseError::UnterminatedList, list_range))
+        let range = list_range.start..(index - 1);
+        Err(Ranged(ParseError::UnterminatedList, range))
     }
 
     /// Tries to parse at least one expression.
