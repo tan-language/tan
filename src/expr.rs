@@ -109,6 +109,15 @@ impl AsRef<Expr> for Expr {
     }
 }
 
+/// Formats the expression as a value.
+pub fn format_value(expr: impl AsRef<Expr>) -> String {
+    let expr = expr.as_ref();
+    match expr {
+        Expr::String(s) => s.to_string(),
+        _ => expr.to_string(),
+    }
+}
+
 // #TODO use `.into()` to convert Expr to Annotated<Expr>.
 
 #[cfg(test)]

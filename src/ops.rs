@@ -1,1 +1,2 @@
-pub mod num;
+pub mod io;
+pub mod arithmetic;

@@ -171,38 +171,6 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
 
                             match s.as_str() {
                                 // #TODO also eval 'if', 'do', 'for' and other keywords here!
-                                "write" => {
-                                    // #TODO for some reason, "\n" is not working.
-                                    let output = args.iter().fold(String::new(), |mut str, x| {
-                                        str.push_str(&format!("{}", x));
-                                        str
-                                    });
-
-                                    // #TODO shenanigans to handle `\n` in string, how can we do this better?
-                                    for line in output.split_inclusive("\\n") {
-                                        if line.ends_with("\\n") {
-                                            let mut line: String = line.to_owned();
-                                            line.pop();
-                                            line.pop();
-                                            println!("{line}");
-                                        } else {
-                                            print!("{line}");
-                                        }
-                                    }
-
-                                    Ok(Expr::One)
-                                }
-                                // "+" => {
-                                //     let mut sum = 0;
-                                //     for arg in args {
-                                //         let Expr::Int(n) = arg else {
-                                //             // #TODO proper error!
-                                //             return Err(EvalError::UnknownError);
-                                //         };
-                                //         sum += n;
-                                //     }
-                                //     Ok(Expr::Int(sum))
-                                // }
                                 "-" => {
                                     // #TODO support multiple arguments.
                                     let [a, b] = &args[..] else {

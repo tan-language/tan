@@ -1,9 +1,10 @@
-//! Math, Arithmetic, Numerical operators.
-
 use crate::{
     eval::{env::Env, error::EvalError},
     expr::Expr,
 };
+
+// #Insight
+// Named `arithmetic` as those operators can apply to non-numbers, e.g. Time, Date
 
 // #TODO use AsRef, to avoid Annotated!
 
@@ -12,8 +13,7 @@ pub fn add(args: &[Expr], _env: &Env) -> Result<Expr, EvalError> {
 
     for arg in args {
         let Expr::Int(n) = arg else {
-            // #TODO proper error!
-            return Err(EvalError::UnknownError);
+            return Err(EvalError::ArgumentError("invalid argument type, expecting `Int`".to_string()));
         };
         sum += n;
     }
