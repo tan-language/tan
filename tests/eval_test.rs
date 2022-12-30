@@ -57,6 +57,20 @@ fn eval_processes_let() {
     dbg!(&result);
 }
 
+// #TODO extract full testing from file.
+
+#[test]
+fn eval_processes_quoted_expressions() {
+    let result = eval_file("quoted.tan");
+
+    assert!(result.is_ok());
+
+    let value = format!("{}", result.unwrap());
+    let expected_value = read_file("quoted.value.tan");
+
+    assert_eq!(value, expected_value);
+}
+
 #[test]
 fn eval_processes_function_definition_and_application() {
     let result = eval_file("factorial.tan");
@@ -67,8 +81,6 @@ fn eval_processes_function_definition_and_application() {
     let expected_value = read_file("factorial.value.tan");
 
     assert_eq!(value, expected_value);
-
-    // ---
 
     let result = eval_file("fibonacci.tan");
 

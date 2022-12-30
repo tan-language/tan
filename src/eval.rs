@@ -88,6 +88,14 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                             }
                             return Ok(value);
                         }
+                        "quot" => {
+                            let [value] = tail else {
+                                return Err(EvalError::ArgumentError("missing quote target".to_owned()));
+                            };
+
+                            // #TODO hm, that clone, maybe `Rc` can fix this?
+                            return Ok(value.0.clone());
+                        }
                         "for" => {
                             // #Insight
                             // `for` is a generalization of `if`.
@@ -343,7 +351,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                     }
                 }
                 _ => {
-                    return Err(EvalError::UnknownError);
+                    return Err(EvalError::NotInvocableError(format!("{}", head.0)));
                 }
             }
         }

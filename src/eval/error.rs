@@ -2,9 +2,10 @@ use std::{error::Error, fmt};
 
 #[derive(Debug)]
 pub enum EvalError {
-    UndefinedSymbolError(String),
+    UndefinedSymbolError(String), // #TODO maybe pass the whole Symbol expression?
     IoError(std::io::Error),
     ArgumentError(String),
+    NotInvocableError(String), // #TODO maybe the non-invocable Annotated<Expr> should be the param?
     UnknownError,
 }
 
@@ -16,6 +17,7 @@ impl fmt::Display for EvalError {
             EvalError::UndefinedSymbolError(sym) => format!("`{sym}` is undefined"),
             EvalError::IoError(io_err) => format!("i/o error: {io_err}"),
             EvalError::ArgumentError(text) => text.to_owned(),
+            EvalError::NotInvocableError(text) => text.to_owned(),
             EvalError::UnknownError => "unknown error".to_owned(),
         };
         write!(f, "eval error: {}", err)

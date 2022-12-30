@@ -278,6 +278,7 @@ impl<'a> Lexer<'a> {
                 '"' => {
                     tokens.push(self.lex_string()?);
                 }
+                '\'' => tokens.push(Ranged(Token::Quote, self.index..self.index)),
                 '-' => {
                     // #TODO support for `--` line comments!
 

@@ -71,10 +71,7 @@ where
         Ok(Annotated(expr, Some(ann_exprs)))
     }
 
-    // #Insight
-    // Parsing built-ins as Exprs optimizes runtime evaluation, with more efficient
-    // matching.
-    pub fn parse_atom(&mut self, token: Ranged<Token>) -> Result<Option<Expr>, Ranged<ParseError>> {
+    pub fn parse_expr(&mut self, token: Ranged<Token>) -> Result<Option<Expr>, Ranged<ParseError>> {
         let Ranged(t, range) = token;
 
         let expr = match t {
@@ -94,6 +91,21 @@ where
 
                 None
             }
+            Token::Quote => {
+                let Some(token) = self.tokens.next() else {
+                    // #TODO error.
+                    todo!()
+                };
+                let Some(target) = self.parse_expr(token)? else {
+                    // #TODO error.
+                    todo!()
+                };
+                // #TODO check for `''`
+                Some(Expr::List(vec![
+                    Annotated::new(Expr::Symbol("quot".to_owned())),
+                    Annotated::new(target),
+                ]))
+            }
             Token::LeftParen => {
                 let list_exprs = self.parse_list(range)?;
 
@@ -103,6 +115,12 @@ where
                 } else {
                     let head = list_exprs[0].clone();
                     match head {
+                        // #TODO optimize more special forms.
+
+                        // #Insight
+                        // Parsing built-ins as Exprs optimizes runtime evaluation, with more efficient
+                        // matching.
+
                         // `if` expression
                         Annotated(Expr::Symbol(s), ..) if s == "if" => {
                             // #TODO detailed checking and error-reporting
@@ -150,7 +168,7 @@ where
                     return Ok(exprs);
                 }
                 _ => {
-                    if let Some(e) = self.parse_atom(token)? {
+                    if let Some(e) = self.parse_expr(token)? {
                         let e = self.attach_buffered_annotations(e)?;
                         exprs.push(e);
                     }
@@ -173,7 +191,7 @@ where
                 return Ok(Annotated::new(Expr::One));
             };
 
-            let expr = self.parse_atom(token)?;
+            let expr = self.parse_expr(token)?;
 
             if let Some(expr) = expr {
                 return self.attach_buffered_annotations(expr);

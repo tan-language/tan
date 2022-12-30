@@ -2,7 +2,7 @@
 
 use tan::{
     ann::Annotated,
-    eval::{env::Env, error::EvalError, eval},
+    eval::{env::Env, error::EvalError, eval, prelude::setup_prelude},
     expr::Expr,
     lexer::{token::Token, Lexer},
     parser::Parser,
@@ -44,6 +44,6 @@ pub fn parse_string(input: &str) -> Annotated<Expr> {
 
 pub fn eval_string(input: &str) -> Result<Expr, EvalError> {
     let expr = parse_string(input);
-    let mut env = Env::default();
+    let mut env = setup_prelude(Env::default());
     eval(&expr, &mut env)
 }

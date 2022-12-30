@@ -89,6 +89,7 @@ impl fmt::Debug for Expr {
 impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // #TODO optimize this!
+        // #TODO add unit tests here!
         f.write_str(
             (match self {
                 Expr::One => "()".to_owned(),
@@ -96,7 +97,7 @@ impl fmt::Display for Expr {
                 Expr::Int(n) => n.to_string(),
                 Expr::Float(n) => n.to_string(),
                 Expr::Symbol(s) => s.clone(),
-                Expr::String(s) => s.clone(),
+                Expr::String(s) => format!("\"{s}\""),
                 Expr::Do => "do".to_owned(),
                 Expr::Let => "let".to_owned(),
                 // #TODO properly format if!
@@ -122,5 +123,18 @@ impl fmt::Display for Expr {
 impl AsRef<Expr> for Expr {
     fn as_ref(&self) -> &Expr {
         self
+    }
+}
+
+// #TODO use `.into()` to convert Expr to Annotated<Expr>.
+
+#[cfg(test)]
+mod tests {
+    use crate::expr::Expr;
+
+    #[test]
+    fn expr_string_display() {
+        let expr = Expr::String("hello".to_owned());
+        assert_eq!("\"hello\"", format!("{expr}"));
     }
 }
