@@ -20,3 +20,38 @@ pub fn add(args: &[Expr], _env: &Env) -> Result<Expr, EvalError> {
 
     Ok(Expr::Int(sum))
 }
+
+pub fn sub(args: &[Expr], _env: &Env) -> Result<Expr, EvalError> {
+    // #TODO support multiple arguments.
+    let [a, b] = args else {
+        // #TODO proper error!
+        return Err(EvalError::UnknownError);
+    };
+
+    let Expr::Int(a) = a else {
+        // #TODO proper error!
+        return Err(EvalError::UnknownError);
+    };
+
+    let Expr::Int(b) = b else {
+        // #TODO proper error!
+        return Err(EvalError::UnknownError);
+    };
+
+    Ok(Expr::Int(a - b))
+}
+
+pub fn mul(args: &[Expr], _env: &Env) -> Result<Expr, EvalError> {
+    // #TODO optimize!
+    let mut prod = 1;
+
+    for arg in args {
+        let Expr::Int(n) = arg else {
+            // #TODO proper error!
+            return Err(EvalError::UnknownError);
+        };
+        prod *= n;
+    }
+
+    Ok(Expr::Int(prod))
+}

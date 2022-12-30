@@ -2,7 +2,10 @@ use std::rc::Rc;
 
 use crate::{
     expr::Expr,
-    ops::{io::write, arithmetic::add},
+    ops::{
+        arithmetic::{add, mul, sub},
+        io::write,
+    },
 };
 
 use super::env::Env;
@@ -15,6 +18,8 @@ pub fn setup_prelude(env: Env) -> Env {
     // num
 
     env.insert("+", Expr::ForeignFunc(Rc::new(add)));
+    env.insert("-", Expr::ForeignFunc(Rc::new(sub)));
+    env.insert("*", Expr::ForeignFunc(Rc::new(mul)));
 
     // io
 

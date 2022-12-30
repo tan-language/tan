@@ -171,39 +171,6 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
 
                             match s.as_str() {
                                 // #TODO also eval 'if', 'do', 'for' and other keywords here!
-                                "-" => {
-                                    // #TODO support multiple arguments.
-                                    let [a, b] = &args[..] else {
-                                        // #TODO proper error!
-                                        return Err(EvalError::UnknownError);
-                                    };
-
-                                    let Expr::Int(a) = a else {
-                                        // #TODO proper error!
-                                        return Err(EvalError::UnknownError);
-                                    };
-
-                                    let Expr::Int(b) = b else {
-                                        // #TODO proper error!
-                                        return Err(EvalError::UnknownError);
-                                    };
-
-                                    Ok(Expr::Int(a - b))
-                                }
-                                "*" => {
-                                    // #TODO optimize!
-                                    let mut prod = 1;
-
-                                    for arg in args {
-                                        let Expr::Int(n) = arg else {
-                                            // #TODO proper error!
-                                            return Err(EvalError::UnknownError);
-                                        };
-                                        prod *= n;
-                                    }
-
-                                    Ok(Expr::Int(prod))
-                                }
                                 ">" => {
                                     // #TODO support multiple arguments.
                                     let [a, b] = &args[..] else {
