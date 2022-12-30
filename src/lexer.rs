@@ -256,10 +256,10 @@ impl<'a> Lexer<'a> {
     pub fn lex(&mut self) -> Result<Vec<Ranged<Token>>, Ranged<LexicalError>> {
         let mut tokens: Vec<Ranged<Token>> = Vec::new();
 
-        let mut char;
+        // let mut char;
 
         loop {
-            char = self.next_char();
+            let char = self.next_char();
 
             let Some(ch) = char  else {
                 break;
@@ -267,25 +267,32 @@ impl<'a> Lexer<'a> {
 
             match ch {
                 '(' => {
-                    tokens.push(Ranged(Token::LeftParen, self.index..self.index));
+                    let range = (self.index - 1)..self.index;
+                    tokens.push(Ranged(Token::LeftParen, range));
                 }
                 ')' => {
-                    tokens.push(Ranged(Token::RightParen, self.index..self.index));
+                    let range = (self.index - 1)..self.index;
+                    tokens.push(Ranged(Token::RightParen, range));
                 }
                 ';' => {
+                    // #TODO handle range outside od lex_xxx
                     tokens.push(self.lex_comment()?);
                 }
                 '"' => {
+                    // #TODO handle range outside od lex_xxx
                     tokens.push(self.lex_string()?);
                 }
-                '\'' => tokens.push(Ranged(Token::Quote, self.index..self.index)),
+                '\'' => {
+                    let range = (self.index - 1)..self.index;
+                    tokens.push(Ranged(Token::Quote, range));
+                }
                 '-' => {
                     // #TODO support for `--` line comments!
 
                     let char1 = self.next_char();
 
                     let Some(ch1) = char1 else {
-                        let range = (self.index-1)..(self.index-1);
+                        let range = (self.index-2)..(self.index-1);
                         return Err(Ranged(LexicalError::UnexpectedEol, range));
                     };
 
@@ -293,16 +300,19 @@ impl<'a> Lexer<'a> {
                         // Negative number
                         self.put_back_char(ch1);
                         self.put_back_char(ch);
+                        // #TODO handle range outside od lex_xxx
                         tokens.push(self.lex_number()?);
                     } else {
                         // #TODO lint warning for this!
                         // Symbol
                         self.put_back_char(ch1);
                         self.put_back_char(ch);
+                        // #TODO handle range outside od lex_xxx
                         tokens.push(self.lex_symbol()?);
                     }
                 }
                 '#' => {
+                    // #TODO handle range outside od lex_xxx
                     tokens.push(self.lex_annotation()?);
                 }
                 _ if is_whitespace(ch) => {
@@ -310,10 +320,12 @@ impl<'a> Lexer<'a> {
                 }
                 _ if ch.is_numeric() => {
                     self.put_back_char(ch);
+                    // #TODO handle range outside od lex_xxx
                     tokens.push(self.lex_number()?);
                 }
                 _ => {
                     self.put_back_char(ch);
+                    // #TODO handle range outside od lex_xxx
                     tokens.push(self.lex_symbol()?);
                 }
             }

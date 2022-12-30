@@ -4,7 +4,6 @@ use tan::{
     lexer::{token::Token, Lexer},
     parser::Parser,
     range::Ranged,
-    util::format::format_pretty_error,
 };
 
 fn read_input(filename: &str) -> String {
@@ -36,7 +35,10 @@ fn parse_reports_unexpected_tokens() {
 
     let err = result.unwrap_err();
 
-    eprintln!("{}", format_pretty_error(&err, input, None));
+    // eprintln!("{}", format_pretty_error(&err, input, None));
+
+    assert_eq!(err.1.start, 0);
+    assert_eq!(err.1.end, 1);
 }
 
 // () == Expr::One (Unit)
@@ -73,7 +75,12 @@ fn parse_reports_unterminated_lists() {
 
     let err = result.unwrap_err();
 
-    eprintln!("{}", format_pretty_error(&err, input, Some(filename)));
+    // eprintln!("{}", format_pretty_error(&err, input, Some(filename)));
+
+    // #TODO the end is wrong!
+
+    assert_eq!(err.1.start, 20);
+    assert_eq!(err.1.end, 21);
 }
 
 #[test]
