@@ -9,18 +9,6 @@ use crate::{
 // #TODO List, MaybeList, Call
 
 // #Insight
-// Quote/`'` is like a an annotation, especially the #List annotation, but it is RECURSIVE!
-
-// #TODO support Quote _and_ QuasiQuote.
-// #TODO (recursive) quoting is not trivial.
-// `(nice zonk lala)
-// #quot (nice zonk lala)
-// #quot nice
-// (quot nice zonk lala)
-// (List nice zonk lala)
-// [nice zonk lala]
-
-// #Insight
 // AST = Expr = Value = Object
 
 // #Insight
@@ -89,7 +77,6 @@ impl fmt::Debug for Expr {
 impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // #TODO optimize this!
-        // #TODO add unit tests here!
         f.write_str(
             (match self {
                 Expr::One => "()".to_owned(),

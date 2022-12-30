@@ -12,6 +12,8 @@ use std::fmt;
 // #Insight
 // Reserved _word_ is a bad name because it can be more than one word.
 
+// #TODO support #quot annotation?
+
 /// A lexical Token gives semantic meaning to a Lexeme.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Token {
