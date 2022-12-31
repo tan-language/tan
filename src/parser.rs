@@ -99,7 +99,7 @@ where
                 };
                 // #TODO check for `''`
                 Some(Expr::List(vec![
-                    Ann::new(Expr::Symbol("quot".to_owned())),
+                    Ann::new(Expr::symbol("quot")),
                     Ann::new(target),
                 ]))
             }

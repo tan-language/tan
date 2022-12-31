@@ -4,7 +4,7 @@ use tan::{ann::Ann, eval::env::Env, expr::Expr};
 fn env_binds_names_to_values() {
     let mut env = Env::default();
 
-    env.insert("a", Expr::Symbol("hello".to_string()));
+    env.insert("a", Expr::symbol("hello"));
 
     // let expr: &Expr = env.get("a").unwrap().as_ref();
     // dbg!(&expr);
@@ -17,9 +17,9 @@ fn env_binds_names_to_values() {
 fn env_bindings_can_be_updated() {
     let mut env = Env::default();
 
-    env.insert("a", Expr::Symbol("hello".to_string()));
+    env.insert("a", Expr::symbol("hello"));
     assert!(matches!(env.get("a"), Some(Ann(Expr::Symbol(sym), ..)) if sym == "hello"));
 
-    env.update("a", Expr::Symbol("world".to_string()));
+    env.update("a", Expr::symbol("world"));
     assert!(matches!(env.get("a"), Some(Ann(Expr::Symbol(sym), ..)) if sym == "world"));
 }

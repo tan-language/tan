@@ -28,5 +28,5 @@ pub fn write(args: &[Expr], _env: &Env) -> Result<Expr, EvalError> {
 pub fn writeln(args: &[Expr], env: &Env) -> Result<Expr, EvalError> {
     // #TODO nasty implementation!
     write(args, env)?;
-    write(&[Expr::String("\n".to_owned())], env)
+    write(&[Expr::string("\n")], env)
 }

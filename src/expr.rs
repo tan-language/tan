@@ -109,6 +109,16 @@ impl AsRef<Expr> for Expr {
     }
 }
 
+impl Expr {
+    pub fn symbol(s: impl Into<String>) -> Self {
+        Expr::Symbol(s.into())
+    }
+
+    pub fn string(s: impl Into<String>) -> Self {
+        Expr::String(s.into())
+    }
+}
+
 /// Formats the expression as a value.
 pub fn format_value(expr: impl AsRef<Expr>) -> String {
     let expr = expr.as_ref();
@@ -126,7 +136,7 @@ mod tests {
 
     #[test]
     fn expr_string_display() {
-        let expr = Expr::String("hello".to_owned());
+        let expr = Expr::string("hello");
         assert_eq!("\"hello\"", format!("{expr}"));
     }
 }
