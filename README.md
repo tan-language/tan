@@ -2,9 +2,13 @@
 
 The Tan Language implementation.
 
+## Status
+
+This is an experimental project, not intended for production.
+
 ## Contributing
 
-Pull requests, issues and comments are welcome! Make sure to add tests for new features and bug fixes.
+Pull requests, issues, and comments are welcome! Make sure to add tests for new features and bug fixes.
 
 ## Contact
 

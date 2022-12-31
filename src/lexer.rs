@@ -130,10 +130,9 @@ impl<'a> Lexer<'a> {
             text.push(ch);
         }
 
-        let range = Range {
-            start,
-            end: self.index - 1, // adjust for the trailing '\n'
-        };
+        // Adjust end for EOL or EOF.
+        let end = self.index - 1;
+        let range = Range { start, end };
 
         Ok(Ranged(Token::Comment(text), range))
     }
@@ -275,11 +274,11 @@ impl<'a> Lexer<'a> {
                     tokens.push(Ranged(Token::RightParen, range));
                 }
                 ';' => {
-                    // #TODO handle range outside od lex_xxx
+                    // #TODO handle range outside of lex_xxx
                     tokens.push(self.lex_comment()?);
                 }
                 '"' => {
-                    // #TODO handle range outside od lex_xxx
+                    // #TODO handle range outside of lex_xxx
                     tokens.push(self.lex_string()?);
                 }
                 '\'' => {
@@ -300,19 +299,19 @@ impl<'a> Lexer<'a> {
                         // Negative number
                         self.put_back_char(ch1);
                         self.put_back_char(ch);
-                        // #TODO handle range outside od lex_xxx
+                        // #TODO handle range outside of lex_xxx
                         tokens.push(self.lex_number()?);
                     } else {
                         // #TODO lint warning for this!
                         // Symbol
                         self.put_back_char(ch1);
                         self.put_back_char(ch);
-                        // #TODO handle range outside od lex_xxx
+                        // #TODO handle range outside of lex_xxx
                         tokens.push(self.lex_symbol()?);
                     }
                 }
                 '#' => {
-                    // #TODO handle range outside od lex_xxx
+                    // #TODO handle range outside of lex_xxx
                     tokens.push(self.lex_annotation()?);
                 }
                 _ if is_whitespace(ch) => {
@@ -320,17 +319,28 @@ impl<'a> Lexer<'a> {
                 }
                 _ if ch.is_numeric() => {
                     self.put_back_char(ch);
-                    // #TODO handle range outside od lex_xxx
+                    // #TODO handle range outside of lex_xxx
                     tokens.push(self.lex_number()?);
                 }
                 _ => {
                     self.put_back_char(ch);
-                    // #TODO handle range outside od lex_xxx
+                    // #TODO handle range outside of lex_xxx
                     tokens.push(self.lex_symbol()?);
                 }
             }
         }
 
         Ok(tokens)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::expr::Expr;
+
+    #[test]
+    fn expr_string_display() {
+        let expr = Expr::String("hello".to_owned());
+        assert_eq!("\"hello\"", format!("{expr}"));
     }
 }
