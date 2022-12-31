@@ -86,7 +86,7 @@ impl<'a> Lexer<'a> {
     }
 
     // #TODO add unit tests
-    // #TODO try to reuse in more lexers!
+    // #TODO try to reuse more!
     fn scan_lexeme(&mut self) -> Ranged<String> {
         let mut text = String::new();
 
@@ -137,6 +137,29 @@ impl<'a> Lexer<'a> {
         comment
     }
 
+    // #TODO support multi-line strings
+    // #TODO support 'raw' strings, e.g. (write #raw "this is \ cool")
+    /// Scans a string lexeme.
+    fn scan_string(&mut self) -> Result<String, LexicalError> {
+        let mut string = String::new();
+
+        loop {
+            let char = self.next_char();
+
+            let Some(ch) = char  else {
+                return Err(LexicalError::UnterminatedStringError);
+            };
+
+            if ch == '"' {
+                break;
+            }
+
+            string.push(ch);
+        }
+
+        Ok(string)
+    }
+
     // #TODO the lexer should keep the Number token as String.
     fn lex_number(&mut self) -> Result<Ranged<Token>, Ranged<LexicalError>> {
         let Ranged(lexeme, range) = self.scan_lexeme();
@@ -176,29 +199,6 @@ impl<'a> Lexer<'a> {
         // Expr variants for reserved words will be used.
 
         Ok(Ranged(token, range))
-    }
-
-    // #TODO support multi-line strings
-    // #TODO support 'raw' strings, e.g. (write #raw "this is \ cool")
-    /// Scans a string lexeme.
-    fn scan_string(&mut self) -> Result<String, LexicalError> {
-        let mut string = String::new();
-
-        loop {
-            let char = self.next_char();
-
-            let Some(ch) = char  else {
-                return Err(LexicalError::UnterminatedStringError);
-            };
-
-            if ch == '"' {
-                break;
-            }
-
-            string.push(ch);
-        }
-
-        Ok(string)
     }
 
     fn lex_annotation(&mut self) -> Result<Ranged<Token>, Ranged<LexicalError>> {
