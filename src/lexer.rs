@@ -185,6 +185,7 @@ impl<'a> Lexer<'a> {
         let mut nesting = 0;
 
         // #TODO only allow one level of nesting?
+        // #TODO should probably skip the annotation 'parsing'.
 
         loop {
             let Some(char) = self.next_char() else {
@@ -317,11 +318,5 @@ impl<'a> Lexer<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::expr::Expr;
-
-    #[test]
-    fn expr_string_display() {
-        let expr = Expr::String("hello".to_owned());
-        assert_eq!("\"hello\"", format!("{expr}"));
-    }
+    // #TODO!
 }
