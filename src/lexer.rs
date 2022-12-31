@@ -90,35 +90,7 @@ impl<'a> Lexer<'a> {
 
     // #TODO add unit tests
     // #TODO try to reuse more!
-    fn scan_lexeme(&mut self) -> Ranged<String> {
-        let mut text = String::new();
-
-        let start = self.index;
-
-        let mut char;
-
-        loop {
-            char = self.next_char();
-
-            let Some(ch) = char  else {
-                break;
-            };
-
-            // #TODO maybe whitespace does not need put_back, but need to adjust range.
-            if is_whitespace(ch) || is_delimiter(ch) || is_eol(ch) {
-                self.put_back_char(ch);
-                break;
-            }
-
-            text.push(ch);
-        }
-
-        let range = start..self.index;
-
-        Ranged(text, range)
-    }
-
-    fn scan_lexeme1(&mut self) -> String {
+    fn scan_lexeme(&mut self) -> String {
         let mut text = String::new();
 
         loop {
@@ -186,8 +158,10 @@ impl<'a> Lexer<'a> {
     }
 
     // #TODO the lexer should keep the Number token as String.
-    fn lex_number(&mut self) -> Result<Ranged<Token>, Ranged<LexicalError>> {
-        let Ranged(lexeme, range) = self.scan_lexeme();
+    fn scan_number(&mut self) -> Result<i64, LexicalError> {
+        let lexeme = self.scan_lexeme();
+
+        // let Ranged(lexeme, range) = self.scan_lexeme();
 
         // Ignore `_`, it is considered a number separator.
         // #Insight do _not_ consider `,` as number separator, bad idea!
@@ -208,10 +182,10 @@ impl<'a> Lexer<'a> {
         // #TODO more detailed Number error!
         // #TODO error handling not enough, we need to add context, check error_stack
 
-        let n = i64::from_str_radix(&lexeme, radix)
-            .map_err(|err| Ranged(LexicalError::NumberError(err), range.clone()))?;
+        let n =
+            i64::from_str_radix(&lexeme, radix).map_err(|err| LexicalError::NumberError(err))?;
 
-        Ok(Ranged(Token::Number(n), range))
+        Ok(n)
     }
 
     fn lex_annotation(&mut self) -> Result<Ranged<Token>, Ranged<LexicalError>> {
@@ -253,6 +227,8 @@ impl<'a> Lexer<'a> {
 
         Ok(Ranged(Token::Annotation(text), range))
     }
+
+    // #TODO extract lex_number, lex_symbol
 
     // #TODO consider passing into array of chars or something more general.
     pub fn lex(&mut self) -> Result<Vec<Ranged<Token>>, Ranged<LexicalError>> {
@@ -305,15 +281,20 @@ impl<'a> Lexer<'a> {
                         // Negative number
                         self.put_back_char(ch1);
                         self.put_back_char(char);
-                        // #TODO handle range outside of lex_xxx
-                        tokens.push(self.lex_number()?);
+
+                        let n = self.scan_number();
+                        let range = start..self.index;
+                        let Ok(n) = n else {
+                            return Err(Ranged(n.unwrap_err(), range));
+                        };
+                        tokens.push(Ranged(Token::Number(n), range));
                     } else {
                         // #TODO lint warning for this!
                         // Symbol starting with `-`.
                         self.put_back_char(ch1);
                         self.put_back_char(char);
 
-                        let sym = self.scan_lexeme1();
+                        let sym = self.scan_lexeme();
                         let range = start..self.index;
                         tokens.push(Ranged(Token::Symbol(sym), range));
                     }
@@ -327,12 +308,17 @@ impl<'a> Lexer<'a> {
                 }
                 _ if char.is_numeric() => {
                     self.put_back_char(char);
-                    // #TODO handle range outside of lex_xxx
-                    tokens.push(self.lex_number()?);
+
+                    let n = self.scan_number();
+                    let range = start..self.index;
+                    let Ok(n) = n else {
+                        return Err(Ranged(n.unwrap_err(), range));
+                    };
+                    tokens.push(Ranged(Token::Number(n), range));
                 }
                 _ => {
                     self.put_back_char(char);
-                    let sym = self.scan_lexeme1();
+                    let sym = self.scan_lexeme();
                     let range = start..self.index;
                     tokens.push(Ranged(Token::Symbol(sym), range));
                 }
