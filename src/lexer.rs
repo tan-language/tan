@@ -94,9 +94,7 @@ impl<'a> Lexer<'a> {
         let mut text = String::new();
 
         loop {
-            let char = self.next_char();
-
-            let Some(char) = char  else {
+            let Some(char) = self.next_char() else {
                 break;
             };
 
@@ -118,9 +116,7 @@ impl<'a> Lexer<'a> {
         let mut comment = String::from(";");
 
         loop {
-            let char = self.next_char();
-
-            let Some(char) = char  else {
+            let Some(char) = self.next_char() else {
                 break;
             };
 
@@ -141,17 +137,15 @@ impl<'a> Lexer<'a> {
         let mut string = String::new();
 
         loop {
-            let char = self.next_char();
-
-            let Some(ch) = char  else {
+            let Some(char) = self.next_char() else {
                 return Err(LexicalError::UnterminatedStringError);
             };
 
-            if ch == '"' {
+            if char == '"' {
                 break;
             }
 
-            string.push(ch);
+            string.push(char);
         }
 
         Ok(string)
@@ -160,8 +154,6 @@ impl<'a> Lexer<'a> {
     // #TODO the lexer should keep the Number token as String.
     fn scan_number(&mut self) -> Result<i64, LexicalError> {
         let lexeme = self.scan_lexeme();
-
-        // let Ranged(lexeme, range) = self.scan_lexeme();
 
         // Ignore `_`, it is considered a number separator.
         // #Insight do _not_ consider `,` as number separator, bad idea!
@@ -182,54 +174,44 @@ impl<'a> Lexer<'a> {
         // #TODO more detailed Number error!
         // #TODO error handling not enough, we need to add context, check error_stack
 
-        let n =
-            i64::from_str_radix(&lexeme, radix).map_err(|err| LexicalError::NumberError(err))?;
+        let n = i64::from_str_radix(&lexeme, radix).map_err(LexicalError::NumberError)?;
 
         Ok(n)
     }
 
-    fn lex_annotation(&mut self) -> Result<Ranged<Token>, Ranged<LexicalError>> {
-        let mut text = String::new();
-
-        let start = self.index - 1; // adjust for leading '#'
+    fn scan_annotation(&mut self) -> Result<String, LexicalError> {
+        let mut ann = String::new();
 
         let mut nesting = 0;
 
         // #TODO only allow one level of nesting?
 
-        let mut char;
-
         loop {
-            char = self.next_char();
-
-            let Some(ch) = char  else {
+            let Some(char) = self.next_char() else {
                 break;
             };
 
-            if ch == '(' {
+            if char == '(' {
                 nesting += 1;
-            } else if ch == ')' {
+            } else if char == ')' {
                 nesting -= 1;
-            } else if nesting == 0 && (is_whitespace(ch) || is_eol(ch)) {
+            } else if nesting == 0 && (is_whitespace(char) || is_eol(char)) {
                 // #TODO maybe whitespace does not need put_back, but need to adjust range.
-                self.put_back_char(ch);
+                self.put_back_char(char);
                 break;
             }
 
-            text.push(ch);
+            ann.push(char);
         }
-
-        let range = start..self.index;
 
         if nesting != 0 {
-            return Err(Ranged(LexicalError::UnterminatedAnnotationError, range));
+            return Err(LexicalError::UnterminatedAnnotationError);
         }
 
-        Ok(Ranged(Token::Annotation(text), range))
+        Ok(ann)
     }
 
     // #TODO extract lex_number, lex_symbol
-
     // #TODO consider passing into array of chars or something more general.
     pub fn lex(&mut self) -> Result<Vec<Ranged<Token>>, Ranged<LexicalError>> {
         let mut tokens: Vec<Ranged<Token>> = Vec::new();
@@ -300,8 +282,12 @@ impl<'a> Lexer<'a> {
                     }
                 }
                 '#' => {
-                    // #TODO handle range outside of lex_xxx
-                    tokens.push(self.lex_annotation()?);
+                    let ann = self.scan_annotation();
+                    let range = start..self.index;
+                    let Ok(ann) = ann else {
+                        return Err(Ranged(ann.unwrap_err(), range));
+                    };
+                    tokens.push(Ranged(Token::Annotation(ann), range));
                 }
                 _ if is_whitespace(char) => {
                     // Consume whitespace
