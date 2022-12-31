@@ -53,7 +53,7 @@ fn lex_parses_comments() {
 
     let c2 = &tokens[6];
     assert_eq!(c2.1.start, 54);
-    assert_eq!(c2.1.end, 68);
+    assert_eq!(c2.1.end, input.len());
 }
 
 #[test]

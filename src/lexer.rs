@@ -64,14 +64,20 @@ impl<'a> Lexer<'a> {
         self.chars.clone().collect()
     }
 
+    // #TODO unit test
+    // #TODO refactor
     fn next_char(&mut self) -> Option<char> {
-        self.index += 1;
-
-        if let Some(ch) = self.lookahead.pop() {
-            return Some(ch);
+        if let Some(char) = self.lookahead.pop() {
+            self.index += 1;
+            return Some(char);
         }
 
-        self.chars.next()
+        if let Some(char) = self.chars.next() {
+            self.index += 1;
+            Some(char)
+        } else {
+            None
+        }
     }
 
     fn put_back_char(&mut self, ch: char) {
@@ -112,7 +118,7 @@ impl<'a> Lexer<'a> {
     // Scans a comment lexeme, since it ignores all input until EOL or EOF,
     // it is infallible.
     fn scan_comment(&mut self) -> String {
-        let mut text = String::from(";");
+        let mut comment = String::from(";");
 
         loop {
             let char = self.next_char();
@@ -125,10 +131,10 @@ impl<'a> Lexer<'a> {
                 break;
             }
 
-            text.push(ch);
+            comment.push(ch);
         }
 
-        text
+        comment
     }
 
     // #TODO the lexer should keep the Number token as String.
@@ -174,35 +180,25 @@ impl<'a> Lexer<'a> {
 
     // #TODO support multi-line strings
     // #TODO support 'raw' strings, e.g. (write #raw "this is \ cool")
-    fn lex_string(&mut self) -> Result<Ranged<Token>, Ranged<LexicalError>> {
-        let mut text = String::new();
-
-        let start = self.index - 1; // adjust for leading '"'
-
-        let mut char;
+    /// Scans a string lexeme.
+    fn scan_string(&mut self) -> Result<String, LexicalError> {
+        let mut string = String::new();
 
         loop {
-            char = self.next_char();
+            let char = self.next_char();
 
             let Some(ch) = char  else {
-                break;
+                return Err(LexicalError::UnterminatedStringError);
             };
 
             if ch == '"' {
                 break;
             }
 
-            text.push(ch);
+            string.push(ch);
         }
 
-        let mut range = start..self.index;
-
-        if char != Some('"') {
-            range.end -= 1;
-            return Err(Ranged(LexicalError::UnterminatedStringError, range));
-        }
-
-        Ok(Ranged(Token::String(text), range))
+        Ok(string)
     }
 
     fn lex_annotation(&mut self) -> Result<Ranged<Token>, Ranged<LexicalError>> {
@@ -270,13 +266,17 @@ impl<'a> Lexer<'a> {
                     let range = start..self.index;
                     tokens.push(Ranged(Token::Comment(comment), range));
                 }
-                '"' => {
-                    // #TODO handle range outside of lex_xxx
-                    tokens.push(self.lex_string()?);
-                }
                 '\'' => {
                     let range = start..self.index;
                     tokens.push(Ranged(Token::Quote, range));
+                }
+                '"' => {
+                    let string = self.scan_string();
+                    let range = start..self.index;
+                    let Ok(string) = string else {
+                        return Err(Ranged(string.unwrap_err(), range));
+                    };
+                    tokens.push(Ranged(Token::String(string), range));
                 }
                 '-' => {
                     // #TODO support for `--` line comments!
