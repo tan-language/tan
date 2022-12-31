@@ -29,7 +29,7 @@ pub fn eq(args: &[Expr], _env: &Env) -> Result<Expr, EvalError> {
 
 pub fn gt(args: &[Expr], _env: &Env) -> Result<Expr, EvalError> {
     // #TODO support multiple arguments.
-    let [a, b] = &args[..] else {
+    let [a, b] = args else {
         // #TODO proper error!
         return Err(EvalError::UnknownError);
     };
@@ -49,7 +49,7 @@ pub fn gt(args: &[Expr], _env: &Env) -> Result<Expr, EvalError> {
 
 pub fn lt(args: &[Expr], _env: &Env) -> Result<Expr, EvalError> {
     // #TODO support multiple arguments.
-    let [a, b] = &args[..] else {
+    let [a, b] = args else {
         // #TODO proper error!
         return Err(EvalError::UnknownError);
     };

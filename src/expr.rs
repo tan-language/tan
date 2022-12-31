@@ -17,6 +17,11 @@ use crate::{
 // #TODO consider parsing to 'simple' Expr, only List and Symbols
 // #TODO optimize 'simple' Expr to 'execution' Expr
 
+// #TODO ExprFn should get a single Expr? -> nah, it's foreign.
+
+// A function that accepts a list of Exprs and returns an Expr.
+pub type ExprFn = dyn Fn(&[Expr], &Env) -> Result<Expr, EvalError>;
+
 #[derive(Clone)]
 /// A symbolic expression. This is the 'universal' data type in the language,
 /// all values are expressions (and expressions are values). Evaluation is expression
@@ -36,7 +41,7 @@ pub enum Expr {
     If(Box<Ann<Expr>>, Box<Ann<Expr>>, Option<Box<Ann<Expr>>>),
     List(Vec<Ann<Expr>>),
     Func(Vec<Ann<Expr>>, Box<Ann<Expr>>), // #TODO is there a need to use Rc instead of Box? YES! fast clones? INVESTIGATE!
-    ForeignFunc(Rc<dyn Fn(&[Expr], &Env) -> Result<Expr, EvalError>>), // #TODO for some reason, Box is not working here!
+    ForeignFunc(Rc<ExprFn>),              // #TODO for some reason, Box is not working here!
 }
 
 impl fmt::Debug for Expr {
