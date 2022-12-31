@@ -49,11 +49,11 @@ fn lex_parses_comments() {
 
     let c1 = &tokens[1];
     assert_eq!(c1.1.start, 20);
-    assert_eq!(c1.1.end, 38);
+    assert_eq!(c1.1.end, 39);
 
     let c2 = &tokens[6];
     assert_eq!(c2.1.start, 54);
-    assert_eq!(c2.1.end, 67);
+    assert_eq!(c2.1.end, 68);
 }
 
 #[test]

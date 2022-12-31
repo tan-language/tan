@@ -3,7 +3,7 @@ pub mod token;
 
 use std::str::Chars;
 
-use crate::range::{Range, Ranged};
+use crate::range::Ranged;
 
 use self::{error::LexicalError, token::Token};
 
@@ -109,15 +109,13 @@ impl<'a> Lexer<'a> {
         Ranged(text, range)
     }
 
-    fn lex_comment(&mut self) -> Result<Ranged<Token>, Ranged<LexicalError>> {
+    // Scans a comment lexeme, since it ignores all input until EOL or EOF,
+    // it is infallible.
+    fn scan_comment(&mut self) -> String {
         let mut text = String::from(";");
 
-        let start = self.index - 1; // adjust for leading `;`
-
-        let mut char;
-
         loop {
-            char = self.next_char();
+            let char = self.next_char();
 
             let Some(ch) = char  else {
                 break;
@@ -130,11 +128,7 @@ impl<'a> Lexer<'a> {
             text.push(ch);
         }
 
-        // Adjust end for EOL or EOF.
-        let end = self.index - 1;
-        let range = Range { start, end };
-
-        Ok(Ranged(Token::Comment(text), range))
+        text
     }
 
     // #TODO the lexer should keep the Number token as String.
@@ -255,34 +249,33 @@ impl<'a> Lexer<'a> {
     pub fn lex(&mut self) -> Result<Vec<Ranged<Token>>, Ranged<LexicalError>> {
         let mut tokens: Vec<Ranged<Token>> = Vec::new();
 
-        // let mut char;
-
         loop {
-            let char = self.next_char();
+            let start = self.index;
 
-            let Some(ch) = char  else {
+            let Some(char) = self.next_char() else {
                 break;
             };
 
-            match ch {
+            match char {
                 '(' => {
-                    let range = (self.index - 1)..self.index;
+                    let range = start..self.index;
                     tokens.push(Ranged(Token::LeftParen, range));
                 }
                 ')' => {
-                    let range = (self.index - 1)..self.index;
+                    let range = start..self.index;
                     tokens.push(Ranged(Token::RightParen, range));
                 }
                 ';' => {
-                    // #TODO handle range outside of lex_xxx
-                    tokens.push(self.lex_comment()?);
+                    let comment = self.scan_comment();
+                    let range = start..self.index;
+                    tokens.push(Ranged(Token::Comment(comment), range));
                 }
                 '"' => {
                     // #TODO handle range outside of lex_xxx
                     tokens.push(self.lex_string()?);
                 }
                 '\'' => {
-                    let range = (self.index - 1)..self.index;
+                    let range = start..self.index;
                     tokens.push(Ranged(Token::Quote, range));
                 }
                 '-' => {
@@ -291,21 +284,21 @@ impl<'a> Lexer<'a> {
                     let char1 = self.next_char();
 
                     let Some(ch1) = char1 else {
-                        let range = (self.index-2)..(self.index-1);
+                        let range = start..(self.index-1);
                         return Err(Ranged(LexicalError::UnexpectedEol, range));
                     };
 
                     if ch1.is_numeric() {
                         // Negative number
                         self.put_back_char(ch1);
-                        self.put_back_char(ch);
+                        self.put_back_char(char);
                         // #TODO handle range outside of lex_xxx
                         tokens.push(self.lex_number()?);
                     } else {
                         // #TODO lint warning for this!
                         // Symbol
                         self.put_back_char(ch1);
-                        self.put_back_char(ch);
+                        self.put_back_char(char);
                         // #TODO handle range outside of lex_xxx
                         tokens.push(self.lex_symbol()?);
                     }
@@ -314,16 +307,16 @@ impl<'a> Lexer<'a> {
                     // #TODO handle range outside of lex_xxx
                     tokens.push(self.lex_annotation()?);
                 }
-                _ if is_whitespace(ch) => {
+                _ if is_whitespace(char) => {
                     // Consume whitespace
                 }
-                _ if ch.is_numeric() => {
-                    self.put_back_char(ch);
+                _ if char.is_numeric() => {
+                    self.put_back_char(char);
                     // #TODO handle range outside of lex_xxx
                     tokens.push(self.lex_number()?);
                 }
                 _ => {
-                    self.put_back_char(ch);
+                    self.put_back_char(char);
                     // #TODO handle range outside of lex_xxx
                     tokens.push(self.lex_symbol()?);
                 }

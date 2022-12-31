@@ -16,7 +16,7 @@ use crate::{
 
 // #TODO consider parsing to 'simple' Expr, only List and Symbols
 // #TODO optimize 'simple' Expr to 'execution' Expr
-
+// #TODO introduce ForeignValue?
 // #TODO ExprFn should get a single Expr? -> nah, it's foreign.
 
 // A function that accepts a list of Exprs and returns an Expr.
