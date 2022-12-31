@@ -133,11 +133,11 @@ fn lex_reports_number_errors() {
 
     let err = result.unwrap_err();
 
-    assert!(matches!(err.0, LexicalError::NumberError(..)));
+    assert!(matches!(err.0, LexicalError::MalformedNumber(..)));
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
 
-    if let Ranged(LexicalError::NumberError(pie), range) = err {
+    if let Ranged(LexicalError::MalformedNumber(pie), range) = err {
         assert_eq!(pie.kind(), &IntErrorKind::InvalidDigit);
         assert_eq!(range.start, 5);
         assert_eq!(range.end, 10);
@@ -155,7 +155,7 @@ fn lex_reports_unterminated_strings() {
 
     let err = result.unwrap_err();
 
-    assert!(matches!(err.0, LexicalError::UnterminatedStringError));
+    assert!(matches!(err.0, LexicalError::UnterminatedString));
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
 
@@ -178,7 +178,7 @@ fn lex_reports_unterminated_annotations() {
 
     let err = result.unwrap_err();
 
-    assert!(matches!(err.0, LexicalError::UnterminatedAnnotationError));
+    assert!(matches!(err.0, LexicalError::UnterminatedAnnotation));
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
 

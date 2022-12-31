@@ -26,7 +26,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
             let result = env.get(sym);
 
             let Some(Ann(expr, ..)) = result else {
-                return Err(EvalError::UndefinedSymbolError(sym.clone()));
+                return Err(EvalError::UndefinedSymbol(sym.clone()));
             };
 
             // #TODO hm, can we somehow work with references?
@@ -37,7 +37,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
 
             let Expr::Bool(predicate) = predicate else {
                 // #TODO can we range this error?
-                return Err(EvalError::ArgumentError("the if predicate is not a boolean value".to_owned()));
+                return Err(EvalError::InvalidArguments("the if predicate is not a boolean value".to_owned()));
             };
 
             if predicate {
@@ -87,7 +87,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                         }
                         "quot" => {
                             let [value] = tail else {
-                                return Err(EvalError::ArgumentError("missing quote target".to_owned()));
+                                return Err(EvalError::InvalidArguments("missing quote target".to_owned()));
                             };
 
                             // #TODO hm, that clone, maybe `Rc` can fix this?
@@ -99,7 +99,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                             // `for` is also related with `do`.
                             let [predicate, body] = tail else {
                                 // #TODO proper error!
-                                return Err(EvalError::UnknownError);
+                                return Err(EvalError::Unknown);
                             };
 
                             let mut value = Expr::One;
@@ -109,7 +109,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
 
                                 let Expr::Bool(predicate) = predicate else {
                                     // #TODO can we range this error?
-                                    return Err(EvalError::ArgumentError("the for predicate is not a boolean value".to_owned()));
+                                    return Err(EvalError::InvalidArguments("the for predicate is not a boolean value".to_owned()));
                                 };
 
                                 if !predicate {
@@ -134,7 +134,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                                 };
                                 let Ann(Expr::Symbol(s), ..) = sym else {
                                     // #TODO proper error!
-                                    return Err(EvalError::UnknownError);
+                                    return Err(EvalError::Unknown);
                                 };
 
                                 let value = eval(value, env)?;
@@ -149,12 +149,12 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                         "Func" => {
                             let [args, body] = tail else {
                                 // #TODO proper error!
-                                return Err(EvalError::UnknownError);
+                                return Err(EvalError::Unknown);
                             };
 
                             let Ann(Expr::List(params), ..) = args else {
                                 // #TODO proper error!
-                                return Err(EvalError::UnknownError);
+                                return Err(EvalError::Unknown);
                             };
 
                             // #TODO optimize!
@@ -174,7 +174,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                             // #Insight `op` = 'callable` (func, macro, collection, actor, etc)
 
                             let Some(op) = env.get(s) else {
-                                return Err(EvalError::UndefinedSymbolError(s.clone()));
+                                return Err(EvalError::UndefinedSymbol(s.clone()));
                             };
 
                             match op {
@@ -190,7 +190,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                                     for (param, arg) in params.iter().zip(args) {
                                         let Ann(Expr::Symbol(param), ..) = param else {
                                                 // #TODO non-callable error!
-                                                return Err(EvalError::UnknownError);
+                                                return Err(EvalError::Unknown);
                                             };
 
                                         env.insert(param, arg);
@@ -209,14 +209,14 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                                 }
                                 _ => {
                                     // #TODO non-callable error!
-                                    return Err(EvalError::UnknownError);
+                                    return Err(EvalError::Unknown);
                                 }
                             }
                         }
                     }
                 }
                 _ => {
-                    return Err(EvalError::NotInvocableError(format!("{}", head.0)));
+                    return Err(EvalError::NotInvocable(format!("{}", head.0)));
                 }
             }
         }

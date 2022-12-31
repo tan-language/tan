@@ -1,4 +1,4 @@
-use std::{fmt, rc::Rc};
+use std::{collections::HashMap, fmt, rc::Rc};
 
 use crate::{
     ann::Ann,
@@ -35,7 +35,12 @@ pub enum Expr {
     Float(f64),
     Symbol(String),
     String(String),
+    // #TODO better name for 'generic' List
+    // #TODO add 'quoted' List
     List(Vec<Ann<Expr>>),
+    // #TODO different name?
+    // #TODO support Expr as keys?
+    Dict(HashMap<String, Expr>),
     Func(Vec<Ann<Expr>>, Box<Ann<Expr>>), // #TODO is there a need to use Rc instead of Box? YES! fast clones? INVESTIGATE!
     ForeignFunc(Rc<ExprFn>),              // #TODO for some reason, Box is not working here!
     // --- High-level ---
@@ -52,11 +57,11 @@ impl fmt::Debug for Expr {
         let text = match self {
             Expr::One => "()".to_owned(),
             Expr::Zero => "!".to_owned(), // #TODO a different symbol, maybe Unicode!
-            Expr::Bool(b) => format!("Bool({})", b),
-            Expr::Symbol(s) => format!("Symbol({})", s),
-            Expr::String(s) => format!("String({})", s),
-            Expr::Int(num) => format!("Int({})", num),
-            Expr::Float(num) => format!("Float({})", num),
+            Expr::Bool(b) => format!("Bool({b})"),
+            Expr::Symbol(s) => format!("Symbol({s})"),
+            Expr::String(s) => format!("String({s})"),
+            Expr::Int(num) => format!("Int({num})"),
+            Expr::Float(num) => format!("Float({num})"),
             Expr::Do => "do".to_owned(),
             Expr::List(terms) => {
                 format!(
@@ -68,6 +73,7 @@ impl fmt::Debug for Expr {
                         .join(", ")
                 )
             }
+            Expr::Dict(hm) => format!("Dict({hm:?})"),
             Expr::Func(..) => "#<fn>".to_owned(),
             Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
             Expr::Let => "let".to_owned(),
@@ -105,6 +111,7 @@ impl fmt::Display for Expr {
                             .join(" ")
                     )
                 }
+                Expr::Dict(hm) => format!("{hm:?}"),
                 Expr::Func(..) => "#<func>".to_owned(),
                 Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
             })

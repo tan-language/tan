@@ -55,7 +55,7 @@ where
             let mut lexer = Lexer::new(&ann_str);
 
             let Ok(tokens) = lexer.lex() else {
-                return Err(Ranged(ParseError::MalformedAnnotationError(ann_str), ann_range));
+                return Err(Ranged(ParseError::MalformedAnnotation(ann_str), ann_range));
             };
 
             let mut parser = Parser::new(tokens);

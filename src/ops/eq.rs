@@ -11,17 +11,17 @@ pub fn eq(args: &[Expr], _env: &Env) -> Result<Expr, EvalError> {
     // #TODO support multiple arguments.
     let [a, b] = args else {
         // #TODO proper error!
-        return Err(EvalError::UnknownError);
+        return Err(EvalError::Unknown);
     };
 
     let Expr::Int(a) = a else {
         // #TODO proper error!
-        return Err(EvalError::UnknownError);
+        return Err(EvalError::Unknown);
     };
 
     let Expr::Int(b) = b else {
         // #TODO proper error!
-        return Err(EvalError::UnknownError);
+        return Err(EvalError::Unknown);
     };
 
     Ok(Expr::Bool(a == b))
@@ -31,17 +31,17 @@ pub fn gt(args: &[Expr], _env: &Env) -> Result<Expr, EvalError> {
     // #TODO support multiple arguments.
     let [a, b] = args else {
         // #TODO proper error!
-        return Err(EvalError::UnknownError);
+        return Err(EvalError::Unknown);
     };
 
     let Expr::Int(a) = a else {
         // #TODO proper error!
-        return Err(EvalError::UnknownError);
+        return Err(EvalError::Unknown);
     };
 
     let Expr::Int(b) = b else {
         // #TODO proper error!
-        return Err(EvalError::UnknownError);
+        return Err(EvalError::Unknown);
     };
 
     Ok(Expr::Bool(a > b))
@@ -51,17 +51,17 @@ pub fn lt(args: &[Expr], _env: &Env) -> Result<Expr, EvalError> {
     // #TODO support multiple arguments.
     let [a, b] = args else {
         // #TODO proper error!
-        return Err(EvalError::UnknownError);
+        return Err(EvalError::Unknown);
     };
 
     let Expr::Int(a) = a else {
         // #TODO proper error!
-        return Err(EvalError::UnknownError);
+        return Err(EvalError::Unknown);
     };
 
     let Expr::Int(b) = b else {
         // #TODO proper error!
-        return Err(EvalError::UnknownError);
+        return Err(EvalError::Unknown);
     };
 
     Ok(Expr::Bool(a < b))

@@ -138,7 +138,7 @@ impl<'a> Lexer<'a> {
 
         loop {
             let Some(char) = self.next_char() else {
-                return Err(LexicalError::UnterminatedStringError);
+                return Err(LexicalError::UnterminatedString);
             };
 
             if char == '"' {
@@ -174,7 +174,7 @@ impl<'a> Lexer<'a> {
         // #TODO more detailed Number error!
         // #TODO error handling not enough, we need to add context, check error_stack
 
-        let n = i64::from_str_radix(&lexeme, radix).map_err(LexicalError::NumberError)?;
+        let n = i64::from_str_radix(&lexeme, radix).map_err(LexicalError::MalformedNumber)?;
 
         Ok(n)
     }
@@ -206,7 +206,7 @@ impl<'a> Lexer<'a> {
         }
 
         if nesting != 0 {
-            return Err(LexicalError::UnterminatedAnnotationError);
+            return Err(LexicalError::UnterminatedAnnotation);
         }
 
         Ok(ann)
@@ -232,6 +232,14 @@ impl<'a> Lexer<'a> {
                 ')' => {
                     let range = start..self.index;
                     tokens.push(Ranged(Token::RightParen, range));
+                }
+                '{' => {
+                    let range = start..self.index;
+                    tokens.push(Ranged(Token::LeftBrace, range));
+                }
+                '}' => {
+                    let range = start..self.index;
+                    tokens.push(Ranged(Token::RightBrace, range));
                 }
                 ';' => {
                     let comment = self.scan_comment();

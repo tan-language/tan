@@ -13,7 +13,7 @@ pub fn add(args: &[Expr], _env: &Env) -> Result<Expr, EvalError> {
 
     for arg in args {
         let Expr::Int(n) = arg else {
-            return Err(EvalError::ArgumentError("invalid argument type, expecting `Int`".to_string()));
+            return Err(EvalError::InvalidArguments("invalid argument type, expecting `Int`".to_string()));
         };
         sum += n;
     }
@@ -25,17 +25,17 @@ pub fn sub(args: &[Expr], _env: &Env) -> Result<Expr, EvalError> {
     // #TODO support multiple arguments.
     let [a, b] = args else {
         // #TODO proper error!
-        return Err(EvalError::UnknownError);
+        return Err(EvalError::Unknown);
     };
 
     let Expr::Int(a) = a else {
         // #TODO proper error!
-        return Err(EvalError::UnknownError);
+        return Err(EvalError::Unknown);
     };
 
     let Expr::Int(b) = b else {
         // #TODO proper error!
-        return Err(EvalError::UnknownError);
+        return Err(EvalError::Unknown);
     };
 
     Ok(Expr::Int(a - b))
@@ -48,7 +48,7 @@ pub fn mul(args: &[Expr], _env: &Env) -> Result<Expr, EvalError> {
     for arg in args {
         let Expr::Int(n) = arg else {
             // #TODO proper error!
-            return Err(EvalError::UnknownError);
+            return Err(EvalError::Unknown);
         };
         prod *= n;
     }

@@ -5,9 +5,9 @@ use std::num::ParseIntError;
 #[derive(Debug)]
 pub enum LexicalError {
     UnexpectedEol,
-    NumberError(ParseIntError),
-    UnterminatedStringError,
-    UnterminatedAnnotationError,
+    MalformedNumber(ParseIntError),
+    UnterminatedString,
+    UnterminatedAnnotation,
 }
 
 impl Error for LexicalError {}
@@ -18,13 +18,13 @@ impl fmt::Display for LexicalError {
             LexicalError::UnexpectedEol => {
                 write!(f, "unexpected EOL")
             }
-            LexicalError::NumberError(pie) => {
+            LexicalError::MalformedNumber(pie) => {
                 write!(f, "malformed number: {pie}")
             }
-            LexicalError::UnterminatedStringError => {
+            LexicalError::UnterminatedString => {
                 write!(f, "unterminated string")
             }
-            LexicalError::UnterminatedAnnotationError => {
+            LexicalError::UnterminatedAnnotation => {
                 write!(f, "unterminated annotation")
             }
         }

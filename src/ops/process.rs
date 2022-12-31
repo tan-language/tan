@@ -7,7 +7,7 @@ use crate::{
 pub fn exit(args: &[Expr], _env: &Env) -> Result<Expr, EvalError> {
     if let Some(code) = args.first() {
         let Expr::Int(code) = code else {
-            return Err(EvalError::ArgumentError("expected Int argument".to_owned()));
+            return Err(EvalError::InvalidArguments("expected Int argument".to_owned()));
         };
 
         let code = *code as i32;
