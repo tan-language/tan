@@ -92,17 +92,20 @@ where
                 let Some(token) = self.tokens.next() else {
                     return Err(Ranged(ParseError::InvalidQuote, range));
                 };
+                if token.0 == Token::Quote {
+                    // Report consecutive quote (i.e. '') as error.
+                    return Err(Ranged(ParseError::InvalidQuote, range));
+                }
                 let Some(target) = self.parse_expr(token)? else {
                     return Err(Ranged(ParseError::InvalidQuote, range));
                 };
-                // #TODO check for `''`
                 Some(Expr::List(vec![
                     Ann::new(Expr::symbol("quot")),
                     Ann::new(target),
                 ]))
             }
             Token::LeftParen => {
-                let list_exprs = self.parse_list(range)?;
+                let list_exprs = self.parse_list(Token::RightParen, range)?;
 
                 if list_exprs.is_empty() {
                     // `()` == One/Unit/Top
@@ -130,7 +133,7 @@ where
                     }
                 }
             }
-            Token::RightParen => {
+            Token::RightParen | Token::RightBracket | Token::RightBrace => {
                 // #TODO custom error for this?
                 return Err(Ranged(ParseError::UnexpectedToken(t), range));
             }
@@ -143,15 +146,19 @@ where
     }
 
     // #TODO parse tokens here, to be consistent with parse_atom?
-    pub fn parse_list(&mut self, list_range: Range) -> Result<Vec<Ann<Expr>>, Ranged<ParseError>> {
-        let mut exprs = Vec::new();
+    pub fn parse_list(
+        &mut self,
+        delimiter: Token,
+        list_range: Range,
+    ) -> Result<Vec<Ann<Expr>>, Ranged<ParseError>> {
+        // #TODO move range computation outside!
 
-        let mut token: Option<Ranged<Token>>;
+        let mut exprs = Vec::new();
 
         let mut index = list_range.start;
 
         loop {
-            token = self.tokens.next();
+            let token = self.tokens.next();
 
             let Some(token) = token  else {
                 break;
@@ -159,21 +166,19 @@ where
 
             index = token.1.end;
 
-            match token.0 {
-                Token::RightParen => {
-                    // #TODO set correct range
-                    return Ok(exprs);
+            if token.0 == delimiter {
+                // #TODO set correct range
+                return Ok(exprs);
+            } else {
+                // #TODO set correct range
+                if let Some(e) = self.parse_expr(token)? {
+                    let e = self.attach_buffered_annotations(e)?;
+                    exprs.push(e);
                 }
-                _ => {
-                    // #TODO set correct range
-                    if let Some(e) = self.parse_expr(token)? {
-                        let e = self.attach_buffered_annotations(e)?;
-                        exprs.push(e);
-                    }
-                }
-            };
+            }
         }
 
+        // #TODO set correct range.
         let range = list_range.start..(index - 1);
         Err(Ranged(ParseError::UnterminatedList, range))
     }

@@ -43,10 +43,40 @@ fn parse_reports_unexpected_tokens() {
 
     assert_eq!(err.1.start, 0);
     assert_eq!(err.1.end, 1);
+
+    let input = "]";
+    let tokens = lex_tokens(input);
+    let mut parser = Parser::new(tokens);
+
+    let result = parser.parse();
+    assert!(result.is_err());
+
+    let err = result.unwrap_err();
+
+    // eprintln!("{}", format_pretty_error(&err, input, None));
+
+    assert_eq!(err.1.start, 0);
+    assert_eq!(err.1.end, 1);
+
+    let input = "}";
+    let tokens = lex_tokens(input);
+    let mut parser = Parser::new(tokens);
+
+    let result = parser.parse();
+    assert!(result.is_err());
+
+    let err = result.unwrap_err();
+
+    // eprintln!("{}", format_pretty_error(&err, input, None));
+
+    assert_eq!(err.1.start, 0);
+    assert_eq!(err.1.end, 1);
 }
 
 #[test]
 fn parse_reports_quote_errors() {
+    // Quote at EOF
+
     let input = "'";
     let result = parse_string(input);
 
@@ -56,6 +86,20 @@ fn parse_reports_quote_errors() {
 
     assert_eq!(err.1.start, 0);
     assert_eq!(err.1.end, 1);
+
+    // Consecutive quotes
+
+    let input = "(let a '' 1)";
+    let result = parse_string(input);
+
+    dbg!(&result);
+
+    assert!(result.is_err());
+
+    let err = result.unwrap_err();
+
+    assert_eq!(err.1.start, 7);
+    assert_eq!(err.1.end, 8);
 }
 
 // () == Expr::One (Unit)

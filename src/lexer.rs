@@ -233,6 +233,14 @@ impl<'a> Lexer<'a> {
                     let range = start..self.index;
                     tokens.push(Ranged(Token::RightParen, range));
                 }
+                '[' => {
+                    let range = start..self.index;
+                    tokens.push(Ranged(Token::LeftBracket, range));
+                }
+                ']' => {
+                    let range = start..self.index;
+                    tokens.push(Ranged(Token::RightBracket, range));
+                }
                 '{' => {
                     let range = start..self.index;
                     tokens.push(Ranged(Token::LeftBrace, range));
