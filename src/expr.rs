@@ -27,27 +27,31 @@ pub type ExprFn = dyn Fn(&[Expr], &Env) -> Result<Expr, EvalError>;
 /// all values are expressions (and expressions are values). Evaluation is expression
 /// rewriting to a fixed point.
 pub enum Expr {
+    // --- Low-level ---
     One,        // Unit == List(Vec::new())
+    Zero,       // Never, Nothing
     Bool(bool), // #TODO remove?
     Int(i64),
     Float(f64),
     Symbol(String),
     String(String),
+    List(Vec<Ann<Expr>>),
+    Func(Vec<Ann<Expr>>, Box<Ann<Expr>>), // #TODO is there a need to use Rc instead of Box? YES! fast clones? INVESTIGATE!
+    ForeignFunc(Rc<ExprFn>),              // #TODO for some reason, Box is not working here!
+    // --- High-level ---
     // #TODO do should contain the expressions also, pre-parsed!
     Do,
     // #TODO let should contain the expressions also, pre-parsed!
     Let,
     // #TODO maybe this 'compound' if prohibits homoiconicity?
     If(Box<Ann<Expr>>, Box<Ann<Expr>>, Option<Box<Ann<Expr>>>),
-    List(Vec<Ann<Expr>>),
-    Func(Vec<Ann<Expr>>, Box<Ann<Expr>>), // #TODO is there a need to use Rc instead of Box? YES! fast clones? INVESTIGATE!
-    ForeignFunc(Rc<ExprFn>),              // #TODO for some reason, Box is not working here!
 }
 
 impl fmt::Debug for Expr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let text = match self {
             Expr::One => "()".to_owned(),
+            Expr::Zero => "!".to_owned(), // #TODO a different symbol, maybe Unicode!
             Expr::Bool(b) => format!("Bool({})", b),
             Expr::Symbol(s) => format!("Symbol({})", s),
             Expr::String(s) => format!("String({})", s),
@@ -81,6 +85,7 @@ impl fmt::Display for Expr {
         f.write_str(
             (match self {
                 Expr::One => "()".to_owned(),
+                Expr::Zero => "!".to_owned(), // #TODO a different symbol, maybe Unicode!
                 Expr::Bool(b) => b.to_string(),
                 Expr::Int(n) => n.to_string(),
                 Expr::Float(n) => n.to_string(),
