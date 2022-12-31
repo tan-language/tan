@@ -85,6 +85,9 @@ impl<'a> Lexer<'a> {
         self.index -= 1;
     }
 
+    // #TODO implement scanners with macro or a common function.
+    // #TODO two functions scan_lexeme, scan_delimited.
+
     // #TODO add unit tests
     // #TODO try to reuse more!
     fn scan_lexeme(&mut self) -> Ranged<String> {
@@ -115,6 +118,28 @@ impl<'a> Lexer<'a> {
         Ranged(text, range)
     }
 
+    fn scan_lexeme1(&mut self) -> String {
+        let mut text = String::new();
+
+        loop {
+            let char = self.next_char();
+
+            let Some(char) = char  else {
+                break;
+            };
+
+            // #TODO maybe whitespace does not need put_back, but need to adjust range.
+            if is_whitespace(char) || is_delimiter(char) || is_eol(char) {
+                self.put_back_char(char);
+                break;
+            }
+
+            text.push(char);
+        }
+
+        text
+    }
+
     // Scans a comment lexeme, since it ignores all input until EOL or EOF,
     // it is infallible.
     fn scan_comment(&mut self) -> String {
@@ -123,15 +148,15 @@ impl<'a> Lexer<'a> {
         loop {
             let char = self.next_char();
 
-            let Some(ch) = char  else {
+            let Some(char) = char  else {
                 break;
             };
 
-            if ch == '\n' {
+            if is_eol(char) {
                 break;
             }
 
-            comment.push(ch);
+            comment.push(char);
         }
 
         comment
@@ -187,18 +212,6 @@ impl<'a> Lexer<'a> {
             .map_err(|err| Ranged(LexicalError::NumberError(err), range.clone()))?;
 
         Ok(Ranged(Token::Number(n), range))
-    }
-
-    fn lex_symbol(&mut self) -> Result<Ranged<Token>, Ranged<LexicalError>> {
-        let Ranged(lexeme, range) = self.scan_lexeme();
-
-        let token = Token::Symbol(lexeme);
-
-        // #Insight
-        // It's not worth it to have token variants for reserved words.
-        // Expr variants for reserved words will be used.
-
-        Ok(Ranged(token, range))
     }
 
     fn lex_annotation(&mut self) -> Result<Ranged<Token>, Ranged<LexicalError>> {
@@ -296,11 +309,13 @@ impl<'a> Lexer<'a> {
                         tokens.push(self.lex_number()?);
                     } else {
                         // #TODO lint warning for this!
-                        // Symbol
+                        // Symbol starting with `-`.
                         self.put_back_char(ch1);
                         self.put_back_char(char);
-                        // #TODO handle range outside of lex_xxx
-                        tokens.push(self.lex_symbol()?);
+
+                        let sym = self.scan_lexeme1();
+                        let range = start..self.index;
+                        tokens.push(Ranged(Token::Symbol(sym), range));
                     }
                 }
                 '#' => {
@@ -317,8 +332,9 @@ impl<'a> Lexer<'a> {
                 }
                 _ => {
                     self.put_back_char(char);
-                    // #TODO handle range outside of lex_xxx
-                    tokens.push(self.lex_symbol()?);
+                    let sym = self.scan_lexeme1();
+                    let range = start..self.index;
+                    tokens.push(Ranged(Token::Symbol(sym), range));
                 }
             }
         }
