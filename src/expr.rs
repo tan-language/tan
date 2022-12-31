@@ -35,7 +35,7 @@ pub enum Expr {
     Float(f64),
     Symbol(String),
     String(String),
-    // #TODO better name for 'generic' List
+    // #TODO better name for 'generic' List, how about `Cons` or `ConsList` or `Cell`?
     // #TODO add 'quoted' List
     List(Vec<Ann<Expr>>),
     // #TODO different name?

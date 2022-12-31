@@ -4,23 +4,42 @@ use tan::{
     ann::Ann,
     eval::{env::Env, error::EvalError, eval, prelude::setup_prelude},
     expr::Expr,
-    lexer::{token::Token, Lexer},
-    parser::Parser,
+    lexer::{error::LexicalError, token::Token, Lexer},
+    parser::{error::ParseError, Parser},
     range::Ranged,
 };
+
+pub fn lex_string(input: &str) -> Result<Vec<Ranged<Token>>, Ranged<LexicalError>> {
+    let mut lexer = Lexer::new(input);
+    lexer.lex()
+}
+
+pub fn parse_string(input: &str) -> Result<Ann<Expr>, Ranged<ParseError>> {
+    // #TODO surface LexicalError!
+    let tokens = lex_string(input).unwrap();
+    let mut parser = Parser::new(tokens);
+    parser.parse()
+}
+
+pub fn eval_string(input: &str) -> Result<Expr, EvalError> {
+    // #TODO surface ParseError!
+    let expr = parse_string(input).unwrap();
+    let mut env = setup_prelude(Env::default());
+    eval(&expr, &mut env)
+}
 
 pub fn read_file(filename: &str) -> String {
     std::fs::read_to_string(format!("tests/fixtures/{filename}")).unwrap()
 }
 
 #[allow(dead_code)]
-pub fn lex_file(filename: &str) -> Vec<Ranged<Token>> {
+pub fn lex_file(filename: &str) -> Result<Vec<Ranged<Token>>, Ranged<LexicalError>> {
     let input = &read_file(filename);
     lex_string(input)
 }
 
 #[allow(dead_code)]
-pub fn parse_file(filename: &str) -> Ann<Expr> {
+pub fn parse_file(filename: &str) -> Result<Ann<Expr>, Ranged<ParseError>> {
     let input = &read_file(filename);
     parse_string(input)
 }
@@ -29,21 +48,4 @@ pub fn parse_file(filename: &str) -> Ann<Expr> {
 pub fn eval_file(filename: &str) -> Result<Expr, EvalError> {
     let input = &read_file(filename);
     eval_string(input)
-}
-
-pub fn lex_string(input: &str) -> Vec<Ranged<Token>> {
-    let mut lexer = Lexer::new(input);
-    lexer.lex().unwrap()
-}
-
-pub fn parse_string(input: &str) -> Ann<Expr> {
-    let tokens = lex_string(input);
-    let mut parser = Parser::new(tokens);
-    parser.parse().unwrap()
-}
-
-pub fn eval_string(input: &str) -> Result<Expr, EvalError> {
-    let expr = parse_string(input);
-    let mut env = setup_prelude(Env::default());
-    eval(&expr, &mut env)
 }

@@ -1,3 +1,5 @@
+mod common;
+
 use tan::{
     ann::Ann,
     expr::Expr,
@@ -5,6 +7,8 @@ use tan::{
     parser::Parser,
     range::Ranged,
 };
+
+use crate::common::parse_string;
 
 fn read_input(filename: &str) -> String {
     std::fs::read_to_string(format!("tests/fixtures/{filename}")).unwrap()
@@ -36,6 +40,19 @@ fn parse_reports_unexpected_tokens() {
     let err = result.unwrap_err();
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
+
+    assert_eq!(err.1.start, 0);
+    assert_eq!(err.1.end, 1);
+}
+
+#[test]
+fn parse_reports_quote_errors() {
+    let input = "'";
+    let result = parse_string(input);
+
+    assert!(result.is_err());
+
+    let err = result.unwrap_err();
 
     assert_eq!(err.1.start, 0);
     assert_eq!(err.1.end, 1);

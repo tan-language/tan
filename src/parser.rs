@@ -90,12 +90,10 @@ where
             }
             Token::Quote => {
                 let Some(token) = self.tokens.next() else {
-                    // #TODO error.
-                    todo!()
+                    return Err(Ranged(ParseError::InvalidQuote, range));
                 };
                 let Some(target) = self.parse_expr(token)? else {
-                    // #TODO error.
-                    todo!()
+                    return Err(Ranged(ParseError::InvalidQuote, range));
                 };
                 // #TODO check for `''`
                 Some(Expr::List(vec![
