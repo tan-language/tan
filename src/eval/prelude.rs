@@ -6,6 +6,7 @@ use crate::{
         arithmetic::{add, mul, sub},
         eq::{eq, gt, lt},
         io::{write, writeln},
+        process::exit,
     },
 };
 
@@ -32,6 +33,9 @@ pub fn setup_prelude(env: Env) -> Env {
 
     env.insert("write", Expr::ForeignFunc(Rc::new(write)));
     env.insert("writeln", Expr::ForeignFunc(Rc::new(writeln)));
+
+    // process
+    env.insert("exit", Expr::ForeignFunc(Rc::new(exit)));
 
     env
 }
