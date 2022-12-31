@@ -254,15 +254,16 @@ impl<'a> Lexer<'a> {
 
                     let char1 = self.next_char();
 
-                    let Some(ch1) = char1 else {
+                    let Some(char1) = char1 else {
                         let range = start..(self.index-1);
                         return Err(Ranged(LexicalError::UnexpectedEol, range));
                     };
 
-                    if ch1.is_numeric() {
+                    self.put_back_char(char1);
+                    self.put_back_char(char);
+
+                    if char1.is_numeric() {
                         // Negative number
-                        self.put_back_char(ch1);
-                        self.put_back_char(char);
 
                         let n = self.scan_number();
                         let range = start..self.index;
@@ -273,8 +274,6 @@ impl<'a> Lexer<'a> {
                     } else {
                         // #TODO lint warning for this!
                         // Symbol starting with `-`.
-                        self.put_back_char(ch1);
-                        self.put_back_char(char);
 
                         let sym = self.scan_lexeme();
                         let range = start..self.index;
@@ -304,6 +303,7 @@ impl<'a> Lexer<'a> {
                 }
                 _ => {
                     self.put_back_char(char);
+
                     let sym = self.scan_lexeme();
                     let range = start..self.index;
                     tokens.push(Ranged(Token::Symbol(sym), range));
