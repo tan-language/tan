@@ -212,7 +212,22 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                                     // #TODO use RefCell / interior mutability instead, to allow for changing the environment (with Mutation Effect)
                                     foreign_function(&args, env)
                                 }
+                                Ann(Expr::Array(arr), ..) => {
+                                    // #TODO optimize this!
+                                    // #TODO error checking, one arg, etc.
+                                    let Expr::Int(index) = &args[0] else {
+                                        return Err(EvalError::InvalidArguments("invalid array index, expecting Int".to_string()));
+                                    };
+                                    let index = *index as usize;
+                                    if let Some(value) = arr.get(index) {
+                                        Ok(value.clone())
+                                    } else {
+                                        // #TODO introduce Maybe { Some, None }
+                                        Ok(Expr::One)
+                                    }
+                                }
                                 Ann(Expr::Dict(dict), ..) => {
+                                    // #TODO optimize this!
                                     // #TODO error checking, one arg, stringable, etc.
                                     let key = format_value(&args[0]);
                                     if let Some(value) = dict.get(&key) {

@@ -40,8 +40,11 @@ pub enum Expr {
     // #TODO better name for 'generic' List, how about `Cons` or `ConsList` or `Cell`?
     // #TODO add 'quoted' List -> Array!
     List(Vec<Ann<Expr>>),
+    // #TODO should Array contain Ann<Expr>?
+    Array(Vec<Expr>),
     // #TODO different name?
     // #TODO support Expr as keys?
+    // #TODO should Dict contain Ann<Expr>?
     Dict(HashMap<String, Expr>),
     Func(Vec<Ann<Expr>>, Box<Ann<Expr>>), // #TODO is there a need to use Rc instead of Box? YES! fast clones? INVESTIGATE!
     ForeignFunc(Rc<ExprFn>),              // #TODO for some reason, Box is not working here!
@@ -74,7 +77,8 @@ impl fmt::Debug for Expr {
                         .join(", ")
                 )
             }
-            Expr::Dict(hm) => format!("Dict({hm:?})"),
+            Expr::Array(v) => format!("Array({v:?})"),
+            Expr::Dict(d) => format!("Dict({d:?})"),
             Expr::Func(..) => "#<fn>".to_owned(),
             Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
             Expr::Let => "let".to_owned(),
@@ -111,7 +115,10 @@ impl fmt::Display for Expr {
                             .join(" ")
                     )
                 }
-                Expr::Dict(hm) => format!("{hm:?}"),
+                // #TODO better formatting
+                Expr::Array(v) => format!("{v:?}"),
+                // #TODO better formatting
+                Expr::Dict(d) => format!("{d:?}"),
                 Expr::Func(..) => "#<func>".to_owned(),
                 Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
             })

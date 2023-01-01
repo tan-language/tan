@@ -135,6 +135,25 @@ where
                     }
                 }
             }
+            Token::LeftBracket => {
+                // Syntactic sugar for a List/Array.
+
+                let args = self.parse_list(Token::RightBracket, range)?;
+
+                let mut items = Vec::new();
+
+                // #TODO also parse (Array ..)
+                // #TODO add error checking!
+                // #TODO optimize.
+                // #TODO evaluate the list_exprs
+                // #TODO list
+
+                for x in args {
+                    items.push(x.0);
+                }
+
+                Some(Expr::Array(items))
+            }
             Token::LeftBrace => {
                 // Syntactic sugar for a Dict.
 
@@ -159,9 +178,6 @@ where
             }
             Token::RightParen | Token::RightBracket | Token::RightBrace => {
                 // #TODO custom error for this?
-                return Err(Ranged(ParseError::UnexpectedToken(t), range));
-            }
-            _ => {
                 return Err(Ranged(ParseError::UnexpectedToken(t), range));
             }
         };

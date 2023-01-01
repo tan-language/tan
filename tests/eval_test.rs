@@ -96,12 +96,24 @@ fn eval_processes_function_definition_and_application() {
 fn eval_processes_dict() {
     let result = eval_file("dict.tan");
 
-    dbg!(&result);
-
     assert!(result.is_ok());
 
     let value = format!("{}", result.unwrap());
     let expected_value = read_file("dict.value.tan");
 
     assert_eq!(value, expected_value);
+}
+
+#[test]
+fn eval_processes_deep_data() {
+    let result = eval_file("data.tan");
+
+    dbg!(&result);
+
+    // assert!(result.is_ok());
+
+    // let value = format!("{}", result.unwrap());
+    // let expected_value = read_file("dict.value.tan");
+
+    // assert_eq!(value, expected_value);
 }

@@ -1,0 +1,22 @@
+(do
+    (let users [
+        {
+            "given_name" "George"
+            "family_name" "Moschovitis"
+            "score" 98
+            "labels" ["admin" "owner"]
+        }
+        {
+            "given_name" "Eleni"
+            "family_name" "Constantopoulos"
+            "score" 100
+            "labels" ["user"]
+        }
+    ])
+
+    (let user (users 0))
+    user
+
+;   (let label (((users 0) "labels") 1))
+;   label
+)
