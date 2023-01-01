@@ -1,6 +1,6 @@
 [package]
 name = "tan"
-desctiption = "The Tan language"
+description = "The Tan language"
 version = "0.3.0"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/tanlang-org/tan"
