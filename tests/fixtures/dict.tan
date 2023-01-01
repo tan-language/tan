@@ -1,0 +1,11 @@
+(do
+    (let dict {
+        "given_name" "George"
+        "family_name" "Moschovitis"
+        "score" 100
+    })
+
+   (let name (dict "given_name"))
+
+   name
+)

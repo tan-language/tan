@@ -2,7 +2,10 @@ pub mod env;
 pub mod error;
 pub mod prelude;
 
-use crate::{ann::Ann, expr::Expr};
+use crate::{
+    ann::Ann,
+    expr::{format_value, Expr},
+};
 
 use self::{env::Env, error::EvalError};
 
@@ -164,6 +167,8 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                             // non-special term -> application.
 
                             // #TODO maybe delay evaluation to see if there is an actual invocable?
+                            // #TODO also delay to see if the invocable is a macro or other special form?
+
                             // Evaluate the arguments before calling the function.
                             let args = tail
                                 .iter()
@@ -207,9 +212,18 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                                     // #TODO use RefCell / interior mutability instead, to allow for changing the environment (with Mutation Effect)
                                     foreign_function(&args, env)
                                 }
+                                Ann(Expr::Dict(dict), ..) => {
+                                    // #TODO error checking, one arg, stringable, etc.
+                                    let key = format_value(&args[0]);
+                                    if let Some(value) = dict.get(&key) {
+                                        Ok(value.clone())
+                                    } else {
+                                        // #TODO introduce Maybe { Some, None }
+                                        Ok(Expr::One)
+                                    }
+                                }
                                 _ => {
-                                    // #TODO non-callable error!
-                                    return Err(EvalError::Unknown);
+                                    return Err(EvalError::NotInvocable(format!("{}", head.0)));
                                 }
                             }
                         }
