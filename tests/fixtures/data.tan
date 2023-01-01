@@ -4,7 +4,10 @@
             "given_name" "George"
             "family_name" "Moschovitis"
             "score" 98
-            "labels" ["admin" "owner"]
+            "labels" [
+                "admin"
+                "owner"
+            ]
         }
         {
             "given_name" "Eleni"
