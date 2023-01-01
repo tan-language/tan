@@ -69,7 +69,92 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
             let head = list.first().unwrap();
             let tail = &list[1..];
 
+            // Evaluate the head
+            let head = eval(head, env)?;
+
+            // #TODO move special forms to prelude, as Expr::Macro or Expr::Special
+
             match head.as_ref() {
+                Expr::Func(params, body) => {
+                    // Evaluate the arguments before calling the function.
+                    let args = tail
+                        .iter()
+                        .map(|x| eval(x, env))
+                        .collect::<Result<Vec<_>, _>>()?;
+
+                    // #TODO ultra-hack to kill shared ref to `env`.
+                    let params = params.clone();
+                    let body = body.clone();
+
+                    // Dynamic scoping
+
+                    env.push_new_scope();
+
+                    for (param, arg) in params.iter().zip(args) {
+                        let Ann(Expr::Symbol(param), ..) = param else {
+                                // #TODO non-callable error!
+                                return Err(EvalError::Unknown);
+                            };
+
+                        env.insert(param, arg);
+                    }
+
+                    let result = eval(body, env);
+
+                    env.pop();
+
+                    result
+                }
+                Expr::ForeignFunc(foreign_function) => {
+                    // #TODO do NOT pre-evaluate args for ForeignFunc, allow to implement 'macros'.
+                    // Foreign Functions do NOT change the environment, hmm...
+                    // #TODO use RefCell / interior mutability instead, to allow for changing the environment (with Mutation Effect)
+
+                    // Evaluate the arguments before calling the function.
+                    let args = tail
+                        .iter()
+                        .map(|x| eval(x, env))
+                        .collect::<Result<Vec<_>, _>>()?;
+
+                    foreign_function(&args, env)
+                }
+                Expr::Array(arr) => {
+                    // Evaluate the arguments before calling the function.
+                    let args = tail
+                        .iter()
+                        .map(|x| eval(x, env))
+                        .collect::<Result<Vec<_>, _>>()?;
+
+                    // #TODO optimize this!
+                    // #TODO error checking, one arg, etc.
+                    let Expr::Int(index) = &args[0] else {
+                        return Err(EvalError::InvalidArguments("invalid array index, expecting Int".to_string()));
+                    };
+                    let index = *index as usize;
+                    if let Some(value) = arr.get(index) {
+                        Ok(value.clone())
+                    } else {
+                        // #TODO introduce Maybe { Some, None }
+                        Ok(Expr::One)
+                    }
+                }
+                Expr::Dict(dict) => {
+                    // Evaluate the arguments before calling the function.
+                    let args = tail
+                        .iter()
+                        .map(|x| eval(x, env))
+                        .collect::<Result<Vec<_>, _>>()?;
+
+                    // #TODO optimize this!
+                    // #TODO error checking, one arg, stringable, etc.
+                    let key = format_value(&args[0]);
+                    if let Some(value) = dict.get(&key) {
+                        Ok(value.clone())
+                    } else {
+                        // #TODO introduce Maybe { Some, None }
+                        Ok(Expr::One)
+                    }
+                }
                 // #TODO add handling of 'high-level', compound expressions here.
                 // #TODO Expr::If
                 // #TODO Expr::Let
@@ -164,88 +249,12 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                             Ok(Expr::Func(params.clone(), Box::new(body.clone())))
                         }
                         _ => {
-                            // non-special term -> application.
-
-                            // #TODO maybe delay evaluation to see if there is an actual invocable?
-                            // #TODO also delay to see if the invocable is a macro or other special form?
-
-                            // Evaluate the arguments before calling the function.
-                            let args = tail
-                                .iter()
-                                .map(|x| eval(x, env))
-                                .collect::<Result<Vec<_>, _>>()?;
-
-                            // Try to apply an op!
-                            // #Insight `op` = 'callable` (func, macro, collection, actor, etc)
-
-                            let Some(op) = env.get(s) else {
-                                return Err(EvalError::UndefinedSymbol(s.clone()));
-                            };
-
-                            match op {
-                                Ann(Expr::Func(params, body), ..) => {
-                                    // #TODO ultra-hack to kill shared ref to `env`.
-                                    let params = params.clone();
-                                    let body = body.clone();
-
-                                    // Dynamic scoping
-
-                                    env.push_new_scope();
-
-                                    for (param, arg) in params.iter().zip(args) {
-                                        let Ann(Expr::Symbol(param), ..) = param else {
-                                                // #TODO non-callable error!
-                                                return Err(EvalError::Unknown);
-                                            };
-
-                                        env.insert(param, arg);
-                                    }
-
-                                    let result = eval(body, env);
-
-                                    env.pop();
-
-                                    result
-                                }
-                                Ann(Expr::ForeignFunc(foreign_function), ..) => {
-                                    // Foreign Functions do NOT change the environment, hmm...
-                                    // #TODO use RefCell / interior mutability instead, to allow for changing the environment (with Mutation Effect)
-                                    foreign_function(&args, env)
-                                }
-                                Ann(Expr::Array(arr), ..) => {
-                                    // #TODO optimize this!
-                                    // #TODO error checking, one arg, etc.
-                                    let Expr::Int(index) = &args[0] else {
-                                        return Err(EvalError::InvalidArguments("invalid array index, expecting Int".to_string()));
-                                    };
-                                    let index = *index as usize;
-                                    if let Some(value) = arr.get(index) {
-                                        Ok(value.clone())
-                                    } else {
-                                        // #TODO introduce Maybe { Some, None }
-                                        Ok(Expr::One)
-                                    }
-                                }
-                                Ann(Expr::Dict(dict), ..) => {
-                                    // #TODO optimize this!
-                                    // #TODO error checking, one arg, stringable, etc.
-                                    let key = format_value(&args[0]);
-                                    if let Some(value) = dict.get(&key) {
-                                        Ok(value.clone())
-                                    } else {
-                                        // #TODO introduce Maybe { Some, None }
-                                        Ok(Expr::One)
-                                    }
-                                }
-                                _ => {
-                                    return Err(EvalError::NotInvocable(format!("{}", head.0)));
-                                }
-                            }
+                            return Err(EvalError::NotInvocable(format!("{}", head)));
                         }
                     }
                 }
                 _ => {
-                    return Err(EvalError::NotInvocable(format!("{}", head.0)));
+                    return Err(EvalError::NotInvocable(format!("{}", head)));
                 }
             }
         }

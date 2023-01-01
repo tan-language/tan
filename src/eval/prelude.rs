@@ -17,6 +17,15 @@ use super::env::Env;
 pub fn setup_prelude(env: Env) -> Env {
     let mut env = env;
 
+    // #TODO temp hack
+    // #TODO implement as ForeignFunc or ForeignMacro
+
+    env.insert("do", Expr::symbol("do"));
+    env.insert("quot", Expr::symbol("quot"));
+    env.insert("for", Expr::symbol("for"));
+    env.insert("let", Expr::symbol("let"));
+    env.insert("Func", Expr::symbol("Func"));
+
     // num
 
     env.insert("+", Expr::ForeignFunc(Rc::new(add)));
