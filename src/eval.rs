@@ -17,7 +17,7 @@ use self::{env::Env, error::EvalError};
 
 // #TODO encode effects in the type-system.
 // #TODO alternative names: Processor, Runner, Interpreter
-// #TODO split eval_special, eval_func
+// #TODO split eval_special, eval_func -> not needed if we put everything uniformly in prelude.
 // #TODO Stack-trace is needed!
 
 /// Evaluates via expression rewriting. The expression `expr` evaluates to
@@ -54,7 +54,6 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
         }
         Expr::List(list) => {
             // #TODO replace head/tail with first/rest
-            // #TODO also eval the head?
 
             if list.is_empty() {
                 // () == One (Unit)
