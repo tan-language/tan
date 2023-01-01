@@ -153,3 +153,15 @@ fn parse_handles_annotations() {
     let expr = parser.parse().unwrap();
     dbg!(&expr);
 }
+
+#[test]
+fn parse_parses_dicts() {
+    let input = r##"(let m {"name" "george" "value" 1})"##;
+    let result = parse_string(input).unwrap();
+
+    let Ann(Expr::List(vec), ..) = result else {
+        panic!("assertion failed: invalid form")
+    };
+
+    assert!(matches!(&vec[2], Ann(Expr::Dict(dict), ..) if dict.len() == 2));
+}

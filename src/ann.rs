@@ -1,3 +1,5 @@
+use core::fmt;
+
 use crate::expr::Expr;
 
 // #TODO consider `Ann`, `Ax`, `An`, `Av`, `Anned`
@@ -13,6 +15,15 @@ use crate::expr::Expr;
 
 #[derive(Debug, Clone)]
 pub struct Ann<T>(pub T, pub Option<Vec<Expr>>);
+
+impl<T> fmt::Display for Ann<T>
+where
+    T: fmt::Display,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 impl<T> Ann<T> {
     pub fn new(value: T) -> Self {

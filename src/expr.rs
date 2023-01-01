@@ -14,6 +14,9 @@ use crate::{
 // #Insight
 // The use of Vec in the Expr enum, keeps the nested expressions in the heap.
 
+// #Insight
+// No need for a Zero/Never/Nothing Expr variant?
+
 // #TODO consider parsing to 'simple' Expr, only List and Symbols
 // #TODO optimize 'simple' Expr to 'execution' Expr
 // #TODO introduce ForeignValue?
@@ -29,14 +32,13 @@ pub type ExprFn = dyn Fn(&[Expr], &Env) -> Result<Expr, EvalError>;
 pub enum Expr {
     // --- Low-level ---
     One,        // Unit == List(Vec::new())
-    Zero,       // Never, Nothing
     Bool(bool), // #TODO remove?
     Int(i64),
     Float(f64),
     Symbol(String),
     String(String),
     // #TODO better name for 'generic' List, how about `Cons` or `ConsList` or `Cell`?
-    // #TODO add 'quoted' List
+    // #TODO add 'quoted' List -> Array!
     List(Vec<Ann<Expr>>),
     // #TODO different name?
     // #TODO support Expr as keys?
@@ -56,7 +58,6 @@ impl fmt::Debug for Expr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let text = match self {
             Expr::One => "()".to_owned(),
-            Expr::Zero => "!".to_owned(), // #TODO a different symbol, maybe Unicode!
             Expr::Bool(b) => format!("Bool({b})"),
             Expr::Symbol(s) => format!("Symbol({s})"),
             Expr::String(s) => format!("String({s})"),
@@ -91,7 +92,6 @@ impl fmt::Display for Expr {
         f.write_str(
             (match self {
                 Expr::One => "()".to_owned(),
-                Expr::Zero => "!".to_owned(), // #TODO a different symbol, maybe Unicode!
                 Expr::Bool(b) => b.to_string(),
                 Expr::Int(n) => n.to_string(),
                 Expr::Float(n) => n.to_string(),

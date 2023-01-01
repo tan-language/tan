@@ -72,6 +72,14 @@ fn lex_parses_annotations() {
 }
 
 #[test]
+fn lex_scans_number_with_delimiters() {
+    let input = r##"(let a {"score" 93})"##;
+    let tokens = Lexer::new(input).lex().unwrap();
+
+    assert!(matches!(tokens[5].as_ref(), Token::Number(n) if n == &93));
+}
+
+#[test]
 fn lex_handles_number_separators() {
     let input = "(+ 1 3_000)";
     let tokens = Lexer::new(input).lex().unwrap();

@@ -1,8 +1,10 @@
 pub mod error;
 
+use std::collections::HashMap;
+
 use crate::{
     ann::Ann,
-    expr::Expr,
+    expr::{format_value, Expr},
     lexer::{token::Token, Lexer},
     range::{Range, Ranged},
 };
@@ -132,6 +134,28 @@ where
                         _ => Some(Expr::List(list_exprs)),
                     }
                 }
+            }
+            Token::LeftBrace => {
+                // Syntactic sugar for a Dict.
+
+                let args = self.parse_list(Token::RightBrace, range)?;
+
+                let mut dict = HashMap::new();
+
+                // #TODO also parse (Dict ..)
+                // #TODO add error checking!
+                // #TODO optimize.
+                // #TODO use Hashable.
+                // #TODO evaluate the list_exprs
+                // #TODO list
+
+                for pair in args.chunks(2) {
+                    let k = pair[0].clone();
+                    let v = pair[1].clone();
+                    dict.insert(format_value(k.0), v.0);
+                }
+
+                Some(Expr::Dict(dict))
             }
             Token::RightParen | Token::RightBracket | Token::RightBrace => {
                 // #TODO custom error for this?
