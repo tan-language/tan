@@ -17,9 +17,8 @@
         }
     ])
 
-    ; (let user (users 0))
-    ; user
-
+; let label = users[0]["labels"][1];
   (let label (((users 0) "labels") 1))
+
   label
 )
