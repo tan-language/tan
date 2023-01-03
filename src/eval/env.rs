@@ -5,6 +5,8 @@ use crate::{ann::Ann, expr::Expr};
 // #TODO find another name than `Scope`?
 pub type Scope = HashMap<String, Ann<Expr>>;
 
+// #TODO support global scope + lexical/static scope + dynamic scope.
+
 // #Insight
 // It's better to model with a stack instead of pointers to outer environment.
 // A stack better describes the actual construct, is easier to reason about (no sea-of-objects)

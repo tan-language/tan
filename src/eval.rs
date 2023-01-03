@@ -20,6 +20,13 @@ use self::{env::Env, error::EvalError};
 // #TODO split eval_special, eval_func -> not needed if we put everything uniformly in prelude.
 // #TODO Stack-trace is needed!
 
+// #TODO give more 'general' name.
+fn eval_args(args: &[Ann<Expr>], env: &mut Env) -> Result<Vec<Expr>, EvalError> {
+    args.iter()
+        .map(|x| eval(x, env))
+        .collect::<Result<Vec<_>, _>>()
+}
+
 /// Evaluates via expression rewriting. The expression `expr` evaluates to
 /// a fixed point. In essence this is a 'tree-walk' interpreter.
 pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
@@ -76,10 +83,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
             match head.as_ref() {
                 Expr::Func(params, body) => {
                     // Evaluate the arguments before calling the function.
-                    let args = tail
-                        .iter()
-                        .map(|x| eval(x, env))
-                        .collect::<Result<Vec<_>, _>>()?;
+                    let args = eval_args(tail, env)?;
 
                     // #TODO ultra-hack to kill shared ref to `env`.
                     let params = params.clone();
@@ -110,19 +114,13 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                     // #TODO use RefCell / interior mutability instead, to allow for changing the environment (with Mutation Effect)
 
                     // Evaluate the arguments before calling the function.
-                    let args = tail
-                        .iter()
-                        .map(|x| eval(x, env))
-                        .collect::<Result<Vec<_>, _>>()?;
+                    let args = eval_args(tail, env)?;
 
                     foreign_function(&args, env)
                 }
                 Expr::Array(arr) => {
                     // Evaluate the arguments before calling the function.
-                    let args = tail
-                        .iter()
-                        .map(|x| eval(x, env))
-                        .collect::<Result<Vec<_>, _>>()?;
+                    let args = eval_args(tail, env)?;
 
                     // #TODO optimize this!
                     // #TODO error checking, one arg, etc.
@@ -139,10 +137,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                 }
                 Expr::Dict(dict) => {
                     // Evaluate the arguments before calling the function.
-                    let args = tail
-                        .iter()
-                        .map(|x| eval(x, env))
-                        .collect::<Result<Vec<_>, _>>()?;
+                    let args = eval_args(tail, env)?;
 
                     // #TODO optimize this!
                     // #TODO error checking, one arg, stringable, etc.
