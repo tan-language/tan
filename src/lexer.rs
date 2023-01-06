@@ -250,6 +250,7 @@ impl<'a> Lexer<'a> {
                     let range = start..self.index;
                     tokens.push(Ranged(Token::RightBrace, range));
                 }
+                // #TODO consider removing `;` comments.
                 ';' => {
                     self.put_back_char(ch);
                     let line = self.scan_line();
