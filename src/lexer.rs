@@ -110,10 +110,9 @@ impl<'a> Lexer<'a> {
         text
     }
 
-    // Scans a comment lexeme, since it ignores all input until EOL or EOF,
-    // it is infallible.
-    fn scan_comment(&mut self) -> String {
-        let mut comment = String::from(";");
+    // Scans a line.
+    fn scan_line(&mut self) -> String {
+        let mut comment = String::from("");
 
         loop {
             let Some(ch) = self.next_char() else {
@@ -252,9 +251,10 @@ impl<'a> Lexer<'a> {
                     tokens.push(Ranged(Token::RightBrace, range));
                 }
                 ';' => {
-                    let comment = self.scan_comment();
+                    self.put_back_char(ch);
+                    let line = self.scan_line();
                     let range = start..self.index;
-                    tokens.push(Ranged(Token::Comment(comment), range));
+                    tokens.push(Ranged(Token::Comment(line), range));
                 }
                 '\'' => {
                     let range = start..self.index;
@@ -269,8 +269,6 @@ impl<'a> Lexer<'a> {
                     tokens.push(Ranged(Token::String(string), range));
                 }
                 '-' => {
-                    // #TODO support for `--` line comments!
-
                     let Some(ch1) = self.next_char() else {
                         let range = start..(self.index-1);
                         return Err(Ranged(LexicalError::UnexpectedEol, range));
@@ -279,7 +277,12 @@ impl<'a> Lexer<'a> {
                     self.put_back_char(ch1);
                     self.put_back_char(ch);
 
-                    if ch1.is_numeric() {
+                    if ch1 == '-' {
+                        // `--` line comment
+                        let line = self.scan_line();
+                        let range = start..self.index;
+                        tokens.push(Ranged(Token::Comment(line), range));
+                    } else if ch1.is_numeric() {
                         // Negative number
 
                         let n = self.scan_number();

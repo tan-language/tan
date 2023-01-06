@@ -19,6 +19,7 @@ pub fn setup_prelude(env: Env) -> Env {
 
     // #TODO temp hack
     // #TODO implement as ForeignFunc or ForeignMacro
+    // #TODO alternatively could be encoded as keywords by the lexer or the parser?
 
     env.insert("do", Expr::symbol("do"));
     env.insert("quot", Expr::symbol("quot"));

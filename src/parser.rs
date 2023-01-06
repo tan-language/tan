@@ -20,7 +20,7 @@ use self::error::ParseError;
 // #Insight
 // We move the tokens into the parser to simplify the code. The tokens are useless outside the parser.
 
-/// The Parser performs the syntax analysis stage of the compilation pipeline.
+/// The Parser performs the syntactic analysis stage of the compilation pipeline.
 /// The input token stream is reduced into and Abstract Syntax Tree (AST).
 /// The nodes of the AST are associated with annotations.
 pub struct Parser<I>
