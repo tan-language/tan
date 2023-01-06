@@ -1,5 +1,7 @@
 (do
-    ---- Computes the fibonacci function.
+    -- Computes the fibonacci function.
+    -- Recursive implementation, for demonstration purposes. The fibonacci function
+    -- also has an analytic solution.
     (let fib (Func (x)
         (if (< x 3)
             1

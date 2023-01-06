@@ -279,6 +279,7 @@ impl<'a> Lexer<'a> {
                     self.put_back_char(ch);
 
                     if ch1 == '-' {
+                        // #Warning if we switch to kebab-case, `--` comments may cause issues.
                         // `--` line comment
                         let line = self.scan_line();
                         let range = start..self.index;
