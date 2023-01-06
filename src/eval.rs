@@ -95,8 +95,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
 
                     for (param, arg) in params.iter().zip(args) {
                         let Ann(Expr::Symbol(param), ..) = param else {
-                                // #TODO non-callable error!
-                                return Err(EvalError::Unknown);
+                                return Err(EvalError::invalid_arguments("parameter is not a symbol"));
                             };
 
                         env.insert(param, arg);
@@ -169,7 +168,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                         }
                         "quot" => {
                             let [value] = tail else {
-                                return Err(EvalError::InvalidArguments("missing quote target".to_owned()));
+                                return Err(EvalError::invalid_arguments("missing quote target"));
                             };
 
                             // #TODO hm, that clone, maybe `Rc` can fix this?
@@ -181,7 +180,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                             // `for` is also related with `do`.
                             let [predicate, body] = tail else {
                                 // #TODO proper error!
-                                return Err(EvalError::Unknown);
+                                return Err(EvalError::invalid_arguments("missing for arguments"));
                             };
 
                             let mut value = Expr::One;
@@ -191,7 +190,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
 
                                 let Expr::Bool(predicate) = predicate else {
                                     // #TODO can we range this error?
-                                    return Err(EvalError::InvalidArguments("the for predicate is not a boolean value".to_owned()));
+                                    return Err(EvalError::invalid_arguments("the for predicate is not a boolean value"));
                                 };
 
                                 if !predicate {
@@ -215,8 +214,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                                     break;
                                 };
                                 let Ann(Expr::Symbol(s), ..) = sym else {
-                                    // #TODO proper error!
-                                    return Err(EvalError::Unknown);
+                                    return Err(EvalError::invalid_arguments(format!("`{}` is not a Symbol", sym)));
                                 };
 
                                 let value = eval(value, env)?;
@@ -230,13 +228,11 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                         }
                         "Func" => {
                             let [args, body] = tail else {
-                                // #TODO proper error!
-                                return Err(EvalError::Unknown);
+                                return Err(EvalError::invalid_arguments("malformed func invocation"));
                             };
 
                             let Ann(Expr::List(params), ..) = args else {
-                                // #TODO proper error!
-                                return Err(EvalError::Unknown);
+                                return Err(EvalError::invalid_arguments("malformed func invocation parameters"));
                             };
 
                             // #TODO optimize!
