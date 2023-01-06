@@ -5,6 +5,7 @@ pub mod prelude;
 use crate::{
     ann::Ann,
     expr::{format_value, Expr},
+    util::is_reserved_symbol,
 };
 
 use self::{env::Env, error::EvalError};
@@ -203,19 +204,28 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                             return Ok(value);
                         }
                         "let" => {
+                            // #TODO also report some of these errors statically, maybe in a sema phase?
                             let mut args = tail.iter();
 
                             loop {
                                 let Some(sym) = args.next() else {
                                     break;
                                 };
+
                                 let Some(value) = args.next() else {
                                     // #TODO error?
                                     break;
                                 };
+
                                 let Ann(Expr::Symbol(s), ..) = sym else {
                                     return Err(EvalError::invalid_arguments(format!("`{}` is not a Symbol", sym)));
                                 };
+
+                                if is_reserved_symbol(s) {
+                                    return Err(EvalError::invalid_arguments(format!(
+                                        "let cannot shadow the reserved symbol `{s}`"
+                                    )));
+                                }
 
                                 let value = eval(value, env)?;
 

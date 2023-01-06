@@ -57,6 +57,21 @@ fn eval_processes_empty_list() {
 fn eval_processes_let() {
     let result = eval_string("(do (let a (+ 1 2 3)) a)");
     dbg!(&result);
+
+    // #TODO add asserts!
+}
+
+#[test]
+fn eval_reports_let_errors() {
+    let result = eval_string("(do (let if (+ 1 2 3)) a)");
+
+    assert!(result.is_err());
+
+    let err = result.unwrap_err();
+
+    assert!(
+        matches!(err, EvalError::InvalidArguments(x) if x == "let cannot shadow the reserved symbol `if`")
+    );
 }
 
 // #TODO extract full testing from file.
