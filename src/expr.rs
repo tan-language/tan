@@ -38,6 +38,7 @@ pub enum Expr {
     Int(i64),
     Float(f64),
     Symbol(String),
+    KeySymbol(String),
     String(String),
     // #TODO better name for 'generic' List, how about `Cons` or `ConsList` or `Cell`?
     // #TODO add 'quoted' List -> Array!
@@ -65,6 +66,7 @@ impl fmt::Debug for Expr {
             Expr::One => "()".to_owned(),
             Expr::Bool(b) => format!("Bool({b})"),
             Expr::Symbol(s) => format!("Symbol({s})"),
+            Expr::KeySymbol(s) => format!("KeySymbol({s})"),
             Expr::String(s) => format!("String({s})"),
             Expr::Int(num) => format!("Int({num})"),
             Expr::Float(num) => format!("Float({num})"),
@@ -102,6 +104,7 @@ impl fmt::Display for Expr {
                 Expr::Int(n) => n.to_string(),
                 Expr::Float(n) => n.to_string(),
                 Expr::Symbol(s) => s.clone(),
+                Expr::KeySymbol(s) => s.clone(),
                 Expr::String(s) => format!("\"{s}\""),
                 Expr::Do => "do".to_owned(),
                 Expr::Let => "let".to_owned(),

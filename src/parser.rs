@@ -76,7 +76,14 @@ where
         let expr = match t {
             Token::Comment(..) => None,
             Token::String(s) => Some(Expr::String(s)),
-            Token::Symbol(s) => Some(Expr::Symbol(s)),
+            Token::Symbol(s) => {
+                if s.starts_with(':') {
+                    let s = s.strip_prefix(':').unwrap();
+                    Some(Expr::KeySymbol(s.to_string()))
+                } else {
+                    Some(Expr::Symbol(s))
+                }
+            }
             Token::Number(n) => Some(Expr::Int(n)),
             Token::Annotation(s) => {
                 if self.buffered_annotations.is_none() {

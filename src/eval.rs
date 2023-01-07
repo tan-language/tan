@@ -35,18 +35,6 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
     let result = match expr {
         Expr::Symbol(sym) => {
             // #TODO handle 'PathSymbol'
-            // #TODO probably a separate Expr::KeySymbol is required to not store the ':'
-
-            if sym.starts_with(':') {
-                // #TODO lint '::' etc.
-                // #TODO check that if there is a leading ':' there is only one ':', make this a lint warning!
-                // #TODO consider renaming KeywordSymbol to KeySymbol.
-
-                // A `Symbol` that starts with `:` is a so-called `KeywordSymbol`. Keyword
-                // symbols evaluate to themselves, and are convenient to use as Map keys,
-                // named (keyed) function parameter, enum variants, etc.
-                return Ok(expr.clone());
-            }
 
             let result = env.get(sym);
 
@@ -55,6 +43,18 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
             };
 
             // #TODO hm, can we somehow work with references?
+            Ok(expr.clone())
+        }
+        Expr::KeySymbol(..) => {
+            // #TODO handle 'PathSymbol'
+
+            // #TODO lint '::' etc.
+            // #TODO check that if there is a leading ':' there is only one ':', make this a lint warning!
+            // #TODO consider renaming KeywordSymbol to KeySymbol.
+
+            // A `Symbol` that starts with `:` is a so-called `KeywordSymbol`. Keyword
+            // symbols evaluate to themselves, and are convenient to use as Map keys,
+            // named (keyed) function parameter, enum variants, etc.
             Ok(expr.clone())
         }
         Expr::If(predicate, true_clause, false_clause) => {

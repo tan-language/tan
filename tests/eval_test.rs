@@ -47,7 +47,7 @@ fn eval_processes_conditionals() {
 fn eval_processes_keyword_symbols() {
     let result = eval_string(":key").unwrap();
 
-    assert!(matches!(result, Expr::Symbol(x) if x == ":key"));
+    assert!(matches!(result, Expr::KeySymbol(x) if x == "key"));
 
     // let value = format!("{}", result.unwrap());
     // let expected_value = read_file("conditional.value.tan");
