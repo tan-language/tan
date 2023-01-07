@@ -1,11 +1,11 @@
 (do
     (let users [
         {
-            "given_name" "George"
-            "family_name" "Moschovitis"
-            "score" 98
-            "birth_date" #Date "2000-01-01"
-            "labels" [
+            :given_name "George"
+            :family_name "Moschovitis"
+            :score 98
+            :birth_date #Date "2000-01-01"
+            :labels [
                 "admin"
                 "owner"
             ]
@@ -18,8 +18,9 @@
         }
     ])
 
+    ; #TODO (let label users:0:labels:1)
     ; let label = users[0]["labels"][1];
-    (let label (((users 0) "labels") 1))
+    (let label (((users 0) :labels) 1))
 
     label
 )

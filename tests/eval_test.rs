@@ -44,6 +44,18 @@ fn eval_processes_conditionals() {
 }
 
 #[test]
+fn eval_processes_keyword_symbols() {
+    let result = eval_string(":key").unwrap();
+
+    assert!(matches!(result, Expr::Symbol(x) if x == ":key"));
+
+    // let value = format!("{}", result.unwrap());
+    // let expected_value = read_file("conditional.value.tan");
+
+    // assert_eq!(value, expected_value);
+}
+
+#[test]
 fn eval_processes_empty_list() {
     let expr = Expr::List(Vec::new());
     let mut env = Env::new();

@@ -34,6 +34,20 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
     let expr = expr.as_ref();
     let result = match expr {
         Expr::Symbol(sym) => {
+            // #TODO handle 'PathSymbol'
+            // #TODO probably a separate Expr::KeySymbol is required to not store the ':'
+
+            if sym.starts_with(':') {
+                // #TODO lint '::' etc.
+                // #TODO check that if there is a leading ':' there is only one ':', make this a lint warning!
+                // #TODO consider renaming KeywordSymbol to KeySymbol.
+
+                // A `Symbol` that starts with `:` is a so-called `KeywordSymbol`. Keyword
+                // symbols evaluate to themselves, and are convenient to use as Map keys,
+                // named (keyed) function parameter, enum variants, etc.
+                return Ok(expr.clone());
+            }
+
             let result = env.get(sym);
 
             let Some(Ann(expr, ..)) = result else {
