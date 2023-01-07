@@ -1,3 +1,5 @@
+pub mod expr_iter;
+
 use std::{collections::HashMap, fmt, rc::Rc};
 
 use crate::{
@@ -142,6 +144,8 @@ impl Expr {
         Expr::String(s.into())
     }
 }
+
+// #TODO implement a depth-first iterator.
 
 /// Formats the expression as a value.
 pub fn format_value(expr: impl AsRef<Expr>) -> String {
