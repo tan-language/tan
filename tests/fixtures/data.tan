@@ -11,10 +11,10 @@
             ]
         }
         {
-            "given_name" "Eleni"
-            "family_name" "Constantopoulos"
-            "score" 100
-            "labels" ["user"]
+            :given_name "Eleni"
+            :family_name "Constantopoulos"
+            :score 100
+            :labels ["user"]
         }
     ])
 
