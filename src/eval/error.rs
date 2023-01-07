@@ -1,6 +1,8 @@
-use std::{error::Error, fmt};
+use std::fmt;
 
 // #TODO Use Expr for errors!! enjoy the generality/flexibility!
+// #TODO combine all Tan Errors into one?
+// #TODO add ParseError variant here?
 
 #[derive(Debug)]
 pub enum EvalError {
@@ -8,10 +10,9 @@ pub enum EvalError {
     Io(std::io::Error),
     InvalidArguments(String),
     NotInvocable(String), // #TODO maybe the non-invocable Annotated<Expr> should be the param?
-                          // Unknown,              // #TODO remove this!
 }
 
-impl Error for EvalError {}
+impl std::error::Error for EvalError {}
 
 impl fmt::Display for EvalError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

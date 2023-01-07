@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::fmt;
 use std::num::ParseIntError;
 
@@ -10,7 +9,7 @@ pub enum LexicalError {
     UnterminatedAnnotation,
 }
 
-impl Error for LexicalError {}
+impl std::error::Error for LexicalError {}
 
 impl fmt::Display for LexicalError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
