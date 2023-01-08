@@ -151,31 +151,39 @@ impl<'a> Lexer<'a> {
     }
 
     // #TODO the lexer should keep the Number token as String.
-    fn scan_number(&mut self) -> Result<i64, LexicalError> {
+    fn lex_number(&mut self) -> Result<Token, LexicalError> {
         let lexeme = self.scan_lexeme();
 
         // Ignore `_`, it is considered a number separator.
         // #Insight do _not_ consider `,` as number separator, bad idea!
         let mut lexeme = lexeme.replace('_', "");
 
-        // #TODO support radix-8 -> no, leave for arbitrary radix.
-        // #TODO support arbitrary radix https://github.com/golang/go/issues/28256
-        let mut radix = 10;
-
-        if lexeme.starts_with("0x") {
-            lexeme = lexeme.replace("0x", "");
-            radix = 16
-        } else if lexeme.starts_with("0b") {
-            lexeme = lexeme.replace("0b", "");
-            radix = 2
-        }
-
         // #TODO more detailed Number error!
         // #TODO error handling not enough, we need to add context, check error_stack
 
-        let n = i64::from_str_radix(&lexeme, radix).map_err(LexicalError::MalformedNumber)?;
+        let token = if lexeme.contains('.') {
+            // #TODO support radix for non-integers?
+            // #TODO find a better name for 'non-integer'.
+            let n = lexeme.parse().map_err(LexicalError::MalformedFloat)?;
+            Token::Float(n)
+        } else {
+            // #TODO support radix-8 -> no, leave for arbitrary radix.
+            // #TODO support arbitrary radix https://github.com/golang/go/issues/28256
+            let mut radix = 10;
 
-        Ok(n)
+            if lexeme.starts_with("0x") {
+                lexeme = lexeme.replace("0x", "");
+                radix = 16
+            } else if lexeme.starts_with("0b") {
+                lexeme = lexeme.replace("0b", "");
+                radix = 2
+            }
+
+            let n = i64::from_str_radix(&lexeme, radix).map_err(LexicalError::MalformedInt)?;
+            Token::Int(n)
+        };
+
+        Ok(token)
     }
 
     fn scan_annotation(&mut self) -> Result<String, LexicalError> {
@@ -287,12 +295,12 @@ impl<'a> Lexer<'a> {
                     } else if ch1.is_numeric() {
                         // Negative number
 
-                        let n = self.scan_number();
+                        let token = self.lex_number();
                         let range = start..self.index;
-                        let Ok(n) = n else {
-                            return Err(Ranged(n.unwrap_err(), range));
+                        let Ok(token) = token else {
+                            return Err(Ranged(token.unwrap_err(), range));
                         };
-                        tokens.push(Ranged(Token::Number(n), range));
+                        tokens.push(Ranged(token, range));
                     } else {
                         // #TODO lint warning for this!
                         // Symbol starting with `-`.
@@ -316,12 +324,12 @@ impl<'a> Lexer<'a> {
                 _ if ch.is_numeric() => {
                     self.put_back_char(ch);
 
-                    let n = self.scan_number();
+                    let token = self.lex_number();
                     let range = start..self.index;
-                    let Ok(n) = n else {
-                        return Err(Ranged(n.unwrap_err(), range));
+                    let Ok(token) = token else {
+                        return Err(Ranged(token.unwrap_err(), range));
                     };
-                    tokens.push(Ranged(Token::Number(n), range));
+                    tokens.push(Ranged(token, range));
                 }
                 _ => {
                     self.put_back_char(ch);

@@ -32,7 +32,7 @@ fn lex_returns_tokens() {
     assert!(matches!(tokens[0].as_ref(), Token::LeftParen));
     assert!(matches!(tokens[2].as_ref(), Token::Symbol(x) if x == "+"));
     assert_eq!(tokens[2].1.start, 2);
-    assert!(matches!(tokens[3].as_ref(), Token::Number(..)));
+    assert!(matches!(tokens[3].as_ref(), Token::Int(..)));
     assert_eq!(tokens[3].1.start, 4);
     // #TODO add more assertions.
 }
@@ -87,11 +87,25 @@ fn lex_parses_annotations() {
 }
 
 #[test]
+fn lex_scans_ints() {
+    let input = "(let a 123)";
+    let tokens = Lexer::new(input).lex().unwrap();
+    assert!(matches!(tokens[3].as_ref(), Token::Int(n) if n == &123));
+}
+
+#[test]
+fn lex_scans_floats() {
+    let input = "(let a 1_274.34)";
+    let tokens = Lexer::new(input).lex().unwrap();
+    assert!(matches!(tokens[3].as_ref(), Token::Float(n) if n == &1274.34));
+}
+
+#[test]
 fn lex_scans_number_with_delimiters() {
     let input = r##"(let a {"score" 93})"##;
     let tokens = Lexer::new(input).lex().unwrap();
 
-    assert!(matches!(tokens[5].as_ref(), Token::Number(n) if n == &93));
+    assert!(matches!(tokens[5].as_ref(), Token::Int(n) if n == &93));
 }
 
 #[test]
@@ -101,7 +115,7 @@ fn lex_handles_number_separators() {
 
     // dbg!(&tokens);
 
-    assert!(matches!(tokens[3].as_ref(), Token::Number(n) if n == &3000));
+    assert!(matches!(tokens[3].as_ref(), Token::Int(n) if n == &3000));
 }
 
 #[test]
@@ -111,7 +125,7 @@ fn lex_handles_signed_numbers() {
 
     let tokens = tokens.unwrap();
 
-    assert!(matches!(tokens[3].as_ref(), Token::Number(n) if n == &-123));
+    assert!(matches!(tokens[3].as_ref(), Token::Int(n) if n == &-123));
     assert!(matches!(tokens[7].as_ref(), Token::Symbol(s) if s == "-variable"));
 }
 
@@ -134,17 +148,17 @@ fn lex_handles_numbers_with_radix() {
     let input = "(let a 0xfe)";
     let tokens = Lexer::new(input).lex().unwrap();
 
-    assert!(matches!(tokens[3].as_ref(), Token::Number(n) if n == &254));
+    assert!(matches!(tokens[3].as_ref(), Token::Int(n) if n == &254));
 
     let input = "(let a 0b1010)";
     let tokens = Lexer::new(input).lex().unwrap();
 
-    assert!(matches!(tokens[3].as_ref(), Token::Number(n) if n == &10));
+    assert!(matches!(tokens[3].as_ref(), Token::Int(n) if n == &10));
 
     let input = "(let a 0b00000)";
     let tokens = Lexer::new(input).lex().unwrap();
 
-    assert!(matches!(tokens[3].as_ref(), Token::Number(n) if n == &0));
+    assert!(matches!(tokens[3].as_ref(), Token::Int(n) if n == &0));
 }
 
 #[test]
@@ -156,11 +170,11 @@ fn lex_reports_number_errors() {
 
     let err = result.unwrap_err();
 
-    assert!(matches!(err.0, LexicalError::MalformedNumber(..)));
+    assert!(matches!(err.0, LexicalError::MalformedInt(..)));
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
 
-    if let Ranged(LexicalError::MalformedNumber(pie), range) = err {
+    if let Ranged(LexicalError::MalformedInt(pie), range) = err {
         assert_eq!(pie.kind(), &IntErrorKind::InvalidDigit);
         assert_eq!(range.start, 5);
         assert_eq!(range.end, 10);

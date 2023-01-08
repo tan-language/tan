@@ -1,10 +1,11 @@
 use std::fmt;
-use std::num::ParseIntError;
+use std::num::{ParseFloatError, ParseIntError};
 
 #[derive(Debug)]
 pub enum LexicalError {
     UnexpectedEol,
-    MalformedNumber(ParseIntError),
+    MalformedInt(ParseIntError),
+    MalformedFloat(ParseFloatError),
     UnterminatedString,
     UnterminatedAnnotation,
 }
@@ -17,8 +18,11 @@ impl fmt::Display for LexicalError {
             LexicalError::UnexpectedEol => {
                 write!(f, "unexpected EOL")
             }
-            LexicalError::MalformedNumber(pie) => {
-                write!(f, "malformed number: {pie}")
+            LexicalError::MalformedInt(pie) => {
+                write!(f, "malformed integer number: {pie}")
+            }
+            LexicalError::MalformedFloat(pie) => {
+                write!(f, "malformed float number: {pie}")
             }
             LexicalError::UnterminatedString => {
                 write!(f, "unterminated string")

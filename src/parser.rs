@@ -84,7 +84,8 @@ where
                     Some(Expr::Symbol(s))
                 }
             }
-            Token::Number(n) => Some(Expr::Int(n)),
+            Token::Int(n) => Some(Expr::Int(n)),
+            Token::Float(n) => Some(Expr::Float(n)),
             Token::Annotation(s) => {
                 if self.buffered_annotations.is_none() {
                     self.buffered_annotations = Some(Vec::new());

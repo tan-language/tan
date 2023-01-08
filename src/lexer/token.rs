@@ -15,7 +15,7 @@ use std::fmt;
 // #TODO support #quot annotation?
 
 /// A lexical Token gives semantic meaning to a Lexeme.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Token {
     LeftParen,
     RightParen,
@@ -23,7 +23,8 @@ pub enum Token {
     RightBracket,
     LeftBrace,
     RightBrace,
-    Number(i64),
+    Int(i64),
+    Float(f64),
     String(String),
     Symbol(String),
     Quote,
@@ -44,7 +45,8 @@ impl fmt::Display for Token {
                 Token::RightBracket => "]".to_owned(),
                 Token::LeftBrace => "{".to_owned(),
                 Token::RightBrace => "}".to_owned(),
-                Token::Number(n) => format!("{}", n),
+                Token::Int(n) => format!("{}", n),
+                Token::Float(n) => format!("{}", n),
                 Token::String(s) => s.clone(),
                 Token::Symbol(s) => s.clone(),
                 Token::Quote => "'".to_owned(),
