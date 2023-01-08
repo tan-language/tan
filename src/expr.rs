@@ -104,7 +104,7 @@ impl fmt::Display for Expr {
                 Expr::Int(n) => n.to_string(),
                 Expr::Float(n) => n.to_string(),
                 Expr::Symbol(s) => s.clone(),
-                Expr::KeySymbol(s) => s.clone(),
+                Expr::KeySymbol(s) => format!(":{s}"),
                 Expr::String(s) => format!("\"{s}\""),
                 Expr::Do => "do".to_owned(),
                 Expr::Let => "let".to_owned(),
@@ -120,10 +120,23 @@ impl fmt::Display for Expr {
                             .join(" ")
                     )
                 }
-                // #TODO better formatting
-                Expr::Array(v) => format!("{v:?}"),
-                // #TODO better formatting
-                Expr::Dict(d) => format!("{d:?}"),
+                Expr::Array(exprs) => {
+                    let exprs = exprs
+                        .iter()
+                        .map(|expr| expr.to_string())
+                        .collect::<Vec<String>>()
+                        .join(" ");
+                    format!("[{exprs}]")
+                }
+                Expr::Dict(dict) => {
+                    // #TODO Dict should support arbitrary exprs (or at lease `(Into String)` exprs)
+                    let exprs = dict
+                        .iter()
+                        .map(|(k, v)| format!("\"{k}\" {v}"))
+                        .collect::<Vec<String>>()
+                        .join(" ");
+                    format!("{{{exprs}}}")
+                }
                 Expr::Func(..) => "#<func>".to_owned(),
                 Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
             })
