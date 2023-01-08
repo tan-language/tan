@@ -80,6 +80,14 @@ where
                 if s.starts_with(':') {
                     let s = s.strip_prefix(':').unwrap();
                     Some(Expr::KeySymbol(s.to_string()))
+                } else if s == "true" {
+                    // #TODO consider using (True) for true 'literal'.
+                    // #TODO e.g. (let flag (True))
+                    // #TODO Bool = True + False = True | False = ~False | False
+                    Some(Expr::Bool(true))
+                } else if s == "false" {
+                    // #TODO consider using False for false 'literal'.
+                    Some(Expr::Bool(false))
                 } else {
                     Some(Expr::Symbol(s))
                 }

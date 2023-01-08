@@ -29,8 +29,6 @@ pub enum Token {
     Symbol(String),
     Quote,
     Annotation(String),
-    // True,
-    // False,
     Comment(String),
 }
 
@@ -45,8 +43,8 @@ impl fmt::Display for Token {
                 Token::RightBracket => "]".to_owned(),
                 Token::LeftBrace => "{".to_owned(),
                 Token::RightBrace => "}".to_owned(),
-                Token::Int(n) => format!("{}", n),
-                Token::Float(n) => format!("{}", n),
+                Token::Int(n) => n.to_string(),
+                Token::Float(n) => n.to_string(),
                 Token::String(s) => s.clone(),
                 Token::Symbol(s) => s.clone(),
                 Token::Quote => "'".to_owned(),

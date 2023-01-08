@@ -74,6 +74,15 @@ fn eval_processes_let() {
 }
 
 #[test]
+fn eval_processes_booleans() {
+    let value = eval_string("(do (let flag true) flag)").unwrap();
+    assert!(matches!(value, Expr::Bool(x) if x));
+
+    let value = eval_string("(do (let flag false) flag)").unwrap();
+    assert!(matches!(value, Expr::Bool(x) if !x));
+}
+
+#[test]
 fn eval_reports_let_errors() {
     let result = eval_string("(do (let if (+ 1 2 3)) a)");
 

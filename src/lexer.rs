@@ -150,7 +150,39 @@ impl<'a> Lexer<'a> {
         Ok(string)
     }
 
-    // #TODO the lexer should keep the Number token as String.
+    fn scan_annotation(&mut self) -> Result<String, LexicalError> {
+        let mut ann = String::new();
+
+        let mut nesting = 0;
+
+        // #TODO only allow one level of nesting?
+        // #TODO should probably skip the annotation 'parsing'.
+
+        loop {
+            let Some(ch) = self.next_char() else {
+                break;
+            };
+
+            if ch == '(' {
+                nesting += 1;
+            } else if ch == ')' {
+                nesting -= 1;
+            } else if nesting == 0 && (is_whitespace(ch) || is_eol(ch)) {
+                // #TODO maybe whitespace does not need put_back, but need to adjust range.
+                self.put_back_char(ch);
+                break;
+            }
+
+            ann.push(ch);
+        }
+
+        if nesting != 0 {
+            return Err(LexicalError::UnterminatedAnnotation);
+        }
+
+        Ok(ann)
+    }
+
     fn lex_number(&mut self) -> Result<Token, LexicalError> {
         let lexeme = self.scan_lexeme();
 
@@ -186,40 +218,6 @@ impl<'a> Lexer<'a> {
         Ok(token)
     }
 
-    fn scan_annotation(&mut self) -> Result<String, LexicalError> {
-        let mut ann = String::new();
-
-        let mut nesting = 0;
-
-        // #TODO only allow one level of nesting?
-        // #TODO should probably skip the annotation 'parsing'.
-
-        loop {
-            let Some(ch) = self.next_char() else {
-                break;
-            };
-
-            if ch == '(' {
-                nesting += 1;
-            } else if ch == ')' {
-                nesting -= 1;
-            } else if nesting == 0 && (is_whitespace(ch) || is_eol(ch)) {
-                // #TODO maybe whitespace does not need put_back, but need to adjust range.
-                self.put_back_char(ch);
-                break;
-            }
-
-            ann.push(ch);
-        }
-
-        if nesting != 0 {
-            return Err(LexicalError::UnterminatedAnnotation);
-        }
-
-        Ok(ann)
-    }
-
-    // #TODO extract lex_number, lex_symbol
     // #TODO consider passing into array of chars or something more general.
     pub fn lex(&mut self) -> Result<Vec<Ranged<Token>>, Ranged<LexicalError>> {
         let mut tokens: Vec<Ranged<Token>> = Vec::new();
