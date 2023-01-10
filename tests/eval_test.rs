@@ -2,7 +2,7 @@ mod common;
 
 use tan::{
     eval::{env::Env, error::EvalError, eval},
-    expr::Expr,
+    expr::{format_value, Expr},
 };
 
 use crate::common::{eval_file, eval_string, read_file};
@@ -48,11 +48,6 @@ fn eval_processes_keyword_symbols() {
     let result = eval_string(":key").unwrap();
 
     assert!(matches!(result, Expr::KeySymbol(x) if x == "key"));
-
-    // let value = format!("{}", result.unwrap());
-    // let expected_value = read_file("conditional.value.tan");
-
-    // assert_eq!(value, expected_value);
 }
 
 #[test]
@@ -150,6 +145,19 @@ fn eval_processes_multiline_strings() {
 
     let value = format!("{}", result.unwrap());
     let expected_value = "\"This is\n        some nice text\"";
+
+    assert_eq!(value, expected_value);
+}
+
+#[test]
+fn eval_processes_multiline_text() {
+    let result = eval_file("multi-line_text.tan");
+
+    assert!(result.is_ok());
+
+    // #TODO maybe format_value should be the default `to_string()`/`Display`
+    let value = format_value(result.unwrap());
+    let expected_value = read_file("multi-line_text.value.tan");
 
     assert_eq!(value, expected_value);
 }

@@ -129,7 +129,6 @@ impl<'a> Lexer<'a> {
         comment
     }
 
-    // #TODO support multi-line strings
     // #TODO support 'raw' strings, e.g. (write #raw "this is \ cool")
     /// Scans a string lexeme.
     fn scan_string(&mut self) -> Result<String, LexicalError> {
@@ -142,6 +141,55 @@ impl<'a> Lexer<'a> {
 
             if ch == '"' {
                 break;
+            }
+
+            string.push(ch);
+        }
+
+        Ok(string)
+    }
+
+    // #TODO needs cleanup.
+    // #TODO does not support leading tabs.
+    // #TODO find better name, `scan_indented_string`.
+    // #TODO support 'raw' strings, e.g. (write #raw "this is \ cool")
+    /// Scans a multi-string 'layout'.
+    fn scan_text(&mut self, indent: u64) -> Result<String, LexicalError> {
+        let mut string = String::new();
+
+        let mut quote_count = 0;
+
+        loop {
+            let Some(ch) = self.next_char() else {
+                return Err(LexicalError::UnterminatedString);
+            };
+
+            if ch == '"' {
+                quote_count += 1;
+
+                if quote_count < 3 {
+                    continue;
+                } else {
+                    break;
+                }
+            } else if is_eol(ch) {
+                for _ in 0..indent {
+                    let Some(ch1) = self.next_char() else {
+                        return Err(LexicalError::UnterminatedString);
+                    };
+
+                    if is_eol(ch1) {
+                        self.put_back_char(ch1);
+                        break;
+                    }
+
+                    if !ch1.is_whitespace() {
+                        self.put_back_char(ch1);
+                        break;
+                    }
+                }
+            } else {
+                // #TODO support single or double `"`.
             }
 
             string.push(ch);
@@ -268,6 +316,50 @@ impl<'a> Lexer<'a> {
                     tokens.push(Ranged(Token::Quote, range));
                 }
                 '"' => {
+                    let Some(ch1) = self.next_char() else {
+                        let range = start..self.index;
+                        return Err(Ranged(LexicalError::UnterminatedString, range));
+                    };
+
+                    // Check for `===` triple-quote multi-line string delimiter.
+                    if ch1 == '"' {
+                        if let Some(ch2) = self.next_char() {
+                            if ch2 == '"' {
+                                // Compute the indentation.
+                                let mut indent = 0;
+
+                                loop {
+                                    let Some(ch3) = self.next_char() else {
+                                        let range = start..self.index;
+                                        return Err(Ranged(LexicalError::UnterminatedString, range));
+                                    };
+
+                                    if is_eol(ch3) {
+                                        indent = 0;
+                                        continue;
+                                    } else if ch3.is_whitespace() {
+                                        indent += 1;
+                                    } else {
+                                        self.put_back_char(ch3);
+                                        break;
+                                    }
+                                }
+
+                                let string = self.scan_text(indent);
+                                let range = start..self.index;
+                                let Ok(string) = string else {
+                                    return Err(Ranged(string.unwrap_err(), range));
+                                };
+                                tokens.push(Ranged(Token::String(string), range));
+
+                                continue;
+                            }
+                            self.put_back_char(ch2);
+                        };
+                    }
+
+                    self.put_back_char(ch1);
+
                     let string = self.scan_string();
                     let range = start..self.index;
                     let Ok(string) = string else {
@@ -277,7 +369,7 @@ impl<'a> Lexer<'a> {
                 }
                 '-' => {
                     let Some(ch1) = self.next_char() else {
-                        let range = start..(self.index-1);
+                        let range = start..self.index;
                         return Err(Ranged(LexicalError::UnexpectedEol, range));
                     };
 
@@ -318,6 +410,7 @@ impl<'a> Lexer<'a> {
                 }
                 _ if is_whitespace(ch) => {
                     // Consume whitespace
+                    continue;
                 }
                 _ if ch.is_numeric() => {
                     self.put_back_char(ch);
