@@ -1,0 +1,6 @@
+(do
+    (let text "This is
+        some nice text")
+
+    text
+)

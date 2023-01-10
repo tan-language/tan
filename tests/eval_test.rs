@@ -143,6 +143,18 @@ fn eval_processes_dict() {
 }
 
 #[test]
+fn eval_processes_multiline_strings() {
+    let result = eval_file("multi-line_string.tan");
+
+    assert!(result.is_ok());
+
+    let value = format!("{}", result.unwrap());
+    let expected_value = "\"This is\n        some nice text\"";
+
+    assert_eq!(value, expected_value);
+}
+
+#[test]
 fn eval_processes_deep_data() {
     let result = eval_file("data.tan");
 
