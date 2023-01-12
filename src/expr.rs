@@ -163,11 +163,14 @@ impl Expr {
 
 // #TODO implement a depth-first iterator.
 
+// #TODO think where this function is used.
+// #TODO this is a confusing name!
 /// Formats the expression as a value.
 pub fn format_value(expr: impl AsRef<Expr>) -> String {
     let expr = expr.as_ref();
     match expr {
         Expr::String(s) => s.to_string(),
+        Expr::KeySymbol(s) => s.to_string(),
         _ => expr.to_string(),
     }
 }
