@@ -159,6 +159,11 @@ fn lex_handles_numbers_with_radix() {
     let tokens = Lexer::new(input).lex().unwrap();
 
     assert!(matches!(tokens[3].as_ref(), Token::Int(n) if n == &0));
+
+    let input = "(let a 0o755)";
+    let tokens = Lexer::new(input).lex().unwrap();
+
+    assert!(matches!(tokens[3].as_ref(), Token::Int(n) if n == &493));
 }
 
 #[test]

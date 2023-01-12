@@ -247,7 +247,6 @@ impl<'a> Lexer<'a> {
             let n = lexeme.parse().map_err(LexicalError::MalformedFloat)?;
             Token::Float(n)
         } else {
-            // #TODO support radix-8 -> no, leave for arbitrary radix.
             // #TODO support arbitrary radix https://github.com/golang/go/issues/28256
             let mut radix = 10;
 
@@ -257,6 +256,10 @@ impl<'a> Lexer<'a> {
             } else if lexeme.starts_with("0b") {
                 lexeme = lexeme.replace("0b", "");
                 radix = 2
+            } else if lexeme.starts_with("0o") {
+                // #Insight Octal literals are supported for historical reasons.
+                lexeme = lexeme.replace("0o", "");
+                radix = 8
             }
 
             let n = i64::from_str_radix(&lexeme, radix).map_err(LexicalError::MalformedInt)?;

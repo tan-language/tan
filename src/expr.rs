@@ -161,8 +161,6 @@ impl Expr {
     }
 }
 
-// #TODO implement a depth-first iterator.
-
 // #TODO think where this function is used.
 // #TODO this is a confusing name!
 /// Formats the expression as a value.
