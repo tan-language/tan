@@ -30,6 +30,7 @@ pub struct ExprIter<'a> {
 impl<'a> Iterator for ExprIter<'a> {
     type Item = &'a Ann<Expr>;
 
+    // #TODO this does not traverse Array, Dict, etc.
     fn next(&mut self) -> Option<Self::Item> {
         match self.children.get(0) {
             None => match self.parent.take() {
