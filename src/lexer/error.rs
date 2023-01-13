@@ -1,6 +1,8 @@
 use std::fmt;
 use std::num::{ParseFloatError, ParseIntError};
 
+// #TODO consider renaming to `LexError`.
+
 #[derive(Debug)]
 pub enum LexicalError {
     UnexpectedEol,

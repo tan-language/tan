@@ -7,11 +7,14 @@ use crate::{
     expr::Expr,
     lexer::Lexer,
     parser::Parser,
+    range::Ranged,
 };
 
-// #TODO all should return Ranged<Error>.
+/// A Result specialization for Tan api functions.
+pub type Result<T> = std::result::Result<T, Ranged<Error>>;
+
 /// Parses a Tan expression encoded as a text string.
-pub fn parse_string(input: impl AsRef<str>) -> Result<Ann<Expr>, Error> {
+pub fn parse_string(input: impl AsRef<str>) -> Result<Ann<Expr>> {
     let input = input.as_ref();
 
     let mut lexer = Lexer::new(input);
@@ -23,9 +26,9 @@ pub fn parse_string(input: impl AsRef<str>) -> Result<Ann<Expr>, Error> {
     Ok(expr)
 }
 
-// #TODO should return Ranged<Error> and Ann<Expr>.
+// #TODO should return Ann<Expr>.
 /// Evaluates a Tan expression encoded as a text string.
-pub fn eval_string(input: impl AsRef<str>, env: &mut Env) -> Result<Expr, Error> {
+pub fn eval_string(input: impl AsRef<str>, env: &mut Env) -> Result<Expr> {
     let expr = parse_string(input)?;
 
     let value = eval(expr, env)?;
