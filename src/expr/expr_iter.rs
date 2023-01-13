@@ -65,7 +65,6 @@ mod tests {
 
     #[test]
     fn expr_iter_performs_depth_first_iteration() {
-        // let env = &mut setup_prelude(Env::new());
         let input = "(quot (1 2 3 (4 5) (6 (+ 7 8)) 9 10))";
 
         let mut lexer = Lexer::new(input);

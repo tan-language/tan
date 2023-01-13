@@ -2,6 +2,8 @@ use std::collections::HashMap;
 
 use crate::{ann::Ann, expr::Expr};
 
+use super::prelude::setup_prelude;
+
 // #TODO find another name than `Scope`?
 pub type Scope = HashMap<String, Ann<Expr>>;
 
@@ -35,6 +37,10 @@ impl Env {
         Self {
             scopes: vec![Scope::default()],
         }
+    }
+
+    pub fn prelude() -> Self {
+        setup_prelude(Env::default())
     }
 
     pub fn push(&mut self, scope: Scope) {

@@ -2,12 +2,14 @@
 
 use tan::{
     ann::Ann,
-    eval::{env::Env, error::EvalError, eval, prelude::setup_prelude},
+    eval::{env::Env, error::EvalError, eval},
     expr::Expr,
     lexer::{error::LexicalError, token::Token, Lexer},
     parser::{error::ParseError, Parser},
     range::Ranged,
 };
+
+// #TODO reuse api.rs?
 
 pub fn lex_string(input: &str) -> Result<Vec<Ranged<Token>>, Ranged<LexicalError>> {
     let mut lexer = Lexer::new(input);
@@ -24,7 +26,7 @@ pub fn parse_string(input: &str) -> Result<Ann<Expr>, Ranged<ParseError>> {
 pub fn eval_string(input: &str) -> Result<Expr, EvalError> {
     // #TODO surface ParseError!
     let expr = parse_string(input).unwrap();
-    let mut env = setup_prelude(Env::default());
+    let mut env = Env::prelude();
     eval(&expr, &mut env)
 }
 

@@ -26,7 +26,7 @@ pub fn parse_string(input: impl AsRef<str>) -> Result<Ann<Expr>> {
     Ok(expr)
 }
 
-// #TODO should return Ann<Expr>.
+// #TODO is there any reason to return Ann<Expr>?
 /// Evaluates a Tan expression encoded as a text string.
 pub fn eval_string(input: impl AsRef<str>, env: &mut Env) -> Result<Expr> {
     let expr = parse_string(input)?;
