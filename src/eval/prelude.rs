@@ -3,7 +3,7 @@ use std::rc::Rc;
 use crate::{
     expr::Expr,
     ops::{
-        arithmetic::{add, mul, sub},
+        arithmetic::{add_float, add_int, mul, sub},
         eq::{eq, gt, lt},
         io::{write, writeln},
         process::exit,
@@ -29,7 +29,9 @@ pub fn setup_prelude(env: Env) -> Env {
 
     // num
 
-    env.insert("+", Expr::ForeignFunc(Rc::new(add)));
+    env.insert("+", Expr::ForeignFunc(Rc::new(add_int)));
+    env.insert("+$$Int$$Int", Expr::ForeignFunc(Rc::new(add_int)));
+    env.insert("+$$Float$$Float", Expr::ForeignFunc(Rc::new(add_float)));
     env.insert("-", Expr::ForeignFunc(Rc::new(sub)));
     env.insert("*", Expr::ForeignFunc(Rc::new(mul)));
 
@@ -42,10 +44,13 @@ pub fn setup_prelude(env: Env) -> Env {
     // io
 
     env.insert("write", Expr::ForeignFunc(Rc::new(write)));
-    env.insert("writeln", Expr::ForeignFunc(Rc::new(writeln)));
+    env.insert("write$$String", Expr::ForeignFunc(Rc::new(write)));
+    env.insert("writeln", Expr::ForeignFunc(Rc::new(write)));
+    env.insert("writeln$$String", Expr::ForeignFunc(Rc::new(writeln)));
 
     // process
     env.insert("exit", Expr::ForeignFunc(Rc::new(exit)));
+    env.insert("exit$$", Expr::ForeignFunc(Rc::new(exit)));
 
     env
 }

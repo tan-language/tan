@@ -8,6 +8,7 @@ use crate::{
     lexer::Lexer,
     parser::Parser,
     range::Ranged,
+    resolve::resolve,
 };
 
 /// A Result specialization for Tan api functions.
@@ -30,6 +31,8 @@ pub fn parse_string(input: impl AsRef<str>) -> Result<Ann<Expr>> {
 /// Evaluates a Tan expression encoded as a text string.
 pub fn eval_string(input: impl AsRef<str>, env: &mut Env) -> Result<Expr> {
     let expr = parse_string(input)?;
+
+    let expr = resolve(&expr)?;
 
     let value = eval(expr, env)?;
 

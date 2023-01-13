@@ -7,8 +7,9 @@ use crate::{
 // Named `arithmetic` as those operators can apply to non-numbers, e.g. Time, Date
 
 // #TODO use AsRef, to avoid Annotated!
+// #TODO use macros to generate specializations for generic versions.
 
-pub fn add(args: &[Expr], _env: &Env) -> Result<Expr, EvalError> {
+pub fn add_int(args: &[Expr], _env: &Env) -> Result<Expr, EvalError> {
     let mut sum = 0;
 
     for arg in args {
@@ -19,6 +20,19 @@ pub fn add(args: &[Expr], _env: &Env) -> Result<Expr, EvalError> {
     }
 
     Ok(Expr::Int(sum))
+}
+
+pub fn add_float(args: &[Expr], _env: &Env) -> Result<Expr, EvalError> {
+    let mut sum = 0.0;
+
+    for arg in args {
+        let Expr::Float(n) = arg else {
+            return Err(EvalError::invalid_arguments(format!("`{}` is not a Float", arg)));
+        };
+        sum += n;
+    }
+
+    Ok(Expr::Float(sum))
 }
 
 pub fn sub(args: &[Expr], _env: &Env) -> Result<Expr, EvalError> {

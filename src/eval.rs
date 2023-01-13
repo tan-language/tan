@@ -32,11 +32,23 @@ fn eval_args(args: &[Ann<Expr>], env: &mut Env) -> Result<Vec<Expr>, EvalError> 
 /// a fixed point. In essence this is a 'tree-walk' interpreter.
 pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
     let expr = expr.as_ref();
-    let result = match expr {
+
+    match expr {
         Expr::Symbol(sym) => {
             // #TODO handle 'PathSymbol'
 
             let result = env.get(sym);
+
+            // #TODO ULTRA-HACK until we properly resolve types
+            let result = if result.is_none() {
+                if let Some((sym, _)) = sym.split_once("$$") {
+                    env.get(sym)
+                } else {
+                    result
+                }
+            } else {
+                result
+            };
 
             let Some(Ann(expr, ..)) = result else {
                 return Err(EvalError::UndefinedSymbol(sym.clone()));
@@ -179,7 +191,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                             for expr in tail {
                                 value = eval(expr, env)?;
                             }
-                            return Ok(value);
+                            Ok(value)
                         }
                         "quot" => {
                             let [value] = tail else {
@@ -187,7 +199,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                             };
 
                             // #TODO hm, that clone, maybe `Rc` can fix this?
-                            return Ok(value.0.clone());
+                            Ok(value.0.clone())
                         }
                         "for" => {
                             // #Insight
@@ -215,7 +227,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                                 value = eval(body, env)?;
                             }
 
-                            return Ok(value);
+                            Ok(value)
                         }
                         "let" => {
                             // #TODO also report some of these errors statically, maybe in a sema phase?
@@ -248,7 +260,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                             }
 
                             // #TODO return last value!
-                            return Ok(Expr::One);
+                            Ok(Expr::One)
                         }
                         "Func" => {
                             let [args, body] = tail else {
@@ -276,9 +288,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
             // #TODO hm, maybe need to report an error here? or even select the desired behavior? -> NO ERROR
             // #TODO can we avoid the clone?
             // Unhandled expression variants evaluate to themselves.
-            return Ok(expr.clone());
+            Ok(expr.clone())
         }
-    };
-
-    result
+    }
 }

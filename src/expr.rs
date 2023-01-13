@@ -159,11 +159,32 @@ impl Expr {
     pub fn string(s: impl Into<String>) -> Self {
         Expr::String(s.into())
     }
+
+    // #TODO find a better name.
+    pub fn to_type_string(&self) -> String {
+        match self {
+            Expr::One => "One".to_string(),
+            Expr::Bool(_) => "Bool".to_string(),
+            Expr::Int(_) => "Int".to_string(),
+            Expr::Float(_) => "Float".to_string(),
+            Expr::Symbol(_) => "Symbol".to_string(),
+            Expr::KeySymbol(_) => "KeySymbol".to_string(),
+            Expr::String(_) => "String".to_string(),
+            Expr::List(_) => "List".to_string(),
+            Expr::Array(_) => "Array".to_string(),
+            Expr::Dict(_) => "Dict".to_string(),
+            Expr::Func(_, _) => "Func".to_string(),
+            Expr::ForeignFunc(_) => "ForeignFunc".to_string(),
+            Expr::Do => "Expr".to_string(),
+            Expr::Let => "Expr".to_string(),
+            Expr::If(_, _, _) => "Expr".to_string(),
+        }
+    }
 }
 
 // #TODO think where this function is used.
 // #TODO this is a confusing name!
-/// Formats the expression as a value.
+/// Formats the expression as a value.p
 pub fn format_value(expr: impl AsRef<Expr>) -> String {
     let expr = expr.as_ref();
     match expr {
