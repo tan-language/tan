@@ -47,3 +47,5 @@ impl From<EvalError> for Error {
         Error::Eval(value)
     }
 }
+
+pub type Result<T> = std::result::Result<T, Ranged<Error>>;
