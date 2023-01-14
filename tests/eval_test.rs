@@ -107,7 +107,7 @@ fn eval_processes_quoted_expressions() {
 #[test]
 fn eval_processes_function_definition_and_application() {
     let result = eval_file("factorial.tan");
-
+    dbg!(&result);
     assert!(result.is_ok());
 
     let value = format!("{}", result.unwrap());

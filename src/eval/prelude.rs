@@ -17,18 +17,9 @@ use super::env::Env;
 pub fn setup_prelude(env: Env) -> Env {
     let mut env = env;
 
-    // #TODO temp hack
-    // #TODO implement as ForeignFunc or ForeignMacro
-    // #TODO alternatively could be encoded as keywords by the lexer or the parser?
-
-    env.insert("do", Expr::symbol("do"));
-    env.insert("quot", Expr::symbol("quot"));
-    env.insert("for", Expr::symbol("for"));
-    env.insert("let", Expr::symbol("let"));
-    env.insert("Func", Expr::symbol("Func"));
-
     // num
 
+    // #TODO forget the mangling, implement with a dispatcher function, multi-function.
     env.insert("+", Expr::ForeignFunc(Rc::new(add_int)));
     env.insert("+$$Int$$Int", Expr::ForeignFunc(Rc::new(add_int)));
     env.insert("+$$Float$$Float", Expr::ForeignFunc(Rc::new(add_float)));

@@ -182,6 +182,17 @@ impl Expr {
     }
 }
 
+impl Ann<Expr> {
+    pub fn get_type(&self) -> Option<Expr> {
+        let Some(ref annotations ) = self.1 else {
+            return None;
+        };
+
+        // #TODO temp shortcut, the first ann is considered a type annotation.
+        annotations.first().cloned()
+    }
+}
+
 // #TODO think where this function is used.
 // #TODO this is a confusing name!
 /// Formats the expression as a value.p

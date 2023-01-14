@@ -1,3 +1,4 @@
 pub fn is_reserved_symbol(sym: &str) -> bool {
-    matches!(sym, "do" | "let" | "if" | "quot")
+    // #TODO think about `Func`.
+    matches!(sym, "do" | "let" | "if" | "quot" | "Func")
 }

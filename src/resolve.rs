@@ -1,6 +1,8 @@
-// #TODO consider renaming to `resolver.rs`
+use crate::{ann::Ann, eval::error::EvalError, expr::Expr, util::is_reserved_symbol};
 
-use crate::{ann::Ann, eval::error::EvalError, expr::Expr};
+// #TODO consider renaming to `resolver` or `typecheck` or `type_eval`.
+// #TODO resolve-types pass
+// #TODO resolve-invocables pass
 
 // #TODO consider moving the arguments.
 pub fn resolve(expr: &Ann<Expr>) -> Result<Ann<Expr>, EvalError> {
@@ -25,6 +27,10 @@ pub fn resolve(expr: &Ann<Expr>) -> Result<Ann<Expr>, EvalError> {
             // #TODO handle non-symbol cases!
             // #TODO signature should be the type, e.g. +::(Func Int Int Int) instead of +$$Int$$Int
             if let Ann(Expr::Symbol(sym), ann_sym) = head {
+                if is_reserved_symbol(sym) {
+                    return Ok(expr.clone());
+                }
+
                 let mut signature = Vec::new();
 
                 for term in tail {
@@ -43,7 +49,6 @@ pub fn resolve(expr: &Ann<Expr>) -> Result<Ann<Expr>, EvalError> {
 
             Ok(Ann(Expr::List(list.clone()), ann.clone()))
         }
-
         _ => Ok(expr.clone()),
     }
 }

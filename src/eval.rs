@@ -35,6 +35,10 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
 
     match expr {
         Expr::Symbol(sym) => {
+            if is_reserved_symbol(sym) {
+                return Ok(expr.clone());
+            }
+
             // #TODO handle 'PathSymbol'
 
             let result = env.get(sym);
@@ -101,6 +105,8 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
             // The unwrap here is safe.
             let head = list.first().unwrap();
             let tail = &list[1..];
+
+            // #TODO could check special forms before the eval
 
             // Evaluate the head
             let head = eval(head, env)?;

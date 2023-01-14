@@ -8,4 +8,5 @@ pub mod ops;
 pub mod parser;
 pub mod range;
 pub mod resolve;
+pub mod typecheck;
 pub mod util;
