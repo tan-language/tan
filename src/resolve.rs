@@ -27,22 +27,24 @@ pub fn resolve(expr: &Ann<Expr>) -> Result<Ann<Expr>, EvalError> {
             // #TODO handle non-symbol cases!
             // #TODO signature should be the type, e.g. +::(Func Int Int Int) instead of +$$Int$$Int
             if let Ann(Expr::Symbol(sym), ann_sym) = head {
-                if is_reserved_symbol(sym) {
-                    return Ok(expr.clone());
-                }
+                let sym = if is_reserved_symbol(sym) {
+                    sym.clone()
+                } else {
+                    let mut signature = Vec::new();
 
-                let mut signature = Vec::new();
+                    for term in tail {
+                        signature.push(term.to_type_string())
+                    }
 
-                for term in tail {
-                    // #TODO can potentially consult the ann?
-                    signature.push(term.to_type_string())
-                }
+                    let signature = signature.join("$$");
 
-                let signature = signature.join("$$");
+                    format!("{sym}$${signature}")
+                };
 
-                let sym = format!("{sym}$${signature}");
                 let mut list = vec![Ann(Expr::Symbol(sym), ann_sym.clone())];
-                list.extend(tail.iter().cloned());
+                for term in tail {
+                    list.push(resolve(term)?);
+                }
 
                 return Ok(Ann(Expr::List(list.clone()), ann.clone()));
             }
@@ -59,7 +61,7 @@ mod tests {
 
     #[test]
     fn resolve_specializes_functions() {
-        let expr = parse_string("#test (+ 1 #zonk 2)").unwrap();
+        let expr = parse_string("#(test true) (+ 1 #zonk 2)").unwrap();
         dbg!(&expr);
         let expr = resolve(&expr).unwrap();
         dbg!(&expr);

@@ -34,7 +34,6 @@ pub fn eval_string(input: impl AsRef<str>, env: &mut Env) -> Result<Expr> {
     let expr = parse_string(input)?;
 
     // #TODO should we push a new env?
-
     let expr = resolve_type(expr, env)?;
 
     let expr = resolve(&expr)?;

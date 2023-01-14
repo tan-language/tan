@@ -122,7 +122,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                     let params = params.clone();
                     let body = body.clone();
 
-                    // Dynamic scoping
+                    // Dynamic scoping, #TODO convert to lexical.
 
                     env.push_new_scope();
 

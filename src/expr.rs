@@ -164,6 +164,7 @@ impl Expr {
 impl Ann<Expr> {
     // #TODO introduce `Unknown` type? or just use `One`?
     pub fn type_annotation(&self) -> Expr {
+        // #TODO optimize get_type for literals, and even skip adding as annotation?
         let Some(ref annotations ) = self.1 else {
             return Expr::symbol("One");
         };

@@ -88,11 +88,14 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Eva
 
                     Ok(expr)
                 } else {
-                    let mut list = vec![head.clone()];
+                    let head = resolve_type(head.clone(), env)?;
+
+                    let mut list = vec![head];
                     for term in tail {
                         let term = resolve_type(term.clone(), env)?;
                         list.push(term);
                     }
+
                     Ok(Ann(Expr::List(list), expr.1))
                 }
             } else {
@@ -109,9 +112,9 @@ mod tests {
 
     #[test]
     fn resolve_specializes_functions() {
-        let expr = parse_string("(let a 1)").unwrap();
+        // let expr = parse_string("(let a 1)").unwrap();
         // let expr = parse_string("(+ 1 2)").unwrap();
-        // let expr = parse_string("(do (let a 1) (+ a 2))").unwrap();
+        let expr = parse_string("(do (let a 1) (+ a 2))").unwrap();
         dbg!(&expr);
         let mut env = Env::prelude();
         let expr = resolve_type(expr, &mut env).unwrap();
