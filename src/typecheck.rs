@@ -5,6 +5,10 @@ use crate::{
     util::is_reserved_symbol,
 };
 
+// #TODO consider renaming to `resolver` or `typecheck` or `type_eval`.
+// #TODO resolve-types pass
+// #TODO resolve-invocables pass
+
 // #TODO resolve_type and resolve_invocable should be combined, cannot be separate passes.
 
 // #TODO consider renaming to `type_eval`.
