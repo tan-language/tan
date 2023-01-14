@@ -5,6 +5,8 @@ use crate::{
     util::is_reserved_symbol,
 };
 
+// #TODO resolve_type and resolve_invocable should be combined, cannot be separate passes.
+
 // #TODO consider renaming to `type_eval`.
 pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, EvalError> {
     // #TODO update the original annotations!
@@ -17,6 +19,11 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Eva
         Ann(Expr::Float(_), _) => {
             // #TODO check if it already has the annotation!
             expr.1 = Some(vec![Expr::symbol("Float")]);
+            Ok(expr)
+        }
+        Ann(Expr::String(_), _) => {
+            // #TODO check if it already has the annotation!
+            expr.1 = Some(vec![Expr::symbol("String")]);
             Ok(expr)
         }
         Ann(Expr::Symbol(ref sym), _) => {
@@ -54,7 +61,7 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Eva
             // #TODO Expr.is_invocable, Expr.get_invocable_name, Expr.get_type
             // #TODO handle non-symbol cases!
             // #TODO signature should be the type, e.g. +::(Func Int Int Int) instead of +$$Int$$Int
-            if let Ann(Expr::Symbol(sym), _) = head {
+            if let Ann(Expr::Symbol(ref sym), _) = head {
                 if sym == "let" {
                     // #TODO also report some of these errors statically, maybe in a sema phase?
                     let mut args = tail.iter();
@@ -88,15 +95,39 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Eva
 
                     Ok(expr)
                 } else {
-                    let head = resolve_type(head.clone(), env)?;
-
-                    let mut list = vec![head];
+                    let mut resolved_tail = Vec::new();
                     for term in tail {
-                        let term = resolve_type(term.clone(), env)?;
-                        list.push(term);
+                        resolved_tail.push(resolve_type(term.clone(), env)?);
                     }
 
-                    Ok(Ann(Expr::List(list), expr.1))
+                    let head = if let Ann(Expr::Symbol(ref sym), ann_sym) = head {
+                        let sym = if is_reserved_symbol(sym) {
+                            sym.clone()
+                        } else {
+                            // #TODO should recursively resolve first!
+
+                            let mut signature = Vec::new();
+
+                            for term in &resolved_tail {
+                                signature.push(term.to_type_string())
+                            }
+
+                            let signature = signature.join("$$");
+
+                            format!("{sym}$${signature}")
+                        };
+                        Ann(Expr::Symbol(sym), ann_sym.clone())
+                    } else {
+                        head.clone()
+                    };
+
+                    // #Insight head should get resolved after the tail.
+                    let head = resolve_type(head, env)?;
+
+                    let mut list = vec![head.clone()];
+                    list.extend(resolved_tail);
+
+                    Ok(Ann(Expr::List(list), head.1))
                 }
             } else {
                 Ok(expr)
@@ -114,7 +145,8 @@ mod tests {
     fn resolve_specializes_functions() {
         // let expr = parse_string("(let a 1)").unwrap();
         // let expr = parse_string("(+ 1 2)").unwrap();
-        let expr = parse_string("(do (let a 1.3) (+ a 2.2))").unwrap();
+        // let expr = parse_string("(do (let a 1.3) (+ a 2.2))").unwrap();
+        let expr = parse_string("(do (let a 1.3) (+ a (+ 1.0 2.2)))").unwrap();
         dbg!(&expr);
         let mut env = Env::prelude();
         let expr = resolve_type(expr, &mut env).unwrap();

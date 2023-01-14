@@ -14,6 +14,7 @@ use crate::{
 use super::env::Env;
 
 // #TODO make Env::top() -> in fact it's bottom (of the stack)
+// #TODO alternative Env::prelude()
 
 pub fn setup_prelude(env: Env) -> Env {
     let mut env = env;

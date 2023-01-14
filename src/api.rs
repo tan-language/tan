@@ -8,7 +8,6 @@ use crate::{
     lexer::Lexer,
     parser::Parser,
     range::Ranged,
-    resolve::resolve,
     typecheck::resolve_type,
 };
 
@@ -35,8 +34,6 @@ pub fn eval_string(input: impl AsRef<str>, env: &mut Env) -> Result<Expr> {
 
     // #TODO should we push a new env?
     let expr = resolve_type(expr, env)?;
-
-    let expr = resolve(&expr)?;
 
     let value = eval(expr, env)?;
 
