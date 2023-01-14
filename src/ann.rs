@@ -23,6 +23,12 @@ use crate::expr::Expr;
 #[derive(Clone)]
 pub struct Ann<T>(pub T, pub Option<Vec<Expr>>);
 
+impl<T> Ann<T> {
+    pub fn typed(value: T, ann: Expr) -> Self {
+        Self(value, Some(vec![ann]))
+    }
+}
+
 impl<T> fmt::Debug for Ann<T>
 where
     T: fmt::Debug,
