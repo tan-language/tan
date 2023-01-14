@@ -40,6 +40,17 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Eva
 
             let result = env.get(sym);
 
+            // #TODO ULTRA-HACK until we properly resolve types
+            let result = if result.is_none() {
+                if let Some((sym, _)) = sym.split_once("$$") {
+                    env.get(sym)
+                } else {
+                    result
+                }
+            } else {
+                result
+            };
+
             let Some(value) = result else {
                 return Err(EvalError::UndefinedSymbol(sym.clone()));
             };
