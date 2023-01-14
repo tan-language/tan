@@ -2,6 +2,13 @@ use core::fmt;
 
 use crate::expr::Expr;
 
+// #TODO
+// - Uppercase -> (:type Uppercase)
+// - lowercase -> (:lowercase true)
+// - (:key value)
+
+// #TODO consider {+/-}lowercase -> true/false
+
 // #TODO consider `Ann`, `Ax`, `An`, `Av`, `Anned`
 
 // #Insight
@@ -13,8 +20,29 @@ use crate::expr::Expr;
 
 // #TODO get range from annotation.
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Ann<T>(pub T, pub Option<Vec<Expr>>);
+
+impl<T> fmt::Debug for Ann<T>
+where
+    T: fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.1.is_some() {
+            let anns = self
+                .1
+                .clone()
+                .unwrap()
+                .iter()
+                .map(|a| a.to_string())
+                .collect::<Vec<_>>()
+                .join(",");
+            write!(f, "{:?}::{anns}", self.0)
+        } else {
+            write!(f, "{:?}", self.0)
+        }
+    }
+}
 
 impl<T> fmt::Display for Ann<T>
 where

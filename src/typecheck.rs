@@ -104,8 +104,8 @@ mod tests {
 
     #[test]
     fn resolve_specializes_functions() {
-        let expr = parse_string("(+ 1 2)").unwrap();
-        // let expr = parse_string("(do (let a 1) (+ a 2))").unwrap();
+        // let expr = parse_string("(+ 1 2)").unwrap();
+        let expr = parse_string("(do (let a 1) (+ a 2))").unwrap();
         dbg!(&expr);
         let mut env = Env::prelude();
         let expr = resolve_type(expr, &mut env).unwrap();
