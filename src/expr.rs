@@ -159,37 +159,28 @@ impl Expr {
     pub fn string(s: impl Into<String>) -> Self {
         Expr::String(s.into())
     }
-
-    // #TODO find a better name.
-    pub fn to_type_string(&self) -> String {
-        match self {
-            Expr::One => "One".to_string(),
-            Expr::Bool(_) => "Bool".to_string(),
-            Expr::Int(_) => "Int".to_string(),
-            Expr::Float(_) => "Float".to_string(),
-            Expr::Symbol(_) => "Symbol".to_string(),
-            Expr::KeySymbol(_) => "KeySymbol".to_string(),
-            Expr::String(_) => "String".to_string(),
-            Expr::List(_) => "List".to_string(),
-            Expr::Array(_) => "Array".to_string(),
-            Expr::Dict(_) => "Dict".to_string(),
-            Expr::Func(_, _) => "Func".to_string(),
-            Expr::ForeignFunc(_) => "ForeignFunc".to_string(),
-            Expr::Do => "Expr".to_string(),
-            Expr::Let => "Expr".to_string(),
-            Expr::If(_, _, _) => "Expr".to_string(),
-        }
-    }
 }
 
 impl Ann<Expr> {
-    pub fn get_type(&self) -> Option<Expr> {
+    // #TODO introduce `Unknown` type? or just use `One`?
+    pub fn type_annotation(&self) -> Expr {
         let Some(ref annotations ) = self.1 else {
-            return None;
+            return Expr::symbol("One");
         };
 
         // #TODO temp shortcut, the first ann is considered a type annotation.
-        annotations.first().cloned()
+        annotations.first().cloned().unwrap()
+    }
+
+    // #TODO find a better name.
+    pub fn to_type_string(&self) -> String {
+        let type_ann = self.type_annotation();
+
+        if let Expr::Symbol(type_name) = type_ann {
+            type_name
+        } else {
+            "One".to_string()
+        }
     }
 }
 

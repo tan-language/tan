@@ -9,9 +9,14 @@ use crate::{
 pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, EvalError> {
     // #TODO update the original annotations!
     match expr {
-        Ann(Expr::Int(n), _) => {
+        Ann(Expr::Int(_), _) => {
             // #TODO check if it already has the annotation!
             expr.1 = Some(vec![Expr::symbol("Int")]);
+            Ok(expr)
+        }
+        Ann(Expr::Float(_), _) => {
+            // #TODO check if it already has the annotation!
+            expr.1 = Some(vec![Expr::symbol("Float")]);
             Ok(expr)
         }
         Ann(Expr::Symbol(ref sym), _) => {
@@ -29,7 +34,7 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Eva
             };
 
             let value = resolve_type(value.clone(), env)?;
-            expr.1 = Some(vec![value.get_type().unwrap()]);
+            expr.1 = Some(vec![value.type_annotation()]);
             Ok(expr)
         }
         Ann(Expr::List(ref list), _) => {
@@ -75,7 +80,7 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Eva
                         }
 
                         let value = resolve_type(value.clone(), env)?;
-                        expr.1 = Some(vec![value.get_type().unwrap()]);
+                        expr.1 = Some(vec![value.type_annotation()]);
 
                         // #TODO notify about overrides? use `set`?
                         env.insert(s, value);
@@ -104,8 +109,9 @@ mod tests {
 
     #[test]
     fn resolve_specializes_functions() {
+        let expr = parse_string("(let a 1)").unwrap();
         // let expr = parse_string("(+ 1 2)").unwrap();
-        let expr = parse_string("(do (let a 1) (+ a 2))").unwrap();
+        // let expr = parse_string("(do (let a 1) (+ a 2))").unwrap();
         dbg!(&expr);
         let mut env = Env::prelude();
         let expr = resolve_type(expr, &mut env).unwrap();

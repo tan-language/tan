@@ -35,7 +35,7 @@ pub fn resolve(expr: &Ann<Expr>) -> Result<Ann<Expr>, EvalError> {
 
                 for term in tail {
                     // #TODO can potentially consult the ann?
-                    signature.push(term.0.to_type_string())
+                    signature.push(term.to_type_string())
                 }
 
                 let signature = signature.join("$$");
