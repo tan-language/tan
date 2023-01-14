@@ -27,12 +27,19 @@ pub fn resolve(expr: &Ann<Expr>) -> Result<Ann<Expr>, EvalError> {
             // #TODO handle non-symbol cases!
             // #TODO signature should be the type, e.g. +::(Func Int Int Int) instead of +$$Int$$Int
             if let Ann(Expr::Symbol(sym), ann_sym) = head {
+                let mut resolved_tail = Vec::new();
+                for term in tail {
+                    resolved_tail.push(resolve(term)?);
+                }
+
                 let sym = if is_reserved_symbol(sym) {
                     sym.clone()
                 } else {
+                    // #TODO should recursively resolve first!
+
                     let mut signature = Vec::new();
 
-                    for term in tail {
+                    for term in &resolved_tail {
                         signature.push(term.to_type_string())
                     }
 
@@ -40,10 +47,9 @@ pub fn resolve(expr: &Ann<Expr>) -> Result<Ann<Expr>, EvalError> {
 
                     format!("{sym}$${signature}")
                 };
-
                 let mut list = vec![Ann(Expr::Symbol(sym), ann_sym.clone())];
-                for term in tail {
-                    list.push(resolve(term)?);
+                for term in resolved_tail {
+                    list.push(term);
                 }
 
                 return Ok(Ann(Expr::List(list.clone()), ann.clone()));

@@ -1,6 +1,7 @@
 use std::rc::Rc;
 
 use crate::{
+    ann::Ann,
     expr::Expr,
     ops::{
         arithmetic::{add_float, add_int, mul, sub},
@@ -20,9 +21,21 @@ pub fn setup_prelude(env: Env) -> Env {
     // num
 
     // #TODO forget the mangling, implement with a dispatcher function, multi-function.
-    env.insert("+", Expr::ForeignFunc(Rc::new(add_int)));
+    env.insert(
+        "+",
+        Ann(
+            Expr::ForeignFunc(Rc::new(add_float)),
+            Some(vec![Expr::symbol("Int")]),
+        ),
+    );
     env.insert("+$$Int$$Int", Expr::ForeignFunc(Rc::new(add_int)));
-    env.insert("+$$Float$$Float", Expr::ForeignFunc(Rc::new(add_float)));
+    env.insert(
+        "+$$Float$$Float",
+        Ann(
+            Expr::ForeignFunc(Rc::new(add_float)),
+            Some(vec![Expr::symbol("Float")]),
+        ),
+    );
     env.insert("-", Expr::ForeignFunc(Rc::new(sub)));
     env.insert("*", Expr::ForeignFunc(Rc::new(mul)));
 
