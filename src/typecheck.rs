@@ -1,10 +1,8 @@
 use crate::{ann::Ann, error::Error, eval::env::Env, expr::Expr, util::is_reserved_symbol};
 
 // #TODO consider renaming to `resolver` or `typecheck` or `type_eval`.
-// #TODO resolve-types pass
-// #TODO resolve-invocables pass
 
-// #TODO resolve_type and resolve_invocable should be combined, cannot be separate passes.
+// #Insight resolve_type and resolve_invocable should be combined, cannot be separate passes.
 
 // #TODO consider renaming to `type_eval`.
 pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
@@ -20,6 +18,10 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Err
         }
         Ann(Expr::String(_), _) => {
             expr.set_type_annotation(Expr::symbol("String"));
+            Ok(expr)
+        }
+        Ann(Expr::KeySymbol(_), _) => {
+            expr.set_type_annotation(Expr::symbol("KeySymbol"));
             Ok(expr)
         }
         Ann(Expr::Symbol(ref sym), _) => {
@@ -73,6 +75,9 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Err
                     // #TODO also report some of these errors statically, maybe in a sema phase?
                     let mut args = tail.iter();
 
+                    let mut resolved_let_list = vec![Ann::new(Expr::symbol("let"))];
+                    let mut ann = None;
+
                     loop {
                         let Some(sym) = args.next() else {
                             break;
@@ -96,13 +101,16 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Err
                         let value = resolve_type(value.clone(), env)?;
                         let mut map = expr.1.clone().unwrap_or_default();
                         map.insert("type".to_owned(), value.type_annotation());
-                        expr.1 = Some(map);
+                        ann = Some(map);
+
+                        resolved_let_list.push(sym.clone());
+                        resolved_let_list.push(value.clone());
 
                         // #TODO notify about overrides? use `set`?
                         env.insert(s, value);
                     }
 
-                    Ok(expr)
+                    Ok(Ann(Expr::List(resolved_let_list), ann))
                 } else {
                     let mut resolved_tail = Vec::new();
                     for term in tail {
@@ -125,6 +133,7 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Err
 
                             format!("{sym}$${signature}")
                         };
+
                         Ann(Expr::Symbol(sym), ann_sym.clone())
                     } else {
                         head.clone()

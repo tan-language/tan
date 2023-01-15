@@ -18,6 +18,7 @@ use self::env::Env;
 // #Insight
 // I don't like the name `interpreter`.
 
+// #TODO move excessive error-checking/linting to the resolve/typecheck pass.
 // #TODO encode effects in the type-system.
 // #TODO alternative names: Processor, Runner, Interpreter
 // #TODO split eval_special, eval_func -> not needed if we put everything uniformly in prelude.
