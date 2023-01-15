@@ -1,11 +1,10 @@
-pub mod error;
 pub mod token;
 
 use std::str::Chars;
 
-use crate::range::Ranged;
+use crate::{error::Error, range::Ranged};
 
-use self::{error::LexicalError, token::Token};
+use self::token::Token;
 
 // https://en.wikipedia.org/wiki/Lexical_analysis
 
@@ -131,12 +130,12 @@ impl<'a> Lexer<'a> {
 
     // #TODO support 'raw' strings, e.g. (write #raw "this is \ cool")
     /// Scans a string lexeme.
-    fn scan_string(&mut self) -> Result<String, LexicalError> {
+    fn scan_string(&mut self) -> Result<String, Error> {
         let mut string = String::new();
 
         loop {
             let Some(ch) = self.next_char() else {
-                return Err(LexicalError::UnterminatedString);
+                return Err(Error::UnterminatedString);
             };
 
             if ch == '"' {
@@ -154,14 +153,14 @@ impl<'a> Lexer<'a> {
     // #TODO find better name, `scan_indented_string`.
     // #TODO support 'raw' strings, e.g. (write #raw "this is \ cool")
     /// Scans a multi-string 'layout'.
-    fn scan_text(&mut self, indent: u64) -> Result<String, LexicalError> {
+    fn scan_text(&mut self, indent: u64) -> Result<String, Error> {
         let mut string = String::new();
 
         let mut quote_count = 0;
 
         loop {
             let Some(ch) = self.next_char() else {
-                return Err(LexicalError::UnterminatedString);
+                return Err(Error::UnterminatedString);
             };
 
             if ch == '"' {
@@ -175,7 +174,7 @@ impl<'a> Lexer<'a> {
             } else if is_eol(ch) {
                 for _ in 0..indent {
                     let Some(ch1) = self.next_char() else {
-                        return Err(LexicalError::UnterminatedString);
+                        return Err(Error::UnterminatedString);
                     };
 
                     if is_eol(ch1) {
@@ -198,7 +197,7 @@ impl<'a> Lexer<'a> {
         Ok(string)
     }
 
-    fn scan_annotation(&mut self) -> Result<String, LexicalError> {
+    fn scan_annotation(&mut self) -> Result<String, Error> {
         let mut ann = String::new();
 
         let mut nesting = 0;
@@ -225,13 +224,13 @@ impl<'a> Lexer<'a> {
         }
 
         if nesting != 0 {
-            return Err(LexicalError::UnterminatedAnnotation);
+            return Err(Error::UnterminatedAnnotation);
         }
 
         Ok(ann)
     }
 
-    fn lex_number(&mut self) -> Result<Token, LexicalError> {
+    fn lex_number(&mut self) -> Result<Token, Error> {
         let lexeme = self.scan_lexeme();
 
         // Ignore `_`, it is considered a number separator.
@@ -244,7 +243,7 @@ impl<'a> Lexer<'a> {
         let token = if lexeme.contains('.') {
             // #TODO support radix for non-integers?
             // #TODO find a better name for 'non-integer'.
-            let n = lexeme.parse().map_err(LexicalError::MalformedFloat)?;
+            let n = lexeme.parse().map_err(Error::MalformedFloat)?;
             Token::Float(n)
         } else {
             // #TODO support arbitrary radix https://github.com/golang/go/issues/28256
@@ -262,7 +261,7 @@ impl<'a> Lexer<'a> {
                 radix = 8
             }
 
-            let n = i64::from_str_radix(&lexeme, radix).map_err(LexicalError::MalformedInt)?;
+            let n = i64::from_str_radix(&lexeme, radix).map_err(Error::MalformedInt)?;
             Token::Int(n)
         };
 
@@ -270,7 +269,7 @@ impl<'a> Lexer<'a> {
     }
 
     // #TODO consider passing into array of chars or something more general.
-    pub fn lex(&mut self) -> Result<Vec<Ranged<Token>>, Ranged<LexicalError>> {
+    pub fn lex(&mut self) -> Result<Vec<Ranged<Token>>, Ranged<Error>> {
         let mut tokens: Vec<Ranged<Token>> = Vec::new();
 
         loop {
@@ -321,7 +320,7 @@ impl<'a> Lexer<'a> {
                 '"' => {
                     let Some(ch1) = self.next_char() else {
                         let range = start..self.index;
-                        return Err(Ranged(LexicalError::UnterminatedString, range));
+                        return Err(Ranged(Error::UnterminatedString, range));
                     };
 
                     // Check for `===` triple-quote multi-line string delimiter.
@@ -334,7 +333,7 @@ impl<'a> Lexer<'a> {
                                 loop {
                                     let Some(ch3) = self.next_char() else {
                                         let range = start..self.index;
-                                        return Err(Ranged(LexicalError::UnterminatedString, range));
+                                        return Err(Ranged(Error::UnterminatedString, range));
                                     };
 
                                     if is_eol(ch3) {
@@ -373,7 +372,7 @@ impl<'a> Lexer<'a> {
                 '-' => {
                     let Some(ch1) = self.next_char() else {
                         let range = start..self.index;
-                        return Err(Ranged(LexicalError::UnexpectedEol, range));
+                        return Err(Ranged(Error::UnexpectedEol, range));
                     };
 
                     self.put_back_char(ch1);

@@ -1,10 +1,11 @@
 use crate::{
-    eval::{env::Env, error::EvalError},
+    error::Error,
+    eval::env::Env,
     expr::{format_value, Expr},
 };
 
 /// Writes one or more expressions to the STDOUT sink/stream.
-pub fn write(args: &[Expr], _env: &Env) -> Result<Expr, EvalError> {
+pub fn write(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     let output = args.iter().fold(String::new(), |mut str, x| {
         str.push_str(&format_value(x));
         str
@@ -25,7 +26,7 @@ pub fn write(args: &[Expr], _env: &Env) -> Result<Expr, EvalError> {
     Ok(Expr::One)
 }
 
-pub fn writeln(args: &[Expr], env: &Env) -> Result<Expr, EvalError> {
+pub fn writeln(args: &[Expr], env: &Env) -> Result<Expr, Error> {
     // #TODO nasty implementation!
     write(args, env)?;
     write(&[Expr::string("\n")], env)

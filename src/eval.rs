@@ -1,14 +1,14 @@
 pub mod env;
-pub mod error;
 pub mod prelude;
 
 use crate::{
     ann::Ann,
+    error::Error,
     expr::{format_value, Expr},
     util::is_reserved_symbol,
 };
 
-use self::{env::Env, error::EvalError};
+use self::env::Env;
 
 // #Insight
 // _Not_ a pure evaluator, performs side-effects.
@@ -22,7 +22,7 @@ use self::{env::Env, error::EvalError};
 // #TODO Stack-trace is needed!
 
 // #TODO give more 'general' name.
-fn eval_args(args: &[Ann<Expr>], env: &mut Env) -> Result<Vec<Expr>, EvalError> {
+fn eval_args(args: &[Ann<Expr>], env: &mut Env) -> Result<Vec<Expr>, Error> {
     args.iter()
         .map(|x| eval(x, env))
         .collect::<Result<Vec<_>, _>>()
@@ -30,7 +30,7 @@ fn eval_args(args: &[Ann<Expr>], env: &mut Env) -> Result<Vec<Expr>, EvalError> 
 
 /// Evaluates via expression rewriting. The expression `expr` evaluates to
 /// a fixed point. In essence this is a 'tree-walk' interpreter.
-pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
+pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Error> {
     let expr = expr.as_ref();
 
     match expr {
@@ -55,7 +55,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
             };
 
             let Some(Ann(expr, ..)) = result else {
-                return Err(EvalError::UndefinedSymbol(sym.clone()));
+                return Err(Error::UndefinedSymbol(sym.clone()));
             };
 
             // #TODO hm, can we somehow work with references?
@@ -78,7 +78,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
 
             let Expr::Bool(predicate) = predicate else {
                 // #TODO can we range this error?
-                return Err(EvalError::InvalidArguments("the if predicate is not a boolean value".to_owned()));
+                return Err(Error::InvalidArguments("the if predicate is not a boolean value".to_owned()));
             };
 
             if predicate {
@@ -129,7 +129,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
 
                     for (param, arg) in params.iter().zip(args) {
                         let Ann(Expr::Symbol(param), ..) = param else {
-                                return Err(EvalError::invalid_arguments("parameter is not a symbol"));
+                                return Err(Error::invalid_arguments("parameter is not a symbol"));
                             };
 
                         env.insert(param, arg);
@@ -158,7 +158,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                     // #TODO optimize this!
                     // #TODO error checking, one arg, etc.
                     let Expr::Int(index) = &args[0] else {
-                        return Err(EvalError::InvalidArguments("invalid array index, expecting Int".to_string()));
+                        return Err(Error::InvalidArguments("invalid array index, expecting Int".to_string()));
                     };
                     let index = *index as usize;
                     if let Some(value) = arr.get(index) {
@@ -202,7 +202,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                         }
                         "quot" => {
                             let [value] = tail else {
-                                return Err(EvalError::invalid_arguments("missing quote target"));
+                                return Err(Error::invalid_arguments("missing quote target"));
                             };
 
                             // #TODO hm, that clone, maybe `Rc` can fix this?
@@ -214,7 +214,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                             // `for` is also related with `do`.
                             let [predicate, body] = tail else {
                                 // #TODO proper error!
-                                return Err(EvalError::invalid_arguments("missing for arguments"));
+                                return Err(Error::invalid_arguments("missing for arguments"));
                             };
 
                             let mut value = Expr::One;
@@ -224,7 +224,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
 
                                 let Expr::Bool(predicate) = predicate else {
                                     // #TODO can we range this error?
-                                    return Err(EvalError::invalid_arguments("the for predicate is not a boolean value"));
+                                    return Err(Error::invalid_arguments("the for predicate is not a boolean value"));
                                 };
 
                                 if !predicate {
@@ -251,11 +251,11 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                                 };
 
                                 let Ann(Expr::Symbol(s), ..) = sym else {
-                                    return Err(EvalError::invalid_arguments(format!("`{}` is not a Symbol", sym)));
+                                    return Err(Error::invalid_arguments(format!("`{}` is not a Symbol", sym)));
                                 };
 
                                 if is_reserved_symbol(s) {
-                                    return Err(EvalError::invalid_arguments(format!(
+                                    return Err(Error::invalid_arguments(format!(
                                         "let cannot shadow the reserved symbol `{s}`"
                                     )));
                                 }
@@ -271,23 +271,23 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
                         }
                         "Func" => {
                             let [args, body] = tail else {
-                                return Err(EvalError::invalid_arguments("malformed func invocation"));
+                                return Err(Error::invalid_arguments("malformed func invocation"));
                             };
 
                             let Ann(Expr::List(params), ..) = args else {
-                                return Err(EvalError::invalid_arguments("malformed func invocation parameters"));
+                                return Err(Error::invalid_arguments("malformed func invocation parameters"));
                             };
 
                             // #TODO optimize!
                             Ok(Expr::Func(params.clone(), Box::new(body.clone())))
                         }
                         _ => {
-                            return Err(EvalError::NotInvocable(format!("{}", head)));
+                            return Err(Error::NotInvocable(format!("{}", head)));
                         }
                     }
                 }
                 _ => {
-                    return Err(EvalError::NotInvocable(format!("{}", head)));
+                    return Err(Error::NotInvocable(format!("{}", head)));
                 }
             }
         }

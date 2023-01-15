@@ -2,10 +2,7 @@ pub mod expr_iter;
 
 use std::{collections::HashMap, fmt, rc::Rc};
 
-use crate::{
-    ann::Ann,
-    eval::{env::Env, error::EvalError},
-};
+use crate::{ann::Ann, error::Error, eval::env::Env};
 
 // #TODO separate variant for list and apply/call (can this be defined statically?)
 // #TODO List, MaybeList, Call
@@ -25,7 +22,7 @@ use crate::{
 // #TODO ExprFn should get a single Expr? -> nah, it's foreign.
 
 // A function that accepts a list of Exprs and returns an Expr.
-pub type ExprFn = dyn Fn(&[Expr], &Env) -> Result<Expr, EvalError>;
+pub type ExprFn = dyn Fn(&[Expr], &Env) -> Result<Expr, Error>;
 
 #[derive(Clone)]
 /// A symbolic expression. This is the 'universal' data type in the language,

@@ -2,8 +2,9 @@ mod common;
 
 use std::num::IntErrorKind;
 
+use tan::error::Error;
 use tan::{
-    lexer::{error::LexicalError, token::Token, Lexer},
+    lexer::{token::Token, Lexer},
     range::Ranged,
 };
 
@@ -140,7 +141,7 @@ fn lex_reports_unexpected_eol() {
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
 
-    assert!(matches!(err.0, LexicalError::UnexpectedEol));
+    assert!(matches!(err.0, Error::UnexpectedEol));
 }
 
 #[test]
@@ -175,11 +176,11 @@ fn lex_reports_number_errors() {
 
     let err = result.unwrap_err();
 
-    assert!(matches!(err.0, LexicalError::MalformedInt(..)));
+    assert!(matches!(err.0, Error::MalformedInt(..)));
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
 
-    if let Ranged(LexicalError::MalformedInt(pie), range) = err {
+    if let Ranged(Error::MalformedInt(pie), range) = err {
         assert_eq!(pie.kind(), &IntErrorKind::InvalidDigit);
         assert_eq!(range.start, 5);
         assert_eq!(range.end, 10);
@@ -197,7 +198,7 @@ fn lex_reports_unterminated_strings() {
 
     let err = result.unwrap_err();
 
-    assert!(matches!(err.0, LexicalError::UnterminatedString));
+    assert!(matches!(err.0, Error::UnterminatedString));
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
 
@@ -220,7 +221,7 @@ fn lex_reports_unterminated_annotations() {
 
     let err = result.unwrap_err();
 
-    assert!(matches!(err.0, LexicalError::UnterminatedAnnotation));
+    assert!(matches!(err.0, Error::UnterminatedAnnotation));
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
 

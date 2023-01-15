@@ -1,13 +1,10 @@
-use crate::{
-    eval::{env::Env, error::EvalError},
-    expr::Expr,
-};
+use crate::{error::Error, eval::env::Env, expr::Expr};
 
 /// Terminates the current process with the specified exit code.
-pub fn exit(args: &[Expr], _env: &Env) -> Result<Expr, EvalError> {
+pub fn exit(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     if let Some(code) = args.first() {
         let Expr::Int(code) = code else {
-            return Err(EvalError::InvalidArguments("expected Int argument".to_owned()));
+            return Err(Error::InvalidArguments("expected Int argument".to_owned()));
         };
 
         let code = *code as i32;

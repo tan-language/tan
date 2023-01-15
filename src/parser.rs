@@ -1,15 +1,12 @@
-pub mod error;
-
 use std::collections::HashMap;
 
 use crate::{
     ann::Ann,
+    error::Error,
     expr::{format_value, Expr},
     lexer::{token::Token, Lexer},
     range::{Range, Ranged},
 };
-
-use self::error::ParseError;
 
 // #TODO no need to keep iterator as state in parser!
 // #TODO can the parser be just a function? -> yes, if we use a custom iterator to keep the parsing state.
@@ -46,7 +43,7 @@ where
 
     /// Wrap the `expr` with the buffered (prefix) annotations.
     /// The annotations are parsed into an Expr representation.
-    fn attach_buffered_annotations(&mut self, expr: Expr) -> Result<Ann<Expr>, Ranged<ParseError>> {
+    fn attach_buffered_annotations(&mut self, expr: Expr) -> Result<Ann<Expr>, Ranged<Error>> {
         let Some(annotations) = self.buffered_annotations.take() else {
             return Ok(Ann::new(expr));
         };
@@ -57,7 +54,7 @@ where
             let mut lexer = Lexer::new(&ann_str);
 
             let Ok(tokens) = lexer.lex() else {
-                return Err(Ranged(ParseError::MalformedAnnotation(ann_str), ann_range));
+                return Err(Ranged(Error::MalformedAnnotation(ann_str), ann_range));
             };
 
             let mut parser = Parser::new(tokens);
@@ -70,7 +67,7 @@ where
         Ok(Ann(expr, Some(ann_exprs)))
     }
 
-    pub fn parse_expr(&mut self, token: Ranged<Token>) -> Result<Option<Expr>, Ranged<ParseError>> {
+    pub fn parse_expr(&mut self, token: Ranged<Token>) -> Result<Option<Expr>, Ranged<Error>> {
         let Ranged(t, range) = token;
 
         let expr = match t {
@@ -108,14 +105,14 @@ where
             }
             Token::Quote => {
                 let Some(token) = self.tokens.next() else {
-                    return Err(Ranged(ParseError::InvalidQuote, range));
+                    return Err(Ranged(Error::InvalidQuote, range));
                 };
                 if token.0 == Token::Quote {
                     // Report consecutive quote (i.e. '') as error.
-                    return Err(Ranged(ParseError::InvalidQuote, range));
+                    return Err(Ranged(Error::InvalidQuote, range));
                 }
                 let Some(target) = self.parse_expr(token)? else {
-                    return Err(Ranged(ParseError::InvalidQuote, range));
+                    return Err(Ranged(Error::InvalidQuote, range));
                 };
                 Some(Expr::List(vec![
                     Ann::new(Expr::symbol("quot")),
@@ -194,7 +191,7 @@ where
             }
             Token::RightParen | Token::RightBracket | Token::RightBrace => {
                 // #TODO custom error for this?
-                return Err(Ranged(ParseError::UnexpectedToken(t), range));
+                return Err(Ranged(Error::UnexpectedToken(t), range));
             }
         };
 
@@ -206,7 +203,7 @@ where
         &mut self,
         delimiter: Token,
         list_range: Range,
-    ) -> Result<Vec<Ann<Expr>>, Ranged<ParseError>> {
+    ) -> Result<Vec<Ann<Expr>>, Ranged<Error>> {
         // #TODO move range computation outside!
 
         let mut exprs = Vec::new();
@@ -236,11 +233,11 @@ where
 
         // #TODO set correct range.
         let range = list_range.start..(index - 1);
-        Err(Ranged(ParseError::UnterminatedList, range))
+        Err(Ranged(Error::UnterminatedList, range))
     }
 
     /// Tries to parse at least one expression.
-    pub fn parse(&mut self) -> Result<Ann<Expr>, Ranged<ParseError>> {
+    pub fn parse(&mut self) -> Result<Ann<Expr>, Ranged<Error>> {
         // #TODO can consolidate more with parse_atom
 
         loop {

@@ -1,9 +1,4 @@
-use crate::{
-    ann::Ann,
-    eval::{env::Env, error::EvalError},
-    expr::Expr,
-    util::is_reserved_symbol,
-};
+use crate::{ann::Ann, error::Error, eval::env::Env, expr::Expr, util::is_reserved_symbol};
 
 // #TODO consider renaming to `resolver` or `typecheck` or `type_eval`.
 // #TODO resolve-types pass
@@ -12,7 +7,7 @@ use crate::{
 // #TODO resolve_type and resolve_invocable should be combined, cannot be separate passes.
 
 // #TODO consider renaming to `type_eval`.
-pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, EvalError> {
+pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
     // #TODO update the original annotations!
     match expr {
         Ann(Expr::Int(_), _) => {
@@ -52,7 +47,7 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Eva
             };
 
             let Some(value) = result else {
-                return Err(EvalError::UndefinedSymbol(sym.clone()));
+                return Err(Error::UndefinedSymbol(sym.clone()));
             };
 
             let value = resolve_type(value.clone(), env)?;
@@ -92,11 +87,11 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Eva
                         };
 
                         let Ann(Expr::Symbol(s), ..) = sym else {
-                            return Err(EvalError::invalid_arguments(format!("`{}` is not a Symbol", sym)));
+                            return Err(Error::invalid_arguments(format!("`{}` is not a Symbol", sym)));
                         };
 
                         if is_reserved_symbol(s) {
-                            return Err(EvalError::invalid_arguments(format!(
+                            return Err(Error::invalid_arguments(format!(
                                 "let cannot shadow the reserved symbol `{s}`"
                             )));
                         }

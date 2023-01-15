@@ -1,7 +1,8 @@
 mod common;
 
+use tan::error::Error;
 use tan::{
-    eval::{env::Env, error::EvalError, eval},
+    eval::{env::Env, eval},
     expr::{format_value, Expr},
 };
 
@@ -29,7 +30,7 @@ fn do_reports_intermediate_errors() {
 
     let err = result.unwrap_err();
 
-    assert!(matches!(err, EvalError::UndefinedSymbol(s) if s == "write33"));
+    assert!(matches!(err, Error::UndefinedSymbol(s) if s == "write33"));
 }
 
 #[test]
@@ -86,7 +87,7 @@ fn eval_reports_let_errors() {
     let err = result.unwrap_err();
 
     assert!(
-        matches!(err, EvalError::InvalidArguments(x) if x == "let cannot shadow the reserved symbol `if`")
+        matches!(err, Error::InvalidArguments(x) if x == "let cannot shadow the reserved symbol `if`")
     );
 }
 
