@@ -54,7 +54,7 @@ impl fmt::Display for Error {
             Error::NotInvocable(text) => text.to_owned(),
         };
 
-        write!(f, "parse error: {}", err)
+        write!(f, "{err}")
     }
 }
 

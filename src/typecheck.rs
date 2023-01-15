@@ -11,23 +11,20 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Err
     // #TODO update the original annotations!
     match expr {
         Ann(Expr::Int(_), _) => {
-            // #TODO check if it already has the annotation!
-            expr.1 = Some(vec![Expr::symbol("Int")]);
+            expr.set_type_annotation(Expr::symbol("Int"));
             Ok(expr)
         }
         Ann(Expr::Float(_), _) => {
-            // #TODO check if it already has the annotation!
-            expr.1 = Some(vec![Expr::symbol("Float")]);
+            expr.set_type_annotation(Expr::symbol("Float"));
             Ok(expr)
         }
         Ann(Expr::String(_), _) => {
-            // #TODO check if it already has the annotation!
-            expr.1 = Some(vec![Expr::symbol("String")]);
+            expr.set_type_annotation(Expr::symbol("String"));
             Ok(expr)
         }
         Ann(Expr::Symbol(ref sym), _) => {
             if is_reserved_symbol(sym) {
-                expr.1 = Some(vec![Expr::symbol("Symbol")]);
+                expr.set_type_annotation(Expr::symbol("Symbol"));
                 return Ok(expr);
             }
 
@@ -51,7 +48,7 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Err
             };
 
             let value = resolve_type(value.clone(), env)?;
-            expr.1 = Some(vec![value.type_annotation()]);
+            expr.set_type_annotation(value.type_annotation());
             Ok(expr)
         }
         Ann(Expr::List(ref list), _) => {
@@ -97,7 +94,9 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Err
                         }
 
                         let value = resolve_type(value.clone(), env)?;
-                        expr.1 = Some(vec![value.type_annotation()]);
+                        let mut map = expr.1.clone().unwrap_or_default();
+                        map.insert("type".to_owned(), value.type_annotation());
+                        expr.1 = Some(map);
 
                         // #TODO notify about overrides? use `set`?
                         env.insert(s, value);

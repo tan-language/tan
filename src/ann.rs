@@ -1,6 +1,9 @@
 use core::fmt;
+use std::collections::HashMap;
 
 use crate::expr::Expr;
+
+// #TODO somehow annotations should trigger macros.
 
 // #TODO
 // - Uppercase -> (:type Uppercase)
@@ -21,11 +24,19 @@ use crate::expr::Expr;
 // #TODO get range from annotation.
 
 #[derive(Clone)]
-pub struct Ann<T>(pub T, pub Option<Vec<Expr>>);
+pub struct Ann<T>(pub T, pub Option<HashMap<String, Expr>>);
 
 impl<T> Ann<T> {
-    pub fn typed(value: T, ann: Expr) -> Self {
-        Self(value, Some(vec![ann]))
+    pub fn typed(value: T, type_expr: Expr) -> Self {
+        let mut map = HashMap::new();
+        map.insert("type".to_owned(), type_expr);
+        Self(value, Some(map))
+    }
+
+    pub fn set_type_annotation(&mut self, type_expr: Expr) {
+        let mut map = self.1.clone().unwrap_or_default();
+        map.insert("type".to_owned(), type_expr);
+        self.1 = Some(map);
     }
 }
 
@@ -43,10 +54,10 @@ where
                 .clone()
                 .unwrap()
                 .iter()
-                .map(|a| a.to_string())
+                .map(|(k, v)| format!("{}={}", k, v))
                 .collect::<Vec<_>>()
                 .join(",");
-            write!(f, "{:?}::{anns}", self.0)
+            write!(f, "{:?}@[{anns}]", self.0)
         } else {
             write!(f, "{:?}", self.0)
         }

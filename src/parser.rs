@@ -45,10 +45,11 @@ where
     /// The annotations are parsed into an Expr representation.
     fn attach_buffered_annotations(&mut self, expr: Expr) -> Result<Ann<Expr>, Ranged<Error>> {
         let Some(annotations) = self.buffered_annotations.take() else {
+            // No annotations for the expression.
             return Ok(Ann::new(expr));
         };
 
-        let mut ann_exprs = Vec::new();
+        let mut ann: HashMap<String, Expr> = HashMap::new();
 
         for Ranged(ann_str, ann_range) in annotations {
             let mut lexer = Lexer::new(&ann_str);
@@ -61,10 +62,36 @@ where
 
             let Ann(ann_expr, ..) = parser.parse()?;
 
-            ann_exprs.push(ann_expr);
+            // #TODO think some more how annotations should be handled.
+
+            match &ann_expr {
+                Expr::Symbol(sym) => {
+                    if sym.is_empty() {
+                        return Err(Ranged(Error::MalformedAnnotation(ann_str), ann_range));
+                    }
+
+                    if sym.chars().next().unwrap().is_uppercase() {
+                        // Type shorthand
+                        ann.insert("type".to_owned(), ann_expr);
+                    } else {
+                        // Bool=true shorthand
+                        ann.insert(sym.clone(), Expr::Bool(true));
+                    }
+                }
+                Expr::List(list) => {
+                    if let Some(Ann(Expr::Symbol(sym), _)) = list.first() {
+                        ann.insert(sym.clone(), ann_expr);
+                    } else {
+                        return Err(Ranged(Error::MalformedAnnotation(ann_str), ann_range));
+                    }
+                }
+                _ => {
+                    return Err(Ranged(Error::MalformedAnnotation(ann_str), ann_range));
+                }
+            }
         }
 
-        Ok(Ann(expr, Some(ann_exprs)))
+        Ok(Ann(expr, Some(ann)))
     }
 
     pub fn parse_expr(&mut self, token: Ranged<Token>) -> Result<Option<Expr>, Ranged<Error>> {

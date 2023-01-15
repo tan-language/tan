@@ -166,8 +166,13 @@ impl Ann<Expr> {
             return Expr::symbol("One");
         };
 
+        let Some(ann) = annotations.get("type") else {
+            return Expr::symbol("One");
+        };
+
+        ann.clone()
         // #TODO temp shortcut, the first ann is considered a type annotation.
-        annotations.first().cloned().unwrap()
+        // annotations.first().cloned().unwrap()
     }
 
     // #TODO find a better name.
