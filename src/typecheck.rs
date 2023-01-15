@@ -7,6 +7,7 @@ use crate::{ann::Ann, error::Error, eval::env::Env, expr::Expr, util::is_reserve
 // #TODO consider renaming to `type_eval`.
 pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
     // #TODO update the original annotations!
+    // #TODO need to handle _all_ Expr variants.
     match expr {
         Ann(Expr::Int(_), _) => {
             expr.set_type_annotation(Expr::symbol("Int"));
@@ -22,6 +23,11 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Err
         }
         Ann(Expr::KeySymbol(_), _) => {
             expr.set_type_annotation(Expr::symbol("KeySymbol"));
+            Ok(expr)
+        }
+        // #TODO hmm... ultra-hack.
+        Ann(Expr::Array(..), _) => {
+            expr.set_type_annotation(Expr::symbol("Array"));
             Ok(expr)
         }
         Ann(Expr::Symbol(ref sym), _) => {
@@ -46,7 +52,10 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Err
             };
 
             let Some(value) = result else {
-                return Err(Error::UndefinedSymbol(sym.clone()));
+                // #TODO what needs to happen here?
+                // return Err(Error::UndefinedSymbol(sym.clone()));
+                expr.set_type_annotation(Expr::symbol("Symbol"));
+                return Ok(expr);
             };
 
             let value = resolve_type(value.clone(), env)?;

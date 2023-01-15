@@ -1,0 +1,12 @@
+(do
+    (let xs [1 2 3 4])
+    (let xs_iter (iter xs))
+    (for (next xs_iter x) (do
+        (write "value: " x "\n")
+    ))
+)
+
+; desugared
+;
+; (for (let x (next xs)) (do ...))
+; (for_each xs x (do ...))

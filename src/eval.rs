@@ -259,6 +259,37 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Error> {
 
                             Ok(value)
                         }
+                        "for_each" => {
+                            // #TODO this is a temp hack!
+                            let [seq, var, body] = tail else {
+                                return Err(Error::invalid_arguments("malformed `for_each`"));
+                            };
+
+                            let seq = eval(seq, env)?;
+
+                            let Expr::Array(arr) = seq else {
+                                // #TODO can we range this error?
+                                return Err(Error::invalid_arguments("`for_each` requires a `Seq` as the first argument"));
+                            };
+
+                            let Ann(Expr::Symbol(sym), _) = var else {
+                                // #TODO can we range this error?
+                                return Err(Error::invalid_arguments("`for_each` requires a symbol as the second argument"));
+                            };
+
+                            env.push_new_scope();
+
+                            for x in arr {
+                                // #TODO array should have Ann<Expr> use Ann<Expr> everywhere, argh the clones!
+                                env.insert(sym, Ann::new(x.clone()));
+                                eval(body, env)?;
+                            }
+
+                            env.pop();
+
+                            // #TODO intentionally don't return a value, reconsider this?
+                            Ok(Expr::One)
+                        }
                         "let" => {
                             // #TODO also report some of these errors statically, maybe in a sema phase?
                             let mut args = tail.iter();

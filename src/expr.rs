@@ -64,7 +64,7 @@ impl fmt::Debug for Expr {
             Expr::Bool(b) => format!("Bool({b})"),
             Expr::Symbol(s) => format!("Symbol({s})"),
             Expr::KeySymbol(s) => format!("KeySymbol({s})"),
-            Expr::String(s) => format!("String({s})"),
+            Expr::String(s) => format!("String(\"{s}\")"),
             Expr::Int(num) => format!("Int({num})"),
             Expr::Float(num) => format!("Float({num})"),
             Expr::Do => "do".to_owned(),
