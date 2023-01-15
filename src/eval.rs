@@ -91,6 +91,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, EvalError> {
             }
         }
         Expr::List(list) => {
+            // #TODO no need for dynamic invocable, can use (apply f ...) / (invoke f ...) instead.
             // #TODO replace head/tail with first/rest
 
             if list.is_empty() {
