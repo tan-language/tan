@@ -49,7 +49,7 @@ pub fn setup_prelude(env: Env) -> Env {
 
     env.insert("write", Expr::ForeignFunc(Rc::new(write)));
     env.insert("write$$String", Expr::ForeignFunc(Rc::new(write)));
-    env.insert("writeln", Expr::ForeignFunc(Rc::new(write)));
+    env.insert("writeln", Expr::ForeignFunc(Rc::new(writeln)));
     env.insert("writeln$$String", Expr::ForeignFunc(Rc::new(writeln)));
 
     // process

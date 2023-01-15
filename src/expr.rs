@@ -21,6 +21,8 @@ use crate::{ann::Ann, error::Error, eval::env::Env};
 // #TODO introduce ForeignValue?
 // #TODO ExprFn should get a single Expr? -> nah, it's foreign.
 
+// #TODO not all Expr variants really need Ann, maybe the annotation should be internal to Expr?
+
 // A function that accepts a list of Exprs and returns an Expr.
 pub type ExprFn = dyn Fn(&[Expr], &Env) -> Result<Expr, Error>;
 
