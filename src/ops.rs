@@ -1,6 +1,7 @@
 pub mod arithmetic;
 pub mod eq;
 pub mod io;
+pub mod lang;
 pub mod process;
 
 // #TODO helper function or macro for arithmetic operations!

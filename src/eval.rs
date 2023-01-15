@@ -1,6 +1,8 @@
 pub mod env;
 pub mod prelude;
 
+use std::collections::HashMap;
+
 use crate::{
     ann::Ann,
     error::Error,
@@ -199,6 +201,26 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Error> {
                                 value = eval(expr, env)?;
                             }
                             Ok(value)
+                        }
+                        "ann" => {
+                            // #Insight implemented as special-form because it applies to Ann<Expr>.
+                            // #TODO try to implement as ForeignFn
+
+                            if tail.len() != 1 {
+                                return Err(Error::invalid_arguments(
+                                    "`ann` requires one argument",
+                                ));
+                            }
+
+                            // #TODO support multiple arguments.
+
+                            let expr = tail.first().unwrap();
+
+                            if let Some(ann) = expr.1.clone() {
+                                Ok(Expr::Dict(ann))
+                            } else {
+                                Ok(Expr::Dict(HashMap::new()))
+                            }
                         }
                         "quot" => {
                             let [value] = tail else {
