@@ -1,12 +1,14 @@
 mod common;
 
-use tan::error::Error;
 use tan::{
+    api::eval_string,
+    error::Error,
     eval::{env::Env, eval},
     expr::{format_value, Expr},
+    range::Ranged,
 };
 
-use crate::common::{eval_file, eval_string, read_file};
+use crate::common::{eval_file, read_file};
 
 #[test]
 fn eval_processes_arithmetic_expressions() {
@@ -30,7 +32,8 @@ fn do_reports_intermediate_errors() {
 
     let err = result.unwrap_err();
 
-    assert!(matches!(err, Error::UndefinedSymbol(s) if s == "write33"));
+    assert!(matches!(err, Ranged(Error::UndefinedSymbol(s), ..) if s == "write33"));
+    // assert!(matches!(err, Ranged(Error::UndefinedFunction(s, _), ..) if s == "write33"));
 }
 
 #[test]
@@ -46,7 +49,8 @@ fn eval_processes_conditionals() {
 
 #[test]
 fn eval_processes_keyword_symbols() {
-    let result = eval_string(":key").unwrap();
+    let mut env = Env::prelude();
+    let result = eval_string(":key", &mut env).unwrap();
 
     assert!(matches!(result, Expr::KeySymbol(x) if x == "key"));
 }
@@ -54,8 +58,7 @@ fn eval_processes_keyword_symbols() {
 #[test]
 fn eval_processes_empty_list() {
     let expr = Expr::List(Vec::new());
-    let mut env = Env::new();
-
+    let mut env = Env::prelude();
     let value = eval(expr, &mut env).unwrap();
 
     assert!(matches!(value, Expr::One));
@@ -63,7 +66,8 @@ fn eval_processes_empty_list() {
 
 #[test]
 fn eval_processes_let() {
-    let result = eval_string("(do (let a (+ 1 2 3)) a)");
+    let mut env = Env::prelude();
+    let result = eval_string("(do (let a (+ 1 2 3)) a)", &mut env);
     dbg!(&result);
 
     // #TODO add asserts!
@@ -71,23 +75,25 @@ fn eval_processes_let() {
 
 #[test]
 fn eval_processes_booleans() {
-    let value = eval_string("(do (let flag true) flag)").unwrap();
+    let mut env = Env::prelude();
+    let value = eval_string("(do (let flag true) flag)", &mut env).unwrap();
     assert!(matches!(value, Expr::Bool(x) if x));
 
-    let value = eval_string("(do (let flag false) flag)").unwrap();
+    let value = eval_string("(do (let flag false) flag)", &mut env).unwrap();
     assert!(matches!(value, Expr::Bool(x) if !x));
 }
 
 #[test]
 fn eval_reports_let_errors() {
-    let result = eval_string("(do (let if (+ 1 2 3)) a)");
+    let mut env = Env::prelude();
+    let result = eval_string("(do (let if (+ 1 2 3)) a)", &mut env);
 
     assert!(result.is_err());
 
     let err = result.unwrap_err();
 
     assert!(
-        matches!(err, Error::InvalidArguments(x) if x == "let cannot shadow the reserved symbol `if`")
+        matches!(err, Ranged(Error::InvalidArguments(x), ..) if x == "let cannot shadow the reserved symbol `if`")
     );
 }
 

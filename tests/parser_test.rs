@@ -2,13 +2,12 @@ mod common;
 
 use tan::{
     ann::Ann,
+    api::parse_string,
     expr::Expr,
     lexer::{token::Token, Lexer},
     parser::Parser,
     range::Ranged,
 };
-
-use crate::common::parse_string;
 
 fn read_input(filename: &str) -> String {
     std::fs::read_to_string(format!("tests/fixtures/{filename}")).unwrap()

@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{ann::Ann, error::Error, eval::env::Env, expr::Expr, util::is_reserved_symbol};
 
 // #TODO consider renaming to `resolver` or `typecheck` or `type_eval`.
@@ -75,6 +77,7 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Err
             let head = list.first().unwrap();
             let tail = &list[1..];
 
+            // #TODO there should be no mangling, just an annotation!
             // #TODO also perform error checking here, e.g. if the head is invocable.
             // #TODO Expr.is_invocable, Expr.get_invocable_name, Expr.get_type
             // #TODO handle non-symbol cases!
@@ -127,9 +130,9 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Err
                     }
 
                     let head = if let Ann(Expr::Symbol(ref sym), ann_sym) = head {
-                        let sym = if is_reserved_symbol(sym) {
-                            sym.clone()
-                        } else {
+                        let mut ann_sym = ann_sym.clone();
+
+                        if !is_reserved_symbol(sym) {
                             // #TODO should recursively resolve first!
 
                             let mut signature = Vec::new();
@@ -140,10 +143,13 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Err
 
                             let signature = signature.join("$$");
 
-                            format!("{sym}$${signature}")
+                            ann_sym.get_or_insert(HashMap::new()).insert(
+                                "op".to_owned(),
+                                Expr::Symbol(format!("{sym}$${signature}")),
+                            );
                         };
 
-                        Ann(Expr::Symbol(sym), ann_sym.clone())
+                        Ann(Expr::Symbol(sym.clone()), ann_sym)
                     } else {
                         head.clone()
                     };

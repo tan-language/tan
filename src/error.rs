@@ -27,6 +27,7 @@ pub enum Error {
 
     // Semantic errors
     UndefinedSymbol(String), // #TODO maybe pass the whole Symbol expression?
+    UndefinedFunction(String, String), // #TODO maybe pass the whole Symbol expression?
     InvalidArguments(String),
     NotInvocable(String), // #TODO maybe the non-invocable Annotated<Expr> should be the param?
 
@@ -49,6 +50,9 @@ impl fmt::Display for Error {
             Error::UnterminatedList => "unterminated list".to_owned(),
             Error::MalformedAnnotation(ann) => format!("malformed annotation `{ann}`"),
             Error::UndefinedSymbol(sym) => format!("`{sym}` is undefined"),
+            Error::UndefinedFunction(sym, signature) => {
+                format!("function `{sym}` with signature `{signature}` is undefined")
+            }
             Error::Io(io_err) => format!("i/o error: {io_err}"),
             Error::InvalidArguments(text) => text.to_owned(),
             Error::NotInvocable(text) => text.to_owned(),

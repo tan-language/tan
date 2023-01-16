@@ -38,6 +38,8 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Error> {
 
     match expr {
         Expr::Symbol(sym) => {
+            // #TODO differentiate between evaluating symbol in 'op' position.
+
             if is_reserved_symbol(sym) {
                 return Ok(expr.clone());
             }
@@ -46,23 +48,55 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Error> {
 
             let result = env.get(sym);
 
-            // #TODO ULTRA-HACK until we properly resolve types
-            let result = if result.is_none() {
-                if let Some((sym, _)) = sym.split_once("$$") {
-                    env.get(sym)
-                } else {
-                    result
-                }
+            if sym.contains("$$") {
+                // Symbol in 'operator' position.
+
+                if let Some(Ann(expr, ..)) = result {
+                    // #TODO hm, can we somehow work with references?
+                    return Ok(expr.clone());
+                };
+
+                // #TODO ULTRA-HACK until we properly resolve types
+                let (unmangled_sym, signature) = sym.split_once("$$").unwrap();
+
+                let result = env.get(unmangled_sym);
+
+                let Some(Ann(expr, ..)) = result else {
+                    // #TODO different error, undefined function!
+                    // #TODO for the moment we return undefined
+                    return Err(Error::UndefinedFunction(unmangled_sym.to_owned(), signature.to_owned()));
+                };
+
+                // #TODO hm, can we somehow work with references?
+                Ok(expr.clone())
             } else {
-                result
-            };
+                let Some(Ann(expr, ..)) = result else {
+                    return Err(Error::UndefinedSymbol(sym.clone()));
+                };
 
-            let Some(Ann(expr, ..)) = result else {
-                return Err(Error::UndefinedSymbol(sym.clone()));
-            };
+                // #TODO hm, can we somehow work with references?
+                Ok(expr.clone())
+            }
 
-            // #TODO hm, can we somehow work with references?
-            Ok(expr.clone())
+            // let result = env.get(sym);
+
+            // // #TODO ULTRA-HACK until we properly resolve types
+            // let result = if result.is_none() {
+            //     if let Some((sym, _)) = sym.split_once("$$") {
+            //         env.get(sym)
+            //     } else {
+            //         result
+            //     }
+            // } else {
+            //     result
+            // };
+
+            // let Some(Ann(expr, ..)) = result else {
+            //     return Err(Error::UndefinedSymbol(sym.clone()));
+            // };
+
+            // // #TODO hm, can we somehow work with references?
+            // Ok(expr.clone())
         }
         Expr::KeySymbol(..) => {
             // #TODO handle 'PathSymbol'
