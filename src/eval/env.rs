@@ -85,7 +85,7 @@ impl Env {
     }
 
     /// Updates an existing binding, walks the environment.
-    pub fn update(&mut self, name: &str, value: Expr) {
+    pub fn update(&mut self, name: &str, value: impl Into<Ann<Expr>>) {
         let nesting = self.scopes.len();
 
         // #TODO optimize here!
@@ -94,7 +94,7 @@ impl Env {
         for i in (0..nesting).rev() {
             let scope = &mut self.scopes[i];
             if let Some(binding) = scope.get_mut(name) {
-                binding.0 = value;
+                *binding = value.into();
                 break;
             }
         }

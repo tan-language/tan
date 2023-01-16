@@ -1,4 +1,4 @@
-use crate::{api::Result, error::Error, eval::env::Env, expr::Expr};
+use crate::{ann::Ann, api::Result, error::Error, eval::env::Env, expr::Expr};
 
 // #Insight
 // Named `arithmetic` as those operators can apply to non-numbers, e.g. Time, Date
@@ -6,59 +6,59 @@ use crate::{api::Result, error::Error, eval::env::Env, expr::Expr};
 // #TODO use AsRef, to avoid Annotated!
 // #TODO use macros to generate specializations for generic versions.
 
-pub fn add_int(args: &[Expr], _env: &Env) -> Result<Expr> {
+pub fn add_int(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>> {
     let mut sum = 0;
 
     for arg in args {
-        let Expr::Int(n) = arg else {
+        let Ann(Expr::Int(n), ..) = arg else {
             return Err(Error::invalid_arguments(format!("`{}` is not an Int", arg)).into());
         };
         sum += n;
     }
 
-    Ok(Expr::Int(sum))
+    Ok(Expr::Int(sum).into())
 }
 
-pub fn add_float(args: &[Expr], _env: &Env) -> Result<Expr> {
+pub fn add_float(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>> {
     let mut sum = 0.0;
 
     for arg in args {
-        let Expr::Float(n) = arg else {
+        let Ann(Expr::Float(n), ..) = arg else {
             return Err(Error::invalid_arguments(format!("`{}` is not a Float", arg)).into());
         };
         sum += n;
     }
 
-    Ok(Expr::Float(sum))
+    Ok(Expr::Float(sum).into())
 }
 
-pub fn sub(args: &[Expr], _env: &Env) -> Result<Expr> {
+pub fn sub(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>> {
     // #TODO support multiple arguments.
     let [a, b] = args else {
         return Err(Error::invalid_arguments("`-` requires at least two arguments").into());
     };
 
-    let Expr::Int(a) = a else {
+    let Ann(Expr::Int(a), ..) = a else {
         return Err(Error::invalid_arguments(format!("`{}` is not an Int", a)).into());
     };
 
-    let Expr::Int(b) = b else {
+    let Ann(Expr::Int(b), ..) = b else {
         return Err(Error::invalid_arguments(format!("`{}` is not an Int", b)).into());
     };
 
-    Ok(Expr::Int(a - b))
+    Ok(Expr::Int(a - b).into())
 }
 
-pub fn mul(args: &[Expr], _env: &Env) -> Result<Expr> {
+pub fn mul(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>> {
     // #TODO optimize!
     let mut prod = 1;
 
     for arg in args {
-        let Expr::Int(n) = arg else {
+        let Ann(Expr::Int(n), ..) = arg else {
             return Err(Error::invalid_arguments(format!("`{}` is not an Int", arg)).into());
         };
         prod *= n;
     }
 
-    Ok(Expr::Int(prod))
+    Ok(Expr::Int(prod).into())
 }

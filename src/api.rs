@@ -27,15 +27,14 @@ pub fn parse_string(input: impl AsRef<str>) -> Result<Ann<Expr>> {
     Ok(expr)
 }
 
-// #TODO is there any reason to return Ann<Expr>?
 /// Evaluates a Tan expression encoded as a text string.
-pub fn eval_string(input: impl AsRef<str>, env: &mut Env) -> Result<Expr> {
+pub fn eval_string(input: impl AsRef<str>, env: &mut Env) -> Result<Ann<Expr>> {
     let expr = parse_string(input)?;
 
     // #TODO should we push a new env?
     let expr = resolve_type(expr, env)?;
 
-    let value = eval(expr, env)?;
+    let value = eval(&expr, env)?;
 
     Ok(value)
 }

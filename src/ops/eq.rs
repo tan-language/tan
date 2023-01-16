@@ -1,6 +1,6 @@
-use crate::{api::Result, error::Error, eval::env::Env, expr::Expr};
+use crate::{ann::Ann, api::Result, error::Error, eval::env::Env, expr::Expr};
 
-pub fn eq(args: &[Expr], _env: &Env) -> Result<Expr> {
+pub fn eq(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>> {
     // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
     // #TODO support overloading,
     // #TODO make equality a method of Expr?
@@ -10,47 +10,47 @@ pub fn eq(args: &[Expr], _env: &Env) -> Result<Expr> {
         return Err(Error::invalid_arguments("`-` requires at least two arguments").into());
     };
 
-    let Expr::Int(a) = a else {
+    let Ann(Expr::Int(a), ..) = a else {
         return Err(Error::invalid_arguments(format!("`{}` is not an Int", a)).into());
     };
 
-    let Expr::Int(b) = b else {
+    let Ann(Expr::Int(b), ..) = b else {
         return Err(Error::invalid_arguments(format!("`{}` is not an Int", b)).into());
     };
 
-    Ok(Expr::Bool(a == b))
+    Ok(Expr::Bool(a == b).into())
 }
 
-pub fn gt(args: &[Expr], _env: &Env) -> Result<Expr> {
+pub fn gt(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>> {
     // #TODO support multiple arguments.
     let [a, b] = args else {
         return Err(Error::invalid_arguments("`-` requires at least two arguments").into());
     };
 
-    let Expr::Int(a) = a else {
+    let Ann(Expr::Int(a), ..) = a else {
         return Err(Error::invalid_arguments(format!("`{}` is not an Int", a)).into());
     };
 
-    let Expr::Int(b) = b else {
+    let Ann(Expr::Int(b), ..) = b else {
         return Err(Error::invalid_arguments(format!("`{}` is not an Int", b)).into());
     };
 
-    Ok(Expr::Bool(a > b))
+    Ok(Expr::Bool(a > b).into())
 }
 
-pub fn lt(args: &[Expr], _env: &Env) -> Result<Expr> {
+pub fn lt(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>> {
     // #TODO support multiple arguments.
     let [a, b] = args else {
         return Err(Error::invalid_arguments("`-` requires at least two arguments").into());
     };
 
-    let Expr::Int(a) = a else {
+    let Ann(Expr::Int(a), ..) = a else {
         return Err(Error::invalid_arguments(format!("`{}` is not an Int", a)).into());
     };
 
-    let Expr::Int(b) = b else {
+    let Ann(Expr::Int(b), ..) = b else {
         return Err(Error::invalid_arguments(format!("`{}` is not an Int", b)).into());
     };
 
-    Ok(Expr::Bool(a < b))
+    Ok(Expr::Bool(a < b).into())
 }

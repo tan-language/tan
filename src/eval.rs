@@ -5,9 +5,9 @@ use std::collections::HashMap;
 
 use crate::{
     ann::Ann,
+    api::Result,
     error::Error,
     expr::{format_value, Expr},
-    range::Ranged,
     util::is_reserved_symbol,
 };
 
@@ -26,19 +26,19 @@ use self::env::Env;
 // #TODO Stack-trace is needed!
 
 // #TODO give more 'general' name.
-fn eval_args(args: &[Ann<Expr>], env: &mut Env) -> Result<Vec<Expr>, Ranged<Error>> {
+fn eval_args(args: &[Ann<Expr>], env: &mut Env) -> Result<Vec<Ann<Expr>>> {
     args.iter()
         .map(|x| eval(x, env))
-        .collect::<Result<Vec<_>, _>>()
+        .collect::<Result<Vec<_>>>()
 }
 
 /// Evaluates via expression rewriting. The expression `expr` evaluates to
 /// a fixed point. In essence this is a 'tree-walk' interpreter.
-pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Ranged<Error>> {
-    let expr = expr.as_ref();
+pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>> {
+    // let expr = expr.as_ref();
 
     match expr {
-        Expr::Symbol(sym) => {
+        Ann(Expr::Symbol(sym), _ann) => {
             // #TODO differentiate between evaluating symbol in 'op' position.
 
             if is_reserved_symbol(sym) {
@@ -49,10 +49,12 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Ranged<Error>
 
             let result = env.get(sym);
 
+            // #TODO check the `op` annotation instead of the mangling shenanigans.
+
             if sym.contains("$$") {
                 // Symbol in 'operator' position.
 
-                if let Some(Ann(expr, ..)) = result {
+                if let Some(expr) = result {
                     // #TODO hm, can we somehow work with references?
                     return Ok(expr.clone());
                 };
@@ -62,7 +64,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Ranged<Error>
 
                 let result = env.get(unmangled_sym);
 
-                let Some(Ann(expr, ..)) = result else {
+                let Some(expr) = result else {
                     // #TODO different error, undefined function!
                     // #TODO for the moment we return undefined
                     return Err(Error::UndefinedFunction(unmangled_sym.to_owned(), signature.to_owned()).into());
@@ -71,35 +73,15 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Ranged<Error>
                 // #TODO hm, can we somehow work with references?
                 Ok(expr.clone())
             } else {
-                let Some(Ann(expr, ..)) = result else {
+                let Some(expr) = result else {
                     return Err(Error::UndefinedSymbol(sym.clone()).into());
                 };
 
                 // #TODO hm, can we somehow work with references?
                 Ok(expr.clone())
             }
-
-            // let result = env.get(sym);
-
-            // // #TODO ULTRA-HACK until we properly resolve types
-            // let result = if result.is_none() {
-            //     if let Some((sym, _)) = sym.split_once("$$") {
-            //         env.get(sym)
-            //     } else {
-            //         result
-            //     }
-            // } else {
-            //     result
-            // };
-
-            // let Some(Ann(expr, ..)) = result else {
-            //     return Err(Error::UndefinedSymbol(sym.clone()));
-            // };
-
-            // // #TODO hm, can we somehow work with references?
-            // Ok(expr.clone())
         }
-        Expr::KeySymbol(..) => {
+        Ann(Expr::KeySymbol(..), ..) => {
             // #TODO handle 'PathSymbol'
 
             // #TODO lint '::' etc.
@@ -111,10 +93,10 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Ranged<Error>
             // named (keyed) function parameter, enum variants, etc.
             Ok(expr.clone())
         }
-        Expr::If(predicate, true_clause, false_clause) => {
+        Ann(Expr::If(predicate, true_clause, false_clause), ..) => {
             let predicate = eval(predicate, env)?;
 
-            let Expr::Bool(predicate) = predicate else {
+            let Ann(Expr::Bool(predicate), ..) = predicate else {
                 // #TODO can we range this error?
                 return Err(Error::InvalidArguments("the if predicate is not a boolean value".to_owned()).into());
             };
@@ -125,10 +107,10 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Ranged<Error>
                 eval(false_clause, env)
             } else {
                 // #TODO what should we return if there is no false-clause? Zero/Never?
-                Ok(Expr::One)
+                Ok(Expr::One.into())
             }
         }
-        Expr::List(list) => {
+        Ann(Expr::List(list), ..) => {
             // #TODO no need for dynamic invocable, can use (apply f ...) / (invoke f ...) instead.
             // #TODO replace head/tail with first/rest
 
@@ -138,7 +120,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Ranged<Error>
                 // check is needed in the evaluator to handle the case where the
                 // expression is constructed programmatically (e.g. self-modifying code,
                 // dynamically constructed expression, homoiconicity, etc).
-                return Ok(Expr::One);
+                return Ok(Expr::One.into());
             }
 
             // The unwrap here is safe.
@@ -173,7 +155,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Ranged<Error>
                         env.insert(param, arg);
                     }
 
-                    let result = eval(body, env);
+                    let result = eval(&body, env);
 
                     env.pop();
 
@@ -195,15 +177,15 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Ranged<Error>
 
                     // #TODO optimize this!
                     // #TODO error checking, one arg, etc.
-                    let Expr::Int(index) = &args[0] else {
+                    let Ann(Expr::Int(index), ..) = &args[0] else {
                         return Err(Error::InvalidArguments("invalid array index, expecting Int".to_string()).into());
                     };
                     let index = *index as usize;
                     if let Some(value) = arr.get(index) {
-                        Ok(value.clone())
+                        Ok(value.clone().into())
                     } else {
                         // #TODO introduce Maybe { Some, None }
-                        Ok(Expr::One)
+                        Ok(Expr::One.into())
                     }
                 }
                 Expr::Dict(dict) => {
@@ -214,10 +196,10 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Ranged<Error>
                     // #TODO error checking, one arg, stringable, etc.
                     let key = format_value(&args[0]);
                     if let Some(value) = dict.get(&key) {
-                        Ok(value.clone())
+                        Ok(value.clone().into())
                     } else {
                         // #TODO introduce Maybe { Some, None }
-                        Ok(Expr::One)
+                        Ok(Expr::One.into())
                     }
                 }
                 // #TODO add handling of 'high-level', compound expressions here.
@@ -232,11 +214,11 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Ranged<Error>
                         // #TODO use the `optimize`/`raise` function, here to prepare high-level expression for evaluation, to avoid duplication.
                         "do" => {
                             // #TODO do should be 'monadic', propagate Eff (effect) wrapper.
-                            let mut value = Expr::One;
+                            let mut value = Expr::One.into();
                             for expr in tail {
                                 value = eval(expr, env)?;
                             }
-                            Ok(value)
+                            Ok(value.into())
                         }
                         "ann" => {
                             // #Insight implemented as special-form because it applies to Ann<Expr>.
@@ -254,9 +236,9 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Ranged<Error>
                             let expr = tail.first().unwrap();
 
                             if let Some(ann) = expr.1.clone() {
-                                Ok(Expr::Dict(ann))
+                                Ok(Expr::Dict(ann).into())
                             } else {
-                                Ok(Expr::Dict(HashMap::new()))
+                                Ok(Expr::Dict(HashMap::new()).into())
                             }
                         }
                         "quot" => {
@@ -265,7 +247,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Ranged<Error>
                             };
 
                             // #TODO hm, that clone, maybe `Rc` can fix this?
-                            Ok(value.0.clone())
+                            Ok(value.0.clone().into())
                         }
                         "for" => {
                             // #Insight
@@ -276,12 +258,12 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Ranged<Error>
                                 return Err(Error::invalid_arguments("missing for arguments").into());
                             };
 
-                            let mut value = Expr::One;
+                            let mut value = Expr::One.into();
 
                             loop {
                                 let predicate = eval(predicate, env)?;
 
-                                let Expr::Bool(predicate) = predicate else {
+                                let Ann(Expr::Bool(predicate), ..) = predicate else {
                                     // #TODO can we range this error?
                                     return Err(Error::invalid_arguments("the for predicate is not a boolean value").into());
                                 };
@@ -303,7 +285,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Ranged<Error>
 
                             let seq = eval(seq, env)?;
 
-                            let Expr::Array(arr) = seq else {
+                            let Ann(Expr::Array(arr), ..) = seq else {
                                 // #TODO can we range this error?
                                 return Err(Error::invalid_arguments("`for_each` requires a `Seq` as the first argument").into());
                             };
@@ -324,7 +306,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Ranged<Error>
                             env.pop();
 
                             // #TODO intentionally don't return a value, reconsider this?
-                            Ok(Expr::One)
+                            Ok(Expr::One.into())
                         }
                         "let" => {
                             // #TODO also report some of these errors statically, maybe in a sema phase?
@@ -358,7 +340,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Ranged<Error>
                             }
 
                             // #TODO return last value!
-                            Ok(Expr::One)
+                            Ok(Expr::One.into())
                         }
                         "Func" => {
                             let [args, body] = tail else {
@@ -370,7 +352,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Ranged<Error>
                             };
 
                             // #TODO optimize!
-                            Ok(Expr::Func(params.clone(), Box::new(body.clone())))
+                            Ok(Expr::Func(params.clone(), Box::new(body.clone())).into())
                         }
                         _ => {
                             return Err(Error::NotInvocable(format!("{}", head)).into());

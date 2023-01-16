@@ -1,6 +1,7 @@
 mod common;
 
 use tan::{
+    ann::Ann,
     api::eval_string,
     error::Error,
     eval::{env::Env, eval},
@@ -52,16 +53,16 @@ fn eval_processes_keyword_symbols() {
     let mut env = Env::prelude();
     let result = eval_string(":key", &mut env).unwrap();
 
-    assert!(matches!(result, Expr::KeySymbol(x) if x == "key"));
+    assert!(matches!(result, Ann(Expr::KeySymbol(x), ..) if x == "key"));
 }
 
 #[test]
 fn eval_processes_empty_list() {
-    let expr = Expr::List(Vec::new());
+    let expr = Expr::List(Vec::new()).into();
     let mut env = Env::prelude();
-    let value = eval(expr, &mut env).unwrap();
+    let value = eval(&expr, &mut env).unwrap();
 
-    assert!(matches!(value, Expr::One));
+    assert!(matches!(value, Ann(Expr::One, ..)));
 }
 
 #[test]
@@ -77,10 +78,10 @@ fn eval_processes_let() {
 fn eval_processes_booleans() {
     let mut env = Env::prelude();
     let value = eval_string("(do (let flag true) flag)", &mut env).unwrap();
-    assert!(matches!(value, Expr::Bool(x) if x));
+    assert!(matches!(value, Ann(Expr::Bool(x), ..) if x));
 
     let value = eval_string("(do (let flag false) flag)", &mut env).unwrap();
-    assert!(matches!(value, Expr::Bool(x) if !x));
+    assert!(matches!(value, Ann(Expr::Bool(x), ..) if !x));
 }
 
 #[test]
