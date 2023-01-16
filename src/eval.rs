@@ -7,6 +7,7 @@ use crate::{
     ann::Ann,
     error::Error,
     expr::{format_value, Expr},
+    range::Ranged,
     util::is_reserved_symbol,
 };
 
@@ -25,7 +26,7 @@ use self::env::Env;
 // #TODO Stack-trace is needed!
 
 // #TODO give more 'general' name.
-fn eval_args(args: &[Ann<Expr>], env: &mut Env) -> Result<Vec<Expr>, Error> {
+fn eval_args(args: &[Ann<Expr>], env: &mut Env) -> Result<Vec<Expr>, Ranged<Error>> {
     args.iter()
         .map(|x| eval(x, env))
         .collect::<Result<Vec<_>, _>>()
@@ -33,7 +34,7 @@ fn eval_args(args: &[Ann<Expr>], env: &mut Env) -> Result<Vec<Expr>, Error> {
 
 /// Evaluates via expression rewriting. The expression `expr` evaluates to
 /// a fixed point. In essence this is a 'tree-walk' interpreter.
-pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Error> {
+pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Ranged<Error>> {
     let expr = expr.as_ref();
 
     match expr {
@@ -64,14 +65,14 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Error> {
                 let Some(Ann(expr, ..)) = result else {
                     // #TODO different error, undefined function!
                     // #TODO for the moment we return undefined
-                    return Err(Error::UndefinedFunction(unmangled_sym.to_owned(), signature.to_owned()));
+                    return Err(Error::UndefinedFunction(unmangled_sym.to_owned(), signature.to_owned()).into());
                 };
 
                 // #TODO hm, can we somehow work with references?
                 Ok(expr.clone())
             } else {
                 let Some(Ann(expr, ..)) = result else {
-                    return Err(Error::UndefinedSymbol(sym.clone()));
+                    return Err(Error::UndefinedSymbol(sym.clone()).into());
                 };
 
                 // #TODO hm, can we somehow work with references?
@@ -115,7 +116,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Error> {
 
             let Expr::Bool(predicate) = predicate else {
                 // #TODO can we range this error?
-                return Err(Error::InvalidArguments("the if predicate is not a boolean value".to_owned()));
+                return Err(Error::InvalidArguments("the if predicate is not a boolean value".to_owned()).into());
             };
 
             if predicate {
@@ -166,7 +167,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Error> {
 
                     for (param, arg) in params.iter().zip(args) {
                         let Ann(Expr::Symbol(param), ..) = param else {
-                                return Err(Error::invalid_arguments("parameter is not a symbol"));
+                                return Err(Error::invalid_arguments("parameter is not a symbol").into());
                             };
 
                         env.insert(param, arg);
@@ -195,7 +196,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Error> {
                     // #TODO optimize this!
                     // #TODO error checking, one arg, etc.
                     let Expr::Int(index) = &args[0] else {
-                        return Err(Error::InvalidArguments("invalid array index, expecting Int".to_string()));
+                        return Err(Error::InvalidArguments("invalid array index, expecting Int".to_string()).into());
                     };
                     let index = *index as usize;
                     if let Some(value) = arr.get(index) {
@@ -244,7 +245,8 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Error> {
                             if tail.len() != 1 {
                                 return Err(Error::invalid_arguments(
                                     "`ann` requires one argument",
-                                ));
+                                )
+                                .into());
                             }
 
                             // #TODO support multiple arguments.
@@ -259,7 +261,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Error> {
                         }
                         "quot" => {
                             let [value] = tail else {
-                                return Err(Error::invalid_arguments("missing quote target"));
+                                return Err(Error::invalid_arguments("missing quote target").into());
                             };
 
                             // #TODO hm, that clone, maybe `Rc` can fix this?
@@ -271,7 +273,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Error> {
                             // `for` is also related with `do`.
                             let [predicate, body] = tail else {
                                 // #TODO proper error!
-                                return Err(Error::invalid_arguments("missing for arguments"));
+                                return Err(Error::invalid_arguments("missing for arguments").into());
                             };
 
                             let mut value = Expr::One;
@@ -281,7 +283,7 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Error> {
 
                                 let Expr::Bool(predicate) = predicate else {
                                     // #TODO can we range this error?
-                                    return Err(Error::invalid_arguments("the for predicate is not a boolean value"));
+                                    return Err(Error::invalid_arguments("the for predicate is not a boolean value").into());
                                 };
 
                                 if !predicate {
@@ -296,19 +298,19 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Error> {
                         "for_each" => {
                             // #TODO this is a temp hack!
                             let [seq, var, body] = tail else {
-                                return Err(Error::invalid_arguments("malformed `for_each`"));
+                                return Err(Error::invalid_arguments("malformed `for_each`").into());
                             };
 
                             let seq = eval(seq, env)?;
 
                             let Expr::Array(arr) = seq else {
                                 // #TODO can we range this error?
-                                return Err(Error::invalid_arguments("`for_each` requires a `Seq` as the first argument"));
+                                return Err(Error::invalid_arguments("`for_each` requires a `Seq` as the first argument").into());
                             };
 
                             let Ann(Expr::Symbol(sym), _) = var else {
                                 // #TODO can we range this error?
-                                return Err(Error::invalid_arguments("`for_each` requires a symbol as the second argument"));
+                                return Err(Error::invalid_arguments("`for_each` requires a symbol as the second argument").into());
                             };
 
                             env.push_new_scope();
@@ -339,13 +341,14 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Error> {
                                 };
 
                                 let Ann(Expr::Symbol(s), ..) = sym else {
-                                    return Err(Error::invalid_arguments(format!("`{}` is not a Symbol", sym)));
+                                    return Err(Error::invalid_arguments(format!("`{}` is not a Symbol", sym)).into());
                                 };
 
                                 if is_reserved_symbol(s) {
                                     return Err(Error::invalid_arguments(format!(
                                         "let cannot shadow the reserved symbol `{s}`"
-                                    )));
+                                    ))
+                                    .into());
                                 }
 
                                 let value = eval(value, env)?;
@@ -359,23 +362,23 @@ pub fn eval(expr: impl AsRef<Expr>, env: &mut Env) -> Result<Expr, Error> {
                         }
                         "Func" => {
                             let [args, body] = tail else {
-                                return Err(Error::invalid_arguments("malformed func invocation"));
+                                return Err(Error::invalid_arguments("malformed func invocation").into());
                             };
 
                             let Ann(Expr::List(params), ..) = args else {
-                                return Err(Error::invalid_arguments("malformed func invocation parameters"));
+                                return Err(Error::invalid_arguments("malformed func invocation parameters").into());
                             };
 
                             // #TODO optimize!
                             Ok(Expr::Func(params.clone(), Box::new(body.clone())))
                         }
                         _ => {
-                            return Err(Error::NotInvocable(format!("{}", head)));
+                            return Err(Error::NotInvocable(format!("{}", head)).into());
                         }
                     }
                 }
                 _ => {
-                    return Err(Error::NotInvocable(format!("{}", head)));
+                    return Err(Error::NotInvocable(format!("{}", head)).into());
                 }
             }
         }
