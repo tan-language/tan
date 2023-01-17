@@ -63,7 +63,7 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Err
             };
 
             let value = resolve_type(value.clone(), env)?;
-            expr.set_type(value.get_type());
+            expr.set_type(value.get_type().clone());
             Ok(expr)
         }
         Ann(Expr::List(ref list), _) => {
@@ -114,7 +114,7 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Err
 
                         let value = resolve_type(value.clone(), env)?;
                         let mut map = expr.1.clone().unwrap_or_default();
-                        map.insert("type".to_owned(), value.get_type());
+                        map.insert("type".to_owned(), value.get_type().clone());
                         ann = Some(map);
 
                         resolved_let_list.push(sym.clone());
@@ -146,7 +146,7 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Err
                             let signature = signature.join("$$");
 
                             ann_sym.get_or_insert(HashMap::new()).insert(
-                                "op".to_owned(),
+                                "method".to_owned(),
                                 Expr::Symbol(format!("{sym}$${signature}")),
                             );
                         };

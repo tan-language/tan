@@ -38,7 +38,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>> {
     // let expr = expr.as_ref();
 
     match expr {
-        Ann(Expr::Symbol(sym), _ann) => {
+        Ann(Expr::Symbol(sym), _) => {
             // #TODO differentiate between evaluating symbol in 'op' position.
 
             if is_reserved_symbol(sym) {
@@ -47,32 +47,32 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>> {
 
             // #TODO handle 'PathSymbol'
 
-            let result = env.get(sym);
+            if let Some(Expr::Symbol(method)) = expr.get_annotation("method") {
+                // If the symbol is annotated with a method, it's in 'operator' position.
 
-            // #TODO check the `op` annotation instead of the mangling shenanigans.
-
-            if sym.contains("$$") {
-                // Symbol in 'operator' position.
+                let result = env.get(method);
 
                 if let Some(expr) = result {
                     // #TODO hm, can we somehow work with references?
                     return Ok(expr.clone());
                 };
 
-                // #TODO ULTRA-HACK until we properly resolve types
-                let (unmangled_sym, signature) = sym.split_once("$$").unwrap();
+                // #TODO ultra-hack, if the method is not found, try to lookup the function symbol.
+                // #TODO should do proper type analysis here.
 
-                let result = env.get(unmangled_sym);
+                let result = env.get(sym);
 
                 let Some(expr) = result else {
                     // #TODO different error, undefined function!
                     // #TODO for the moment we return undefined
-                    return Err(Error::UndefinedFunction(unmangled_sym.to_owned(), signature.to_owned()).into());
+                    return Err(Error::UndefinedFunction(sym.to_owned(), method.to_owned()).into());
                 };
 
                 // #TODO hm, can we somehow work with references?
                 Ok(expr.clone())
             } else {
+                let result = env.get(sym);
+
                 let Some(expr) = result else {
                     return Err(Error::UndefinedSymbol(sym.clone()).into());
                 };

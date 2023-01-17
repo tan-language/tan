@@ -59,6 +59,8 @@ pub enum Expr {
     If(Box<Ann<Expr>>, Box<Ann<Expr>>, Option<Box<Ann<Expr>>>),
 }
 
+// #TODO what is the Expr default? One (Unit/Any) or Zero (Noting/Never)
+
 impl fmt::Debug for Expr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let text = match self {
@@ -162,7 +164,7 @@ impl Expr {
 
 // #TODO think where this function is used.
 // #TODO this is a confusing name!
-/// Formats the expression as a value.p
+/// Formats the expression as a value
 pub fn format_value(expr: impl AsRef<Expr>) -> String {
     let expr = expr.as_ref();
     match expr {

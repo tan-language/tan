@@ -33,8 +33,7 @@ fn do_reports_intermediate_errors() {
 
     let err = result.unwrap_err();
 
-    assert!(matches!(err, Ranged(Error::UndefinedSymbol(s), ..) if s == "write33"));
-    // assert!(matches!(err, Ranged(Error::UndefinedFunction(s, _), ..) if s == "write33"));
+    assert!(matches!(err, Ranged(Error::UndefinedFunction(s, _), ..) if s == "write33"));
 }
 
 #[test]

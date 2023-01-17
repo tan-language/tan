@@ -1,7 +1,7 @@
 use core::fmt;
 use std::collections::HashMap;
 
-use crate::expr::Expr;
+use crate::expr::{format_value, Expr};
 
 // #TODO somehow annotations should trigger macros.
 
@@ -13,6 +13,8 @@ use crate::expr::Expr;
 // #TODO consider {+/-}lowercase -> true/false
 
 // #TODO consider `Ann`, `Ax`, `An`, `Av`, `Anned`
+// #TODO define 'special' annotations, e.g. `type`, `range`, `method`, etc.
+// #TODO maybe use ALLCAP for special annotations? e.g. TYPE, RANGE, METHOD.
 
 // #Insight
 // The Annotated struct will be used a lot, it makes sense to use
@@ -27,6 +29,7 @@ use crate::expr::Expr;
 pub struct Ann<T>(pub T, pub Option<HashMap<String, Expr>>);
 
 impl<T> Ann<T> {
+    // #TODO consider `with_type`.
     pub fn typed(value: T, type_expr: Expr) -> Self {
         let mut map = HashMap::new();
         map.insert("type".to_owned(), type_expr);
@@ -35,45 +38,46 @@ impl<T> Ann<T> {
 }
 
 impl<T> Ann<T> {
-    // #TODO introduce `Unknown` type? or just use `One`?
-    // #TODO this should somehow return &Expr.
-    pub fn get_type(&self) -> Expr {
-        // #TODO optimize get_type for literals, and even skip adding as annotation?
+    pub fn set_annotation(&mut self, name: impl Into<String>, expr: Expr) {
+        self.1
+            .get_or_insert(HashMap::new())
+            .insert(name.into(), expr);
+    }
+
+    pub fn get_annotation(&self, name: impl Into<String>) -> Option<&Expr> {
         let Some(ref ann ) = self.1 else {
-                // #TODO One == Any ?
-                return Expr::symbol("One");
-            };
+            return None;
+        };
 
-        let Some(ann) = ann.get("type") else {
-                return Expr::symbol("One");
-            };
+        ann.get(&name.into())
+    }
 
-        // #TODO we should avoid this, try to return ref somehow (e.g. have One as predefined global? or static in Ann?)
-        ann.clone()
+    pub fn contains_annotation(&self, name: impl Into<String>) -> bool {
+        let Some(ref ann ) = self.1 else {
+            return false;
+        };
+
+        ann.contains_key(&name.into())
     }
 
     pub fn set_type(&mut self, type_expr: Expr) {
-        self.1
-            .get_or_insert(HashMap::new())
-            .insert("type".to_owned(), type_expr);
+        self.set_annotation("type", type_expr);
     }
 
-    // #TODO find a better name.
+    // #TODO consider specialization for `Ann<Expr>` that also checks the target?
+    // #TODO optimize get_type for literals, and even skip adding as annotation?
+    // #TODO introduce `Unknown` type? or just use `One`?
+    pub fn get_type(&self) -> &Expr {
+        self.get_annotation("type").unwrap_or(&Expr::One)
+    }
+
     pub fn to_type_string(&self) -> String {
-        let type_ann = self.get_type();
-
-        if let Expr::Symbol(type_name) = type_ann {
-            type_name
-        } else {
-            "One".to_string()
-        }
+        format_value(self.get_type())
     }
 
-    // pub fn set_method()
+    // #TODO get_range/span
+    // #TODO get_method (multiple-dispatch)
 }
-
-// #TODO get_type
-// #TODO get_range/span
 
 impl<T> fmt::Debug for Ann<T>
 where
