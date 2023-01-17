@@ -12,35 +12,37 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Err
     // #TODO need to handle _all_ Expr variants.
     match expr {
         Ann(Expr::Int(_), _) => {
-            expr.set_type_annotation(Expr::symbol("Int"));
+            expr.set_type(Expr::symbol("Int"));
             Ok(expr)
         }
         Ann(Expr::Float(_), _) => {
-            expr.set_type_annotation(Expr::symbol("Float"));
+            expr.set_type(Expr::symbol("Float"));
             Ok(expr)
         }
         Ann(Expr::String(_), _) => {
-            expr.set_type_annotation(Expr::symbol("String"));
+            expr.set_type(Expr::symbol("String"));
             Ok(expr)
         }
         Ann(Expr::KeySymbol(_), _) => {
-            expr.set_type_annotation(Expr::symbol("KeySymbol"));
+            expr.set_type(Expr::symbol("KeySymbol"));
             Ok(expr)
         }
         // #TODO hmm... ultra-hack.
         Ann(Expr::Array(..), _) => {
-            expr.set_type_annotation(Expr::symbol("Array"));
+            expr.set_type(Expr::symbol("Array"));
             Ok(expr)
         }
         Ann(Expr::Symbol(ref sym), _) => {
             if is_reserved_symbol(sym) {
-                expr.set_type_annotation(Expr::symbol("Symbol"));
+                expr.set_type(Expr::symbol("Symbol"));
                 return Ok(expr);
             }
 
             // #TODO handle 'PathSymbol'
 
             let result = env.get(sym);
+
+            // #TODO please note that multiple-dispatch is supposed to be dynamic!
 
             // #TODO ULTRA-HACK until we properly resolve types
             let result = if result.is_none() {
@@ -56,12 +58,12 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Err
             let Some(value) = result else {
                 // #TODO what needs to happen here?
                 // return Err(Error::UndefinedSymbol(sym.clone()));
-                expr.set_type_annotation(Expr::symbol("Symbol"));
+                expr.set_type(Expr::symbol("Symbol"));
                 return Ok(expr);
             };
 
             let value = resolve_type(value.clone(), env)?;
-            expr.set_type_annotation(value.type_annotation());
+            expr.set_type(value.get_type());
             Ok(expr)
         }
         Ann(Expr::List(ref list), _) => {
@@ -112,7 +114,7 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Err
 
                         let value = resolve_type(value.clone(), env)?;
                         let mut map = expr.1.clone().unwrap_or_default();
-                        map.insert("type".to_owned(), value.type_annotation());
+                        map.insert("type".to_owned(), value.get_type());
                         ann = Some(map);
 
                         resolved_let_list.push(sym.clone());

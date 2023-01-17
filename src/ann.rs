@@ -32,12 +32,44 @@ impl<T> Ann<T> {
         map.insert("type".to_owned(), type_expr);
         Self(value, Some(map))
     }
+}
 
-    pub fn set_type_annotation(&mut self, type_expr: Expr) {
-        let mut map = self.1.clone().unwrap_or_default();
-        map.insert("type".to_owned(), type_expr);
-        self.1 = Some(map);
+impl<T> Ann<T> {
+    // #TODO introduce `Unknown` type? or just use `One`?
+    // #TODO this should somehow return &Expr.
+    pub fn get_type(&self) -> Expr {
+        // #TODO optimize get_type for literals, and even skip adding as annotation?
+        let Some(ref ann ) = self.1 else {
+                // #TODO One == Any ?
+                return Expr::symbol("One");
+            };
+
+        let Some(ann) = ann.get("type") else {
+                return Expr::symbol("One");
+            };
+
+        // #TODO we should avoid this, try to return ref somehow (e.g. have One as predefined global? or static in Ann?)
+        ann.clone()
     }
+
+    pub fn set_type(&mut self, type_expr: Expr) {
+        self.1
+            .get_or_insert(HashMap::new())
+            .insert("type".to_owned(), type_expr);
+    }
+
+    // #TODO find a better name.
+    pub fn to_type_string(&self) -> String {
+        let type_ann = self.get_type();
+
+        if let Expr::Symbol(type_name) = type_ann {
+            type_name
+        } else {
+            "One".to_string()
+        }
+    }
+
+    // pub fn set_method()
 }
 
 // #TODO get_type

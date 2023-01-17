@@ -160,35 +160,6 @@ impl Expr {
     }
 }
 
-impl Ann<Expr> {
-    // #TODO introduce `Unknown` type? or just use `One`?
-    pub fn type_annotation(&self) -> Expr {
-        // #TODO optimize get_type for literals, and even skip adding as annotation?
-        let Some(ref annotations ) = self.1 else {
-            return Expr::symbol("One");
-        };
-
-        let Some(ann) = annotations.get("type") else {
-            return Expr::symbol("One");
-        };
-
-        ann.clone()
-        // #TODO temp shortcut, the first ann is considered a type annotation.
-        // annotations.first().cloned().unwrap()
-    }
-
-    // #TODO find a better name.
-    pub fn to_type_string(&self) -> String {
-        let type_ann = self.type_annotation();
-
-        if let Expr::Symbol(type_name) = type_ann {
-            type_name
-        } else {
-            "One".to_string()
-        }
-    }
-}
-
 // #TODO think where this function is used.
 // #TODO this is a confusing name!
 /// Formats the expression as a value.p
