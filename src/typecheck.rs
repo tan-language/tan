@@ -51,8 +51,6 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Err
             };
 
             let Some(value) = result else {
-                // #TODO what needs to happen here?
-                // return Err(Error::UndefinedSymbol(sym.clone()));
                 expr.set_type(Expr::symbol("Symbol"));
                 return Ok(expr);
             };

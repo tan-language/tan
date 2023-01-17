@@ -8,6 +8,7 @@ use crate::{
     api::Result,
     error::Error,
     expr::{format_value, Expr},
+    range::Ranged,
     util::is_reserved_symbol,
 };
 
@@ -47,49 +48,24 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>> {
 
             // #TODO handle 'PathSymbol'
 
-            // let result = if let Some(Expr::Symbol(method)) = expr.get_annotation("method") {
-            //     env.get(method)
-            // } else {
-            //     // #TODO ultra-hack just fall-back to 'function' name if method does not exist.
-            //     // #TODO should do proper type analysis here.
-            //     env.get(sym)
-            // };
-
-            if let Some(Expr::Symbol(method)) = expr.get_annotation("method") {
+            let value = if let Some(Expr::Symbol(method)) = expr.get_annotation("method") {
                 // If the symbol is annotated with a method, it's in 'operator' position.
-
-                let result = env.get(method);
-
-                if let Some(expr) = result {
-                    // #TODO hm, can we somehow work with references?
-                    return Ok(expr.clone());
-                };
-
-                // #TODO ultra-hack, if the method is not found, try to lookup the function symbol, fall-through.
-                // #TODO should do proper type analysis here.
-
-                let result = env.get(sym);
-
-                let Some(expr) = result else {
-                    // #TODO different error, undefined function!
-                    // #TODO for the moment we return undefined
-                    return Err(Error::UndefinedFunction(sym.to_owned(), method.to_owned()).into());
-                };
-
-                // #TODO hm, can we somehow work with references?
-                Ok(expr.clone())
+                if let Some(value) = env.get(method) {
+                    value
+                } else {
+                    // #TODO ultra-hack, if the method is not found, try to lookup the function symbol, fall-through.
+                    // #TODO should do proper type analysis here.
+                    env.get(sym).ok_or::<Ranged<Error>>(
+                        Error::UndefinedFunction(sym.to_owned(), method.to_owned()).into(),
+                    )?
+                }
             } else {
-                // #TODO this duplicates the above, refactor!
+                env.get(sym)
+                    .ok_or::<Ranged<Error>>(Error::UndefinedSymbol(sym.clone()).into())?
+            };
 
-                let result = env.get(sym);
-
-                let Some(expr) = result else {
-                    return Err(Error::UndefinedSymbol(sym.clone()).into());
-                };
-
-                // #TODO hm, can we somehow work with references?
-                Ok(expr.clone())
-            }
+            // #TODO hm, can we somehow work with references?
+            Ok(value.clone())
         }
         Ann(Expr::KeySymbol(..), ..) => {
             // #TODO handle 'PathSymbol'
