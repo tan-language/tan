@@ -47,6 +47,14 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>> {
 
             // #TODO handle 'PathSymbol'
 
+            // let result = if let Some(Expr::Symbol(method)) = expr.get_annotation("method") {
+            //     env.get(method)
+            // } else {
+            //     // #TODO ultra-hack just fall-back to 'function' name if method does not exist.
+            //     // #TODO should do proper type analysis here.
+            //     env.get(sym)
+            // };
+
             if let Some(Expr::Symbol(method)) = expr.get_annotation("method") {
                 // If the symbol is annotated with a method, it's in 'operator' position.
 
@@ -57,7 +65,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>> {
                     return Ok(expr.clone());
                 };
 
-                // #TODO ultra-hack, if the method is not found, try to lookup the function symbol.
+                // #TODO ultra-hack, if the method is not found, try to lookup the function symbol, fall-through.
                 // #TODO should do proper type analysis here.
 
                 let result = env.get(sym);
@@ -71,6 +79,8 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>> {
                 // #TODO hm, can we somehow work with references?
                 Ok(expr.clone())
             } else {
+                // #TODO this duplicates the above, refactor!
+
                 let result = env.get(sym);
 
                 let Some(expr) = result else {

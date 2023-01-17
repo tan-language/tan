@@ -40,19 +40,14 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Err
 
             // #TODO handle 'PathSymbol'
 
-            let result = env.get(sym);
-
+            // #TODO handle Dict a invocable (and other invocables).
             // #TODO please note that multiple-dispatch is supposed to be dynamic!
 
-            // #TODO ULTRA-HACK until we properly resolve types
-            let result = if result.is_none() {
-                if let Some((sym, _)) = sym.split_once("$$") {
-                    env.get(sym)
-                } else {
-                    result
-                }
+            let result = if let Some(Expr::Symbol(method)) = expr.get_annotation("method") {
+                env.get(method)
             } else {
-                result
+                // #TODO ultra-hack just fall-back to 'function' name if method does not exist.
+                env.get(sym)
             };
 
             let Some(value) = result else {
