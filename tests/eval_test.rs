@@ -134,6 +134,26 @@ fn do_creates_new_lexical_scope() {
 }
 
 #[test]
+fn ensure_a_infinite_recursion_is_fixed() {
+    let mut env = Env::prelude();
+    let result = eval_string(
+        "
+    (do
+        (let a 1)
+        (let a (+ a 2))
+        a
+    )",
+        &mut env,
+    );
+    assert!(result.is_ok());
+
+    let value = format!("{}", result.unwrap());
+    let expected_value = "3";
+
+    assert_eq!(value, expected_value);
+}
+
+#[test]
 fn eval_processes_function_definition_and_application() {
     let result = eval_file("factorial.tan");
     dbg!(&result);

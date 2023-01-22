@@ -8,6 +8,7 @@ use self::token::Token;
 
 // https://en.wikipedia.org/wiki/Lexical_analysis
 
+// #TODO lexer does not need synchronization to recover from errors.
 // #TODO lex_all, lex_single
 // #TODO introduce SemanticToken, with extra semantic information, _after_ parsing.
 // #TODO use annotations before number literals to set the type?

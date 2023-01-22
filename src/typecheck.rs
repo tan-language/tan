@@ -114,7 +114,9 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Err
                         resolved_let_list.push(value.clone());
 
                         // #TODO notify about overrides? use `set`?
-                        env.insert(s, value);
+                        // #TODO for some reason, this causes infinite loop
+                        // #TODO why is this needed in the first place?
+                        // env.insert(s, value);
                     }
 
                     Ok(Ann(Expr::List(resolved_let_list), ann))
@@ -158,6 +160,7 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Err
                     Ok(Ann(Expr::List(list), head.1))
                 }
             } else {
+                // #TODO handle map lookup case.
                 Ok(expr)
             }
         }
