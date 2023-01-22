@@ -201,9 +201,15 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>> {
                         "do" => {
                             // #TODO do should be 'monadic', propagate Eff (effect) wrapper.
                             let mut value = Expr::One.into();
+
+                            env.push_new_scope();
+
                             for expr in tail {
                                 value = eval(expr, env)?;
                             }
+
+                            env.pop();
+
                             Ok(value.into())
                         }
                         "ann" => {

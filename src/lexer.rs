@@ -46,6 +46,8 @@ pub struct Lexer<'a> {
     chars: Chars<'a>,
     index: usize,
     lookahead: Vec<char>,
+    // #TODO not sure how to 'synchronize' the lexer/parser.
+    // errors: Vec<Ranged<Error>>,
 }
 
 impl<'a> Lexer<'a> {
@@ -55,6 +57,7 @@ impl<'a> Lexer<'a> {
             chars: input.chars(),
             index: 0,
             lookahead: Vec::new(),
+            // errors: Vec::new(),
         }
     }
 

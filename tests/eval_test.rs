@@ -112,6 +112,28 @@ fn eval_processes_quoted_expressions() {
 }
 
 #[test]
+fn do_creates_new_lexical_scope() {
+    let mut env = Env::prelude();
+    let result = eval_string(
+        "
+    (do
+        (let a 1)
+        (do
+            (let a (+ 1 2))
+        )
+        a
+    )",
+        &mut env,
+    );
+    assert!(result.is_ok());
+
+    let value = format!("{}", result.unwrap());
+    let expected_value = "1";
+
+    assert_eq!(value, expected_value);
+}
+
+#[test]
 fn eval_processes_function_definition_and_application() {
     let result = eval_file("factorial.tan");
     dbg!(&result);
