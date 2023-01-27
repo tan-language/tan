@@ -53,7 +53,7 @@ pub struct Lexer<'a> {
     start: usize,
     index: usize,
     lookahead: Vec<char>,
-    errors: Vec<Ranged<Error>>,
+    // errors: Vec<Ranged<Error>>,
 }
 
 impl<'a> Lexer<'a> {
@@ -64,7 +64,7 @@ impl<'a> Lexer<'a> {
             start: 0,
             index: 0,
             lookahead: Vec::new(),
-            errors: Vec::new(),
+            // errors: Vec::new(),
         }
     }
 
@@ -144,12 +144,12 @@ impl<'a> Lexer<'a> {
 
     // #TODO support 'raw' strings, e.g. (write #raw "this is \ cool")
     /// Scans a string lexeme.
-    fn scan_string(&mut self) -> Result<String, Error> {
+    fn scan_string(&mut self) -> Result<String, Ranged<Error>> {
         let mut string = String::new();
 
         loop {
             let Some(ch) = self.next_char() else {
-                return Err(Error::UnterminatedString);
+                return Err(Ranged(Error::UnterminatedString, self.range()));
             };
 
             if ch == '"' {
@@ -167,14 +167,14 @@ impl<'a> Lexer<'a> {
     // #TODO find better name, `scan_indented_string`.
     // #TODO support 'raw' strings, e.g. (write #raw "this is \ cool")
     /// Scans a multi-string 'layout'.
-    fn scan_text(&mut self, indent: u64) -> Result<String, Error> {
+    fn scan_text(&mut self, indent: u64) -> Result<String, Ranged<Error>> {
         let mut string = String::new();
 
         let mut quote_count = 0;
 
         loop {
             let Some(ch) = self.next_char() else {
-                return Err(Error::UnterminatedString);
+                return Err(Ranged(Error::UnterminatedString, self.range()));
             };
 
             if ch == '"' {
@@ -188,7 +188,7 @@ impl<'a> Lexer<'a> {
             } else if is_eol(ch) {
                 for _ in 0..indent {
                     let Some(ch1) = self.next_char() else {
-                        return Err(Error::UnterminatedString);
+                        return Err(Ranged(Error::UnterminatedString, self.range()));
                     };
 
                     if is_eol(ch1) {
@@ -351,10 +351,7 @@ impl<'a> Lexer<'a> {
                                     }
                                 }
 
-                                let string = self.scan_text(indent);
-                                let Ok(string) = string else {
-                                    return Err(Ranged(string.unwrap_err(), self.range()));
-                                };
+                                let string = self.scan_text(indent)?;
                                 tokens.push(Ranged(Token::String(string), self.range()));
 
                                 continue;
@@ -365,10 +362,7 @@ impl<'a> Lexer<'a> {
 
                     self.put_back_char(ch1);
 
-                    let string = self.scan_string();
-                    let Ok(string) = string else {
-                        return Err(Ranged(string.unwrap_err(), self.range()));
-                    };
+                    let string = self.scan_string()?;
                     tokens.push(Ranged(Token::String(string), self.range()));
                 }
                 '-' => {
