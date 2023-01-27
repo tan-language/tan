@@ -13,6 +13,7 @@ use std::fmt;
 // Reserved _word_ is a bad name because it can be more than one word.
 
 // #TODO support #quot annotation?
+// #TODO only have a general Numeric token?
 
 /// A lexical Token gives semantic meaning to a Lexeme.
 #[derive(Debug, Clone, PartialEq)]
@@ -23,11 +24,11 @@ pub enum Token {
     RightBracket,
     LeftBrace,
     RightBrace,
+    Quote,
     Int(i64),
     Float(f64),
     String(String),
     Symbol(String),
-    Quote,
     Annotation(String),
     Comment(String),
 }
@@ -43,11 +44,11 @@ impl fmt::Display for Token {
                 Token::RightBracket => "]".to_owned(),
                 Token::LeftBrace => "{".to_owned(),
                 Token::RightBrace => "}".to_owned(),
+                Token::Quote => "'".to_owned(),
                 Token::Int(n) => n.to_string(),
                 Token::Float(n) => n.to_string(),
                 Token::String(s) => s.clone(),
                 Token::Symbol(s) => s.clone(),
-                Token::Quote => "'".to_owned(),
                 Token::Annotation(s) => s.clone(),
                 Token::Comment(s) => s.clone(),
             })
