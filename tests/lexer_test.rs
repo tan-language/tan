@@ -131,7 +131,7 @@ fn lex_handles_signed_numbers() {
 }
 
 #[test]
-fn lex_reports_unexpected_eol() {
+fn lex_reports_unexpected_eof() {
     let input = "(let a -";
     let result = Lexer::new(input).lex();
 
@@ -141,7 +141,7 @@ fn lex_reports_unexpected_eol() {
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
 
-    assert!(matches!(err.0, Error::UnexpectedEol));
+    assert!(matches!(err.0, Error::UnexpectedEnd));
 }
 
 #[test]

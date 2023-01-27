@@ -36,9 +36,13 @@ fn is_eol(ch: char) -> bool {
 
 // #TODO stateful lexer vs buffer
 
-// #Insight Rust's `Peekable` iterator is not used, as multiple-lookahead is
+// #Insight
+// Rust's `Peekable` iterator is not used, as multiple-lookahead is
 // required to scan e.g. signed-numbers. Additionally, the 'put_back' interface
 // seems more intuitive and ergonomic.
+
+// #Insight
+// The lexer does not need error synchronization
 
 /// The Lexer performs the lexical analysis stage of the compilation pipeline.
 /// The input text is scanned into lexemes and then evaluated into lexical tokens.
@@ -47,8 +51,7 @@ pub struct Lexer<'a> {
     chars: Chars<'a>,
     index: usize,
     lookahead: Vec<char>,
-    // #TODO not sure how to 'synchronize' the lexer/parser.
-    // errors: Vec<Ranged<Error>>,
+    errors: Vec<Ranged<Error>>,
 }
 
 impl<'a> Lexer<'a> {
@@ -58,7 +61,7 @@ impl<'a> Lexer<'a> {
             chars: input.chars(),
             index: 0,
             lookahead: Vec::new(),
-            // errors: Vec::new(),
+            errors: Vec::new(),
         }
     }
 
@@ -327,7 +330,7 @@ impl<'a> Lexer<'a> {
                         return Err(Ranged(Error::UnterminatedString, range));
                     };
 
-                    // Check for `===` triple-quote multi-line string delimiter.
+                    // Check for `"""` triple-quote multi-line string delimiter.
                     if ch1 == '"' {
                         if let Some(ch2) = self.next_char() {
                             if ch2 == '"' {
@@ -376,7 +379,7 @@ impl<'a> Lexer<'a> {
                 '-' => {
                     let Some(ch1) = self.next_char() else {
                         let range = start..self.index;
-                        return Err(Ranged(Error::UnexpectedEol, range));
+                        return Err(Ranged(Error::UnexpectedEnd, range));
                     };
 
                     self.put_back_char(ch1);

@@ -5,15 +5,55 @@ use std::{
 
 use crate::{lexer::token::Token, range::Ranged};
 
+// #TODO: Split comptime/runtime errors?
+
+/// Lexical errors.
+pub enum LexError {
+    UnexpectedEof,
+    MalformedInt(ParseIntError),
+    MalformedFloat(ParseFloatError),
+    UnterminatedString,
+    UnterminatedAnnotation,
+}
+
+/// Syntactic errors.
+pub enum ParseError {}
+
+/// Semantic errors.
+pub enum SemaError {}
+
+// #TODO consider &'a, nah use std::mem::take to take the errors vector.
+// #TODO consider renaming this to ComptimeFailure (as it includes multiple errors)
+pub enum ComptimeError {
+    Lex(Vec<LexError>),
+    Parse(Vec<ParseError>),
+    Sema(Vec<SemaError>),
+}
+
+// #TODO consider `Evaltime`.
+pub enum RuntimeError {
+    Io(std::io::Error),
+}
+
+// #TODO just use `Error`.
+pub enum TanError {
+    Comptime(ComptimeError),
+    Runtime(RuntimeError),
+}
+
+// #TODO lexer, parser, resolver, etc should be able to return multiple errors
 // #TODO maybe just use _one_ Error?
 // #TODO think about how to handle Ranged
 // #TODO maybe use Ann instead of Ranged?
 // #TODO maybe use Expr for the errors?
 
+// #Insight
+// Eval always returns one error.
+
 #[derive(Debug)]
 pub enum Error {
     // Lexical errors
-    UnexpectedEol,
+    UnexpectedEnd,
     MalformedInt(ParseIntError),
     MalformedFloat(ParseFloatError),
     UnterminatedString,
@@ -40,7 +80,7 @@ impl std::error::Error for Error {}
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let err = match self {
-            Error::UnexpectedEol => "unexpected EOL".to_owned(),
+            Error::UnexpectedEnd => "unexpected end of input".to_owned(),
             Error::MalformedInt(pie) => format!("malformed integer number: {pie}"),
             Error::MalformedFloat(pie) => format!("malformed float number: {pie}"),
             Error::UnterminatedString => "unterminated string".to_owned(),
