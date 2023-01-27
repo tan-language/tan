@@ -8,7 +8,6 @@ use self::token::Token;
 
 // https://en.wikipedia.org/wiki/Lexical_analysis
 
-// #TODO lexer does not need synchronization to recover from errors.
 // #TODO lex_all, lex_single
 // #TODO introduce SemanticToken, with extra semantic information, _after_ parsing.
 // #TODO use annotations before number literals to set the type?
@@ -43,7 +42,7 @@ fn is_eol(ch: char) -> bool {
 // seems more intuitive and ergonomic.
 
 // #Insight
-// The lexer does not need error synchronization
+// The lexer does not need synchronization to recover from errors.
 
 /// The Lexer performs the lexical analysis stage of the compilation pipeline.
 /// The input text is scanned into lexemes and then evaluated into lexical tokens.
@@ -53,7 +52,7 @@ pub struct Lexer<'a> {
     start: usize,
     index: usize,
     lookahead: Vec<char>,
-    // errors: Vec<Ranged<Error>>,
+    errors: Vec<Ranged<Error>>,
 }
 
 impl<'a> Lexer<'a> {
@@ -64,7 +63,7 @@ impl<'a> Lexer<'a> {
             start: 0,
             index: 0,
             lookahead: Vec::new(),
-            // errors: Vec::new(),
+            errors: Vec::new(),
         }
     }
 
@@ -96,6 +95,10 @@ impl<'a> Lexer<'a> {
 
     fn range(&self) -> Range<usize> {
         self.start..self.index
+    }
+
+    fn push_error(&mut self, error: Error) {
+        self.errors.push(Ranged(error, self.range()));
     }
 
     // #TODO implement scanners with macro or a common function.
@@ -144,12 +147,13 @@ impl<'a> Lexer<'a> {
 
     // #TODO support 'raw' strings, e.g. (write #raw "this is \ cool")
     /// Scans a string lexeme.
-    fn scan_string(&mut self) -> Result<String, Ranged<Error>> {
+    fn scan_string(&mut self) -> Option<String> {
         let mut string = String::new();
 
         loop {
             let Some(ch) = self.next_char() else {
-                return Err(Ranged(Error::UnterminatedString, self.range()));
+                self.push_error(Error::UnterminatedString);
+                return None;
             };
 
             if ch == '"' {
@@ -159,7 +163,7 @@ impl<'a> Lexer<'a> {
             string.push(ch);
         }
 
-        Ok(string)
+        Some(string)
     }
 
     // #TODO needs cleanup.
@@ -167,14 +171,15 @@ impl<'a> Lexer<'a> {
     // #TODO find better name, `scan_indented_string`.
     // #TODO support 'raw' strings, e.g. (write #raw "this is \ cool")
     /// Scans a multi-string 'layout'.
-    fn scan_text(&mut self, indent: u64) -> Result<String, Ranged<Error>> {
+    fn scan_text(&mut self, indent: u64) -> Option<String> {
         let mut string = String::new();
 
         let mut quote_count = 0;
 
         loop {
             let Some(ch) = self.next_char() else {
-                return Err(Ranged(Error::UnterminatedString, self.range()));
+                self.push_error(Error::UnterminatedString);
+                return None;
             };
 
             if ch == '"' {
@@ -188,7 +193,8 @@ impl<'a> Lexer<'a> {
             } else if is_eol(ch) {
                 for _ in 0..indent {
                     let Some(ch1) = self.next_char() else {
-                        return Err(Ranged(Error::UnterminatedString, self.range()));
+                        self.push_error(Error::UnterminatedString);
+                        return None;
                     };
 
                     if is_eol(ch1) {
@@ -208,10 +214,10 @@ impl<'a> Lexer<'a> {
             string.push(ch);
         }
 
-        Ok(string)
+        Some(string)
     }
 
-    fn scan_annotation(&mut self) -> Result<String, Error> {
+    fn scan_annotation(&mut self) -> Option<String> {
         let mut ann = String::new();
 
         let mut nesting = 0;
@@ -237,14 +243,16 @@ impl<'a> Lexer<'a> {
             ann.push(ch);
         }
 
-        if nesting != 0 {
-            return Err(Error::UnterminatedAnnotation);
+        if nesting == 0 {
+            Some(ann)
+        } else {
+            self.push_error(Error::UnterminatedAnnotation);
+            None
         }
-
-        Ok(ann)
     }
 
-    fn lex_number(&mut self) -> Result<Token, Error> {
+    // #Insight uses the prefix lex because it returns a Token.
+    fn lex_number(&mut self) -> Option<Token> {
         let lexeme = self.scan_lexeme();
 
         // Ignore `_`, it is considered a number separator.
@@ -254,11 +262,16 @@ impl<'a> Lexer<'a> {
         // #TODO more detailed Number error!
         // #TODO error handling not enough, we need to add context, check error_stack
 
-        let token = if lexeme.contains('.') {
+        if lexeme.contains('.') {
             // #TODO support radix for non-integers?
             // #TODO find a better name for 'non-integer'.
-            let n = lexeme.parse().map_err(Error::MalformedFloat)?;
-            Token::Float(n)
+            match lexeme.parse::<f64>().map_err(Error::MalformedFloat) {
+                Ok(n) => Some(Token::Float(n)),
+                Err(error) => {
+                    self.push_error(error);
+                    None
+                }
+            }
         } else {
             // #TODO support arbitrary radix https://github.com/golang/go/issues/28256
             let mut radix = 10;
@@ -275,22 +288,25 @@ impl<'a> Lexer<'a> {
                 radix = 8
             }
 
-            let n = i64::from_str_radix(&lexeme, radix).map_err(Error::MalformedInt)?;
-            Token::Int(n)
-        };
-
-        Ok(token)
+            match i64::from_str_radix(&lexeme, radix).map_err(Error::MalformedInt) {
+                Ok(n) => Some(Token::Int(n)),
+                Err(error) => {
+                    self.push_error(error);
+                    None
+                }
+            }
+        }
     }
 
     // #TODO consider passing into array of chars or something more general.
-    pub fn lex(&mut self) -> Result<Vec<Ranged<Token>>, Ranged<Error>> {
+    pub fn lex(&mut self) -> Result<Vec<Ranged<Token>>, Vec<Ranged<Error>>> {
         let mut tokens: Vec<Ranged<Token>> = Vec::new();
 
-        loop {
+        'outer: loop {
             self.start = self.index;
 
             let Some(ch) = self.next_char() else {
-                break;
+                break 'outer;
             };
 
             match ch {
@@ -325,7 +341,8 @@ impl<'a> Lexer<'a> {
                 }
                 '"' => {
                     let Some(ch1) = self.next_char() else {
-                        return Err(Ranged(Error::UnterminatedString, self.range()));
+                        self.push_error(Error::UnterminatedString);
+                        break 'outer;
                     };
 
                     // Check for `"""` triple-quote multi-line string delimiter.
@@ -337,7 +354,8 @@ impl<'a> Lexer<'a> {
 
                                 loop {
                                     let Some(ch3) = self.next_char() else {
-                                        return Err(Ranged(Error::UnterminatedString, self.range()));
+                                        self.push_error(Error::UnterminatedString);
+                                        break 'outer;
                                     };
 
                                     if is_eol(ch3) {
@@ -351,7 +369,9 @@ impl<'a> Lexer<'a> {
                                     }
                                 }
 
-                                let string = self.scan_text(indent)?;
+                                let Some(string) = self.scan_text(indent) else {
+                                    break;
+                                };
                                 tokens.push(Ranged(Token::String(string), self.range()));
 
                                 continue;
@@ -362,12 +382,15 @@ impl<'a> Lexer<'a> {
 
                     self.put_back_char(ch1);
 
-                    let string = self.scan_string()?;
+                    let Some(string) = self.scan_string() else {
+                        break;
+                    };
                     tokens.push(Ranged(Token::String(string), self.range()));
                 }
                 '-' => {
                     let Some(ch1) = self.next_char() else {
-                        return Err(Ranged(Error::UnexpectedEnd, self.range()));
+                        self.push_error(Error::UnexpectedEnd);
+                        break 'outer;
                     };
 
                     self.put_back_char(ch1);
@@ -381,11 +404,10 @@ impl<'a> Lexer<'a> {
                     } else if ch1.is_numeric() {
                         // Negative number
 
-                        let token = self.lex_number();
-                        let Ok(token) = token else {
-                            return Err(Ranged(token.unwrap_err(), self.range()));
-                        };
-                        tokens.push(Ranged(token, self.range()));
+                        if let Some(token) = self.lex_number() {
+                            tokens.push(Ranged(token, self.range()));
+                            // Don't break, continue scanning to find more errors.
+                        }
                     } else {
                         // #TODO lint warning for this!
                         // Symbol starting with `-`.
@@ -395,9 +417,8 @@ impl<'a> Lexer<'a> {
                     }
                 }
                 '#' => {
-                    let ann = self.scan_annotation();
-                    let Ok(ann) = ann else {
-                        return Err(Ranged(ann.unwrap_err(), self.range()));
+                    let Some(ann) = self.scan_annotation() else {
+                        break 'outer;
                     };
                     tokens.push(Ranged(Token::Annotation(ann), self.range()));
                 }
@@ -408,11 +429,10 @@ impl<'a> Lexer<'a> {
                 _ if ch.is_numeric() => {
                     self.put_back_char(ch);
 
-                    let token = self.lex_number();
-                    let Ok(token) = token else {
-                        return Err(Ranged(token.unwrap_err(), self.range()));
-                    };
-                    tokens.push(Ranged(token, self.range()));
+                    if let Some(token) = self.lex_number() {
+                        tokens.push(Ranged(token, self.range()));
+                        // Don't break, continue scanning to find more errors.
+                    }
                 }
                 _ => {
                     self.put_back_char(ch);
@@ -423,7 +443,13 @@ impl<'a> Lexer<'a> {
             }
         }
 
-        Ok(tokens)
+        if self.errors.is_empty() {
+            // #TODO
+            Ok(tokens)
+        } else {
+            let errors = std::mem::take(&mut self.errors);
+            Err(errors)
+        }
     }
 }
 

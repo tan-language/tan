@@ -141,7 +141,7 @@ fn lex_reports_unexpected_eof() {
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
 
-    assert!(matches!(err.0, Error::UnexpectedEnd));
+    assert!(matches!(err[0].0, Error::UnexpectedEnd));
 }
 
 #[test]
@@ -176,6 +176,10 @@ fn lex_reports_number_errors() {
 
     let err = result.unwrap_err();
 
+    assert_eq!(err.len(), 1);
+
+    let err = &err[0];
+
     assert!(matches!(err.0, Error::MalformedInt(..)));
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
@@ -188,6 +192,18 @@ fn lex_reports_number_errors() {
 }
 
 #[test]
+fn lex_reports_multiple_number_errors() {
+    let input = "(+ 1 3$%99 34%#$ 55$$4)";
+    let result = Lexer::new(input).lex();
+
+    assert!(result.is_err());
+
+    let err = result.unwrap_err();
+
+    assert_eq!(err.len(), 3);
+}
+
+#[test]
 fn lex_reports_unterminated_strings() {
     let input = r##"(write "Hello)"##;
     let tokens = Lexer::new(input).lex();
@@ -197,6 +213,7 @@ fn lex_reports_unterminated_strings() {
     assert!(result.is_err());
 
     let err = result.unwrap_err();
+    let err = &err[0];
 
     assert!(matches!(err.0, Error::UnterminatedString));
 
@@ -220,6 +237,7 @@ fn lex_reports_unterminated_annotations() {
     assert!(result.is_err());
 
     let err = result.unwrap_err();
+    let err = &err[0];
 
     assert!(matches!(err.0, Error::UnterminatedAnnotation));
 
