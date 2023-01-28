@@ -26,7 +26,7 @@ pub fn lex_file(filename: &str) -> std::result::Result<Vec<Ranged<Token>>, Vec<R
 }
 
 #[allow(dead_code)]
-pub fn parse_file(filename: &str) -> Result<Ann<Expr>> {
+pub fn parse_file(filename: &str) -> std::result::Result<Ann<Expr>, Vec<Ranged<Error>>> {
     let input = &read_file(filename);
     parse_string(input)
 }

@@ -223,7 +223,6 @@ impl<'a> Lexer<'a> {
         let mut nesting = 0;
 
         // #TODO only allow one level of nesting?
-        // #TODO should probably skip the annotation 'parsing'.
 
         loop {
             let Some(ch) = self.next_char() else {
@@ -235,7 +234,6 @@ impl<'a> Lexer<'a> {
             } else if ch == ')' {
                 nesting -= 1;
             } else if nesting == 0 && (is_whitespace(ch) || is_eol(ch)) {
-                // #TODO maybe whitespace does not need put_back, but need to adjust range.
                 self.put_back_char(ch);
                 break;
             }

@@ -37,6 +37,7 @@ fn parse_reports_unexpected_tokens() {
     assert!(result.is_err());
 
     let err = result.unwrap_err();
+    let err = &err[0];
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
 
@@ -51,6 +52,7 @@ fn parse_reports_unexpected_tokens() {
     assert!(result.is_err());
 
     let err = result.unwrap_err();
+    let err = &err[0];
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
 
@@ -65,11 +67,25 @@ fn parse_reports_unexpected_tokens() {
     assert!(result.is_err());
 
     let err = result.unwrap_err();
+    let err = &err[0];
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
 
     assert_eq!(err.1.start, 0);
     assert_eq!(err.1.end, 1);
+}
+
+#[test]
+fn parse_reports_multiple_unexpected_tokens() {
+    let input = "(do (let a ]) (le b ]] 1))";
+    let tokens = lex_tokens(input);
+    let mut parser = Parser::new(tokens);
+
+    let result = parser.parse();
+    assert!(result.is_err());
+
+    let err = result.unwrap_err();
+    assert_eq!(err.len(), 3);
 }
 
 #[test]
@@ -82,6 +98,7 @@ fn parse_reports_quote_errors() {
     assert!(result.is_err());
 
     let err = result.unwrap_err();
+    let err = &err[0];
 
     assert_eq!(err.1.start, 0);
     assert_eq!(err.1.end, 1);
@@ -91,11 +108,10 @@ fn parse_reports_quote_errors() {
     let input = "(let a '' 1)";
     let result = parse_string(input);
 
-    dbg!(&result);
-
     assert!(result.is_err());
 
     let err = result.unwrap_err();
+    let err = &err[0];
 
     assert_eq!(err.1.start, 7);
     assert_eq!(err.1.end, 8);
@@ -134,6 +150,7 @@ fn parse_reports_unterminated_lists() {
     assert!(result.is_err());
 
     let err = result.unwrap_err();
+    let err = &err[0];
 
     // eprintln!("{}", format_pretty_error(&err, input, Some(filename)));
 

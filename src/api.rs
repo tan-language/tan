@@ -15,7 +15,7 @@ use crate::{
 pub type Result<T> = std::result::Result<T, Ranged<Error>>;
 
 /// Parses a Tan expression encoded as a text string.
-pub fn parse_string(input: impl AsRef<str>) -> Result<Ann<Expr>> {
+pub fn parse_string(input: impl AsRef<str>) -> std::result::Result<Ann<Expr>, Vec<Ranged<Error>>> {
     let input = input.as_ref();
 
     let mut lexer = Lexer::new(input);
@@ -24,6 +24,7 @@ pub fn parse_string(input: impl AsRef<str>) -> Result<Ann<Expr>> {
     let tokens = lexer.lex().unwrap();
 
     let mut parser = Parser::new(tokens);
+    // #TODO WARNING temporary!
     let expr = parser.parse()?;
 
     Ok(expr)
@@ -31,7 +32,9 @@ pub fn parse_string(input: impl AsRef<str>) -> Result<Ann<Expr>> {
 
 /// Evaluates a Tan expression encoded as a text string.
 pub fn eval_string(input: impl AsRef<str>, env: &mut Env) -> Result<Ann<Expr>> {
-    let expr = parse_string(input)?;
+    // #TODO WARNING temporary!
+    // let expr = parse_string(input)?;
+    let expr = parse_string(input).unwrap();
 
     // #TODO should we push a new env?
     let expr = resolve_type(expr, env)?;

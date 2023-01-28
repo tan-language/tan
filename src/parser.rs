@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt};
 
 use crate::{
     ann::Ann,
@@ -10,12 +10,26 @@ use crate::{
 
 // #TODO no need to keep iterator as state in parser!
 // #TODO can the parser be just a function? -> yes, if we use a custom iterator to keep the parsing state.
+// #TODO think some more how annotations should be handled.
 
 // #Insight
 // The syntax of the language is explicitly designed to _not_ require a lookahead buffer.
 
 // #Insight
 // We move the tokens into the parser to simplify the code. The tokens are useless outside the parser.
+
+/// The`NonRecoverableParseError` is thrown when the parser cannot synchronize
+/// to continue parsing to detect more errors. Parsing is stopped immediately.
+#[derive(Debug)]
+pub struct NonRecoverableParseError {}
+
+impl std::error::Error for NonRecoverableParseError {}
+
+impl fmt::Display for NonRecoverableParseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "NRPE")
+    }
+}
 
 /// The Parser performs the syntactic analysis stage of the compilation pipeline.
 /// The input token stream is reduced into and Abstract Syntax Tree (AST).
@@ -26,6 +40,7 @@ where
 {
     tokens: I::IntoIter,
     buffered_annotations: Option<Vec<Ranged<String>>>,
+    errors: Vec<Ranged<Error>>,
 }
 
 impl<I> Parser<I>
@@ -38,15 +53,20 @@ where
         Self {
             tokens,
             buffered_annotations: None,
+            errors: Vec::new(),
         }
+    }
+
+    fn push_error(&mut self, error: Error, range: &Range) {
+        self.errors.push(Ranged(error, range.clone()));
     }
 
     /// Wrap the `expr` with the buffered (prefix) annotations.
     /// The annotations are parsed into an Expr representation.
-    fn attach_buffered_annotations(&mut self, expr: Expr) -> Result<Ann<Expr>, Ranged<Error>> {
+    fn attach_buffered_annotations(&mut self, expr: Expr) -> Ann<Expr> {
         let Some(annotations) = self.buffered_annotations.take() else {
             // No annotations for the expression.
-            return Ok(Ann::new(expr));
+            return Ann::new(expr);
         };
 
         let mut ann: HashMap<String, Expr> = HashMap::new();
@@ -55,19 +75,32 @@ where
             let mut lexer = Lexer::new(&ann_str);
 
             let Ok(tokens) = lexer.lex() else {
-                return Err(Ranged(Error::MalformedAnnotation(ann_str), ann_range));
+                self.push_error(Error::MalformedAnnotation(ann_str), &ann_range);
+                // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
+                return Ann::new(expr);
             };
 
             let mut parser = Parser::new(tokens);
 
-            let Ann(ann_expr, ..) = parser.parse()?;
+            let ann_expr = parser.parse();
 
-            // #TODO think some more how annotations should be handled.
+            if let Err(ann_expr_errors) = ann_expr {
+                for error in ann_expr_errors {
+                    self.push_error(error.0, &error.1);
+                }
+                // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
+                return Ann::new(expr);
+            }
+
+            let ann_expr = ann_expr.unwrap().0;
 
             match &ann_expr {
                 Expr::Symbol(sym) => {
                     if sym.is_empty() {
-                        return Err(Ranged(Error::MalformedAnnotation(ann_str), ann_range));
+                        // #TODO specialized error needed.
+                        self.push_error(Error::MalformedAnnotation(ann_str), &ann_range);
+                        // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
+                        return Ann::new(expr);
                     }
 
                     if sym.chars().next().unwrap().is_uppercase() {
@@ -82,19 +115,26 @@ where
                     if let Some(Ann(Expr::Symbol(sym), _)) = list.first() {
                         ann.insert(sym.clone(), ann_expr);
                     } else {
-                        return Err(Ranged(Error::MalformedAnnotation(ann_str), ann_range));
+                        self.push_error(Error::MalformedAnnotation(ann_str), &ann_range);
+                        // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
+                        return Ann::new(expr);
                     }
                 }
                 _ => {
-                    return Err(Ranged(Error::MalformedAnnotation(ann_str), ann_range));
+                    self.push_error(Error::MalformedAnnotation(ann_str), &ann_range);
+                    // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
+                    return Ann::new(expr);
                 }
             }
         }
 
-        Ok(Ann(expr, Some(ann)))
+        Ann(expr, Some(ann))
     }
 
-    pub fn parse_expr(&mut self, token: Ranged<Token>) -> Result<Option<Expr>, Ranged<Error>> {
+    pub fn parse_expr(
+        &mut self,
+        token: Ranged<Token>,
+    ) -> Result<Option<Expr>, NonRecoverableParseError> {
         let Ranged(t, range) = token;
 
         let expr = match t {
@@ -132,14 +172,29 @@ where
             }
             Token::Quote => {
                 let Some(token) = self.tokens.next() else {
-                    return Err(Ranged(Error::InvalidQuote, range));
+                    // #TODO specialized error-message needed.
+                    // EOF reached, cannot continue parsing.
+                    self.push_error(Error::InvalidQuote, &range);
+                    return Err(NonRecoverableParseError {});
                 };
+
                 if token.0 == Token::Quote {
-                    // Report consecutive quote (i.e. '') as error.
-                    return Err(Ranged(Error::InvalidQuote, range));
+                    // #TODO specialized error-message needed.
+                    // Report consecutive quote (i.e. '') as error
+                    self.push_error(Error::InvalidQuote, &range);
+                    // Parsing can continue.
+                    return Ok(None);
                 }
-                let Some(target) = self.parse_expr(token)? else {
-                    return Err(Ranged(Error::InvalidQuote, range));
+
+                let Ok(quot_expr) = self.parse_expr(token) else {
+                    // Parsing the quoted expression failed.
+                    // Continue parsing to detect more errors.
+                    return Ok(None);
+                };
+
+                let Some(target) = quot_expr else {
+                    self.push_error(Error::InvalidQuote, &range);
+                    return Ok(None);
                 };
                 Some(Expr::List(vec![
                     Ann::new(Expr::symbol("quot")),
@@ -218,7 +273,9 @@ where
             }
             Token::RightParen | Token::RightBracket | Token::RightBrace => {
                 // #TODO custom error for this?
-                return Err(Ranged(Error::UnexpectedToken(t), range));
+                self.push_error(Error::UnexpectedToken(t), &range);
+                // Parsing can continue.
+                return Ok(None);
             }
         };
 
@@ -230,7 +287,7 @@ where
         &mut self,
         delimiter: Token,
         list_range: Range,
-    ) -> Result<Vec<Ann<Expr>>, Ranged<Error>> {
+    ) -> Result<Vec<Ann<Expr>>, NonRecoverableParseError> {
         // #TODO move range computation outside!
 
         let mut exprs = Vec::new();
@@ -241,7 +298,10 @@ where
             let token = self.tokens.next();
 
             let Some(token) = token  else {
-                break;
+                // #TODO set correct range.
+                let range = list_range.start..(index - 1);
+                self.push_error(Error::UnterminatedList, &range);
+                return Err(NonRecoverableParseError {});
             };
 
             index = token.1.end;
@@ -252,34 +312,53 @@ where
             } else {
                 // #TODO set correct range
                 if let Some(e) = self.parse_expr(token)? {
-                    let e = self.attach_buffered_annotations(e)?;
+                    let e = self.attach_buffered_annotations(e);
                     exprs.push(e);
                 }
             }
         }
-
-        // #TODO set correct range.
-        let range = list_range.start..(index - 1);
-        Err(Ranged(Error::UnterminatedList, range))
     }
 
+    // #TODO try to parse all available expressions, return a namespace?
+
     /// Tries to parse at least one expression.
-    pub fn parse(&mut self) -> Result<Ann<Expr>, Ranged<Error>> {
+    /// The parser tries to return as many errors as possible.
+    pub fn parse(&mut self) -> Result<Ann<Expr>, Vec<Ranged<Error>>> {
         // #TODO can consolidate more with parse_atom
 
-        loop {
-            let token = self.tokens.next();
+        // loop {
+        let token = self.tokens.next();
 
-            let Some(token) = token  else {
+        let Some(token) = token  else {
                 // #TODO what should we return on empty tokens list? Never? Error?
                 return Ok(Ann::new(Expr::One));
             };
 
-            let expr = self.parse_expr(token)?;
+        let expr = self.parse_expr(token);
 
-            if let Some(expr) = expr {
-                return self.attach_buffered_annotations(expr);
+        let Ok(expr) = expr else {
+                // A non-recoverable parse error was detected, stop parsing.
+                let errors = std::mem::take(&mut self.errors);
+                return Err(errors);
+            };
+
+        if let Some(expr) = expr {
+            let expr = self.attach_buffered_annotations(expr);
+
+            if self.errors.is_empty() {
+                // #TODO
+                Ok(expr)
+            } else {
+                let errors = std::mem::take(&mut self.errors);
+                Err(errors)
             }
+        } else if self.errors.is_empty() {
+            // #TODO what to return here?
+            Ok(Ann::new(Expr::One))
+        } else {
+            let errors = std::mem::take(&mut self.errors);
+            Err(errors)
         }
+        // }
     }
 }
