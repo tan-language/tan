@@ -19,7 +19,8 @@ use self::token::Token;
 // #TODO accept IntoIterator
 // #TODO try to use `let mut reader = BufReader::new(source.as_bytes());` like an older version
 // #TODO postpone parsing of numerics to a later stage where there is more semantic information (e.g. annotations)
-
+//       - more semantic information
+//       - joint synchronization in parsing phase to find more errors.
 /// Returns true if ch is considered whitespace.
 /// The `,` character is considered whitespace, in the Lisp tradition.
 fn is_whitespace(ch: char) -> bool {

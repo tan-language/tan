@@ -2,7 +2,9 @@ use std::collections::HashMap;
 
 use crate::{ann::Ann, error::Error, eval::env::Env, expr::Expr, util::is_reserved_symbol};
 
+// #TODO rename file to `sema`?
 // #TODO consider renaming to `resolver` or `typecheck` or `type_eval`.
+// #TODO support multiple errors.
 
 // #Insight resolve_type and resolve_invocable should be combined, cannot be separate passes.
 
@@ -96,7 +98,7 @@ pub fn resolve_type(mut expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Err
                         };
 
                         let Ann(Expr::Symbol(s), ..) = sym else {
-                            return Err(Error::invalid_arguments(format!("`{}` is not a Symbol", sym)));
+                            return Err(Error::invalid_arguments(format!("`{sym}` is not a Symbol")));
                         };
 
                         if is_reserved_symbol(s) {

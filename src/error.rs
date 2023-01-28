@@ -7,40 +7,6 @@ use crate::{lexer::token::Token, range::Ranged};
 
 // #TODO: Split comptime/runtime errors?
 
-// /// Lexical errors.
-// pub enum LexError {
-//     UnexpectedEof,
-//     MalformedInt(ParseIntError),
-//     MalformedFloat(ParseFloatError),
-//     UnterminatedString,
-//     UnterminatedAnnotation,
-// }
-
-// /// Syntactic errors.
-// pub enum ParseError {}
-
-// /// Semantic errors.
-// pub enum SemaError {}
-
-// // #TODO consider &'a, nah use std::mem::take to take the errors vector.
-// // #TODO consider renaming this to ComptimeFailure (as it includes multiple errors)
-// pub enum ComptimeError {
-//     Lex(Vec<LexError>),
-//     Parse(Vec<ParseError>),
-//     Sema(Vec<SemaError>),
-// }
-
-// // #TODO consider `Evaltime`.
-// pub enum RuntimeError {
-//     Io(std::io::Error),
-// }
-
-// // #TODO just use `Error`.
-// pub enum TanError {
-//     Comptime(ComptimeError),
-//     Runtime(RuntimeError),
-// }
-
 // #TODO lexer, parser, resolver, etc should be able to return multiple errors
 // #TODO maybe just use _one_ Error?
 // #TODO think about how to handle Ranged
