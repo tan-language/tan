@@ -11,7 +11,7 @@ pub fn add_int(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Ranged<Error
 
     for arg in args {
         let Ann(Expr::Int(n), ..) = arg else {
-            return Err(Error::invalid_arguments(format!("`{}` is not an Int", arg)).into());
+            return Err(Error::invalid_arguments(format!("`{arg}` is not an Int")).into());
         };
         sum += n;
     }
@@ -24,7 +24,7 @@ pub fn add_float(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Ranged<Err
 
     for arg in args {
         let Ann(Expr::Float(n), ..) = arg else {
-            return Err(Error::invalid_arguments(format!("`{}` is not a Float", arg)).into());
+            return Err(Error::invalid_arguments(format!("`{arg}` is not a Float")).into());
         };
         sum += n;
     }
@@ -39,11 +39,11 @@ pub fn sub(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Ranged<Error>> {
     };
 
     let Ann(Expr::Int(a), ..) = a else {
-        return Err(Error::invalid_arguments(format!("`{}` is not an Int", a)).into());
+        return Err(Error::invalid_arguments(format!("`{a}` is not an Int")).into());
     };
 
     let Ann(Expr::Int(b), ..) = b else {
-        return Err(Error::invalid_arguments(format!("`{}` is not an Int", b)).into());
+        return Err(Error::invalid_arguments(format!("`{b}` is not an Int")).into());
     };
 
     Ok(Expr::Int(a - b).into())
@@ -55,7 +55,7 @@ pub fn mul(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Ranged<Error>> {
 
     for arg in args {
         let Ann(Expr::Int(n), ..) = arg else {
-            return Err(Error::invalid_arguments(format!("`{}` is not an Int", arg)).into());
+            return Err(Error::invalid_arguments(format!("`{arg}` is not an Int")).into());
         };
         prod *= n;
     }

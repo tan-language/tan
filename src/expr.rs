@@ -77,7 +77,7 @@ impl fmt::Debug for Expr {
                     "List({})",
                     terms
                         .iter()
-                        .map(|term| format!("{:?}", term))
+                        .map(|term| format!("{term:?}"))
                         .collect::<Vec<String>>()
                         .join(", ")
                 )
@@ -91,7 +91,7 @@ impl fmt::Debug for Expr {
             Expr::If(_, _, _) => "if".to_owned(),
         };
 
-        write!(f, "{}", text)
+        write!(f, "{text}")
     }
 }
 

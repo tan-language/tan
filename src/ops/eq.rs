@@ -11,11 +11,11 @@ pub fn eq(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Ranged<Error>> {
     };
 
     let Ann(Expr::Int(a), ..) = a else {
-        return Err(Error::invalid_arguments(format!("`{}` is not an Int", a)).into());
+        return Err(Error::invalid_arguments(format!("`{a}` is not an Int")).into());
     };
 
     let Ann(Expr::Int(b), ..) = b else {
-        return Err(Error::invalid_arguments(format!("`{}` is not an Int", b)).into());
+        return Err(Error::invalid_arguments(format!("`{b}` is not an Int")).into());
     };
 
     Ok(Expr::Bool(a == b).into())
@@ -28,11 +28,11 @@ pub fn gt(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Ranged<Error>> {
     };
 
     let Ann(Expr::Int(a), ..) = a else {
-        return Err(Error::invalid_arguments(format!("`{}` is not an Int", a)).into());
+        return Err(Error::invalid_arguments(format!("`{a}` is not an Int")).into());
     };
 
     let Ann(Expr::Int(b), ..) = b else {
-        return Err(Error::invalid_arguments(format!("`{}` is not an Int", b)).into());
+        return Err(Error::invalid_arguments(format!("`{b}` is not an Int")).into());
     };
 
     Ok(Expr::Bool(a > b).into())
@@ -45,11 +45,11 @@ pub fn lt(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Ranged<Error>> {
     };
 
     let Ann(Expr::Int(a), ..) = a else {
-        return Err(Error::invalid_arguments(format!("`{}` is not an Int", a)).into());
+        return Err(Error::invalid_arguments(format!("`{a}` is not an Int")).into());
     };
 
     let Ann(Expr::Int(b), ..) = b else {
-        return Err(Error::invalid_arguments(format!("`{}` is not an Int", b)).into());
+        return Err(Error::invalid_arguments(format!("`{b}` is not an Int")).into());
     };
 
     Ok(Expr::Bool(a < b).into())

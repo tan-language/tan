@@ -12,7 +12,7 @@ use crate::expr::{format_value, Expr};
 
 // #TODO consider {+/-}lowercase -> true/false
 
-// #TODO consider `Ann`, `Ax`, `An`, `Av`, `Anned`
+// #TODO consider `Ann`, `Ax`, `An`, `Av`
 // #TODO define 'special' annotations, e.g. `type`, `range`, `method`, etc.
 // #TODO maybe use ALLCAP for special annotations? e.g. TYPE, RANGE, METHOD.
 
@@ -85,15 +85,15 @@ where
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.1.is_some() {
-            let anns = self
+            let annotations = self
                 .1
                 .clone()
                 .unwrap()
                 .iter()
-                .map(|(k, v)| format!("{}={}", k, v))
+                .map(|(k, v)| format!("{k}={v}"))
                 .collect::<Vec<_>>()
                 .join(",");
-            write!(f, "{:?}@[{anns}]", self.0)
+            write!(f, "{:?}@[{annotations}]", self.0)
         } else {
             write!(f, "{:?}", self.0)
         }

@@ -209,7 +209,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
 
                             env.pop();
 
-                            Ok(value.into())
+                            Ok(value)
                         }
                         "ann" => {
                             // #Insight implemented as special-form because it applies to Ann<Expr>.
@@ -289,7 +289,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
                             env.push_new_scope();
 
                             for x in arr {
-                                // #TODO array should have Ann<Expr> use Ann<Expr> everywhere, argh the clones!
+                                // #TODO array should have Ann<Expr> use Ann<Expr> everywhere, avoid the clones!
                                 env.insert(sym, Ann::new(x.clone()));
                                 eval(body, env)?;
                             }
@@ -314,7 +314,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
                                 };
 
                                 let Ann(Expr::Symbol(s), ..) = sym else {
-                                    return Err(Error::invalid_arguments(format!("`{}` is not a Symbol", sym)).into());
+                                    return Err(Error::invalid_arguments(format!("`{sym}` is not a Symbol")).into());
                                 };
 
                                 if is_reserved_symbol(s) {
@@ -346,12 +346,12 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
                             Ok(Expr::Func(params.clone(), Box::new(body.clone())).into())
                         }
                         _ => {
-                            return Err(Error::NotInvocable(format!("{}", head)).into());
+                            return Err(Error::NotInvocable(format!("{head}")).into());
                         }
                     }
                 }
                 _ => {
-                    return Err(Error::NotInvocable(format!("{}", head)).into());
+                    return Err(Error::NotInvocable(format!("{head}")).into());
                 }
             }
         }
