@@ -38,8 +38,6 @@ pub fn eval_string(
     let mut resolver = Resolver::new();
     let expr = resolver.resolve(expr, env)?;
 
-    dbg!(&expr);
-
     let value = eval(&expr, env);
 
     let Ok(value) = value else {
