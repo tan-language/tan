@@ -3,6 +3,7 @@
 use crate::{
     ann::Ann,
     error::Error,
+    error2::ParseError,
     eval::{env::Env, eval},
     expr::Expr,
     lexer::Lexer,
@@ -15,7 +16,9 @@ use crate::{
 pub type Result<T> = std::result::Result<T, Ranged<Error>>;
 
 /// Parses a Tan expression encoded as a text string.
-pub fn parse_string(input: impl AsRef<str>) -> std::result::Result<Ann<Expr>, Vec<Ranged<Error>>> {
+pub fn parse_string(
+    input: impl AsRef<str>,
+) -> std::result::Result<Ann<Expr>, Vec<Ranged<ParseError>>> {
     let input = input.as_ref();
 
     let mut lexer = Lexer::new(input);

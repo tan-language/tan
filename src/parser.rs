@@ -2,7 +2,7 @@ use std::{collections::HashMap, fmt};
 
 use crate::{
     ann::Ann,
-    error::Error,
+    error2::ParseError,
     expr::{format_value, Expr},
     lexer::{token::Token, Lexer},
     range::{Range, Ranged},
@@ -40,7 +40,7 @@ where
 {
     tokens: I::IntoIter,
     buffered_annotations: Option<Vec<Ranged<String>>>,
-    errors: Vec<Ranged<Error>>,
+    errors: Vec<Ranged<ParseError>>,
 }
 
 impl<I> Parser<I>
@@ -57,7 +57,7 @@ where
         }
     }
 
-    fn push_error(&mut self, error: Error, range: &Range) {
+    fn push_error(&mut self, error: ParseError, range: &Range) {
         self.errors.push(Ranged(error, range.clone()));
     }
 
@@ -75,7 +75,7 @@ where
             let mut lexer = Lexer::new(&ann_str);
 
             let Ok(tokens) = lexer.lex() else {
-                self.push_error(Error::MalformedAnnotation(ann_str), &ann_range);
+                self.push_error(ParseError::MalformedAnnotation(ann_str), &ann_range);
                 // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
                 return Ann::new(expr);
             };
@@ -98,7 +98,7 @@ where
                 Expr::Symbol(sym) => {
                     if sym.is_empty() {
                         // #TODO specialized error needed.
-                        self.push_error(Error::MalformedAnnotation(ann_str), &ann_range);
+                        self.push_error(ParseError::MalformedAnnotation(ann_str), &ann_range);
                         // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
                         return Ann::new(expr);
                     }
@@ -115,13 +115,13 @@ where
                     if let Some(Ann(Expr::Symbol(sym), _)) = list.first() {
                         ann.insert(sym.clone(), ann_expr);
                     } else {
-                        self.push_error(Error::MalformedAnnotation(ann_str), &ann_range);
+                        self.push_error(ParseError::MalformedAnnotation(ann_str), &ann_range);
                         // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
                         return Ann::new(expr);
                     }
                 }
                 _ => {
-                    self.push_error(Error::MalformedAnnotation(ann_str), &ann_range);
+                    self.push_error(ParseError::MalformedAnnotation(ann_str), &ann_range);
                     // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
                     return Ann::new(expr);
                 }
@@ -174,14 +174,14 @@ where
                 let Some(token) = self.tokens.next() else {
                     // #TODO specialized error-message needed.
                     // EOF reached, cannot continue parsing.
-                    self.push_error(Error::InvalidQuote, &range);
+                    self.push_error(ParseError::InvalidQuote, &range);
                     return Err(NonRecoverableParseError {});
                 };
 
                 if token.0 == Token::Quote {
                     // #TODO specialized error-message needed.
                     // Report consecutive quote (i.e. '') as error
-                    self.push_error(Error::InvalidQuote, &range);
+                    self.push_error(ParseError::InvalidQuote, &range);
                     // Parsing can continue.
                     return Ok(None);
                 }
@@ -193,7 +193,7 @@ where
                 };
 
                 let Some(target) = quot_expr else {
-                    self.push_error(Error::InvalidQuote, &range);
+                    self.push_error(ParseError::InvalidQuote, &range);
                     return Ok(None);
                 };
                 Some(Expr::List(vec![
@@ -273,7 +273,7 @@ where
             }
             Token::RightParen | Token::RightBracket | Token::RightBrace => {
                 // #TODO custom error for this?
-                self.push_error(Error::UnexpectedToken(t), &range);
+                self.push_error(ParseError::UnexpectedToken(t), &range);
                 // Parsing can continue.
                 return Ok(None);
             }
@@ -300,7 +300,7 @@ where
             let Some(token) = token  else {
                 // #TODO set correct range.
                 let range = list_range.start..(index - 1);
-                self.push_error(Error::UnterminatedList, &range);
+                self.push_error(ParseError::UnterminatedList, &range);
                 return Err(NonRecoverableParseError {});
             };
 
@@ -323,7 +323,7 @@ where
 
     /// Tries to parse at least one expression.
     /// The parser tries to return as many errors as possible.
-    pub fn parse(&mut self) -> Result<Ann<Expr>, Vec<Ranged<Error>>> {
+    pub fn parse(&mut self) -> Result<Ann<Expr>, Vec<Ranged<ParseError>>> {
         // #TODO can consolidate more with parse_atom
 
         // loop {

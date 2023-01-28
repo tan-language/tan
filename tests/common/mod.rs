@@ -4,13 +4,14 @@ use tan::{
     ann::Ann,
     api::{eval_string, parse_string, Result},
     error::Error,
+    error2::{LexError, ParseError},
     eval::env::Env,
     expr::Expr,
     lexer::{token::Token, Lexer},
     range::Ranged,
 };
 
-pub fn lex_string(input: &str) -> std::result::Result<Vec<Ranged<Token>>, Vec<Ranged<Error>>> {
+pub fn lex_string(input: &str) -> std::result::Result<Vec<Ranged<Token>>, Vec<Ranged<LexError>>> {
     let mut lexer = Lexer::new(input);
     lexer.lex()
 }
@@ -20,13 +21,13 @@ pub fn read_file(filename: &str) -> String {
 }
 
 #[allow(dead_code)]
-pub fn lex_file(filename: &str) -> std::result::Result<Vec<Ranged<Token>>, Vec<Ranged<Error>>> {
+pub fn lex_file(filename: &str) -> std::result::Result<Vec<Ranged<Token>>, Vec<Ranged<LexError>>> {
     let input = &read_file(filename);
     lex_string(input)
 }
 
 #[allow(dead_code)]
-pub fn parse_file(filename: &str) -> std::result::Result<Ann<Expr>, Vec<Ranged<Error>>> {
+pub fn parse_file(filename: &str) -> std::result::Result<Ann<Expr>, Vec<Ranged<ParseError>>> {
     let input = &read_file(filename);
     parse_string(input)
 }

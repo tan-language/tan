@@ -2,7 +2,7 @@ pub mod token;
 
 use std::{ops::Range, str::Chars};
 
-use crate::{error::Error, range::Ranged};
+use crate::{error2::LexError, range::Ranged};
 
 use self::token::Token;
 
@@ -53,7 +53,7 @@ pub struct Lexer<'a> {
     start: usize,
     index: usize,
     lookahead: Vec<char>,
-    errors: Vec<Ranged<Error>>,
+    errors: Vec<Ranged<LexError>>,
 }
 
 impl<'a> Lexer<'a> {
@@ -98,7 +98,7 @@ impl<'a> Lexer<'a> {
         self.start..self.index
     }
 
-    fn push_error(&mut self, error: Error) {
+    fn push_error(&mut self, error: LexError) {
         self.errors.push(Ranged(error, self.range()));
     }
 
@@ -153,7 +153,7 @@ impl<'a> Lexer<'a> {
 
         loop {
             let Some(ch) = self.next_char() else {
-                self.push_error(Error::UnterminatedString);
+                self.push_error(LexError::UnterminatedString);
                 return None;
             };
 
@@ -179,7 +179,7 @@ impl<'a> Lexer<'a> {
 
         loop {
             let Some(ch) = self.next_char() else {
-                self.push_error(Error::UnterminatedString);
+                self.push_error(LexError::UnterminatedString);
                 return None;
             };
 
@@ -194,7 +194,7 @@ impl<'a> Lexer<'a> {
             } else if is_eol(ch) {
                 for _ in 0..indent {
                     let Some(ch1) = self.next_char() else {
-                        self.push_error(Error::UnterminatedString);
+                        self.push_error(LexError::UnterminatedString);
                         return None;
                     };
 
@@ -245,7 +245,7 @@ impl<'a> Lexer<'a> {
         if nesting == 0 {
             Some(ann)
         } else {
-            self.push_error(Error::UnterminatedAnnotation);
+            self.push_error(LexError::UnterminatedAnnotation);
             None
         }
     }
@@ -264,7 +264,7 @@ impl<'a> Lexer<'a> {
         if lexeme.contains('.') {
             // #TODO support radix for non-integers?
             // #TODO find a better name for 'non-integer'.
-            match lexeme.parse::<f64>().map_err(Error::MalformedFloat) {
+            match lexeme.parse::<f64>().map_err(LexError::MalformedFloat) {
                 Ok(n) => Some(Token::Float(n)),
                 Err(error) => {
                     self.push_error(error);
@@ -287,7 +287,7 @@ impl<'a> Lexer<'a> {
                 radix = 8
             }
 
-            match i64::from_str_radix(&lexeme, radix).map_err(Error::MalformedInt) {
+            match i64::from_str_radix(&lexeme, radix).map_err(LexError::MalformedInt) {
                 Ok(n) => Some(Token::Int(n)),
                 Err(error) => {
                     self.push_error(error);
@@ -298,7 +298,7 @@ impl<'a> Lexer<'a> {
     }
 
     // #TODO consider passing into array of chars or something more general.
-    pub fn lex(&mut self) -> Result<Vec<Ranged<Token>>, Vec<Ranged<Error>>> {
+    pub fn lex(&mut self) -> Result<Vec<Ranged<Token>>, Vec<Ranged<LexError>>> {
         let mut tokens: Vec<Ranged<Token>> = Vec::new();
 
         'outer: loop {
@@ -340,7 +340,7 @@ impl<'a> Lexer<'a> {
                 }
                 '"' => {
                     let Some(ch1) = self.next_char() else {
-                        self.push_error(Error::UnterminatedString);
+                        self.push_error(LexError::UnterminatedString);
                         break 'outer;
                     };
 
@@ -353,7 +353,7 @@ impl<'a> Lexer<'a> {
 
                                 loop {
                                     let Some(ch3) = self.next_char() else {
-                                        self.push_error(Error::UnterminatedString);
+                                        self.push_error(LexError::UnterminatedString);
                                         break 'outer;
                                     };
 
@@ -388,7 +388,7 @@ impl<'a> Lexer<'a> {
                 }
                 '-' => {
                     let Some(ch1) = self.next_char() else {
-                        self.push_error(Error::UnexpectedEnd);
+                        self.push_error(LexError::UnexpectedEnd);
                         break 'outer;
                     };
 
