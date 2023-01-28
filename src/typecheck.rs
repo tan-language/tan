@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::{ann::Ann, error::Error, eval::env::Env, expr::Expr, util::is_reserved_symbol};
 
+// #TODO convert to struct
 // #TODO rename file to `sema`?
 // #TODO consider renaming to `resolver` or `typecheck` or `type_eval`.
 // #TODO support multiple errors.

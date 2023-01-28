@@ -3,7 +3,7 @@ use std::{
     num::{ParseFloatError, ParseIntError},
 };
 
-use crate::{lexer::token::Token, range::Ranged};
+use crate::lexer::token::Token;
 
 // #TODO lexer, parser, resolver, etc should be able to return multiple errors
 // #TODO maybe just use _one_ Error?
