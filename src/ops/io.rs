@@ -1,12 +1,13 @@
 use crate::{
     ann::Ann,
-    api::Result,
+    error::Error,
     eval::env::Env,
     expr::{format_value, Expr},
+    range::Ranged,
 };
 
 /// Writes one or more expressions to the STDOUT sink/stream.
-pub fn write(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>> {
+pub fn write(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Ranged<Error>> {
     let output = args.iter().fold(String::new(), |mut str, x| {
         str.push_str(&format_value(x));
         str
@@ -27,7 +28,7 @@ pub fn write(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>> {
     Ok(Expr::One.into())
 }
 
-pub fn writeln(args: &[Ann<Expr>], env: &Env) -> Result<Ann<Expr>> {
+pub fn writeln(args: &[Ann<Expr>], env: &Env) -> Result<Ann<Expr>, Ranged<Error>> {
     // #TODO nasty implementation!
     write(args, env)?;
     write(&[Expr::string("\n").into()], env)

@@ -2,7 +2,7 @@ pub mod expr_iter;
 
 use std::{collections::HashMap, fmt, rc::Rc};
 
-use crate::{ann::Ann, api::Result, eval::env::Env};
+use crate::{ann::Ann, error::Error, eval::env::Env, range::Ranged};
 
 // #TODO separate variant for list and apply/call (can this be defined statically?)
 // #TODO List, MaybeList, Call
@@ -24,7 +24,7 @@ use crate::{ann::Ann, api::Result, eval::env::Env};
 // #TODO not all Expr variants really need Ann, maybe the annotation should be internal to Expr?
 
 // A function that accepts a list of Exprs and returns an Expr.
-pub type ExprFn = dyn Fn(&[Ann<Expr>], &Env) -> Result<Ann<Expr>>;
+pub type ExprFn = dyn Fn(&[Ann<Expr>], &Env) -> Result<Ann<Expr>, Ranged<Error>>;
 
 #[derive(Clone)]
 /// A symbolic expression. This is the 'universal' data type in the language,

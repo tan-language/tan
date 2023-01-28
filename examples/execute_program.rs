@@ -12,6 +12,6 @@ pub fn main() {
     if let Ok(value) = value {
         println!("{value}");
     } else {
-        eprintln!("{}", value.unwrap_err());
+        eprintln!("{:?}", value.unwrap_err());
     }
 }

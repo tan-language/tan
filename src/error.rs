@@ -87,6 +87,6 @@ impl Error {
 impl From<Error> for Ranged<Error> {
     fn from(value: Error) -> Self {
         // #TODO think about this.
-        Ranged(value, 0..1)
+        Ranged(value, 0..0)
     }
 }

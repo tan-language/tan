@@ -23,6 +23,13 @@ where
     }
 }
 
+impl<T> Ranged<T> {
+    pub fn new(value: T) -> Self {
+        // #TODO ultra-hack
+        Ranged(value, 0..0)
+    }
+}
+
 impl<T> AsRef<T> for Ranged<T> {
     fn as_ref(&self) -> &T {
         &self.0

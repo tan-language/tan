@@ -5,7 +5,6 @@ use std::collections::HashMap;
 
 use crate::{
     ann::Ann,
-    api::Result,
     error::Error,
     expr::{format_value, Expr},
     range::Ranged,
@@ -27,15 +26,15 @@ use self::env::Env;
 // #TODO Stack-trace is needed!
 
 // #TODO give more 'general' name.
-fn eval_args(args: &[Ann<Expr>], env: &mut Env) -> Result<Vec<Ann<Expr>>> {
+fn eval_args(args: &[Ann<Expr>], env: &mut Env) -> Result<Vec<Ann<Expr>>, Ranged<Error>> {
     args.iter()
         .map(|x| eval(x, env))
-        .collect::<Result<Vec<_>>>()
+        .collect::<Result<Vec<_>, _>>()
 }
 
 /// Evaluates via expression rewriting. The expression `expr` evaluates to
 /// a fixed point. In essence this is a 'tree-walk' interpreter.
-pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>> {
+pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>> {
     // let expr = expr.as_ref();
 
     match expr {

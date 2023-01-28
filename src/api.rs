@@ -8,11 +8,11 @@ use crate::{
     lexer::Lexer,
     parser::Parser,
     range::Ranged,
-    typecheck::resolve_type,
+    resolver::Resolver,
 };
 
 /// A Result specialization for Tan api functions.
-pub type Result<T> = std::result::Result<T, Ranged<Error>>;
+// /pub type Result<T> = std::result::Result<T, Ranged<Error>>;
 
 /// Parses a Tan expression encoded as a text string.
 pub fn parse_string(input: impl AsRef<str>) -> std::result::Result<Ann<Expr>, Vec<Ranged<Error>>> {
@@ -28,15 +28,23 @@ pub fn parse_string(input: impl AsRef<str>) -> std::result::Result<Ann<Expr>, Ve
 }
 
 /// Evaluates a Tan expression encoded as a text string.
-pub fn eval_string(input: impl AsRef<str>, env: &mut Env) -> Result<Ann<Expr>> {
-    // #TODO WARNING temporary!
-    // let expr = parse_string(input)?;
-    let expr = parse_string(input).unwrap();
+pub fn eval_string(
+    input: impl AsRef<str>,
+    env: &mut Env,
+) -> std::result::Result<Ann<Expr>, Vec<Ranged<Error>>> {
+    let expr = parse_string(input)?;
 
     // #TODO should we push a new env?
-    let expr = resolve_type(expr, env)?;
+    let mut resolver = Resolver::new();
+    let expr = resolver.resolve(expr, env)?;
 
-    let value = eval(&expr, env)?;
+    dbg!(&expr);
+
+    let value = eval(&expr, env);
+
+    let Ok(value) = value else {
+        return Err(vec![value.unwrap_err()]);
+    };
 
     Ok(value)
 }

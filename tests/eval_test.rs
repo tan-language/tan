@@ -32,6 +32,7 @@ fn do_reports_intermediate_errors() {
     assert!(result.is_err());
 
     let err = result.unwrap_err();
+    let err = &err[0];
 
     assert!(matches!(err, Ranged(Error::UndefinedFunction(s, _), ..) if s == "write33"));
 }
@@ -91,6 +92,7 @@ fn eval_reports_let_errors() {
     assert!(result.is_err());
 
     let err = result.unwrap_err();
+    let err = &err[0];
 
     assert!(
         matches!(err, Ranged(Error::InvalidArguments(x), ..) if x == "let cannot shadow the reserved symbol `if`")

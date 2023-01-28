@@ -27,7 +27,7 @@ impl std::error::Error for NonRecoverableError {}
 
 impl fmt::Display for NonRecoverableError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "NRPE")
+        write!(f, "NRE")
     }
 }
 
@@ -326,39 +326,40 @@ where
     pub fn parse(&mut self) -> Result<Ann<Expr>, Vec<Ranged<Error>>> {
         // #TODO can consolidate more with parse_atom
 
-        // loop {
-        let token = self.tokens.next();
+        loop {
+            let token = self.tokens.next();
 
-        let Some(token) = token  else {
-                // #TODO what should we return on empty tokens list? Never? Error?
-                return Ok(Ann::new(Expr::One));
+            let Some(token) = token  else {
+                break;
             };
 
-        let expr = self.parse_expr(token);
+            let expr = self.parse_expr(token);
 
-        let Ok(expr) = expr else {
+            let Ok(expr) = expr else {
                 // A non-recoverable parse error was detected, stop parsing.
                 let errors = std::mem::take(&mut self.errors);
                 return Err(errors);
             };
 
-        if let Some(expr) = expr {
-            let expr = self.attach_buffered_annotations(expr);
+            if let Some(expr) = expr {
+                let expr = self.attach_buffered_annotations(expr);
 
-            if self.errors.is_empty() {
-                // #TODO
-                Ok(expr)
-            } else {
-                let errors = std::mem::take(&mut self.errors);
-                Err(errors)
+                if self.errors.is_empty() {
+                    // #TODO
+                    return Ok(expr);
+                } else {
+                    let errors = std::mem::take(&mut self.errors);
+                    return Err(errors);
+                }
             }
-        } else if self.errors.is_empty() {
-            // #TODO what to return here?
+        }
+
+        if self.errors.is_empty() {
+            // #TODO what should we return on empty tokens list? Never? Error?
             Ok(Ann::new(Expr::One))
         } else {
             let errors = std::mem::take(&mut self.errors);
             Err(errors)
         }
-        // }
     }
 }
