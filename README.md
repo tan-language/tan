@@ -4,7 +4,7 @@ The Tan Language implementation.
 
 ## Status
 
-This is an experimental project, not intended for production.
+This is an experimental project, not intended for production use.
 
 ## Contributing
 

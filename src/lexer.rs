@@ -13,7 +13,6 @@ use self::token::Token;
 // #TODO use annotations before number literals to set the type?
 // #TODO use (doc_comment ...) for doc-comments.
 // #TODO support `\ ` for escaped space in symbols.
-// #TODO can the lexer be just a function?
 // #TODO implement PutBackIterator
 // #TODO no need to keep iterator as state in Lexer!
 // #TODO accept IntoIterator
@@ -21,6 +20,7 @@ use self::token::Token;
 // #TODO postpone parsing of numerics to a later stage where there is more semantic information (e.g. annotations)
 //       - more semantic information
 //       - joint synchronization in parsing phase to find more errors.
+
 /// Returns true if ch is considered whitespace.
 /// The `,` character is considered whitespace, in the Lisp tradition.
 fn is_whitespace(ch: char) -> bool {
@@ -44,6 +44,9 @@ fn is_eol(ch: char) -> bool {
 
 // #Insight
 // The lexer does not need synchronization to recover from errors.
+
+// #Insight
+// Don't try to make the lexer just a function.
 
 /// The Lexer performs the lexical analysis stage of the compilation pipeline.
 /// The input text is scanned into lexemes and then evaluated into lexical tokens.
