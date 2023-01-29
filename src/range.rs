@@ -1,12 +1,11 @@
 use std::fmt;
 
-// #TODO add methods to find positions (line, col) from span index!
 // #TODO use Annotated instead of Ranged.
 
 /// Represents a range in the source code.
 pub type Range = std::ops::Range<usize>;
 
-// #Insight Range is a valid name: https://www.wordhippo.com/what-is/the-adjective-for/range.html
+// #Insight Ranged is a valid name: https://www.wordhippo.com/what-is/the-adjective-for/ranged.html
 
 // #Insight Ranged works better as a tuple, it simplifies the code at use site.
 
@@ -43,6 +42,7 @@ pub struct Position {
 }
 
 impl Position {
+    // #TODO seems this conversion is needed too often, maybe should keep line,col info in range?
     // #TODO add unit test.
     pub fn from(index: usize, input: &str) -> Self {
         let chars = input.chars();
