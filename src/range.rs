@@ -35,3 +35,37 @@ impl<T> AsRef<T> for Ranged<T> {
         &self.0
     }
 }
+
+/// A position within a text document.
+pub struct Position {
+    pub line: usize,
+    pub col: usize,
+}
+
+impl Position {
+    // #TODO add unit test.
+    pub fn from(index: usize, input: &str) -> Self {
+        let chars = input.chars();
+
+        let mut i: usize = 0;
+        let mut line = 0;
+        let mut line_start: usize = 0;
+
+        for c in chars {
+            i += 1;
+
+            if c == '\n' {
+                if i > index {
+                    break;
+                }
+
+                line += 1;
+                line_start = i;
+            }
+        }
+
+        let col = index - line_start;
+
+        Self { line, col }
+    }
+}
