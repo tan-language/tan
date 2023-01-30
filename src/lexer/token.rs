@@ -36,6 +36,7 @@ pub enum Token {
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // #TODO optimize this!
+        // #TODO reconsider how tokens are displayed.
         f.write_str(
             (match self {
                 Token::LeftParen => "(".to_owned(),
@@ -47,7 +48,7 @@ impl fmt::Display for Token {
                 Token::Quote => "'".to_owned(),
                 Token::Int(n) => n.to_string(),
                 Token::Float(n) => n.to_string(),
-                Token::String(s) => s.clone(),
+                Token::String(s) => s.clone(), // #TODO should show the delimiters?
                 Token::Symbol(s) => s.clone(),
                 Token::Annotation(s) => s.clone(),
                 Token::Comment(s) => s.clone(),

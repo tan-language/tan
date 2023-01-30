@@ -324,12 +324,13 @@ where
     /// Tries to parse at least one expression.
     /// The parser tries to return as many errors as possible.
     pub fn parse(&mut self) -> Result<Ann<Expr>, Vec<Ranged<Error>>> {
-        // #TODO can consolidate more with parse_atom
+        // #TODO can consolidate more with parse_expr
+
+        // #Insight
+        // The loop is currently used to skip over comments.
 
         loop {
-            let token = self.tokens.next();
-
-            let Some(token) = token  else {
+            let Some(token) = self.tokens.next() else {
                 break;
             };
 

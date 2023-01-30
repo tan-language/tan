@@ -5,14 +5,20 @@ use crate::{
     error::Error,
     eval::{env::Env, eval},
     expr::Expr,
-    lexer::Lexer,
+    lexer::{token::Token, Lexer},
     parser::Parser,
     range::Ranged,
     resolver::Resolver,
 };
 
-/// A Result specialization for Tan api functions.
-// /pub type Result<T> = std::result::Result<T, Ranged<Error>>;
+/// Lexes a Tan expression encoded as a text string.
+pub fn lex_string(
+    input: impl AsRef<str>,
+) -> std::result::Result<Vec<Ranged<Token>>, Vec<Ranged<Error>>> {
+    let input = input.as_ref();
+    let mut lexer = Lexer::new(input);
+    lexer.lex()
+}
 
 /// Parses a Tan expression encoded as a text string.
 pub fn parse_string(input: impl AsRef<str>) -> std::result::Result<Ann<Expr>, Vec<Ranged<Error>>> {
