@@ -5,18 +5,26 @@ use crate::{ann::Ann, error::Error, eval::env::Env, expr::Expr, range::Ranged};
 
 // #TODO use AsRef, to avoid Annotated!
 // #TODO use macros to generate specializations for generic versions.
+// #TODO deduct from type if the function can affect the env or have any other side-effects.
 
+// #TODO autogen with a macro!
 pub fn add_int(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Ranged<Error>> {
-    let mut sum = 0;
+    let mut xs = Vec::new();
 
     for arg in args {
         let Ann(Expr::Int(n), ..) = arg else {
             return Err(Error::invalid_arguments(format!("`{arg}` is not an Int")).into());
         };
-        sum += n;
+        xs.push(*n);
     }
 
+    let sum = add_int_impl(xs);
+
     Ok(Expr::Int(sum).into())
+}
+
+fn add_int_impl(xs: Vec<i64>) -> i64 {
+    xs.iter().sum()
 }
 
 pub fn add_float(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Ranged<Error>> {
