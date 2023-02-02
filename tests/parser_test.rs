@@ -103,18 +103,20 @@ fn parse_reports_quote_errors() {
     assert_eq!(err.1.start, 0);
     assert_eq!(err.1.end, 1);
 
-    // Consecutive quotes
+    // #Insight we should allow consecutive quotes, emit a linter warning instead!
 
-    let input = "(let a '' 1)";
-    let result = parse_string(input);
+    // // Consecutive quotes
 
-    assert!(result.is_err());
+    // let input = "(let a '' 1)";
+    // let result = parse_string(input);
 
-    let err = result.unwrap_err();
-    let err = &err[0];
+    // assert!(result.is_err());
 
-    assert_eq!(err.1.start, 7);
-    assert_eq!(err.1.end, 8);
+    // let err = result.unwrap_err();
+    // let err = &err[0];
+
+    // assert_eq!(err.1.start, 7);
+    // assert_eq!(err.1.end, 8);
 }
 
 // () == Expr::One (Unit)

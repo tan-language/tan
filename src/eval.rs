@@ -232,6 +232,16 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
                                 Ok(Expr::Dict(HashMap::new()).into())
                             }
                         }
+                        "eval" => {
+                            let [expr] = tail else {
+                                return Err(Error::invalid_arguments("missing expression to be evaluated").into());
+                            };
+
+                            // #TODO consider naming this `form`?
+                            let expr = eval(expr, env)?;
+
+                            eval(&expr, env)
+                        }
                         "quot" => {
                             let [value] = tail else {
                                 return Err(Error::invalid_arguments("missing quote target").into());

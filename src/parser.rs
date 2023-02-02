@@ -178,13 +178,15 @@ where
                     return Err(NonRecoverableError {});
                 };
 
-                if token.0 == Token::Quote {
-                    // #TODO specialized error-message needed.
-                    // Report consecutive quote (i.e. '') as error
-                    self.push_error(Error::InvalidQuote, &range);
-                    // Parsing can continue.
-                    return Ok(None);
-                }
+                // #Insight we should allow consecutive quotes, emit a linter warning instead!
+
+                // if token.0 == Token::Quote {
+                //     // #TODO specialized error-message needed.
+                //     // Report consecutive quote (i.e. '') as error
+                //     self.push_error(Error::InvalidQuote, &range);
+                //     // Parsing can continue.
+                //     return Ok(None);
+                // }
 
                 let Ok(quot_expr) = self.parse_expr(token) else {
                     // Parsing the quoted expression failed.
