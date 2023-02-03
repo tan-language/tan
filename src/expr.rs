@@ -49,7 +49,8 @@ pub enum Expr {
     // #TODO should Dict contain Ann<Expr>?
     Dict(HashMap<String, Expr>),
     Func(Vec<Ann<Expr>>, Box<Ann<Expr>>), // #TODO is there a need to use Rc instead of Box? YES! fast clones? INVESTIGATE!
-    ForeignFunc(Rc<ExprFn>),              // #TODO for some reason, Box is not working here!
+    Macro(Vec<Ann<Expr>>, Box<Ann<Expr>>),
+    ForeignFunc(Rc<ExprFn>), // #TODO for some reason, Box is not working here!
     // --- High-level ---
     // #TODO do should contain the expressions also, pre-parsed!
     Do,
@@ -84,7 +85,8 @@ impl fmt::Debug for Expr {
             }
             Expr::Array(v) => format!("Array({v:?})"),
             Expr::Dict(d) => format!("Dict({d:?})"),
-            Expr::Func(..) => "#<fn>".to_owned(),
+            Expr::Func(..) => "#<func>".to_owned(),
+            Expr::Macro(..) => "#<macro>".to_owned(),
             Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
             Expr::Let => "let".to_owned(),
             // #TODO properly format do, let, if, etc.
@@ -139,6 +141,7 @@ impl fmt::Display for Expr {
                     format!("{{{exprs}}}")
                 }
                 Expr::Func(..) => "#<func>".to_owned(),
+                Expr::Macro(..) => "#<func>".to_owned(),
                 Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
             })
             .as_str(),

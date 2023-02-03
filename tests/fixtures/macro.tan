@@ -1,0 +1,14 @@
+(do
+    (let my_if (Macro (condition then else)
+        '(if \..condition \then \else)
+    ))
+
+    (let fact (Func (x)
+        (my_if (= x 0)
+            1
+            (* (fact (- x 1)) x)
+        )
+    ))
+
+    (fact 5)
+)
