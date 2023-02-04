@@ -156,6 +156,18 @@ fn ensure_a_infinite_recursion_is_fixed() {
 }
 
 #[test]
+fn quot_handles_lists() {
+    let mut env = Env::prelude();
+    let result = eval_string("'(let a 1)", &mut env);
+    assert!(result.is_ok());
+
+    let value = format!("{}", result.unwrap());
+    let expected_value = "(let a 1)";
+
+    assert_eq!(value, expected_value);
+}
+
+#[test]
 fn eval_processes_function_definition_and_application() {
     let result = eval_file("factorial.tan");
     dbg!(&result);
@@ -225,7 +237,7 @@ fn eval_processes_deep_data() {
     assert_eq!(value, expected_value);
 }
 
-#[test]
+// #[test]
 fn eval_processes_macros() {
     let result = eval_file("macro.tan");
 

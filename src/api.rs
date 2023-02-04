@@ -57,7 +57,7 @@ pub fn eval_string(
         return Err(vec!(Error::UnexpectedEnd {}.into()));
     };
 
-    dbg!(&expr);
+    println!("--- {expr}");
 
     let value = eval(&expr, env);
 
