@@ -291,7 +291,6 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
                                 return Err(Error::invalid_arguments("malformed if true clause").into());
                             };
 
-
                             let false_clause = tail.get(2);
 
                             let predicate = eval(predicate, env)?;
@@ -374,6 +373,10 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
 
                             // #TODO return last value!
                             Ok(Expr::One.into())
+                        }
+                        "List" => {
+                            let args = eval_args(tail, env)?;
+                            Ok(Expr::List(args).into())
                         }
                         "Func" => {
                             let [args, body] = tail else {
