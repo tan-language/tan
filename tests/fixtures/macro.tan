@@ -1,6 +1,6 @@
 (do
     (let my_if (Macro (condition then else)
-        (quot (if "condition" "then" "else"))
+        '("if" "condition" "then" "else")
     ))
 
     (let fact (Func (x)

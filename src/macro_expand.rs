@@ -31,8 +31,14 @@ pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>,
             // Evaluate the head
             let Ok(head) = eval(head, env) else {
                 // Don't err if we cannot eval the head.
+                println!("~~~~~~~~~~~~~ THIS {head}");
                 return Ok(Some(expr));
             };
+
+            // let Ok(head) = env.get(head) else {
+            //     println!("~~~~~~~~~~~~~ THIS {head}");
+            //     return Ok(Some(expr));
+            // }
 
             // println!("--- {head:?}");
 
@@ -44,7 +50,7 @@ pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>,
                     // #Insight
                     // Macro arguments are lazily evaluated.
 
-                    // println!("*********");
+                    println!("*********");
 
                     // dbg!(&params);
                     // dbg!(&body);
@@ -71,13 +77,14 @@ pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>,
 
                     let result = eval(&body, env)?;
 
-                    // dbg!(&result);
+                    dbg!(&result);
 
                     env.pop();
 
                     Ok(Some(result))
                 }
                 Expr::Symbol(sym) => {
+                    println!("___ {sym}");
                     // #TODO actually we should use `def` for this purpose, instead of `let`.
                     if sym == "let" {
                         let mut args = tail.iter();
@@ -115,7 +122,17 @@ pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>,
                             return Ok(None);
                         }
 
-                        Ok(Some(expr))
+                        // env.insert(s, binding_value.unwrap());
+                        println!("^^^^^^^^^^^^^^ {expr}");
+                        // let expr = macro_expand(expr, env);
+                        Ok(Some(
+                            Expr::List(vec![
+                                Expr::Symbol("let".to_owned()).into(),
+                                binding_sym.clone(),
+                                binding_value.unwrap(), // #TODO argh, remove the unwrap!
+                            ])
+                            .into(),
+                        ))
                     } else if sym == "Macro" {
                         dbg!(&tail);
                         let [args, body] = tail else {
@@ -132,24 +149,44 @@ pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>,
                         ))
                     } else {
                         // Other kind of list with symbol head, macro-expand tail.
-                        // println!("!!!!!!!!!!!");
+                        println!("+++++++++++++++++ {head}");
 
                         let mut terms = Vec::new();
                         terms.push(head.clone());
                         for term in tail {
-                            // println!("..... {term:?}");
+                            println!("..... {head} {term}");
                             let term = macro_expand(term.clone(), env)?;
                             if let Some(term) = term {
+                                println!("%%%%%% {head} {term}");
                                 terms.push(term);
                             }
                         }
 
-                        // println!("=== {terms:?}");
+                        println!("!!!!===>>>>>> {head} {}", Expr::List(terms.clone()));
+
+                        // if let Some(expr) = m
 
                         Ok(Some(Expr::List(terms).into()))
                     }
                 }
-                _ => Ok(Some(expr)),
+                _ => {
+                    // Other kind of list with non-symbol head, macro-expand tail.
+                    println!("!!!!! MEGA COOL !!!!!!");
+
+                    let mut terms = Vec::new();
+                    terms.push(head.clone());
+                    for term in tail {
+                        // println!("..... {term:?}");
+                        let term = macro_expand(term.clone(), env)?;
+                        if let Some(term) = term {
+                            terms.push(term);
+                        }
+                    }
+
+                    // println!("=== {terms:?}");
+
+                    Ok(Some(Expr::List(terms).into()))
+                }
             }
         }
         _ => Ok(Some(expr)),
