@@ -243,6 +243,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
 
                             eval(&expr, env)
                         }
+                        // #TODO can move to static/comptime phase.
                         // #TODO doesn't quote all exprs, e.g. the if expression.
                         "quot" => {
                             let [value] = tail else {

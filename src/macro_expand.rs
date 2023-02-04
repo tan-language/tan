@@ -112,6 +112,20 @@ pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>,
                             ])
                             .into(),
                         ))
+                    } else if sym == "quot" {
+                        let [value] = tail else {
+                                return Err(Error::invalid_arguments("missing quote target").into());
+                            };
+
+                        // #TODO super nasty, quotes should be resolved statically (at compile time)
+                        // #TODO hm, that clone, maybe `Rc` can fix this?
+                        Ok(Some(
+                            Expr::List(vec![
+                                Expr::Symbol("quot".to_owned()).into(),
+                                value.0.clone().into(),
+                            ])
+                            .into(),
+                        ))
                     } else if sym == "Macro" {
                         let [args, body] = tail else {
                             return Err(Error::invalid_arguments("malformed macro definition").into());
@@ -127,6 +141,7 @@ pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>,
                         ))
                     } else {
                         // Other kind of list with symbol head, macro-expand tail.
+
                         let mut terms = Vec::new();
                         terms.push(head.clone());
                         for term in tail {
@@ -135,6 +150,8 @@ pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>,
                                 terms.push(term);
                             }
                         }
+
+                        println!("%%%%% {}", Expr::List(terms.clone()));
 
                         Ok(Some(Expr::List(terms).into()))
                     }
