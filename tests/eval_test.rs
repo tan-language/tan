@@ -224,3 +224,17 @@ fn eval_processes_deep_data() {
 
     assert_eq!(value, expected_value);
 }
+
+#[test]
+fn eval_processes_macros() {
+    let result = eval_file("macro.tan");
+
+    dbg!(&result);
+
+    // assert!(result.is_ok());
+
+    // let value = format!("{}", result.unwrap());
+    // let expected_value = read_file("conditional.value.tan");
+
+    // assert_eq!(value, expected_value);
+}

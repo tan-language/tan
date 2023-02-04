@@ -6,6 +6,7 @@ use crate::{
     eval::{env::Env, eval},
     expr::Expr,
     lexer::{token::Token, Lexer},
+    macro_expand::macro_expand,
     parser::Parser,
     range::Ranged,
     resolver::Resolver,
@@ -43,6 +44,20 @@ pub fn eval_string(
     // #TODO should we push a new env?
     let mut resolver = Resolver::new();
     let expr = resolver.resolve(expr, env)?;
+
+    let expr = macro_expand(expr, env);
+
+    // #TODO temp hack until macro_expand returns multiple errors.
+    let Ok(expr) = expr else {
+        return Err(vec![expr.unwrap_err()]);
+    };
+
+    let Some(expr) = expr else {
+        // #TODO more precise error needed here.
+        return Err(vec!(Error::UnexpectedEnd {}.into()));
+    };
+
+    dbg!(&expr);
 
     let value = eval(&expr, env);
 
