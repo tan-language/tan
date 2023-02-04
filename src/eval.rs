@@ -345,15 +345,29 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
                         }
                         "Func" => {
                             let [args, body] = tail else {
-                                return Err(Error::invalid_arguments("malformed func invocation").into());
+                                return Err(Error::invalid_arguments("malformed func definition").into());
                             };
 
                             let Ann(Expr::List(params), ..) = args else {
-                                return Err(Error::invalid_arguments("malformed func invocation parameters").into());
+                                return Err(Error::invalid_arguments("malformed func parameters definition").into());
                             };
 
                             // #TODO optimize!
                             Ok(Expr::Func(params.clone(), Box::new(body.clone())).into())
+                        }
+                        // #TODO macros should be handled at a separate, comptime, macroexpand pass.
+                        // #TODO actually two passes, macro_def, macro_expand
+                        "Macro" => {
+                            let [args, body] = tail else {
+                                return Err(Error::invalid_arguments("malformed macro definition").into());
+                            };
+
+                            let Ann(Expr::List(params), ..) = args else {
+                                return Err(Error::invalid_arguments("malformed macro parameters definition").into());
+                            };
+
+                            // #TODO optimize!
+                            Ok(Expr::Macro(params.clone(), Box::new(body.clone())).into())
                         }
                         _ => {
                             return Err(Error::NotInvocable(format!("{head}")).into());

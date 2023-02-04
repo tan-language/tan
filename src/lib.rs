@@ -5,6 +5,7 @@ pub mod error;
 pub mod eval;
 pub mod expr;
 pub mod lexer;
+pub mod macro_expand;
 pub mod ops;
 pub mod parser;
 pub mod range;
