@@ -165,6 +165,16 @@ fn quot_handles_lists() {
     let expected_value = "(let a 1)";
 
     assert_eq!(value, expected_value);
+
+    // #TODO argh! cannot quote if expressions (and more)
+    // let mut env = Env::prelude();
+    // let result = eval_string("'(if \"a\" b 1)", &mut env);
+    // assert!(result.is_ok());
+
+    // let value = format!("{}", result.unwrap());
+    // let expected_value = "(if \"a\" b 1)";
+
+    // assert_eq!(value, expected_value);
 }
 
 #[test]

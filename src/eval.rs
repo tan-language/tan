@@ -78,6 +78,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
             // named (keyed) function parameter, enum variants, etc.
             Ok(expr.clone())
         }
+        // #TODO argh, if is unquotable!!
         Ann(Expr::If(predicate, true_clause, false_clause), ..) => {
             let predicate = eval(predicate, env)?;
 
@@ -242,6 +243,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
 
                             eval(&expr, env)
                         }
+                        // #TODO doesn't quote all exprs, e.g. the if expression.
                         "quot" => {
                             let [value] = tail else {
                                 return Err(Error::invalid_arguments("missing quote target").into());
