@@ -198,38 +198,44 @@ where
                     self.push_error(Error::InvalidQuote, &range);
                     return Ok(None);
                 };
-                Some(Expr::List(vec![
-                    Ann::new(Expr::symbol("quot")),
-                    Ann::new(target),
-                ]))
+
+                // #TODO the actual quoting should be handled here?
+                // #TODO what about interpolation?
+
+                Some(Expr::List(vec![Expr::symbol("quot").into(), target.into()]))
             }
             Token::LeftParen => {
                 let list_exprs = self.parse_list(Token::RightParen, range)?;
 
                 if list_exprs.is_empty() {
+                    // #TODO do we _really_ want this or just return a list?
                     // `()` == One/Unit/Top
                     Some(Expr::One)
                 } else {
-                    let head = list_exprs[0].clone();
-                    match head {
-                        // #TODO optimize more special forms.
+                    Some(Expr::List(list_exprs))
 
-                        // #Insight
-                        // Parsing built-ins as Exprs optimizes runtime evaluation, with more efficient
-                        // matching.
+                    // #TODO optimize some special forms but in another comptime pass.
 
-                        // `if` expression
-                        Ann(Expr::Symbol(s), ..) if s == "if" => {
-                            // #TODO detailed checking and error-reporting
-                            Some(Expr::If(
-                                Box::new(list_exprs[1].clone()),
-                                Box::new(list_exprs[2].clone()),
-                                // #TODO optional parsing!
-                                Some(Box::new(list_exprs[3].clone())),
-                            ))
-                        }
-                        _ => Some(Expr::List(list_exprs)),
-                    }
+                    // let head = list_exprs[0].clone();
+                    // match head {
+                    //     // #TODO optimize more special forms.
+
+                    //     // #Insight
+                    //     // Parsing built-ins as Exprs optimizes runtime evaluation, with more efficient
+                    //     // matching.
+
+                    //     // `if` expression
+                    //     Ann(Expr::Symbol(s), ..) if s == "if" => {
+                    //         // #TODO detailed checking and error-reporting
+                    //         Some(Expr::If(
+                    //             Box::new(list_exprs[1].clone()),
+                    //             Box::new(list_exprs[2].clone()),
+                    //             // #TODO optional parsing!
+                    //             Some(Box::new(list_exprs[3].clone())),
+                    //         ))
+                    //     }
+                    //     _ => Some(Expr::List(list_exprs)),
+                    // }
                 }
             }
             Token::LeftBracket => {

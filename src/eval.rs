@@ -281,6 +281,35 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
 
                             Ok(value)
                         }
+                        "if" => {
+                            // #TODO this is a temp hack!
+                            let Some(predicate) = tail.get(0) else {
+                                return Err(Error::invalid_arguments("malformed if predicate").into());
+                            };
+
+                            let Some(true_clause) = tail.get(1) else {
+                                return Err(Error::invalid_arguments("malformed if true clause").into());
+                            };
+
+
+                            let false_clause = tail.get(2);
+
+                            let predicate = eval(predicate, env)?;
+
+                            let Ann(Expr::Bool(predicate), ..) = predicate else {
+                                // #TODO can we range this error?
+                                return Err(Error::InvalidArguments("the if predicate is not a boolean value".to_owned()).into());
+                            };
+
+                            if predicate {
+                                eval(true_clause, env)
+                            } else if let Some(false_clause) = false_clause {
+                                eval(false_clause, env)
+                            } else {
+                                // #TODO what should we return if there is no false-clause? Zero/Never?
+                                Ok(Expr::One.into())
+                            }
+                        }
                         "for_each" => {
                             // #TODO this is a temp hack!
                             let [seq, var, body] = tail else {

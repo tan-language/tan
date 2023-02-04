@@ -151,8 +151,6 @@ pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>,
                             }
                         }
 
-                        println!("%%%%% {}", Expr::List(terms.clone()));
-
                         Ok(Some(Expr::List(terms).into()))
                     }
                 }
