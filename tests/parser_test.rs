@@ -31,6 +31,15 @@ fn parse_handles_an_empty_token_list() {
 }
 
 #[test]
+fn parse_handles_an_multiple_expressions() {
+    let input = &read_input("multiple_expressions.tan");
+    let tokens = lex_tokens(input);
+    let mut parser = Parser::new(tokens);
+    let expr = parser.parse().unwrap();
+    assert_eq!(expr.len(), 3);
+}
+
+#[test]
 fn parse_reports_unexpected_tokens() {
     let input = ")";
     let tokens = lex_tokens(input);

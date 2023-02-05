@@ -1,0 +1,5 @@
+; Multiple expressions
+
+(writeln "hello")
+(writeln "world")
+(writeln "from George")
