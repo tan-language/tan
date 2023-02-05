@@ -13,32 +13,30 @@ use crate::{
 };
 
 /// Lexes a Tan expression encoded as a text string.
-pub fn lex_string(
-    input: impl AsRef<str>,
-) -> std::result::Result<Vec<Ranged<Token>>, Vec<Ranged<Error>>> {
+pub fn lex_string(input: impl AsRef<str>) -> Result<Vec<Ranged<Token>>, Vec<Ranged<Error>>> {
     let input = input.as_ref();
     let mut lexer = Lexer::new(input);
     lexer.lex()
 }
 
 /// Parses a Tan expression encoded as a text string.
-pub fn parse_string(input: impl AsRef<str>) -> std::result::Result<Ann<Expr>, Vec<Ranged<Error>>> {
+pub fn parse_string(input: impl AsRef<str>) -> Result<Ann<Expr>, Vec<Ranged<Error>>> {
     let input = input.as_ref();
 
     let mut lexer = Lexer::new(input);
     let tokens = lexer.lex()?;
 
     let mut parser = Parser::new(tokens);
-    let expr = parser.parse()?;
+    let mut expr = parser.parse()?;
+
+    // #TODO temp solution
+    let expr = expr.swap_remove(0);
 
     Ok(expr)
 }
 
 /// Evaluates a Tan expression encoded as a text string.
-pub fn eval_string(
-    input: impl AsRef<str>,
-    env: &mut Env,
-) -> std::result::Result<Ann<Expr>, Vec<Ranged<Error>>> {
+pub fn eval_string(input: impl AsRef<str>, env: &mut Env) -> Result<Ann<Expr>, Vec<Ranged<Error>>> {
     let expr = parse_string(input)?;
 
     // #TODO should we push a new env?

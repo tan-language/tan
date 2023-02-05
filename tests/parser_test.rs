@@ -26,8 +26,8 @@ fn parse_handles_an_empty_token_list() {
     let input = &read_input("empty.tan");
     let tokens = lex_tokens(input);
     let mut parser = Parser::new(tokens);
-    let expr = parser.parse();
-    assert!(matches!(expr, Ok(Ann(Expr::One, ..))));
+    let expr = parser.parse().unwrap();
+    assert_eq!(expr.len(), 0);
 }
 
 #[test]
@@ -130,6 +130,8 @@ fn parse_handles_one() {
     let mut parser = Parser::new(tokens);
 
     let expr = parser.parse().unwrap();
+
+    let expr = &expr[0];
 
     dbg!(&expr);
 

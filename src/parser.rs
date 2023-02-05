@@ -92,7 +92,10 @@ where
                 return Ann::new(expr);
             }
 
-            let ann_expr = ann_expr.unwrap().0;
+            // #TODO temp, support multiple expressions in annotation?
+            let ann_expr = ann_expr.unwrap().swap_remove(0);
+
+            let ann_expr = ann_expr.0;
 
             match &ann_expr {
                 Expr::Symbol(sym) => {
@@ -369,11 +372,13 @@ where
 
     /// Tries to parse at least one expression.
     /// The parser tries to return as many errors as possible.
-    pub fn parse(&mut self) -> Result<Ann<Expr>, Vec<Ranged<Error>>> {
+    pub fn parse(&mut self) -> Result<Vec<Ann<Expr>>, Vec<Ranged<Error>>> {
         // #TODO can consolidate more with parse_expr
 
         // #Insight
         // The loop is currently used to skip over comments.
+
+        let mut exprs = Vec::new();
 
         loop {
             let Some(token) = self.tokens.next() else {
@@ -393,7 +398,8 @@ where
 
                 if self.errors.is_empty() {
                     // #TODO
-                    return Ok(expr);
+                    // return Ok(expr);
+                    exprs.push(expr);
                 } else {
                     let errors = std::mem::take(&mut self.errors);
                     return Err(errors);
@@ -402,8 +408,7 @@ where
         }
 
         if self.errors.is_empty() {
-            // #TODO what should we return on empty tokens list? Never? Error?
-            Ok(Ann::new(Expr::One))
+            Ok(exprs)
         } else {
             let errors = std::mem::take(&mut self.errors);
             Err(errors)

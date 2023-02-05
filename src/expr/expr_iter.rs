@@ -73,6 +73,8 @@ mod tests {
         let mut parser = Parser::new(tokens);
         let expr = parser.parse().unwrap();
 
+        let expr = &expr[0];
+
         let terms: Vec<String> = expr.iter().map(|ax| ax.0.to_string()).collect();
         let expected_terms = vec![
             "quot", "1", "2", "3", "4", "5", "6", "+", "7", "8", "9", "10",
