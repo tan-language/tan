@@ -17,9 +17,6 @@ use self::token::Token;
 // #TODO no need to keep iterator as state in Lexer!
 // #TODO accept IntoIterator
 // #TODO try to use `let mut reader = BufReader::new(source.as_bytes());` like an older version
-// #TODO postpone parsing of numerics to a later stage where there is more semantic information (e.g. annotations)
-//       - more semantic information
-//       - joint synchronization in parsing phase to find more errors.
 
 /// Returns true if ch is considered whitespace.
 /// The `,` character is considered whitespace, in the Lisp tradition.
@@ -47,6 +44,12 @@ fn is_eol(ch: char) -> bool {
 
 // #Insight
 // Don't try to make the lexer just a function.
+
+// #Insight
+// Numeric tokens parsing is postponed to a later stage (parse):
+//   -  there is more semantic information (e.g. annotations)
+//   - joint synchronization in parsing phase allows to find more errors
+//   - more scalebale for number formats, allows for less lexical tokens
 
 /// The Lexer performs the lexical analysis stage of the compilation pipeline.
 /// The input text is scanned into lexemes and then evaluated into lexical tokens.
