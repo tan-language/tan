@@ -253,51 +253,12 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    // #Insight uses the prefix lex because it returns a Token.
-    fn lex_number(&mut self) -> Option<Token> {
+    fn scan_number(&mut self) -> String {
         let lexeme = self.scan_lexeme();
 
         // Ignore `_`, it is considered a number separator.
         // #Insight do _not_ consider `,` as number separator, bad idea!
-        let mut lexeme = lexeme.replace('_', "");
-
-        // #TODO more detailed Number error!
-        // #TODO error handling not enough, we need to add context, check error_stack
-
-        if lexeme.contains('.') {
-            // #TODO support radix for non-integers?
-            // #TODO find a better name for 'non-integer'.
-            match lexeme.parse::<f64>().map_err(Error::MalformedFloat) {
-                Ok(n) => Some(Token::Float(n)),
-                Err(error) => {
-                    self.push_error(error);
-                    None
-                }
-            }
-        } else {
-            // #TODO support arbitrary radix https://github.com/golang/go/issues/28256
-            let mut radix = 10;
-
-            if lexeme.starts_with("0x") {
-                lexeme = lexeme.replace("0x", "");
-                radix = 16
-            } else if lexeme.starts_with("0b") {
-                lexeme = lexeme.replace("0b", "");
-                radix = 2
-            } else if lexeme.starts_with("0o") {
-                // #Insight Octal literals are supported for historical reasons.
-                lexeme = lexeme.replace("0o", "");
-                radix = 8
-            }
-
-            match i64::from_str_radix(&lexeme, radix).map_err(Error::MalformedInt) {
-                Ok(n) => Some(Token::Int(n)),
-                Err(error) => {
-                    self.push_error(error);
-                    None
-                }
-            }
-        }
+        lexeme.replace('_', "")
     }
 
     // #TODO consider passing into array of chars or something more general.
@@ -399,17 +360,14 @@ impl<'a> Lexer<'a> {
                     self.put_back_char(ch);
 
                     if ch1 == '-' {
-                        // #Warning if we switch to kebab-case, `--` comments may cause issues.
+                        // #TODO if we switch to kebab-case, `--` comments may cause issues.
                         // `--` line comment
                         let line = self.scan_line();
                         tokens.push(Ranged(Token::Comment(line), self.range()));
                     } else if ch1.is_numeric() {
                         // Negative number
-
-                        if let Some(token) = self.lex_number() {
-                            tokens.push(Ranged(token, self.range()));
-                            // Don't break, continue scanning to find more errors.
-                        }
+                        let token = Token::Number(self.scan_number());
+                        tokens.push(Ranged(token, self.range()));
                     } else {
                         // #TODO lint warning for this!
                         // Symbol starting with `-`.
@@ -431,10 +389,8 @@ impl<'a> Lexer<'a> {
                 _ if ch.is_numeric() => {
                     self.put_back_char(ch);
 
-                    if let Some(token) = self.lex_number() {
-                        tokens.push(Ranged(token, self.range()));
-                        // Don't break, continue scanning to find more errors.
-                    }
+                    let token = Token::Number(self.scan_number());
+                    tokens.push(Ranged(token, self.range()));
                 }
                 _ => {
                     self.put_back_char(ch);

@@ -156,8 +156,47 @@ where
                     Some(Expr::Symbol(s))
                 }
             }
-            Token::Int(n) => Some(Expr::Int(n)),
-            Token::Float(n) => Some(Expr::Float(n)),
+            // Token::Int(n) => Some(Expr::Int(n)),
+            // Token::Float(n) => Some(Expr::Float(n)),
+            Token::Number(mut lexeme) => {
+                // #TODO more detailed Number error!
+                // #TODO error handling not enough, we need to add context, check error_stack
+
+                if lexeme.contains('.') {
+                    // #TODO support radix for non-integers?
+                    // #TODO find a better name for 'non-integer'.
+                    match lexeme.parse::<f64>().map_err(Error::MalformedFloat) {
+                        Ok(n) => Some(Expr::Float(n)),
+                        Err(error) => {
+                            self.push_error(error, &range);
+                            None
+                        }
+                    }
+                } else {
+                    // #TODO support arbitrary radix https://github.com/golang/go/issues/28256
+                    let mut radix = 10;
+
+                    if lexeme.starts_with("0x") {
+                        lexeme = lexeme.replace("0x", "");
+                        radix = 16
+                    } else if lexeme.starts_with("0b") {
+                        lexeme = lexeme.replace("0b", "");
+                        radix = 2
+                    } else if lexeme.starts_with("0o") {
+                        // #Insight Octal literals are supported for historical reasons.
+                        lexeme = lexeme.replace("0o", "");
+                        radix = 8
+                    }
+
+                    match i64::from_str_radix(&lexeme, radix).map_err(Error::MalformedInt) {
+                        Ok(n) => Some(Expr::Int(n)),
+                        Err(error) => {
+                            self.push_error(error, &range);
+                            None
+                        }
+                    }
+                }
+            }
             Token::Annotation(s) => {
                 if self.buffered_annotations.is_none() {
                     self.buffered_annotations = Some(Vec::new());

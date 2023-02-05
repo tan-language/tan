@@ -185,3 +185,66 @@ fn parse_parses_dicts() {
 
     assert!(matches!(&vec[2], Ann(Expr::Dict(dict), ..) if dict.len() == 2));
 }
+
+#[test]
+fn parse_detects_ints() {
+    let input = "(let a 123)";
+    let result = parse_string(input).unwrap();
+
+    let Ann(Expr::List(vec), ..) = result else {
+        panic!("invalid form")
+    };
+
+    assert!(matches!(&vec[2], Ann(Expr::Int(n), ..) if *n == 123));
+}
+
+#[test]
+fn parse_detects_floats() {
+    let input = "(let a 1_274.34)";
+    let result = parse_string(input).unwrap();
+
+    let Ann(Expr::List(vec), ..) = result else {
+        panic!("invalid form")
+    };
+
+    assert!(matches!(&vec[2], Ann(Expr::Float(n), ..) if *n == 1274.34));
+}
+
+#[test]
+fn parse_handles_numbers_with_radix() {
+    let input = "(let a 0xfe)";
+    let result = parse_string(input).unwrap();
+
+    let Ann(Expr::List(vec), ..) = result else {
+        panic!("invalid form")
+    };
+
+    assert!(matches!(&vec[2], Ann(Expr::Int(n), ..) if *n == 254));
+
+    let input = "(let a 0b1010)";
+    let result = parse_string(input).unwrap();
+
+    let Ann(Expr::List(vec), ..) = result else {
+        panic!("invalid form")
+    };
+
+    assert!(matches!(&vec[2], Ann(Expr::Int(n), ..) if *n == 10));
+
+    let input = "(let a 0b00000)";
+    let result = parse_string(input).unwrap();
+
+    let Ann(Expr::List(vec), ..) = result else {
+        panic!("invalid form")
+    };
+
+    assert!(matches!(&vec[2], Ann(Expr::Int(n), ..) if *n == 0));
+
+    let input = "(let a 0o755)";
+    let result = parse_string(input).unwrap();
+
+    let Ann(Expr::List(vec), ..) = result else {
+        panic!("invalid form")
+    };
+
+    assert!(matches!(&vec[2], Ann(Expr::Int(n), ..) if *n == 493));
+}
