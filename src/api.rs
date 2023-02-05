@@ -19,7 +19,8 @@ pub fn lex_string(input: impl AsRef<str>) -> Result<Vec<Ranged<Token>>, Vec<Rang
     lexer.lex()
 }
 
-/// Parses a Tan expression encoded as a text string.
+// #TODO temp solution for compatibility.
+/// Parses a Tan expression encoded as a text string, returns first expression.
 pub fn parse_string(input: impl AsRef<str>) -> Result<Ann<Expr>, Vec<Ranged<Error>>> {
     let input = input.as_ref();
 
@@ -35,33 +36,53 @@ pub fn parse_string(input: impl AsRef<str>) -> Result<Ann<Expr>, Vec<Ranged<Erro
     Ok(expr)
 }
 
+/// Parses a Tan expression encoded as a text string, returns all expressions parsed.
+pub fn parse_string_all(input: impl AsRef<str>) -> Result<Vec<Ann<Expr>>, Vec<Ranged<Error>>> {
+    let input = input.as_ref();
+
+    let mut lexer = Lexer::new(input);
+    let tokens = lexer.lex()?;
+
+    let mut parser = Parser::new(tokens);
+    let expr = parser.parse()?;
+
+    Ok(expr)
+}
+
+// #TODO this implements in essence a do block. Maybe no value should be returned?
 /// Evaluates a Tan expression encoded as a text string.
 pub fn eval_string(input: impl AsRef<str>, env: &mut Env) -> Result<Ann<Expr>, Vec<Ranged<Error>>> {
-    let expr = parse_string(input)?;
+    let exprs = parse_string_all(input)?;
 
-    // #TODO should we push a new env?
-    let mut resolver = Resolver::new();
-    let expr = resolver.resolve(expr, env)?;
+    let mut last_value = Expr::One.into();
 
-    let expr = macro_expand(expr, env);
+    for expr in exprs {
+        // #TODO should we push a new env?
+        let mut resolver = Resolver::new();
+        let expr = resolver.resolve(expr, env)?;
 
-    // #TODO temp hack until macro_expand returns multiple errors.
-    let Ok(expr) = expr else {
-        return Err(vec![expr.unwrap_err()]);
-    };
+        let expr = macro_expand(expr, env);
 
-    let Some(expr) = expr else {
-        // #TODO more precise error needed here.
-        return Err(vec!(Error::UnexpectedEnd {}.into()));
-    };
+        // #TODO temp hack until macro_expand returns multiple errors.
+        let Ok(expr) = expr else {
+            return Err(vec![expr.unwrap_err()]);
+        };
 
-    // println!("--->>> {expr}");
+        let Some(expr) = expr else {
+            // #TODO more precise error needed here.
+            return Err(vec!(Error::UnexpectedEnd {}.into()));
+        };
 
-    let value = eval(&expr, env);
+        // println!("--->>> {expr}");
 
-    let Ok(value) = value else {
-        return Err(vec![value.unwrap_err()]);
-    };
+        let value = eval(&expr, env);
 
-    Ok(value)
+        let Ok(value) = value else {
+            return Err(vec![value.unwrap_err()]);
+        };
+
+        last_value = value;
+    }
+
+    Ok(last_value)
 }

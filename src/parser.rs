@@ -367,16 +367,18 @@ where
         }
     }
 
-    // #TODO try to parse all available expressions, return a namespace?
-    // #TODO the parser should return a Vec<Ann<Expr>>
+    // #Insight
+    // The parse function intentionally returns an 'unstructured' vector of
+    // expressions instead of something like a do-block or a module. Downstream
+    // functions can enforce some structure.dd
 
-    /// Tries to parse at least one expression.
+    // #Insight
+    // The loop in the parser is also useful to skip over comments.
+
+    /// Parses the input tokens into expressions.
     /// The parser tries to return as many errors as possible.
     pub fn parse(&mut self) -> Result<Vec<Ann<Expr>>, Vec<Ranged<Error>>> {
         // #TODO can consolidate more with parse_expr
-
-        // #Insight
-        // The loop is currently used to skip over comments.
 
         let mut exprs = Vec::new();
 
@@ -397,8 +399,6 @@ where
                 let expr = self.attach_buffered_annotations(expr);
 
                 if self.errors.is_empty() {
-                    // #TODO
-                    // return Ok(expr);
                     exprs.push(expr);
                 } else {
                     let errors = std::mem::take(&mut self.errors);
