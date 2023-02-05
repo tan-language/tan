@@ -156,8 +156,6 @@ where
                     Some(Expr::Symbol(s))
                 }
             }
-            // Token::Int(n) => Some(Expr::Int(n)),
-            // Token::Float(n) => Some(Expr::Float(n)),
             Token::Number(mut lexeme) => {
                 // #TODO more detailed Number error!
                 // #TODO error handling not enough, we need to add context, check error_stack
