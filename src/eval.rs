@@ -5,6 +5,7 @@ use std::collections::HashMap;
 
 use crate::{
     ann::Ann,
+    api::eval_string,
     error::Error,
     expr::{format_value, Expr},
     range::Ranged,
@@ -338,6 +339,27 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
                             env.pop();
 
                             // #TODO intentionally don't return a value, reconsider this?
+                            Ok(Expr::One.into())
+                        }
+                        "use" => {
+                            // #TODO temp implementation!
+
+                            let Some(name) = tail.get(0) else {
+                                return Err(Error::invalid_arguments("malformed use expression").into());
+                            };
+
+                            let path = format!("{name}.tan");
+
+                            // #TODO handle the range of the error.
+                            let input = std::fs::read_to_string(path)?;
+
+                            if let Err(err) = eval_string(input, env) {
+                                // #TODO better error handling here!
+                                dbg!(&err);
+                                // #TODO better error here!
+                                return Err(Error::FailedUse.into());
+                            }
+
                             Ok(Expr::One.into())
                         }
                         "let" => {

@@ -36,6 +36,7 @@ pub enum Error {
     UndefinedFunction(String, String), // #TODO maybe pass the whole Symbol expression?
     InvalidArguments(String),
     NotInvocable(String), // #TODO maybe the non-invocable Annotated<Expr> should be the param?
+    FailedUse,            // #TODO temp, better name needed, rethink!
 
     // Runtime errors
     Io(std::io::Error),
@@ -60,6 +61,7 @@ impl fmt::Display for Error {
                 format!("function `{sym}` with signature `{signature}` is undefined")
             }
             Error::Io(io_err) => format!("i/o error: {io_err}"),
+            Error::FailedUse => "failed use".to_owned(),
             Error::InvalidArguments(text) => text.to_owned(),
             Error::NotInvocable(text) => text.to_owned(),
         };
@@ -71,6 +73,12 @@ impl fmt::Display for Error {
 impl From<std::io::Error> for Error {
     fn from(value: std::io::Error) -> Self {
         Error::Io(value)
+    }
+}
+
+impl From<std::io::Error> for Ranged<Error> {
+    fn from(value: std::io::Error) -> Self {
+        Error::Io(value).into()
     }
 }
 
