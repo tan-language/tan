@@ -1,8 +1,11 @@
 mod common;
 
+use std::num::IntErrorKind;
+
 use tan::{
     ann::Ann,
     api::parse_string,
+    error::Error,
     expr::Expr,
     lexer::{token::Token, Lexer},
     parser::Parser,
@@ -247,4 +250,40 @@ fn parse_handles_numbers_with_radix() {
     };
 
     assert!(matches!(&vec[2], Ann(Expr::Int(n), ..) if *n == 493));
+}
+
+#[test]
+fn parse_reports_number_errors() {
+    let input = "(+ 1 3$%99)";
+    let result = parse_string(input);
+
+    assert!(result.is_err());
+
+    let err = result.unwrap_err();
+
+    assert_eq!(err.len(), 1);
+
+    let err = &err[0];
+
+    assert!(matches!(err.0, Error::MalformedInt(..)));
+
+    // eprintln!("{}", format_pretty_error(&err, input, None));
+
+    if let Ranged(Error::MalformedInt(pie), range) = err {
+        assert_eq!(pie.kind(), &IntErrorKind::InvalidDigit);
+        assert_eq!(range.start, 5);
+        assert_eq!(range.end, 10);
+    }
+}
+
+#[test]
+fn lex_reports_multiple_number_errors() {
+    let input = "(+ 1 3$%99 34%#$ 55$$4)";
+    let result = parse_string(input);
+
+    assert!(result.is_err());
+
+    let err = result.unwrap_err();
+
+    assert_eq!(err.len(), 3);
 }

@@ -1,11 +1,8 @@
 mod common;
 
-use std::num::IntErrorKind;
-
 use tan::{
     error::Error,
     lexer::{token::Token, Lexer},
-    range::Ranged,
 };
 
 use crate::common::read_file;
@@ -143,68 +140,6 @@ fn lex_reports_unexpected_eof() {
 
     assert!(matches!(err[0].0, Error::UnexpectedEnd));
 }
-
-// #TODO move to parser tests
-// #[test]
-// fn lex_handles_numbers_with_radix() {
-//     let input = "(let a 0xfe)";
-//     let tokens = Lexer::new(input).lex().unwrap();
-
-//     assert!(matches!(tokens[3].as_ref(), Token::Int(n) if n == &254));
-
-//     let input = "(let a 0b1010)";
-//     let tokens = Lexer::new(input).lex().unwrap();
-
-//     assert!(matches!(tokens[3].as_ref(), Token::Int(n) if n == &10));
-
-//     let input = "(let a 0b00000)";
-//     let tokens = Lexer::new(input).lex().unwrap();
-
-//     assert!(matches!(tokens[3].as_ref(), Token::Int(n) if n == &0));
-
-//     let input = "(let a 0o755)";
-//     let tokens = Lexer::new(input).lex().unwrap();
-
-//     assert!(matches!(tokens[3].as_ref(), Token::Int(n) if n == &493));
-// }
-
-// #TODO move to parser tests
-// #[test]
-// fn lex_reports_number_errors() {
-//     let input = "(+ 1 3$%99)";
-//     let result = Lexer::new(input).lex();
-
-//     assert!(result.is_err());
-
-//     let err = result.unwrap_err();
-
-//     assert_eq!(err.len(), 1);
-
-//     let err = &err[0];
-
-//     assert!(matches!(err.0, Error::MalformedInt(..)));
-
-//     // eprintln!("{}", format_pretty_error(&err, input, None));
-
-//     if let Ranged(Error::MalformedInt(pie), range) = err {
-//         assert_eq!(pie.kind(), &IntErrorKind::InvalidDigit);
-//         assert_eq!(range.start, 5);
-//         assert_eq!(range.end, 10);
-//     }
-// }
-
-// #TODO move to parser tests
-// #[test]
-// fn lex_reports_multiple_number_errors() {
-//     let input = "(+ 1 3$%99 34%#$ 55$$4)";
-//     let result = Lexer::new(input).lex();
-
-//     assert!(result.is_err());
-
-//     let err = result.unwrap_err();
-
-//     assert_eq!(err.len(), 3);
-// }
 
 #[test]
 fn lex_reports_unterminated_strings() {
