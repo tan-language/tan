@@ -4,6 +4,11 @@ use crate::{ann::Ann, expr::Expr};
 
 use super::prelude::setup_prelude;
 
+// #TODO separate global_scope.
+// #TODO global <> local scope.
+// #TODO {insert/update}_{global/local}
+// #TODO support namespaces
+
 // #TODO find another name than `Scope`?
 pub type Scope = HashMap<String, Ann<Expr>>;
 
@@ -23,7 +28,9 @@ pub type Scope = HashMap<String, Ann<Expr>>;
 /// A binding binds a symbol to a value/expr.
 #[derive(Debug)]
 pub struct Env {
-    pub scopes: Vec<Scope>,
+    pub global: Scope,
+    pub local: Vec<Scope>,
+    // #TODO maybe even keep the inner local scope as field?
 }
 
 impl Default for Env {
@@ -35,24 +42,27 @@ impl Default for Env {
 impl Env {
     pub fn new() -> Self {
         Self {
-            scopes: vec![Scope::default()],
+            global: Scope::default(),
+            local: vec![Scope::default()],
         }
     }
 
+    // #TODO definitely move externally, we can have multiple preludes, even versioned prelude.
     pub fn prelude() -> Self {
         setup_prelude(Env::default())
     }
 
     pub fn push(&mut self, scope: Scope) {
-        self.scopes.push(scope);
+        self.local.push(scope);
     }
 
+    // #TODO maybe remove this?
     pub fn push_new_scope(&mut self) {
         self.push(Scope::default());
     }
 
     pub fn pop(&mut self) -> Option<Scope> {
-        self.scopes.pop()
+        self.local.pop()
     }
 
     // #TODO better offer get/set interface?
@@ -62,37 +72,37 @@ impl Env {
         name: impl Into<String>,
         value: impl Into<Ann<Expr>>,
     ) -> Option<Ann<Expr>> {
-        let last = self.scopes.len() - 1;
-        let scope = &mut self.scopes[last];
+        let last = self.local.len() - 1;
+        let scope = &mut self.local[last];
         scope.insert(name.into(), value.into())
     }
 
     // #TODO extract the stack walking?
 
     pub fn get(&self, name: &str) -> Option<&Ann<Expr>> {
-        let nesting = self.scopes.len();
+        let nesting = self.local.len();
 
         // #TODO optimize here!
 
         for i in (0..nesting).rev() {
-            let scope = &self.scopes[i];
+            let scope = &self.local[i];
             if let Some(binding) = scope.get(name) {
                 return Some(binding);
             }
         }
 
-        None
+        self.global.get(name)
     }
 
     /// Updates an existing binding, walks the environment.
     pub fn update(&mut self, name: &str, value: impl Into<Ann<Expr>>) {
-        let nesting = self.scopes.len();
+        let nesting = self.local.len();
 
         // #TODO optimize here!
         // #TODO what to return?
 
         for i in (0..nesting).rev() {
-            let scope = &mut self.scopes[i];
+            let scope = &mut self.local[i];
             if let Some(binding) = scope.get_mut(name) {
                 *binding = value.into();
                 break;

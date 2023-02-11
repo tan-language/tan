@@ -6,6 +6,7 @@ use crate::{
 
 // #TODO rename file to `sema`?
 // #TODO support multiple errors.
+// #TODO split into multiple passes?
 
 // #Insight resolve_type and resolve_invocable should be combined, cannot be separate passes.
 
@@ -106,6 +107,7 @@ impl Resolver {
                 // #TODO handle non-symbol cases!
                 // #TODO signature should be the type, e.g. +::(Func Int Int Int) instead of +$$Int$$Int
                 if let Ann(Expr::Symbol(ref sym), _) = head {
+                    // #TODO special handling of def
                     if sym == "let" {
                         // #TODO also report some of these errors statically, maybe in a sema phase?
                         let mut args = tail.iter();

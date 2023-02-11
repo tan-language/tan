@@ -25,6 +25,7 @@ use self::env::Env;
 // #TODO alternative names: Processor, Runner, Interpreter
 // #TODO split eval_special, eval_func -> not needed if we put everything uniformly in prelude.
 // #TODO Stack-trace is needed!
+// #TODO https://clojure.org/reference/evaluation
 
 // #TODO give more 'general' name.
 fn eval_args(args: &[Ann<Expr>], env: &mut Env) -> Result<Vec<Ann<Expr>>, Ranged<Error>> {
