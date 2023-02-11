@@ -12,8 +12,10 @@ use std::fmt;
 // #Insight
 // Reserved _word_ is a bad name because it can be more than one word.
 
+// #Insight
+// A general Number token is used, classification is postponed to a later stage.
+
 // #TODO support #quot annotation?
-// #TODO only have a general Numeric token?
 
 /// A lexical Token gives semantic meaning to a Lexeme.
 #[derive(Debug, Clone, PartialEq)]
