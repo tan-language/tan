@@ -1,7 +1,7 @@
 pub mod env;
 pub mod prelude;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, fs};
 
 use crate::{
     ann::Ann,
@@ -342,24 +342,35 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
                             Ok(Expr::One.into())
                         }
                         "use" => {
-                            // #TODO temp implementation!
+                            // Import a directory as a module.
 
-                            let Some(name) = tail.get(0) else {
+                            let Some(Ann(Expr::Symbol(module_name), _)) = tail.get(0) else {
                                 return Err(Error::invalid_arguments("malformed use expression").into());
                             };
 
-                            let path = format!("{name}.tan");
+                            // #TODO use `modl` instead of `module` or `mod`.
+                            // #TODO support nested modules
+                            // #TODO support 'absolute' modules
+                            // #TODO rewrite separators here.
+                            let module_path = module_name;
 
-                            // #TODO handle the range of the error.
-                            let input = std::fs::read_to_string(path)?;
+                            let file_paths = fs::read_dir(module_path)?;
 
-                            if let Err(err) = eval_string(input, env) {
-                                // #TODO better error handling here!
-                                dbg!(&err);
-                                // #TODO better error here!
-                                return Err(Error::FailedUse.into());
+                            for file_path in file_paths {
+                                let path = file_path?.path();
+
+                                // #TODO handle the range of the error.
+                                let input = std::fs::read_to_string(path)?;
+
+                                if let Err(err) = eval_string(input, env) {
+                                    // #TODO better error handling here!
+                                    dbg!(&err);
+                                    // #TODO better error here!
+                                    return Err(Error::FailedUse.into());
+                                }
                             }
 
+                            // #TODO what could we return here?
                             Ok(Expr::One.into())
                         }
                         "let" => {
