@@ -359,6 +359,10 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
                             for file_path in file_paths {
                                 let path = file_path?.path();
 
+                                if !path.display().to_string().ends_with(".tan") {
+                                    continue;
+                                }
+
                                 // #TODO handle the range of the error.
                                 let input = std::fs::read_to_string(path)?;
 
