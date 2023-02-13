@@ -142,6 +142,7 @@ where
 
         let expr = match t {
             Token::Comment(..) => None,
+            // Token::Char(c) => Some(Expr::Char(c)),
             Token::String(s) => Some(Expr::String(s)),
             Token::Symbol(s) => {
                 if s.starts_with(':') {

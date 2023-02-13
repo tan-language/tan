@@ -85,6 +85,13 @@ fn eval_processes_booleans() {
 }
 
 #[test]
+fn eval_processes_chars() {
+    let mut env = Env::prelude();
+    let value = eval_string(r#"(let ch (Char "r")) ch"#, &mut env).unwrap();
+    assert!(matches!(value, Ann(Expr::Char(c), ..) if c == 'r'));
+}
+
+#[test]
 fn eval_reports_let_errors() {
     let mut env = Env::prelude();
     let result = eval_string("(do (let if (+ 1 2 3)) a)", &mut env);

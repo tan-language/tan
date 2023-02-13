@@ -16,6 +16,7 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
             | "eval"
             | "quot"
             | "use" // #TODO consider `using`
+            | "Char"
             | "Func"
             | "Macro"
             | "List"

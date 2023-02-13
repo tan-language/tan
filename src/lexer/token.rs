@@ -15,6 +15,10 @@ use std::fmt;
 // #Insight
 // A general Number token is used, classification is postponed to a later stage.
 
+// #Insight
+// Tan intentionally doesn't provide a Char literal, as chars are not used that
+// often to deserve a dedicated sigil.
+
 // #TODO support #quot annotation?
 
 /// A lexical Token gives semantic meaning to a Lexeme.
@@ -27,9 +31,10 @@ pub enum Token {
     LeftBrace,
     RightBrace,
     Quote,
+    // Char(char),
     String(String),
-    Number(String),
     Symbol(String),
+    Number(String),
     Annotation(String),
     Comment(String),
 }
@@ -47,9 +52,10 @@ impl fmt::Display for Token {
                 Token::LeftBrace => "{".to_owned(),
                 Token::RightBrace => "}".to_owned(),
                 Token::Quote => "'".to_owned(),
-                Token::Number(s) => s.clone(),
+                // Token::Char(c) => c.to_string(), // #TODO should show the delimiters?
                 Token::String(s) => s.clone(), // #TODO should show the delimiters?
                 Token::Symbol(s) => s.clone(),
+                Token::Number(s) => s.clone(),
                 Token::Annotation(s) => s.clone(),
                 Token::Comment(s) => s.clone(),
             })

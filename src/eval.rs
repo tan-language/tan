@@ -429,6 +429,24 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
                             // #TODO return last value!
                             Ok(Expr::One.into())
                         }
+                        "Char" => {
+                            // #TODO report more than 1 arguments.
+                            let Some(Ann(Expr::String(c), _)) = tail.get(0) else {
+                                return Err(Error::invalid_arguments("malformed Char constructor").into());
+                            };
+
+                            if c.len() != 1 {
+                                // #TODO better error message.
+                                return Err(Error::invalid_arguments(
+                                    "the Char constructor requires a single-char string",
+                                )
+                                .into());
+                            }
+
+                            let c = c.chars().next().unwrap();
+
+                            Ok(Expr::Char(c).into())
+                        }
                         "List" => {
                             let args = eval_args(tail, env)?;
                             Ok(Expr::List(args).into())
