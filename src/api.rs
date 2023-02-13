@@ -49,19 +49,24 @@ pub fn parse_string_all(input: impl AsRef<str>) -> Result<Vec<Ann<Expr>>, Vec<Ra
     Ok(expr)
 }
 
-// #TODO this implements in essence a do block. Maybe no value should be returned?
-/// Evaluates a Tan expression encoded as a text string.
-pub fn eval_string(input: impl AsRef<str>, env: &mut Env) -> Result<Ann<Expr>, Vec<Ranged<Error>>> {
+// #TODO what is a good name?
+/// Reads and resolves a Tan expression encoded as a text string.
+/// Updates the environment with definitions.
+pub fn resolve_string(
+    input: impl AsRef<str>,
+    env: &mut Env,
+) -> Result<Vec<Ann<Expr>>, Vec<Ranged<Error>>> {
     let exprs = parse_string_all(input)?;
 
-    let mut last_value = Expr::One.into();
+    let mut resolved_exprs = Vec::new();
 
     for expr in exprs {
-        // #TODO should we push a new env?
-        let mut resolver = Resolver::new();
-        let expr = resolver.resolve(expr, env)?;
-
         let expr = macro_expand(expr, env);
+
+        // #Insight
+        // Macro expansion should be performed before resolving.
+
+        // Expand macros.
 
         // #TODO temp hack until macro_expand returns multiple errors.
         let Ok(expr) = expr else {
@@ -73,8 +78,26 @@ pub fn eval_string(input: impl AsRef<str>, env: &mut Env) -> Result<Ann<Expr>, V
             return Err(vec!(Error::UnexpectedEnd {}.into()));
         };
 
-        // println!("--->>> {expr}");
+        // Resolve (typechecking, definitions, etc)
 
+        // #TODO should we push a new env?
+        let mut resolver = Resolver::new();
+        let expr = resolver.resolve(expr, env)?;
+
+        resolved_exprs.push(expr);
+    }
+
+    Ok(resolved_exprs)
+}
+
+// #TODO this implements in essence a do block. Maybe no value should be returned?
+/// Evaluates a Tan expression encoded as a text string.
+pub fn eval_string(input: impl AsRef<str>, env: &mut Env) -> Result<Ann<Expr>, Vec<Ranged<Error>>> {
+    let exprs = resolve_string(input, env)?;
+
+    let mut last_value = Expr::One.into();
+
+    for expr in exprs {
         let value = eval(&expr, env);
 
         let Ok(value) = value else {

@@ -5,7 +5,7 @@ use std::{collections::HashMap, fs};
 
 use crate::{
     ann::Ann,
-    api::eval_string,
+    api::resolve_string,
     error::Error,
     expr::{format_value, Expr},
     range::Ranged,
@@ -357,6 +357,8 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
 
                             let file_paths = fs::read_dir(module_path)?;
 
+                            let mut resolved_exprs: Vec<Ann<Expr>> = Vec::new();
+
                             for file_path in file_paths {
                                 let path = file_path?.path();
 
@@ -367,7 +369,22 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
                                 // #TODO handle the range of the error.
                                 let input = std::fs::read_to_string(path)?;
 
-                                if let Err(err) = eval_string(input, env) {
+                                let result = resolve_string(input, env);
+
+                                let Ok(mut exprs) = result else {
+                                    let err = result.unwrap_err();
+                                    // #TODO better error handling here!
+                                    dbg!(&err);
+                                    // #TODO maybe continue parsing/resolving to find more errors?
+                                    // #TODO better error here!
+                                    return Err(Error::FailedUse.into());
+                                };
+
+                                resolved_exprs.append(&mut exprs);
+                            }
+
+                            for expr in resolved_exprs {
+                                if let Err(err) = eval(&expr, env) {
                                     // #TODO better error handling here!
                                     dbg!(&err);
                                     // #TODO better error here!

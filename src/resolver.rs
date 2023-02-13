@@ -1,7 +1,12 @@
 use std::{collections::HashMap, fmt};
 
 use crate::{
-    ann::Ann, error::Error, eval::env::Env, expr::Expr, range::Ranged, util::is_reserved_symbol,
+    ann::Ann,
+    error::Error,
+    eval::{env::Env, eval},
+    expr::Expr,
+    range::Ranged,
+    util::is_reserved_symbol,
 };
 
 // #TODO rename file to `sema`?
@@ -150,7 +155,22 @@ impl Resolver {
                             // #TODO notify about overrides? use `set`?
                             // #TODO for some reason, this causes infinite loop
                             // #TODO why is this needed in the first place?
-                            // env.insert(s, value);
+
+                            // #TODO nasty code, revisit
+                            // Try to apply definitions.
+
+                            let result = eval(&value, env);
+
+                            let Ok(value) = eval(&value, env) else {
+                                // #TODO properly handle the error!
+                                let err = result.unwrap_err();
+                                dbg!(err);
+                                // #TODO totally random.
+                                return value;
+                            };
+
+                            // #TODO notify about overrides? use `set`?
+                            env.insert(s, value);
                         }
 
                         Ann(Expr::List(resolved_let_list), ann)
