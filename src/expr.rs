@@ -6,6 +6,7 @@ use crate::{ann::Ann, error::Error, eval::env::Env, range::Ranged};
 
 // #TODO separate variant for list and apply/call (can this be defined statically?)
 // #TODO List, MaybeList, Call
+// #TODO Expr::Range()
 
 // #Insight
 // AST = Expr = Value = Object

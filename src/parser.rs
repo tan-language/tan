@@ -65,6 +65,7 @@ where
     /// The annotations are parsed into an Expr representation.
     fn attach_buffered_annotations(&mut self, expr: Expr) -> Ann<Expr> {
         let Some(annotations) = self.buffered_annotations.take() else {
+            // #TODO we need to attach the Range as annotation!
             // No annotations for the expression.
             return Ann::new(expr);
         };
@@ -107,10 +108,12 @@ where
                     }
 
                     if sym.chars().next().unwrap().is_uppercase() {
-                        // Type shorthand
+                        // Type shorthand: If the annotation starts with uppercase
+                        // letter, it's considered type annotations.
                         ann.insert("type".to_owned(), ann_expr);
                     } else {
-                        // Bool=true shorthand
+                        // Bool=true shorthand: If the annotation starts with lowercase
+                        // letter, it's considered a boolean flag.
                         ann.insert(sym.clone(), Expr::Bool(true));
                     }
                 }

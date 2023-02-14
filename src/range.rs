@@ -1,6 +1,7 @@
 use std::fmt;
 
 // #TODO use Annotated instead of Ranged.
+// #TODO add support for Set operations for ranges.
 
 /// Represents a range in the source code.
 pub type Range = std::ops::Range<usize>;

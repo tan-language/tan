@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use crate::expr::{format_value, Expr};
 
 // #TODO somehow annotations should trigger macros.
+// #TODO initially keep the range as a list
 
 // #TODO
 // - Uppercase -> (:type Uppercase)
@@ -24,6 +25,7 @@ use crate::expr::{format_value, Expr};
 // Annotations are 'culled' in the parser, so we can use them for 'shebang'.
 
 // #TODO get range from annotation.
+// #TODO add special support for range.
 
 #[derive(Clone)]
 pub struct Ann<T>(pub T, pub Option<HashMap<String, Expr>>);
