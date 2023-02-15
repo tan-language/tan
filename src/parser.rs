@@ -160,7 +160,6 @@ where
         let Some(token) = self.next_token() else {
             // #TODO not strictly an error, rename to Exit/Break or something.
             return Err(NonRecoverableError {});
-            // return Ok(None);
         };
 
         let Ranged(t, range) = token;
@@ -237,22 +236,7 @@ where
                 None
             }
             Token::Quote => {
-                // let Some(token) = self.tokens.next() else {
-                //     // #TODO specialized error-message needed.
-                //     // EOF reached, cannot continue parsing.
-                //     self.push_error(Error::InvalidQuote, &range);
-                //     return Err(NonRecoverableError {});
-                // };
-
                 // #Insight we should allow consecutive quotes, emit a linter warning instead!
-
-                // if token.0 == Token::Quote {
-                //     // #TODO specialized error-message needed.
-                //     // Report consecutive quote (i.e. '') as error
-                //     self.push_error(Error::InvalidQuote, &range);
-                //     // Parsing can continue.
-                //     return Ok(None);
-                // }
 
                 let Ok(quot_expr) = self.parse_expr() else {
                     // Parsing the quoted expression failed.
@@ -374,8 +358,6 @@ where
 
         loop {
             let Some(token) = self.next_token() else {
-            // let Some(token) = token  else {
-                // let range = list_range.start..(token.1.end);
                 self.push_error(Error::UnterminatedList, &list_range);
                 return Err(NonRecoverableError {});
             };
@@ -407,22 +389,14 @@ where
     /// Parses the input tokens into expressions.
     /// The parser tries to return as many errors as possible.
     pub fn parse(&mut self) -> Result<Vec<Ann<Expr>>, Vec<Ranged<Error>>> {
-        // #TODO can consolidate more with parse_expr
-
         let mut exprs = Vec::new();
 
         loop {
-            // let Some(token) = self.tokens.next() else {
-            //     break;
-            // };
-
             let expr = self.parse_expr();
 
             let Ok(expr) = expr else {
                 // A non-recoverable parse error was detected, stop parsing.
                 break;
-                // let errors = std::mem::take(&mut self.errors);
-                // return Err(errors);
             };
 
             if let Some(expr) = expr {
@@ -432,8 +406,6 @@ where
                     exprs.push(expr);
                 } else {
                     break;
-                    // let errors = std::mem::take(&mut self.errors);
-                    // return Err(errors);
                 }
             }
         }
