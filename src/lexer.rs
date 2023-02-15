@@ -103,6 +103,7 @@ impl<'a> Lexer<'a> {
         self.index -= 1;
     }
 
+    // #TODO try to remove this!
     fn range(&self) -> Range {
         self.start..self.index
     }
