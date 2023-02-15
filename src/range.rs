@@ -1,5 +1,9 @@
 use std::fmt;
 
+// #TODO it's better to keep 'position' (line, col) like LSP, for easier reconstruction
+// of line,col for error messages and/or LSP, and to allow to index the buffer by line
+// (if we keep the buffer as array of lines)
+
 // #TODO use Annotated instead of Ranged.
 // #TODO add support for Set operations for ranges.
 
