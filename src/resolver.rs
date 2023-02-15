@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt};
+use std::collections::HashMap;
 
 use crate::{
     ann::Ann,
@@ -14,19 +14,6 @@ use crate::{
 // #TODO split into multiple passes?
 
 // #Insight resolve_type and resolve_invocable should be combined, cannot be separate passes.
-
-/// The`NonRecoverableError` is thrown when the resolver cannot synchronize
-/// to continue resolving to detect more errors. Resolving is stopped immediately.
-#[derive(Debug)]
-pub struct NonRecoverableError {}
-
-impl std::error::Error for NonRecoverableError {}
-
-impl fmt::Display for NonRecoverableError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "NRE")
-    }
-}
 
 pub struct Resolver {
     errors: Vec<Ranged<Error>>,

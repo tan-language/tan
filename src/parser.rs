@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt};
+use std::collections::HashMap;
 
 use crate::{
     ann::Ann,
@@ -6,6 +6,7 @@ use crate::{
     expr::{format_value, Expr},
     lexer::{token::Token, Lexer},
     range::{Range, Ranged},
+    util::Break,
 };
 
 // #TODO no need to keep iterator as state in parser!
@@ -17,19 +18,6 @@ use crate::{
 
 // #Insight
 // We move the tokens into the parser to simplify the code. The tokens are useless outside the parser.
-
-/// The`NonRecoverableError` is thrown when the parser cannot synchronize
-/// to continue parsing to detect more errors. Parsing is stopped immediately.
-#[derive(Debug)]
-pub struct NonRecoverableError {}
-
-impl std::error::Error for NonRecoverableError {}
-
-impl fmt::Display for NonRecoverableError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "NRE")
-    }
-}
 
 /// The Parser performs the syntactic analysis stage of the compilation pipeline.
 /// The input token stream is reduced into and Abstract Syntax Tree (AST).
@@ -163,10 +151,10 @@ where
         expr
     }
 
-    pub fn parse_expr(&mut self) -> Result<Option<Ann<Expr>>, NonRecoverableError> {
+    pub fn parse_expr(&mut self) -> Result<Option<Ann<Expr>>, Break> {
         let Some(token) = self.next_token() else {
             // #TODO not strictly an error, rename to Exit/Break or something.
-            return Err(NonRecoverableError {});
+            return Err(Break {});
         };
 
         let Ranged(t, range) = token;
@@ -359,18 +347,14 @@ where
     }
 
     // #TODO rename to `parse_until`?
-    pub fn parse_many(
-        &mut self,
-        delimiter: Token,
-        start: usize,
-    ) -> Result<Vec<Ann<Expr>>, NonRecoverableError> {
+    pub fn parse_many(&mut self, delimiter: Token, start: usize) -> Result<Vec<Ann<Expr>>, Break> {
         let mut exprs = Vec::new();
 
         loop {
             let Some(token) = self.next_token() else {
                 let range = start..self.index;
                 self.push_error(Error::UnterminatedList, &range);
-                return Err(NonRecoverableError {});
+                return Err(Break {});
             };
 
             if token.0 == delimiter {
