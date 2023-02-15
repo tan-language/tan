@@ -110,7 +110,6 @@ where
             let Ok(tokens) = lexer.lex() else {
                 self.push_error(Error::MalformedAnnotation(ann_str), &ann_range);
                 // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
-                // return Ann::with_range(expr, self.range());
                 return expr;
             };
 
@@ -273,7 +272,7 @@ where
             Token::LeftParen => {
                 self.start = range.start;
 
-                let terms = self.parse_list(Token::RightParen)?;
+                let terms = self.parse_many(Token::RightParen)?;
 
                 if terms.is_empty() {
                     // #TODO do we _really_ want this or just return a list?
@@ -311,7 +310,7 @@ where
 
                 self.start = range.start;
 
-                let args = self.parse_list(Token::RightBracket)?;
+                let args = self.parse_many(Token::RightBracket)?;
 
                 let mut items = Vec::new();
 
@@ -332,7 +331,7 @@ where
 
                 self.start = range.start;
 
-                let args = self.parse_list(Token::RightBrace)?;
+                let args = self.parse_many(Token::RightBrace)?;
 
                 let mut dict = HashMap::new();
 
@@ -362,15 +361,9 @@ where
         Ok(expr)
     }
 
-    // #TODO rename to `parse_multi` or `parse_many`.
-    // #TODO parse tokens here, to be consistent with parse_atom?
-    pub fn parse_list(&mut self, delimiter: Token) -> Result<Vec<Ann<Expr>>, NonRecoverableError> {
-        // #TODO move range computation outside!
-
+    // #TODO rename to `parse_until`?
+    pub fn parse_many(&mut self, delimiter: Token) -> Result<Vec<Ann<Expr>>, NonRecoverableError> {
         let mut exprs = Vec::new();
-
-        // #TODO temp, return range.
-        // let mut list_range = list_range;
 
         loop {
             let Some(token) = self.next_token() else {
@@ -379,10 +372,9 @@ where
             };
 
             if token.0 == delimiter {
-                // #TODO set correct range
+                // Will be annotated upstream.
                 return Ok(exprs);
             } else {
-                // #TODO set correct range
                 self.put_back_token(token);
                 if let Some(e) = self.parse_expr()? {
                     let e = self.attach_annotations(e);
