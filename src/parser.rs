@@ -40,6 +40,8 @@ where
 {
     tokens: I::IntoIter,
     buffered_annotations: Option<Vec<Ranged<String>>>,
+    start: usize,
+    index: usize,
     lookahead: Vec<Ranged<Token>>,
     errors: Vec<Ranged<Error>>,
 }
@@ -54,6 +56,8 @@ where
         Self {
             tokens,
             buffered_annotations: None,
+            start: 0,
+            index: 0,
             lookahead: Vec::new(),
             errors: Vec::new(),
         }
@@ -63,33 +67,42 @@ where
     // #TODO refactor
     fn next_token(&mut self) -> Option<Ranged<Token>> {
         if let Some(token) = self.lookahead.pop() {
-            // #TODO update range here?
-            // self.index += 1;
+            self.index = token.1.end;
             return Some(token);
         }
 
-        self.tokens.next()
+        if let Some(token) = self.tokens.next() {
+            self.index = token.1.end;
+            Some(token)
+        } else {
+            None
+        }
     }
 
     fn put_back_token(&mut self, token: Ranged<Token>) {
+        self.index = token.1.start;
         self.lookahead.push(token);
-        // self.index -= 1;
+    }
+
+    fn range(&self) -> Range {
+        self.start..self.index
     }
 
     fn push_error(&mut self, error: Error, range: &Range) {
         self.errors.push(Ranged(error, range.clone()));
     }
 
-    /// Wrap the `expr` with the buffered (prefix) annotations.
-    /// The annotations are parsed into an Expr representation.
-    fn attach_buffered_annotations(&mut self, expr: Expr) -> Ann<Expr> {
-        let Some(annotations) = self.buffered_annotations.take() else {
-            // #TODO we need to attach the Range as annotation!
-            // No annotations for the expression.
-            return Ann::new(expr);
-        };
+    /// Wrap the `expr` with the buffered (prefix) annotations. The annotations
+    /// are parsed into an Expr representation. Also attaches the range of the
+    /// expression as an annotation.
+    fn attach_annotations(&mut self, expr: Expr) -> Ann<Expr> {
+        // Annotate the expression with the range, by default.
+        let mut expr = Ann::with_range(expr, self.range());
 
-        let mut ann: HashMap<String, Expr> = HashMap::new();
+        let Some(annotations) = self.buffered_annotations.take() else {
+            // No annotations for the expression.
+            return expr;
+        };
 
         for Ranged(ann_str, ann_range) in annotations {
             let mut lexer = Lexer::new(&ann_str);
@@ -97,7 +110,8 @@ where
             let Ok(tokens) = lexer.lex() else {
                 self.push_error(Error::MalformedAnnotation(ann_str), &ann_range);
                 // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
-                return Ann::new(expr);
+                // return Ann::with_range(expr, self.range());
+                return expr;
             };
 
             let mut parser = Parser::new(tokens);
@@ -109,7 +123,7 @@ where
                     self.push_error(error.0, &error.1);
                 }
                 // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
-                return Ann::new(expr);
+                return expr;
             }
 
             // #TODO temp, support multiple expressions in annotation?
@@ -123,37 +137,37 @@ where
                         // #TODO specialized error needed.
                         self.push_error(Error::MalformedAnnotation(ann_str), &ann_range);
                         // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
-                        return Ann::new(expr);
+                        return expr;
                     }
 
                     if sym.chars().next().unwrap().is_uppercase() {
                         // Type shorthand: If the annotation starts with uppercase
                         // letter, it's considered type annotations.
-                        ann.insert("type".to_owned(), ann_expr);
+                        expr.set_annotation("type", ann_expr);
                     } else {
                         // Bool=true shorthand: If the annotation starts with lowercase
                         // letter, it's considered a boolean flag.
-                        ann.insert(sym.clone(), Expr::Bool(true));
+                        expr.set_annotation(sym.clone(), Expr::Bool(true));
                     }
                 }
                 Expr::List(list) => {
                     if let Some(Ann(Expr::Symbol(sym), _)) = list.first() {
-                        ann.insert(sym.clone(), ann_expr);
+                        expr.set_annotation(sym.clone(), ann_expr);
                     } else {
                         self.push_error(Error::MalformedAnnotation(ann_str), &ann_range);
                         // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
-                        return Ann::new(expr);
+                        return expr;
                     }
                 }
                 _ => {
                     self.push_error(Error::MalformedAnnotation(ann_str), &ann_range);
                     // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
-                    return Ann::new(expr);
+                    return expr;
                 }
             }
         }
 
-        Ann(expr, Some(ann))
+        expr
     }
 
     pub fn parse_expr(&mut self) -> Result<Option<Expr>, NonRecoverableError> {
@@ -257,14 +271,16 @@ where
                 Some(Expr::List(vec![Expr::symbol("quot").into(), target.into()]))
             }
             Token::LeftParen => {
-                let list_exprs = self.parse_list(Token::RightParen, range)?;
+                self.start = range.start;
 
-                if list_exprs.is_empty() {
+                let terms = self.parse_list(Token::RightParen)?;
+
+                if terms.is_empty() {
                     // #TODO do we _really_ want this or just return a list?
                     // `()` == One/Unit/Top
                     Some(Expr::One)
                 } else {
-                    Some(Expr::List(list_exprs))
+                    Some(Expr::List(terms))
 
                     // #TODO optimize some special forms but in another comptime pass.
 
@@ -293,7 +309,9 @@ where
             Token::LeftBracket => {
                 // Syntactic sugar for a List/Array.
 
-                let args = self.parse_list(Token::RightBracket, range)?;
+                self.start = range.start;
+
+                let args = self.parse_list(Token::RightBracket)?;
 
                 let mut items = Vec::new();
 
@@ -312,7 +330,9 @@ where
             Token::LeftBrace => {
                 // Syntactic sugar for a Dict.
 
-                let args = self.parse_list(Token::RightBrace, range)?;
+                self.start = range.start;
+
+                let args = self.parse_list(Token::RightBrace)?;
 
                 let mut dict = HashMap::new();
 
@@ -344,25 +364,19 @@ where
 
     // #TODO rename to `parse_multi` or `parse_many`.
     // #TODO parse tokens here, to be consistent with parse_atom?
-    pub fn parse_list(
-        &mut self,
-        delimiter: Token,
-        list_range: Range,
-    ) -> Result<Vec<Ann<Expr>>, NonRecoverableError> {
+    pub fn parse_list(&mut self, delimiter: Token) -> Result<Vec<Ann<Expr>>, NonRecoverableError> {
         // #TODO move range computation outside!
 
         let mut exprs = Vec::new();
 
         // #TODO temp, return range.
-        let mut list_range = list_range;
+        // let mut list_range = list_range;
 
         loop {
             let Some(token) = self.next_token() else {
-                self.push_error(Error::UnterminatedList, &list_range);
+                self.push_error(Error::UnterminatedList, &self.range());
                 return Err(NonRecoverableError {});
             };
-
-            list_range.end = token.1.end;
 
             if token.0 == delimiter {
                 // #TODO set correct range
@@ -371,7 +385,7 @@ where
                 // #TODO set correct range
                 self.put_back_token(token);
                 if let Some(e) = self.parse_expr()? {
-                    let e = self.attach_buffered_annotations(e);
+                    let e = self.attach_annotations(e);
                     exprs.push(e);
                 }
             }
@@ -400,7 +414,7 @@ where
             };
 
             if let Some(expr) = expr {
-                let expr = self.attach_buffered_annotations(expr);
+                let expr = self.attach_annotations(expr);
 
                 if self.errors.is_empty() {
                     exprs.push(expr);

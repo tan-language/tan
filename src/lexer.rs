@@ -1,8 +1,11 @@
 pub mod token;
 
-use std::{ops::Range, str::Chars};
+use std::str::Chars;
 
-use crate::{error::Error, range::Ranged};
+use crate::{
+    error::Error,
+    range::{Range, Ranged},
+};
 
 use self::token::Token;
 
@@ -100,7 +103,7 @@ impl<'a> Lexer<'a> {
         self.index -= 1;
     }
 
-    fn range(&self) -> Range<usize> {
+    fn range(&self) -> Range {
         self.start..self.index
     }
 

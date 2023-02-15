@@ -34,10 +34,15 @@ use crate::{
 pub struct Ann<T>(pub T, pub Option<HashMap<String, Expr>>);
 
 impl<T> Ann<T> {
-    // #TODO consider `with_type`.
-    pub fn typed(value: T, type_expr: Expr) -> Self {
+    pub fn with_type(value: T, type_expr: Expr) -> Self {
         let mut map = HashMap::new();
         map.insert("type".to_owned(), type_expr);
+        Self(value, Some(map))
+    }
+
+    pub fn with_range(value: T, range: Range) -> Self {
+        let mut map = HashMap::new();
+        map.insert("range".to_owned(), range_to_expr(&range));
         Self(value, Some(map))
     }
 }

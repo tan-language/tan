@@ -58,6 +58,13 @@ pub fn resolve_string(
 ) -> Result<Vec<Ann<Expr>>, Vec<Ranged<Error>>> {
     let exprs = parse_string_all(input)?;
 
+    // Nice debugging tool!
+    for ex in &exprs {
+        for e in ex.iter() {
+            println!("-- {e:?}");
+        }
+    }
+
     let mut resolved_exprs = Vec::new();
 
     for expr in exprs {
