@@ -84,10 +84,6 @@ where
         self.lookahead.push(token);
     }
 
-    fn range(&self) -> Range {
-        self.start..self.index
-    }
-
     fn push_error(&mut self, error: Error, range: &Range) {
         self.errors.push(Ranged(error, range.clone()));
     }
@@ -95,9 +91,9 @@ where
     /// Wrap the `expr` with the buffered (prefix) annotations. The annotations
     /// are parsed into an Expr representation. Also attaches the range of the
     /// expression as an annotation.
-    fn attach_annotations(&mut self, expr: Expr) -> Ann<Expr> {
+    fn attach_annotations(&mut self, expr: Expr, range: Range) -> Ann<Expr> {
         // Annotate the expression with the range, by default.
-        let mut expr = Ann::with_range(expr, self.range());
+        let mut expr = Ann::with_range(expr, range);
 
         let Some(annotations) = self.buffered_annotations.take() else {
             // No annotations for the expression.
@@ -169,13 +165,15 @@ where
         expr
     }
 
-    pub fn parse_expr(&mut self) -> Result<Option<Expr>, NonRecoverableError> {
+    pub fn parse_expr(&mut self) -> Result<Option<Ann<Expr>>, NonRecoverableError> {
         let Some(token) = self.next_token() else {
             // #TODO not strictly an error, rename to Exit/Break or something.
             return Err(NonRecoverableError {});
         };
 
         let Ranged(t, range) = token;
+
+        let start = range.start;
 
         let expr = match t {
             Token::Comment(..) => None,
@@ -267,12 +265,12 @@ where
                 // #TODO the actual quoting should be handled here?
                 // #TODO what about interpolation?
 
-                Some(Expr::List(vec![Expr::symbol("quot").into(), target.into()]))
+                Some(Expr::List(vec![Expr::symbol("quot").into(), target]))
             }
             Token::LeftParen => {
                 self.start = range.start;
 
-                let terms = self.parse_many(Token::RightParen)?;
+                let terms = self.parse_many(Token::RightParen, start)?;
 
                 if terms.is_empty() {
                     // #TODO do we _really_ want this or just return a list?
@@ -310,7 +308,7 @@ where
 
                 self.start = range.start;
 
-                let args = self.parse_many(Token::RightBracket)?;
+                let args = self.parse_many(Token::RightBracket, start)?;
 
                 let mut items = Vec::new();
 
@@ -331,7 +329,7 @@ where
 
                 self.start = range.start;
 
-                let args = self.parse_many(Token::RightBrace)?;
+                let args = self.parse_many(Token::RightBrace, start)?;
 
                 let mut dict = HashMap::new();
 
@@ -358,16 +356,28 @@ where
             }
         };
 
-        Ok(expr)
+        // #TODO simplify
+        match expr {
+            Some(expr) => {
+                let range = start..self.index;
+                Ok(Some(self.attach_annotations(expr, range)))
+            }
+            _ => Ok(None),
+        }
     }
 
     // #TODO rename to `parse_until`?
-    pub fn parse_many(&mut self, delimiter: Token) -> Result<Vec<Ann<Expr>>, NonRecoverableError> {
+    pub fn parse_many(
+        &mut self,
+        delimiter: Token,
+        start: usize,
+    ) -> Result<Vec<Ann<Expr>>, NonRecoverableError> {
         let mut exprs = Vec::new();
 
         loop {
             let Some(token) = self.next_token() else {
-                self.push_error(Error::UnterminatedList, &self.range());
+                let range = start..self.index;
+                self.push_error(Error::UnterminatedList, &range);
                 return Err(NonRecoverableError {});
             };
 
@@ -377,7 +387,6 @@ where
             } else {
                 self.put_back_token(token);
                 if let Some(e) = self.parse_expr()? {
-                    let e = self.attach_annotations(e);
                     exprs.push(e);
                 }
             }
@@ -406,7 +415,7 @@ where
             };
 
             if let Some(expr) = expr {
-                let expr = self.attach_annotations(expr);
+                // let expr = self.attach_annotations(expr);
 
                 if self.errors.is_empty() {
                     exprs.push(expr);
