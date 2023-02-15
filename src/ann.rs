@@ -1,7 +1,10 @@
 use core::fmt;
 use std::collections::HashMap;
 
-use crate::expr::{format_value, Expr};
+use crate::{
+    expr::{format_value, Expr},
+    range::Range,
+};
 
 // #TODO somehow annotations should trigger macros.
 // #TODO initially keep the range as a list
@@ -77,7 +80,14 @@ impl<T> Ann<T> {
         format_value(self.get_type())
     }
 
-    // #TODO get_range/span
+    pub fn set_range(&mut self, range: &Range) {
+        self.set_annotation("range", range_to_expr(range))
+    }
+
+    pub fn get_range(&self) -> Option<Range> {
+        self.get_annotation("range").map(expr_to_range)
+    }
+
     // #TODO get_method (multiple-dispatch)
 }
 
@@ -132,5 +142,39 @@ impl<T> AsRef<T> for Box<Ann<T>> {
 impl<T> From<T> for Ann<T> {
     fn from(value: T) -> Self {
         Ann::new(value)
+    }
+}
+
+// #TODO convert to the Expr::Range variant.
+
+pub fn range_to_expr(range: &Range) -> Expr {
+    let terms = vec![
+        Ann::new(Expr::Int(range.start as i64)),
+        Ann::new(Expr::Int(range.end as i64)),
+    ];
+    Expr::List(terms)
+}
+
+// #TODO nasty code.
+pub fn expr_to_range(expr: &Expr) -> Range {
+    // #TODO error checking?
+    let Expr::List(terms) = expr else {
+        // #TODO hmm...
+        return Range::default();
+    };
+
+    let Ann(Expr::Int(start), _) = terms[0] else {
+        // #TODO hmm...
+        return Range::default();
+    };
+
+    let Ann(Expr::Int(end), _) = terms[1] else {
+        // #TODO hmm...
+        return Range::default();
+    };
+
+    Range {
+        start: start as usize,
+        end: end as usize,
     }
 }

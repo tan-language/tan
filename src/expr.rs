@@ -27,6 +27,8 @@ use crate::{ann::Ann, error::Error, eval::env::Env, range::Ranged};
 // A function that accepts a list of Exprs and returns an Expr.
 pub type ExprFn = dyn Fn(&[Ann<Expr>], &Env) -> Result<Ann<Expr>, Ranged<Error>>;
 
+// #TODO use normal structs instead of tuple-structs?
+
 #[derive(Clone)]
 /// A symbolic expression. This is the 'universal' data type in the language,
 /// all values are expressions (and expressions are values). Evaluation is expression
@@ -50,6 +52,7 @@ pub enum Expr {
     // #TODO support Expr as keys?
     // #TODO should Dict contain Ann<Expr>?
     Dict(HashMap<String, Expr>),
+    // Range(Box<Ann<Expr>>, Box<Ann<Expr>>, Option<Box<Ann<Expr>>>),
     Func(Vec<Ann<Expr>>, Box<Ann<Expr>>), // #TODO is there a need to use Rc instead of Box? YES! fast clones? INVESTIGATE!
     Macro(Vec<Ann<Expr>>, Box<Ann<Expr>>),
     ForeignFunc(Rc<ExprFn>), // #TODO for some reason, Box is not working here!

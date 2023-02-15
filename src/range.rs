@@ -6,6 +6,7 @@ use std::fmt;
 
 // #TODO use Annotated instead of Ranged.
 // #TODO add support for Set operations for ranges.
+// #TODO if/when we convert this to a range of positions, we should consider renaming to Span.
 
 /// Represents a range in the source code.
 pub type Range = std::ops::Range<usize>;
