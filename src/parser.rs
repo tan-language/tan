@@ -40,7 +40,6 @@ where
 {
     tokens: I::IntoIter,
     buffered_annotations: Option<Vec<Ranged<String>>>,
-    start: usize,
     index: usize,
     lookahead: Vec<Ranged<Token>>,
     errors: Vec<Ranged<Error>>,
@@ -56,7 +55,6 @@ where
         Self {
             tokens,
             buffered_annotations: None,
-            start: 0,
             index: 0,
             lookahead: Vec::new(),
             errors: Vec::new(),
@@ -268,8 +266,6 @@ where
                 Some(Expr::List(vec![Expr::symbol("quot").into(), target]))
             }
             Token::LeftParen => {
-                self.start = range.start;
-
                 let terms = self.parse_many(Token::RightParen, start)?;
 
                 if terms.is_empty() {
@@ -306,8 +302,6 @@ where
             Token::LeftBracket => {
                 // Syntactic sugar for a List/Array.
 
-                self.start = range.start;
-
                 let args = self.parse_many(Token::RightBracket, start)?;
 
                 let mut items = Vec::new();
@@ -326,8 +320,6 @@ where
             }
             Token::LeftBrace => {
                 // Syntactic sugar for a Dict.
-
-                self.start = range.start;
 
                 let args = self.parse_many(Token::RightBrace, start)?;
 
@@ -415,8 +407,6 @@ where
             };
 
             if let Some(expr) = expr {
-                // let expr = self.attach_annotations(expr);
-
                 if self.errors.is_empty() {
                     exprs.push(expr);
                 } else {
