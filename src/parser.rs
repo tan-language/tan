@@ -40,6 +40,7 @@ where
 {
     tokens: I::IntoIter,
     buffered_annotations: Option<Vec<Ranged<String>>>,
+    lookahead: Vec<Ranged<Token>>,
     errors: Vec<Ranged<Error>>,
 }
 
@@ -53,8 +54,26 @@ where
         Self {
             tokens,
             buffered_annotations: None,
+            lookahead: Vec::new(),
             errors: Vec::new(),
         }
+    }
+
+    // #TODO unit test
+    // #TODO refactor
+    fn next_token(&mut self) -> Option<Ranged<Token>> {
+        if let Some(token) = self.lookahead.pop() {
+            // #TODO update range here?
+            // self.index += 1;
+            return Some(token);
+        }
+
+        self.tokens.next()
+    }
+
+    fn put_back_token(&mut self, token: Ranged<Token>) {
+        self.lookahead.push(token);
+        // self.index -= 1;
     }
 
     fn push_error(&mut self, error: Error, range: &Range) {
@@ -137,10 +156,13 @@ where
         Ann(expr, Some(ann))
     }
 
-    pub fn parse_expr(
-        &mut self,
-        token: Ranged<Token>,
-    ) -> Result<Option<Expr>, NonRecoverableError> {
+    pub fn parse_expr(&mut self) -> Result<Option<Expr>, NonRecoverableError> {
+        let Some(token) = self.next_token() else {
+            // #TODO not strictly an error, rename to Exit/Break or something.
+            return Err(NonRecoverableError {});
+            // return Ok(None);
+        };
+
         let Ranged(t, range) = token;
 
         let expr = match t {
@@ -215,12 +237,12 @@ where
                 None
             }
             Token::Quote => {
-                let Some(token) = self.tokens.next() else {
-                    // #TODO specialized error-message needed.
-                    // EOF reached, cannot continue parsing.
-                    self.push_error(Error::InvalidQuote, &range);
-                    return Err(NonRecoverableError {});
-                };
+                // let Some(token) = self.tokens.next() else {
+                //     // #TODO specialized error-message needed.
+                //     // EOF reached, cannot continue parsing.
+                //     self.push_error(Error::InvalidQuote, &range);
+                //     return Err(NonRecoverableError {});
+                // };
 
                 // #Insight we should allow consecutive quotes, emit a linter warning instead!
 
@@ -232,14 +254,16 @@ where
                 //     return Ok(None);
                 // }
 
-                let Ok(quot_expr) = self.parse_expr(token) else {
+                let Ok(quot_expr) = self.parse_expr() else {
                     // Parsing the quoted expression failed.
                     // Continue parsing to detect more errors.
+                    self.push_error(Error::InvalidQuote, &range);
                     return Ok(None);
                 };
 
                 let Some(target) = quot_expr else {
                     self.push_error(Error::InvalidQuote, &range);
+                    // It is recoverable error.
                     return Ok(None);
                 };
 
@@ -334,6 +358,7 @@ where
         Ok(expr)
     }
 
+    // #TODO rename to `parse_multi` or `parse_many`.
     // #TODO parse tokens here, to be consistent with parse_atom?
     pub fn parse_list(
         &mut self,
@@ -344,26 +369,26 @@ where
 
         let mut exprs = Vec::new();
 
-        let mut index = list_range.start;
+        // #TODO temp, return range.
+        let mut list_range = list_range;
 
         loop {
-            let token = self.tokens.next();
-
-            let Some(token) = token  else {
-                // #TODO set correct range.
-                let range = list_range.start..(index - 1);
-                self.push_error(Error::UnterminatedList, &range);
+            let Some(token) = self.next_token() else {
+            // let Some(token) = token  else {
+                // let range = list_range.start..(token.1.end);
+                self.push_error(Error::UnterminatedList, &list_range);
                 return Err(NonRecoverableError {});
             };
 
-            index = token.1.end;
+            list_range.end = token.1.end;
 
             if token.0 == delimiter {
                 // #TODO set correct range
                 return Ok(exprs);
             } else {
                 // #TODO set correct range
-                if let Some(e) = self.parse_expr(token)? {
+                self.put_back_token(token);
+                if let Some(e) = self.parse_expr()? {
                     let e = self.attach_buffered_annotations(e);
                     exprs.push(e);
                 }
@@ -387,16 +412,17 @@ where
         let mut exprs = Vec::new();
 
         loop {
-            let Some(token) = self.tokens.next() else {
-                break;
-            };
+            // let Some(token) = self.tokens.next() else {
+            //     break;
+            // };
 
-            let expr = self.parse_expr(token);
+            let expr = self.parse_expr();
 
             let Ok(expr) = expr else {
                 // A non-recoverable parse error was detected, stop parsing.
-                let errors = std::mem::take(&mut self.errors);
-                return Err(errors);
+                break;
+                // let errors = std::mem::take(&mut self.errors);
+                // return Err(errors);
             };
 
             if let Some(expr) = expr {
@@ -405,8 +431,9 @@ where
                 if self.errors.is_empty() {
                     exprs.push(expr);
                 } else {
-                    let errors = std::mem::take(&mut self.errors);
-                    return Err(errors);
+                    break;
+                    // let errors = std::mem::take(&mut self.errors);
+                    // return Err(errors);
                 }
             }
         }

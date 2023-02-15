@@ -173,7 +173,7 @@ fn parse_reports_unterminated_lists() {
     // eprintln!("{}", format_pretty_error(&err, input, Some(filename)));
 
     assert_eq!(err.1.start, 20);
-    assert_eq!(err.1.end, 33);
+    assert_eq!(err.1.end, 34);
 }
 
 #[test]

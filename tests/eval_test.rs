@@ -15,8 +15,6 @@ use crate::common::{eval_file, read_file};
 fn eval_processes_arithmetic_expressions() {
     let result = eval_file("sum.tan");
 
-    dbg!(&result);
-
     assert!(result.is_ok());
 
     let value = format!("{}", result.unwrap());

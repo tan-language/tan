@@ -44,9 +44,9 @@ pub fn parse_string_all(input: impl AsRef<str>) -> Result<Vec<Ann<Expr>>, Vec<Ra
     let tokens = lexer.lex()?;
 
     let mut parser = Parser::new(tokens);
-    let expr = parser.parse()?;
+    let exprs = parser.parse()?;
 
-    Ok(expr)
+    Ok(exprs)
 }
 
 // #TODO what is a good name?
