@@ -20,6 +20,7 @@ pub fn lex_string(input: impl AsRef<str>) -> Result<Vec<Ranged<Token>>, Vec<Rang
 }
 
 // #TODO temp solution for compatibility.
+// #TODO remove this!
 /// Parses a Tan expression encoded as a text string, returns first expression.
 pub fn parse_string(input: impl AsRef<str>) -> Result<Ann<Expr>, Vec<Ranged<Error>>> {
     let input = input.as_ref();
@@ -81,8 +82,8 @@ pub fn resolve_string(
         };
 
         let Some(expr) = expr else {
-            // #TODO more precise error needed here.
-            return Err(vec!(Error::UnexpectedEnd {}.into()));
+            // The expression is pruned (elided)
+            continue;
         };
 
         // Resolve (typechecking, definitions, etc)

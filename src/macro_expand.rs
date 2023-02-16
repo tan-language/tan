@@ -9,22 +9,28 @@ use crate::{
 
 // #Insight it mutates the env which is used in eval also!
 
-// #TODO remove the macro definitions from the AST
+// #TODO `elision`, `elide` sounds better than `prune`?
+// #TODO rename to `prune_expand`?
+// #TODO split prune and expand into separate passes?
 // #TODO consider renaming the expr parameter to ast?
 // #TODO macro_expand (and all comptime/static passes should return Vec<Ranged<Error>>>)
 // #TODO support multiple errors, like in resolve.
 
-/// Expands macro invocations, at comptime.
+/// Expands macro invocations, at compile time.
 pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>, Ranged<Error>> {
     match expr {
+        Ann(Expr::Comment(..), ..) => {
+            // Prune Comment expressions.
+            Ok(None)
+        }
         Ann(Expr::List(ref list), ..) => {
-            if list.is_empty() {
-                // This is handled statically, in the parser, but an extra, dynamic
-                // check is needed in the evaluator to handle the case where the
-                // expression is constructed programmatically (e.g. self-modifying code,
-                // dynamically constructed expression, homoiconicity, etc).
-                return Ok(None);
-            }
+            // if list.is_empty() {
+            //     // This is handled statically, in the parser, but an extra, dynamic
+            //     // check is needed in the evaluator to handle the case where the
+            //     // expression is constructed programmatically (e.g. self-modifying code,
+            //     // dynamically constructed expression, homoiconicity, etc).
+            //     return Ok(None);
+            // }
 
             let head = list.first().unwrap(); // The unwrap here is safe.
             let tail = &list[1..];
@@ -105,6 +111,9 @@ pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>,
                             // #TODO put all the definitions in one pass.
                             // Only define macros in this pass.
                             env.insert(s, binding_value.unwrap());
+
+                            // #TODO verify with unit-test.
+                            // Macro definition is pruned.
                             return Ok(None);
                         }
 

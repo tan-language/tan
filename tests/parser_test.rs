@@ -4,7 +4,7 @@ use std::num::IntErrorKind;
 
 use tan::{
     ann::Ann,
-    api::parse_string,
+    api::{parse_string, parse_string_all},
     error::Error,
     expr::Expr,
     lexer::{token::Token, Lexer},
@@ -36,7 +36,9 @@ fn parse_handles_an_multiple_expressions() {
     let tokens = lex_tokens(input);
     let mut parser = Parser::new(tokens);
     let expr = parser.parse().unwrap();
-    assert_eq!(expr.len(), 3);
+
+    // The comment and 3 expressions.
+    assert_eq!(expr.len(), 4);
 }
 
 #[test]
@@ -288,7 +290,7 @@ fn parse_reports_number_errors() {
 }
 
 #[test]
-fn lex_reports_multiple_number_errors() {
+fn parse_reports_multiple_number_errors() {
     let input = "(+ 1 3$%99 34%#$ 55$$4)";
     let result = parse_string(input);
 
@@ -297,4 +299,13 @@ fn lex_reports_multiple_number_errors() {
     let err = result.unwrap_err();
 
     assert_eq!(err.len(), 3);
+}
+
+#[test]
+fn parse_keeps_comments() {
+    let input = "-- This is a comment\n(+ 1 2)";
+    let exprs = parse_string_all(input).unwrap();
+
+    let expr = &exprs[0];
+    assert!(matches!(expr, Ann(Expr::Comment(x), ..) if x == "-- This is a comment"));
 }

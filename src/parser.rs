@@ -162,7 +162,7 @@ where
         let start = range.start;
 
         let expr = match t {
-            Token::Comment(..) => None,
+            Token::Comment(s) => Some(Expr::Comment(s)),
             // Token::Char(c) => Some(Expr::Char(c)),
             Token::String(s) => Some(Expr::String(s)),
             Token::Symbol(s) => {
@@ -181,14 +181,14 @@ where
                     Some(Expr::Symbol(s))
                 }
             }
-            Token::Number(mut lexeme) => {
+            Token::Number(mut s) => {
                 // #TODO more detailed Number error!
                 // #TODO error handling not enough, we need to add context, check error_stack
 
-                if lexeme.contains('.') {
+                if s.contains('.') {
                     // #TODO support radix for non-integers?
                     // #TODO find a better name for 'non-integer'.
-                    match lexeme.parse::<f64>().map_err(Error::MalformedFloat) {
+                    match s.parse::<f64>().map_err(Error::MalformedFloat) {
                         Ok(n) => Some(Expr::Float(n)),
                         Err(error) => {
                             self.push_error(error, &range);
@@ -199,19 +199,19 @@ where
                     // #TODO support arbitrary radix https://github.com/golang/go/issues/28256
                     let mut radix = 10;
 
-                    if lexeme.starts_with("0x") {
-                        lexeme = lexeme.replace("0x", "");
+                    if s.starts_with("0x") {
+                        s = s.replace("0x", "");
                         radix = 16
-                    } else if lexeme.starts_with("0b") {
-                        lexeme = lexeme.replace("0b", "");
+                    } else if s.starts_with("0b") {
+                        s = s.replace("0b", "");
                         radix = 2
-                    } else if lexeme.starts_with("0o") {
+                    } else if s.starts_with("0o") {
                         // #Insight Octal literals are supported for historical reasons.
-                        lexeme = lexeme.replace("0o", "");
+                        s = s.replace("0o", "");
                         radix = 8
                     }
 
-                    match i64::from_str_radix(&lexeme, radix).map_err(Error::MalformedInt) {
+                    match i64::from_str_radix(&s, radix).map_err(Error::MalformedInt) {
                         Ok(n) => Some(Expr::Int(n)),
                         Err(error) => {
                             self.push_error(error, &range);
