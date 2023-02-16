@@ -153,7 +153,6 @@ where
 
     pub fn parse_expr(&mut self) -> Result<Option<Ann<Expr>>, Break> {
         let Some(token) = self.next_token() else {
-            // #TODO not strictly an error, rename to Exit/Break or something.
             return Err(Break {});
         };
 
@@ -162,7 +161,11 @@ where
         let start = range.start;
 
         let expr = match t {
-            Token::Comment(s) => Some(Expr::Comment(s)),
+            Token::Comment(s) => {
+                // Preserve the comments as expressions, may be useful for analysis passes.
+                // Comments are elided statically, before the evaluation pass.
+                Some(Expr::Comment(s))
+            }
             // Token::Char(c) => Some(Expr::Char(c)),
             Token::String(s) => Some(Expr::String(s)),
             Token::Symbol(s) => {
