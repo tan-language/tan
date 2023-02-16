@@ -12,6 +12,7 @@ use crate::{
 // #TODO remove the macro definitions from the AST
 // #TODO consider renaming the expr parameter to ast?
 // #TODO macro_expand (and all comptime/static passes should return Vec<Ranged<Error>>>)
+// #TODO support multiple errors, like in resolve.
 
 /// Expands macro invocations, at comptime.
 pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>, Ranged<Error>> {
@@ -67,6 +68,7 @@ pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>,
                     Ok(Some(result))
                 }
                 Expr::Symbol(sym) => {
+                    // #TODO oof the checks here happen also in resolver and eval, fix!
                     // #TODO actually we should use `def` for this purpose, instead of `let`.
                     if sym == "let" {
                         let mut args = tail.iter();
@@ -86,10 +88,12 @@ pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>,
                         };
 
                         if is_reserved_symbol(s) {
-                            return Err(Error::invalid_arguments(format!(
-                                "let cannot shadow the reserved symbol `{s}`"
-                            ))
-                            .into());
+                            return Err(Ranged(
+                                Error::invalid_arguments(format!(
+                                    "let cannot shadow the reserved symbol `{s}`"
+                                )),
+                                binding_sym.get_range(),
+                            ));
                         }
 
                         let binding_value = macro_expand(binding_value.clone(), env)?;

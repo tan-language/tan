@@ -56,13 +56,16 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
                 } else {
                     // #TODO ultra-hack, if the method is not found, try to lookup the function symbol, fall-through.
                     // #TODO should do proper type analysis here.
-                    env.get(sym).ok_or::<Ranged<Error>>(
-                        Error::UndefinedFunction(sym.to_owned(), method.to_owned()).into(),
-                    )?
+                    env.get(sym).ok_or::<Ranged<Error>>(Ranged(
+                        Error::UndefinedFunction(sym.to_owned(), method.to_owned()),
+                        expr.get_range(),
+                    ))?
                 }
             } else {
-                env.get(sym)
-                    .ok_or::<Ranged<Error>>(Error::UndefinedSymbol(sym.clone()).into())?
+                env.get(sym).ok_or::<Ranged<Error>>(Ranged(
+                    Error::UndefinedSymbol(sym.clone()),
+                    expr.get_range(),
+                ))?
             };
 
             // #TODO hm, can we somehow work with references?
@@ -396,6 +399,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
                             Ok(Expr::One.into())
                         }
                         "let" => {
+                            // #TODO this is already parsed statically by resolver, no need to duplicate the tests here?
                             // #TODO also report some of these errors statically, maybe in a sema phase?
                             let mut args = tail.iter();
 
@@ -414,10 +418,12 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
                                 };
 
                                 if is_reserved_symbol(s) {
-                                    return Err(Error::invalid_arguments(format!(
-                                        "let cannot shadow the reserved symbol `{s}`"
-                                    ))
-                                    .into());
+                                    return Err(Ranged(
+                                        Error::invalid_arguments(format!(
+                                            "let cannot shadow the reserved symbol `{s}`"
+                                        )),
+                                        sym.get_range(),
+                                    ));
                                 }
 
                                 let value = eval(value, env)?;

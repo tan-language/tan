@@ -102,6 +102,11 @@ fn eval_reports_let_errors() {
     assert!(
         matches!(err, Ranged(Error::InvalidArguments(x), ..) if x == "let cannot shadow the reserved symbol `if`")
     );
+
+    let range = &err.1;
+
+    assert_eq!(range.start, 9);
+    assert_eq!(range.end, 11);
 }
 
 // #TODO extract full testing from file.

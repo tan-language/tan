@@ -24,8 +24,8 @@ impl Resolver {
         Self { errors: Vec::new() }
     }
 
-    fn push_error(&mut self, error: Error) {
-        self.errors.push(Ranged::new(error));
+    fn push_error(&mut self, error: Ranged<Error>) {
+        self.errors.push(error);
     }
 
     pub fn resolve_expr(&mut self, mut expr: Ann<Expr>, env: &mut Env) -> Ann<Expr> {
@@ -118,15 +118,20 @@ impl Resolver {
                             };
 
                             let Ann(Expr::Symbol(s), ..) = sym else {
-                                self.push_error(Error::invalid_arguments(format!("`{sym}` is not a Symbol")));
+                                self.push_error(Ranged(Error::invalid_arguments(format!("`{sym}` is not a Symbol")), sym.get_range()));
                                 // Continue to detect more errors.
                                 continue;
                             };
 
+                            println!("-----1");
                             if is_reserved_symbol(s) {
-                                self.push_error(Error::invalid_arguments(format!(
-                                    "let cannot shadow the reserved symbol `{s}`"
-                                )));
+                                println!("----2 {:?}", sym.get_range());
+                                self.push_error(Ranged(
+                                    Error::invalid_arguments(format!(
+                                        "let cannot shadow the reserved symbol `{s}`"
+                                    )),
+                                    sym.get_range(),
+                                ));
                                 // Continue to detect more errors.
                                 continue;
                             }

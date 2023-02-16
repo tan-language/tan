@@ -85,12 +85,17 @@ impl<T> Ann<T> {
         format_value(self.get_type())
     }
 
+    /// Sets the range of the annotated expression.
     pub fn set_range(&mut self, range: &Range) {
         self.set_annotation("range", range_to_expr(range))
     }
 
-    pub fn get_range(&self) -> Option<Range> {
-        self.get_annotation("range").map(expr_to_range)
+    /// Returns the range of the annotated expression. Forces a default range
+    /// if the annotation is missing.
+    pub fn get_range(&self) -> Range {
+        self.get_annotation("range")
+            .map(expr_to_range)
+            .unwrap_or_default()
     }
 
     // #TODO get_method (multiple-dispatch)
