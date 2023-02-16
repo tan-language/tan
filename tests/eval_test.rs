@@ -11,6 +11,8 @@ use tan::{
 
 use crate::common::{eval_file, read_file};
 
+// #TODO add more tests, especially for error-reporting.
+
 #[test]
 fn eval_processes_arithmetic_expressions() {
     let result = eval_file("sum.tan");

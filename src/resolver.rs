@@ -123,9 +123,7 @@ impl Resolver {
                                 continue;
                             };
 
-                            println!("-----1");
                             if is_reserved_symbol(s) {
-                                println!("----2 {:?}", sym.get_range());
                                 self.push_error(Ranged(
                                     Error::invalid_arguments(format!(
                                         "let cannot shadow the reserved symbol `{s}`"
