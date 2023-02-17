@@ -293,9 +293,13 @@ where
             Token::LeftBracket => {
                 // Syntactic sugar for a List/Array.
 
-                let args = self.parse_many(Token::RightBracket, start)?;
+                // #Insight
+                // Don't optimize to `Expr::Array` here, leave the parser expr
+                // 'normalized as it is beneficial for some kinds of analysis.
 
-                let mut items = Vec::new();
+                let exprs = self.parse_many(Token::RightBracket, start)?;
+
+                let mut items = vec![Ann::with_range(Expr::symbol("Array"), range)];
 
                 // #TODO also parse (Array ..)
                 // #TODO add error checking!
@@ -303,14 +307,18 @@ where
                 // #TODO evaluate the list_exprs
                 // #TODO list
 
-                for x in args {
-                    items.push(x.0);
+                for expr in exprs {
+                    items.push(expr);
                 }
 
-                Some(Expr::Array(items))
+                Some(Expr::List(items))
             }
             Token::LeftBrace => {
                 // Syntactic sugar for a Dict.
+
+                // #Insight
+                // Don't optimize to `Expr::Array` here, leave the parser expr
+                // 'normalized as it is beneficial for some kinds of analysis.
 
                 let args = self.parse_many(Token::RightBrace, start)?;
 

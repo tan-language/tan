@@ -191,6 +191,23 @@ fn parse_handles_annotations() {
 }
 
 #[test]
+fn parse_parses_arrays() {
+    let input = r#"(let m ["george" "chris" "costas"])"#;
+    let result = parse_string(input).unwrap();
+
+    let Ann(Expr::List(exprs), ..) = result else {
+        panic!("assertion failed: invalid form")
+    };
+
+    let Ann(Expr::List(ref exprs), ..) = exprs[2] else {
+        panic!("assertion failed: invalid form")
+    };
+
+    assert!(matches!(&exprs[0], Ann(Expr::Symbol(s), ..) if s == "Array"));
+    assert!(matches!(exprs.len(), 4));
+}
+
+#[test]
 fn parse_parses_dicts() {
     let input = r##"(let m {"name" "george" "value" 1})"##;
     let result = parse_string(input).unwrap();
