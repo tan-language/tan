@@ -1,9 +1,7 @@
-use std::collections::HashMap;
-
 use crate::{
     ann::Ann,
     error::Error,
-    expr::{format_value, Expr},
+    expr::Expr,
     lexer::{token::Token, Lexer},
     range::{Range, Ranged},
     util::Break,
@@ -317,27 +315,43 @@ where
                 // Syntactic sugar for a Dict.
 
                 // #Insight
-                // Don't optimize to `Expr::Array` here, leave the parser expr
+                // Don't optimize to `Expr::Dict` here, leave the parser expr
                 // 'normalized as it is beneficial for some kinds of analysis.
 
-                let args = self.parse_many(Token::RightBrace, start)?;
+                // let args = self.parse_many(Token::RightBrace, start)?;
 
-                let mut dict = HashMap::new();
+                // let mut dict = HashMap::new();
 
-                // #TODO also parse (Dict ..)
+                // // #TODO also parse (Dict ..)
+                // // #TODO add error checking!
+                // // #TODO optimize.
+                // // #TODO use Hashable.
+                // // #TODO evaluate the list_exprs
+                // // #TODO list
+
+                // for pair in args.chunks(2) {
+                //     let k = pair[0].clone();
+                //     let v = pair[1].clone();
+                //     dict.insert(format_value(k.0), v.0);
+                // }
+
+                // Some(Expr::Dict(dict))
+
+                let exprs = self.parse_many(Token::RightBrace, start)?;
+
+                let mut items = vec![Ann::with_range(Expr::symbol("Dict"), range)];
+
+                // #TODO also parse (Array ..)
                 // #TODO add error checking!
                 // #TODO optimize.
-                // #TODO use Hashable.
                 // #TODO evaluate the list_exprs
                 // #TODO list
 
-                for pair in args.chunks(2) {
-                    let k = pair[0].clone();
-                    let v = pair[1].clone();
-                    dict.insert(format_value(k.0), v.0);
+                for expr in exprs {
+                    items.push(expr);
                 }
 
-                Some(Expr::Dict(dict))
+                Some(Expr::List(items))
             }
             Token::RightParen | Token::RightBracket | Token::RightBrace => {
                 // #TODO custom error for this?

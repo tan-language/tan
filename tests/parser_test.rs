@@ -209,15 +209,33 @@ fn parse_parses_arrays() {
 
 #[test]
 fn parse_parses_dicts() {
-    let input = r##"(let m {"name" "george" "value" 1})"##;
+    let input = r#"(let m {"name" "george" "value" 1})"#;
     let result = parse_string(input).unwrap();
 
-    let Ann(Expr::List(vec), ..) = result else {
+    let Ann(Expr::List(exprs), ..) = result else {
         panic!("assertion failed: invalid form")
     };
 
-    assert!(matches!(&vec[2], Ann(Expr::Dict(dict), ..) if dict.len() == 2));
+    let Ann(Expr::List(ref exprs), ..) = exprs[2] else {
+        panic!("assertion failed: invalid form")
+    };
+
+    assert!(matches!(&exprs[0], Ann(Expr::Symbol(s), ..) if s == "Dict"));
+    assert!(matches!(exprs.len(), 5));
 }
+
+// #TODO move to eval_test?
+// #[test]
+// fn parse_parses_dicts() {
+//     let input = r##"(let m {"name" "george" "value" 1})"##;
+//     let result = parse_string(input).unwrap();
+
+//     let Ann(Expr::List(vec), ..) = result else {
+//         panic!("assertion failed: invalid form")
+//     };
+
+//     assert!(matches!(&vec[2], Ann(Expr::Dict(dict), ..) if dict.len() == 2));
+// }
 
 #[test]
 fn parse_detects_ints() {
