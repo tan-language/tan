@@ -69,12 +69,12 @@ pub fn resolve_string(
     let mut resolved_exprs = Vec::new();
 
     for expr in exprs {
-        let expr = macro_expand(expr, env);
-
         // #Insight
         // Macro expansion should be performed before resolving.
 
         // Expand macros.
+
+        let expr = macro_expand(expr, env);
 
         // #TODO temp hack until macro_expand returns multiple errors.
         let Ok(expr) = expr else {

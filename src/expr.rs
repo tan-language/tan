@@ -1,4 +1,5 @@
 pub mod expr_iter;
+pub mod expr_transform;
 
 use std::{collections::HashMap, fmt, rc::Rc};
 

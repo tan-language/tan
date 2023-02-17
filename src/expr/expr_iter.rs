@@ -16,10 +16,12 @@ impl Ann<Expr> {
 // #Insight
 // The iterator is implemented as a separate struct, for flexibility.
 
+// #TODO support in-order, pre-order, post-order
 // #TODO implement owned iterator
 // #TODO implement mutable iterator
 // #TODO https://aloso.github.io/2021/03/09/creating-an-iterator
 
+// #TODO is this really DFS?
 /// A depth-first Expr iterator.
 #[derive(Default)]
 pub struct ExprIter<'a> {
