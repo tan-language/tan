@@ -22,6 +22,8 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
             | "Func"
             | "Macro"
             | "List"
+            | "Array"
+            | "Dict"
     )
 }
 

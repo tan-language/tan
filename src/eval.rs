@@ -483,7 +483,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
                         }
                         _ => {
                             return Err(Ranged(
-                                Error::NotInvocable(format!("{head}")),
+                                Error::NotInvocable(format!("symbol `{head}`")),
                                 head.get_range(),
                             ));
                         }
@@ -491,7 +491,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
                 }
                 _ => {
                     return Err(Ranged(
-                        Error::NotInvocable(format!("{head}")),
+                        Error::NotInvocable(format!("expression `{head}`")),
                         head.get_range(),
                     ));
                 }

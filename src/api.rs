@@ -87,7 +87,11 @@ pub fn resolve_string(
             continue;
         };
 
-        // Resolve (typechecking, definitions, etc)
+        // Optimization pass
+
+        let expr = optimize(expr);
+
+        // Resolve pass (typechecking, definitions, etc)
 
         // #TODO should we push a new env?
         let mut resolver = Resolver::new();
@@ -102,13 +106,7 @@ pub fn resolve_string(
 // #TODO this implements in essence a do block. Maybe no value should be returned?
 /// Evaluates a Tan expression encoded as a text string.
 pub fn eval_string(input: impl AsRef<str>, env: &mut Env) -> Result<Ann<Expr>, Vec<Ranged<Error>>> {
-    // Resolve pass
-
     let exprs = resolve_string(input, env)?;
-
-    // Optimization pass
-
-    let exprs = exprs.into_iter().map(optimize);
 
     let mut last_value = Expr::One.into();
 
