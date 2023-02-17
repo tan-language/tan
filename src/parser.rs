@@ -316,34 +316,12 @@ where
                 // Don't optimize to `Expr::Dict` here, leave the parser expr
                 // 'normalized as it is beneficial for some kinds of analysis.
 
-                // let args = self.parse_many(Token::RightBrace, start)?;
-
-                // let mut dict = HashMap::new();
-
-                // // #TODO also parse (Dict ..)
-                // // #TODO add error checking!
-                // // #TODO optimize.
-                // // #TODO use Hashable.
-                // // #TODO evaluate the list_exprs
-                // // #TODO list
-
-                // for pair in args.chunks(2) {
-                //     let k = pair[0].clone();
-                //     let v = pair[1].clone();
-                //     dict.insert(format_value(k.0), v.0);
-                // }
-
-                // Some(Expr::Dict(dict))
+                // #TODO add error checking!
+                // #TODO optimize.
 
                 let exprs = self.parse_many(Token::RightBrace, start)?;
 
                 let mut items = vec![Ann::with_range(Expr::symbol("Dict"), range)];
-
-                // #TODO also parse (Array ..)
-                // #TODO add error checking!
-                // #TODO optimize.
-                // #TODO evaluate the list_exprs
-                // #TODO list
 
                 for expr in exprs {
                     items.push(expr);
@@ -359,7 +337,6 @@ where
             }
         };
 
-        // #TODO simplify
         match expr {
             Some(expr) => {
                 let range = start..self.index;
