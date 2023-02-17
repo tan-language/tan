@@ -4,6 +4,7 @@ use super::Expr;
 
 impl Ann<Expr> {
     // #TODO this is some kind of map-reduce, try to use some kind of interator.
+    // #TODO alternatively, this implements some kind of visitor pattern.
 
     /// Transforms the expression by recursively applying the `f` mapping
     /// function.

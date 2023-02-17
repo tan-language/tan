@@ -176,7 +176,7 @@ impl Expr {
     }
 }
 
-// #TODO think where this function is used.
+// #TODO think where this function is used. (it is used for Dict keys, hmm...)
 // #TODO this is a confusing name!
 /// Formats the expression as a value
 pub fn format_value(expr: impl AsRef<Expr>) -> String {

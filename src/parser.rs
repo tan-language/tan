@@ -299,11 +299,9 @@ where
 
                 let mut items = vec![Ann::with_range(Expr::symbol("Array"), range)];
 
-                // #TODO also parse (Array ..)
                 // #TODO add error checking!
                 // #TODO optimize.
                 // #TODO evaluate the list_exprs
-                // #TODO list
 
                 for expr in exprs {
                     items.push(expr);

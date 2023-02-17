@@ -1,6 +1,11 @@
 // #TODO combine a vec of expressions into one `do` expression?, in this pass?
 
-use crate::{ann::Ann, expr::Expr};
+use std::collections::HashMap;
+
+use crate::{
+    ann::Ann,
+    expr::{format_value, Expr},
+};
 
 // #Insight
 // The optimizer does not err.
@@ -13,6 +18,15 @@ pub fn optimize_fn(expr: Ann<Expr>) -> Ann<Expr> {
                     if s == "Array" {
                         let items = terms[1..].iter().map(|ax| ax.0.clone()).collect();
                         return Ann(Expr::Array(items), expr.1);
+                    } else if s == "Dict" {
+                        let items: Vec<Expr> = terms[1..].iter().map(|ax| ax.0.clone()).collect();
+                        let mut dict = HashMap::new();
+                        for pair in items.chunks(2) {
+                            let k = pair[0].clone();
+                            let v = pair[1].clone();
+                            dict.insert(format_value(k), v);
+                        }
+                        return Ann(Expr::Dict(dict), expr.1);
                     }
                 }
             }
@@ -41,5 +55,18 @@ mod tests {
         let s = format!("{expr_optimized:?}");
 
         assert!(s.contains("Array([Int(1), Int(2), Int(3), Int(4)])"));
+    }
+
+    #[test]
+    fn optimize_rewrites_dict_expressions() {
+        let input = r#"(let a {:name "George" :age 25})"#;
+
+        let expr = parse_string(input).unwrap();
+
+        let expr_optimized = optimize(expr);
+
+        let s = format!("{expr_optimized:?}");
+
+        assert!(s.contains(r#"Dict({"name": String("George"), "age": Int(25)})"#));
     }
 }

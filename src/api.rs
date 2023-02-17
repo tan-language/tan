@@ -7,6 +7,7 @@ use crate::{
     expr::Expr,
     lexer::{token::Token, Lexer},
     macro_expand::macro_expand,
+    optimize::optimize,
     parser::Parser,
     range::Ranged,
     resolver::Resolver,
@@ -101,7 +102,13 @@ pub fn resolve_string(
 // #TODO this implements in essence a do block. Maybe no value should be returned?
 /// Evaluates a Tan expression encoded as a text string.
 pub fn eval_string(input: impl AsRef<str>, env: &mut Env) -> Result<Ann<Expr>, Vec<Ranged<Error>>> {
+    // Resolve pass
+
     let exprs = resolve_string(input, env)?;
+
+    // Optimization pass
+
+    let exprs = exprs.into_iter().map(optimize);
 
     let mut last_value = Expr::One.into();
 
