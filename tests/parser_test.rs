@@ -210,9 +210,13 @@ fn parse_parses_arrays() {
 #[test]
 fn parse_parses_dicts() {
     let input = r#"(let m {"name" "george" "value" 1})"#;
-    let result = parse_string(input).unwrap();
+    let expr = parse_string(input).unwrap();
 
-    let Ann(Expr::List(exprs), ..) = result else {
+    for e in expr.iter() {
+        println!("-- {e:?}");
+    }
+
+    let Ann(Expr::List(exprs), ..) = expr else {
         panic!("assertion failed: invalid form")
     };
 

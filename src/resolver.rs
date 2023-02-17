@@ -12,6 +12,7 @@ use crate::{
 // #TODO rename file to `sema`?
 // #TODO support multiple errors.
 // #TODO split into multiple passes?
+// #TODO it currently includes the optimize pass, split!
 
 // #Insight resolve_type and resolve_invocable should be combined, cannot be separate passes.
 
