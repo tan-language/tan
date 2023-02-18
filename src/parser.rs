@@ -224,6 +224,8 @@ where
                 }
             }
             Token::Annotation(s) => {
+                // #TODO support multiple annotations, e.g. `#[(min 1) (max 2)]`
+
                 if self.buffered_annotations.is_none() {
                     self.buffered_annotations = Some(Vec::new());
                 }
