@@ -10,6 +10,7 @@ use crate::{
 // #TODO no need to keep iterator as state in parser!
 // #TODO can the parser be just a function? -> yes, if we use a custom iterator to keep the parsing state.
 // #TODO think some more how annotations should be handled.
+// #TODO annotations are not correctly attributed to lists
 
 // #Insight
 // The syntax of the language is explicitly designed to _not_ require a lookahead buffer.
@@ -130,6 +131,7 @@ where
                     }
                 }
                 Expr::List(list) => {
+                    // #TODO support more than symbols, e.g. KeySymbols or Strings.
                     if let Some(Ann(Expr::Symbol(sym), _)) = list.first() {
                         expr.set_annotation(sym.clone(), ann_expr);
                     } else {
@@ -229,11 +231,9 @@ where
                 self.buffered_annotations
                     .as_mut()
                     .unwrap()
-                    .push(Ranged(s.clone(), range));
+                    .push(Ranged(s, range));
 
-                // Preserve the comments as expressions, may be useful for analysis passes (e.g. formatting)
-                // Comments are elided statically, before the evaluation pass.
-                Some(Expr::Annotation(s))
+                None
             }
             Token::Quote => {
                 // #Insight we should allow consecutive quotes, emit a linter warning instead!
