@@ -36,9 +36,10 @@ pub type ExprFn = dyn Fn(&[Ann<Expr>], &Env) -> Result<Ann<Expr>, Ranged<Error>>
 /// rewriting to a fixed point.
 pub enum Expr {
     // --- Low-level ---
-    One,             // Unit == List(Vec::new())
-    Comment(String), // #TODO consider renaming to Remark (REM)
-    Bool(bool),      // #TODO remove?
+    One,                // Unit == List(Vec::new())
+    Comment(String),    // #TODO consider renaming to Remark (REM)
+    Annotation(String), // Only really useful for the formatter.
+    Bool(bool),         // #TODO remove?
     Int(i64),
     Float(f64),
     Symbol(String),
@@ -74,6 +75,7 @@ impl fmt::Debug for Expr {
         let text = match self {
             Expr::One => "()".to_owned(),
             Expr::Comment(s) => format!("Comment({s})"),
+            Expr::Annotation(s) => format!("Annotation({s})"),
             Expr::Bool(b) => format!("Bool({b})"),
             Expr::Symbol(s) => format!("Symbol({s})"),
             Expr::KeySymbol(s) => format!("KeySymbol({s})"),
@@ -113,6 +115,7 @@ impl fmt::Display for Expr {
             (match self {
                 Expr::One => "()".to_owned(),
                 Expr::Comment(s) => format!(r#"(rem "{s}")"#), // #TODO what would be a good representation?
+                Expr::Annotation(s) => format!("#{s}"),
                 Expr::Bool(b) => b.to_string(),
                 Expr::Int(n) => n.to_string(),
                 Expr::Float(n) => n.to_string(),

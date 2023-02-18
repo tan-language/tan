@@ -160,7 +160,7 @@ where
 
         let expr = match t {
             Token::Comment(s) => {
-                // Preserve the comments as expressions, may be useful for analysis passes.
+                // Preserve the comments as expressions, may be useful for analysis passes (e.g. formatting)
                 // Comments are elided statically, before the evaluation pass.
                 Some(Expr::Comment(s))
             }
@@ -229,9 +229,11 @@ where
                 self.buffered_annotations
                     .as_mut()
                     .unwrap()
-                    .push(Ranged(s, range));
+                    .push(Ranged(s.clone(), range));
 
-                None
+                // Preserve the comments as expressions, may be useful for analysis passes (e.g. formatting)
+                // Comments are elided statically, before the evaluation pass.
+                Some(Expr::Annotation(s))
             }
             Token::Quote => {
                 // #Insight we should allow consecutive quotes, emit a linter warning instead!

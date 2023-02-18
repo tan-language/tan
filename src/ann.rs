@@ -27,8 +27,9 @@ use crate::{
 // #Insight
 // Annotations are 'culled' in the parser, so we can use them for 'shebang'.
 
-// #TODO get range from annotation.
-// #TODO add special support for range.
+// #TODO consider keeping annotations as Vec (to maintain order, and also, not many annotations, typically fast scanning)
+// #TODO keep range separate?
+// #TODO actually, we don't need insertion order but alphabetical order, a BTreeMap can work
 
 #[derive(Clone)]
 pub struct Ann<T>(pub T, pub Option<HashMap<String, Expr>>);
