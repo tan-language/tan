@@ -6,7 +6,7 @@ use crate::{
     ops::{
         arithmetic::{add_float, add_int, mul, sub},
         eq::{eq, gt, lt},
-        io::{write, writeln},
+        io::{file_read_as_string, write, writeln},
         process::exit,
     },
 };
@@ -51,6 +51,14 @@ pub fn setup_prelude(env: Env) -> Env {
     env.insert("write$$String", Expr::ForeignFunc(Rc::new(write)));
     env.insert("writeln", Expr::ForeignFunc(Rc::new(writeln)));
     env.insert("writeln$$String", Expr::ForeignFunc(Rc::new(writeln)));
+    env.insert(
+        "File:read_as_string",
+        Expr::ForeignFunc(Rc::new(file_read_as_string)),
+    );
+    env.insert(
+        "File:read_as_string$$String",
+        Expr::ForeignFunc(Rc::new(file_read_as_string)),
+    );
 
     // process
     env.insert("exit", Expr::ForeignFunc(Rc::new(exit)));
