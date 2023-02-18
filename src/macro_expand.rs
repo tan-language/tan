@@ -23,6 +23,10 @@ pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>,
             // Prune Comment expressions.
             Ok(None)
         }
+        Ann(Expr::Annotation(..), ..) => {
+            // Prune Annotation expressions.
+            Ok(None)
+        }
         Ann(Expr::List(ref list), ..) => {
             // if list.is_empty() {
             //     // This is handled statically, in the parser, but an extra, dynamic
