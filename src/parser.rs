@@ -179,6 +179,9 @@ where
                     Some(Expr::Bool(true))
                 } else if s == "false" {
                     // #TODO consider using False for false 'literal'.
+                    // #TODO consider having only true (and use something like nil for false)
+                    // #TODO consider using nil for false and everything else for true
+                    // #TODO consider using nothing/never for false and everything else for true.
                     Some(Expr::Bool(false))
                 } else {
                     Some(Expr::Symbol(s))

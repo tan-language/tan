@@ -13,6 +13,7 @@ use crate::{
 
 use super::env::Env;
 
+// #TODO use typeclasses (== traits) for overloading
 // #TODO make Env::top() -> in fact it's bottom (of the stack)
 // #TODO alternative Env::prelude()
 
