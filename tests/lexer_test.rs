@@ -107,6 +107,14 @@ fn lex_scans_number_with_delimiters() {
 }
 
 #[test]
+fn lex_scans_multiline_whitespace() {
+    let input = "(+ 1 2) \n\n(+ 3 4)";
+    let tokens = Lexer::new(input).lex().unwrap();
+
+    assert!(matches!(tokens[5].as_ref(), Token::MultiLineWhitespace));
+}
+
+#[test]
 fn lex_handles_number_separators() {
     let input = "(+ 1 3_000)";
     let tokens = Lexer::new(input).lex().unwrap();

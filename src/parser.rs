@@ -166,6 +166,11 @@ where
                 // Comments are elided statically, before the evaluation pass.
                 Some(Expr::Comment(s))
             }
+            Token::MultiLineWhitespace => {
+                // Preserve for formatter, will be elided statically, before the
+                // evaluation pass.
+                Some(Expr::TextSeparator)
+            }
             // Token::Char(c) => Some(Expr::Char(c)),
             Token::String(s) => Some(Expr::String(s)),
             Token::Symbol(s) => {

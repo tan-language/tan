@@ -20,7 +20,13 @@ use crate::{
 pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>, Ranged<Error>> {
     match expr {
         Ann(Expr::Comment(..), ..) => {
+            // #TODO move prune elsewhere.
             // Prune Comment expressions.
+            Ok(None)
+        }
+        Ann(Expr::TextSeparator, ..) => {
+            // #TODO move prune elsewhere.
+            // Prune TextSeparator expressions.
             Ok(None)
         }
         Ann(Expr::List(ref list), ..) => {

@@ -191,6 +191,16 @@ fn parse_handles_annotations() {
 }
 
 #[test]
+fn parse_handles_multiline_whitespace() {
+    let input = "(+ 1 2) \n\n(+ 3 4)";
+    let tokens = lex_tokens(input);
+    let mut parser = Parser::new(tokens);
+
+    let expr = parser.parse().unwrap();
+    dbg!(&expr);
+}
+
+#[test]
 fn parse_parses_arrays() {
     let input = r#"(let m ["george" "chris" "costas"])"#;
     let result = parse_string(input).unwrap();

@@ -37,6 +37,9 @@ pub enum Token {
     Number(String),
     Annotation(String),
     Comment(String),
+    /// MultiLineWhitespace tokens are leveraged by the formatter to maintain
+    /// 'paragraphs' of text.
+    MultiLineWhitespace, // #TODO use something more general, like `Pragma`.
 }
 
 impl fmt::Display for Token {
@@ -58,6 +61,7 @@ impl fmt::Display for Token {
                 Token::Number(s) => s.clone(),
                 Token::Annotation(s) => s.clone(),
                 Token::Comment(s) => s.clone(),
+                Token::MultiLineWhitespace => "$".to_owned(), // #TODO what should we do here? #Idea convert to comment?
             })
             .as_str(),
         )

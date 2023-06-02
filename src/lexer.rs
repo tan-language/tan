@@ -50,7 +50,7 @@ fn is_eol(ch: char) -> bool {
 
 // #Insight
 // Numeric tokens parsing is postponed to a later stage (parse):
-//   -  there is more semantic information (e.g. annotations)
+//   - there is more semantic information (e.g. annotations)
 //   - joint synchronization in parsing phase allows to find more errors
 //   - more scalebale for number formats, allows for less lexical tokens
 
@@ -135,6 +135,28 @@ impl<'a> Lexer<'a> {
         }
 
         text
+    }
+
+    // Scans withespace, returns the number of lines scanned.
+    fn scan_whitespace(&mut self) -> i64 {
+        let mut lines_count = 0;
+
+        loop {
+            let Some(ch) = self.next_char() else {
+                break;
+            };
+
+            if !(is_whitespace(ch) || is_eol(ch)) {
+                self.put_back_char(ch);
+                break;
+            }
+
+            if is_eol(ch) {
+                lines_count += 1;
+            }
+        }
+
+        lines_count
     }
 
     // Scans a line.
@@ -391,7 +413,14 @@ impl<'a> Lexer<'a> {
                 }
                 _ if is_whitespace(ch) => {
                     // Consume whitespace
-                    continue;
+                    // #TODO detect 'separator/divider' whitespace, useful for formatting or even other use cases.
+                    self.put_back_char(ch);
+
+                    let lines_count = self.scan_whitespace();
+
+                    if lines_count > 1 {
+                        tokens.push(Ranged(Token::MultiLineWhitespace, self.range()));
+                    }
                 }
                 _ if ch.is_numeric() => {
                     self.put_back_char(ch);
