@@ -159,7 +159,7 @@ impl<'a> Lexer<'a> {
         lines_count
     }
 
-    // Scans a line.
+    // Scans a line, used for line-comments.
     fn scan_line(&mut self) -> String {
         let mut line = String::from("");
 

@@ -75,7 +75,7 @@ impl fmt::Debug for Expr {
         let text = match self {
             Expr::One => "()".to_owned(),
             Expr::Comment(s) => format!("Comment({s})"),
-            Expr::TextSeparator => "$".to_owned(), // #TODO
+            Expr::TextSeparator => "<TEXT-SEPARATOR>".to_owned(),
             Expr::Bool(b) => format!("Bool({b})"),
             Expr::Symbol(s) => format!("Symbol({s})"),
             Expr::KeySymbol(s) => format!("KeySymbol({s})"),
@@ -86,12 +86,12 @@ impl fmt::Debug for Expr {
             Expr::Do => "do".to_owned(),
             Expr::List(terms) => {
                 format!(
-                    "List({})",
+                    "List(\n{})",
                     terms
                         .iter()
                         .map(|term| format!("{term:?}"))
                         .collect::<Vec<String>>()
-                        .join(", ")
+                        .join(",\n")
                 )
             }
             Expr::Array(v) => format!("Array({v:?})"),
@@ -115,7 +115,7 @@ impl fmt::Display for Expr {
             (match self {
                 Expr::One => "()".to_owned(),
                 Expr::Comment(s) => format!(r#"(rem "{s}")"#), // #TODO what would be a good representation?
-                Expr::TextSeparator => "$".to_owned(),         // #TODO
+                Expr::TextSeparator => "<TS>".to_owned(),
                 Expr::Bool(b) => b.to_string(),
                 Expr::Int(n) => n.to_string(),
                 Expr::Float(n) => n.to_string(),
