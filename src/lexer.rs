@@ -416,8 +416,9 @@ impl<'a> Lexer<'a> {
                 }
                 _ if is_whitespace(ch) => {
                     // Consume whitespace
-                    // #TODO detect 'separator/divider' whitespace, useful for formatting or even other use cases.
-                    self.put_back_char(ch);
+                    if is_eol(ch) {
+                        self.put_back_char(ch);
+                    }
 
                     let lines_count = self.scan_whitespace();
 
