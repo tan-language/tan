@@ -161,7 +161,7 @@ impl<'a> Lexer<'a> {
 
     // Scans a line.
     fn scan_line(&mut self) -> String {
-        let mut comment = String::from("");
+        let mut line = String::from("");
 
         loop {
             let Some(ch) = self.next_char() else {
@@ -169,13 +169,16 @@ impl<'a> Lexer<'a> {
             };
 
             if is_eol(ch) {
+                // #Insight we put back the trailing EOL to help with range
+                // and MultiLineWhitespace computation.
+                self.put_back_char(ch);
                 break;
             }
 
-            comment.push(ch);
+            line.push(ch);
         }
 
-        comment
+        line
     }
 
     // #TODO support 'raw' strings, e.g. (write #raw "this is \ cool")

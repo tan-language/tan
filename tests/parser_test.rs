@@ -31,14 +31,14 @@ fn parse_handles_an_empty_token_list() {
 }
 
 #[test]
-fn parse_handles_an_multiple_expressions() {
+fn parse_handles_multiple_expressions() {
     let input = &read_input("multiple_expressions.tan");
     let tokens = lex_tokens(input);
     let mut parser = Parser::new(tokens);
     let expr = parser.parse().unwrap();
 
-    // The comment and 3 expressions.
-    assert_eq!(expr.len(), 4);
+    // The comment, TextSeparator, and 3 expressions.
+    assert_eq!(expr.len(), 5);
 }
 
 #[test]
