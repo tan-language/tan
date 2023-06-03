@@ -13,6 +13,15 @@ use crate::{
     resolver::Resolver,
 };
 
+pub const TAN_FILE_EXTENSION: &str = ".tan";
+
+pub const TAN_FILE_EMOJI_EXTENSION: &str = ".👅";
+
+pub fn has_tan_extension(path: impl AsRef<str>) -> bool {
+    let path = path.as_ref();
+    path.ends_with(TAN_FILE_EXTENSION) || path.ends_with(TAN_FILE_EMOJI_EXTENSION)
+}
+
 /// Lexes a Tan expression encoded as a text string.
 pub fn lex_string(input: impl AsRef<str>) -> Result<Vec<Ranged<Token>>, Vec<Ranged<Error>>> {
     let input = input.as_ref();
