@@ -325,8 +325,11 @@ impl<'a> Lexer<'a> {
                 '}' => {
                     tokens.push(Ranged(Token::RightBrace, self.range()));
                 }
-                // #TODO consider removing `;` comments.
                 ';' => {
+                    // #Insight
+                    // We only support `;` line comments and not `--` line comments
+                    // The `--` line comments don't play well with the use of `-`
+                    // as word separator in names.
                     self.put_back_char(ch);
                     let line = self.scan_line();
                     tokens.push(Ranged(Token::Comment(line), self.range()));
@@ -391,12 +394,14 @@ impl<'a> Lexer<'a> {
                     self.put_back_char(ch1);
                     self.put_back_char(ch);
 
-                    if ch1 == '-' {
-                        // #TODO if we switch to kebab-case, `--` comments may cause issues.
-                        // `--` line comment
-                        let line = self.scan_line();
-                        tokens.push(Ranged(Token::Comment(line), self.range()));
-                    } else if ch1.is_numeric() {
+                    // #insight `--` line comments no longer supported.
+                    // if ch1 == '-' {
+                    //     // #TODO if we switch to kebab-case, `--` comments may cause issues.
+                    //     // `--` line comment
+                    //     let line = self.scan_line();
+                    //     tokens.push(Ranged(Token::Comment(line), self.range()));
+                    // } else
+                    if ch1.is_numeric() {
                         // Negative number
                         let token = Token::Number(self.scan_number());
                         tokens.push(Ranged(token, self.range()));

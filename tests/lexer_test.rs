@@ -54,20 +54,21 @@ fn lex_parses_comments() {
     assert_eq!(c2.1.end, input.len());
 }
 
-#[test]
-fn lex_parses_dash_comments() {
-    let input = "-- This is a comment\n-----\n(write \"hello\"); end comment";
-    let tokens = Lexer::new(input).lex();
+// `--` line comments no longer supported.
+// #[test]
+// fn lex_parses_dash_comments() {
+//     let input = "-- This is a comment\n-----\n(write \"hello\"); end comment";
+//     let tokens = Lexer::new(input).lex();
 
-    let tokens = tokens.unwrap();
+//     let tokens = tokens.unwrap();
 
-    assert!(matches!(tokens[0].as_ref(), Token::Comment(x) if x == "-- This is a comment"));
-    assert!(matches!(tokens[1].as_ref(), Token::Comment(x) if x == "-----"));
+//     assert!(matches!(tokens[0].as_ref(), Token::Comment(x) if x == "-- This is a comment"));
+//     assert!(matches!(tokens[1].as_ref(), Token::Comment(x) if x == "-----"));
 
-    let c1 = &tokens[1];
-    assert_eq!(c1.1.start, 21);
-    assert_eq!(c1.1.end, 26);
-}
+//     let c1 = &tokens[1];
+//     assert_eq!(c1.1.start, 21);
+//     assert_eq!(c1.1.end, 26);
+// }
 
 #[test]
 fn lex_parses_annotations() {

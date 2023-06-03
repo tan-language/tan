@@ -352,9 +352,9 @@ fn parse_reports_multiple_number_errors() {
 
 #[test]
 fn parse_keeps_comments() {
-    let input = "-- This is a comment\n(+ 1 2)";
+    let input = "; This is a comment\n(+ 1 2)";
     let exprs = parse_string_all(input).unwrap();
 
     let expr = &exprs[0];
-    assert!(matches!(expr, Ann(Expr::Comment(x), ..) if x == "-- This is a comment"));
+    assert!(matches!(expr, Ann(Expr::Comment(x), ..) if x == "; This is a comment"));
 }

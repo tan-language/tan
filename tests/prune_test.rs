@@ -6,7 +6,7 @@ use tan::{
 
 #[test]
 fn parse_removes_comments() {
-    let input = "-- This is a comment\n(+ 1 2)";
+    let input = "; This is a comment\n(+ 1 2)";
     let exprs = parse_string_all(input).unwrap();
 
     let mut env = Env::prelude();
