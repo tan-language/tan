@@ -15,6 +15,7 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
             | "if"
             | "for"
             | "for_each"
+            | "map"
             | "eval"
             | "quot"
             | "use" // #TODO consider `using`

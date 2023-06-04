@@ -8,6 +8,7 @@ use crate::{
         eq::{eq, gt, lt},
         io::{file_read_as_string, file_write_string, write, writeln},
         process::exit,
+        string::{char_uppercased, string_chars, string_constructor_from_chars},
     },
 };
 
@@ -77,8 +78,26 @@ pub fn setup_prelude(env: Env) -> Env {
     );
 
     // process
+
     env.insert("exit", Expr::ForeignFunc(Rc::new(exit)));
     env.insert("exit$$", Expr::ForeignFunc(Rc::new(exit)));
+
+    // string
+
+    env.insert(
+        "String",
+        Expr::ForeignFunc(Rc::new(string_constructor_from_chars)),
+    );
+    // env.insert("String$$Array", Expr::ForeignFunc(Rc::new(string_constructor_from_chars)));
+
+    env.insert("chars", Expr::ForeignFunc(Rc::new(string_chars)));
+    env.insert("chars$$String", Expr::ForeignFunc(Rc::new(string_chars)));
+
+    env.insert("uppercased", Expr::ForeignFunc(Rc::new(char_uppercased)));
+    env.insert(
+        "uppercases$$Char",
+        Expr::ForeignFunc(Rc::new(char_uppercased)),
+    );
 
     env
 }

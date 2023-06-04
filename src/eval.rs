@@ -312,6 +312,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
                                 Ok(Expr::One.into())
                             }
                         }
+                        // #TODO for-each or overload for?
                         "for_each" => {
                             // #TODO this is a temp hack!
                             let [seq, var, body] = tail else {
@@ -340,6 +341,39 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
 
                             // #TODO intentionally don't return a value, reconsider this?
                             Ok(Expr::One.into())
+                        }
+                        // #TODO extract
+                        "map" => {
+                            // #TODO this is a temp hack!
+                            let [seq, var, body] = tail else {
+                                return Err(Ranged(Error::invalid_arguments("malformed `map`"), expr.get_range()));
+                            };
+
+                            let seq = eval(seq, env)?;
+
+                            let Ann(Expr::Array(arr), ..) = seq else {
+                                return Err(Ranged(Error::invalid_arguments("`map` requires a `Seq` as the first argument"), seq.get_range()));
+                            };
+
+                            let Ann(Expr::Symbol(sym), _) = var else {
+                                return Err(Ranged(Error::invalid_arguments("`map` requires a symbol as the second argument"), var.get_range()));
+                            };
+
+                            env.push_new_scope();
+
+                            let mut results: Vec<Expr> = Vec::new();
+
+                            for x in arr {
+                                // #TODO array should have Ann<Expr> use Ann<Expr> everywhere, avoid the clones!
+                                env.insert(sym, Ann::new(x.clone()));
+                                let result = eval(body, env)?;
+                                results.push(result.0);
+                            }
+
+                            env.pop();
+
+                            // #TODO intentionally don't return a value, reconsider this?
+                            Ok(Expr::Array(results).into())
                         }
                         "use" => {
                             // Import a directory as a module.
