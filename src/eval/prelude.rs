@@ -6,7 +6,7 @@ use crate::{
     ops::{
         arithmetic::{add_float, add_int, mul, sub},
         eq::{eq, gt, lt},
-        io::{file_read_as_string, write, writeln},
+        io::{file_read_as_string, file_write_string, write, writeln},
         process::exit,
     },
 };
@@ -16,6 +16,8 @@ use super::env::Env;
 // #TODO use typeclasses (== traits) for overloading
 // #TODO make Env::top() -> in fact it's bottom (of the stack)
 // #TODO alternative Env::prelude()
+// #TODO this part needs _complete_ rewrite.
+// #TODO better syntax for type annotations needed.
 
 pub fn setup_prelude(env: Env) -> Env {
     let mut env = env;
@@ -50,15 +52,28 @@ pub fn setup_prelude(env: Env) -> Env {
 
     env.insert("write", Expr::ForeignFunc(Rc::new(write)));
     env.insert("write$$String", Expr::ForeignFunc(Rc::new(write)));
+
     env.insert("writeln", Expr::ForeignFunc(Rc::new(writeln)));
     env.insert("writeln$$String", Expr::ForeignFunc(Rc::new(writeln)));
+
     env.insert(
-        "File:read_as_string",
+        "File:read-string",
         Expr::ForeignFunc(Rc::new(file_read_as_string)),
     );
     env.insert(
-        "File:read_as_string$$String",
+        "File:read-string$$String",
         Expr::ForeignFunc(Rc::new(file_read_as_string)),
+    );
+
+    // #TODO consider just `write`.
+    env.insert(
+        // #TODO alternatives: "std:fs:write_string", "std:url:write_string", "str.url.write-string"
+        "File:write-string",
+        Expr::ForeignFunc(Rc::new(file_write_string)),
+    );
+    env.insert(
+        "File:write-string$$String",
+        Expr::ForeignFunc(Rc::new(file_write_string)),
     );
 
     // process

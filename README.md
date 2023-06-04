@@ -1,6 +1,6 @@
 # Tan Language
 
-The Tan Language implementation.
+Tan is a uniform language for Humans and Machines.
 
 ## Status
 

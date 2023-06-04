@@ -39,6 +39,8 @@ pub fn writeln(args: &[Ann<Expr>], env: &Env) -> Result<Ann<Expr>, Ranged<Error>
     write(&[Expr::string("\n").into()], env)
 }
 
+// File < Resource
+// #TODO extract file-system-related functionality to `fs` or even the more general `rs` == resource space.
 // #TODO consider mapping `:` to `__` and use #[allow(snake_case)]
 
 /// Reads the contents of a text file as a string.
@@ -54,4 +56,23 @@ pub fn file_read_as_string(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, 
     let contents = fs::read_to_string(path)?;
 
     Ok(Expr::String(contents).into())
+}
+
+// #TODO decide on the parameters order.
+pub fn file_write_string(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Ranged<Error>> {
+    let [path, content] = args else {
+        return Err(Error::invalid_arguments("`read_as_string` requires `path` and `content` arguments").into());
+    };
+
+    let Ann(Expr::String(path), ..) = path else {
+        return Err(Error::invalid_arguments("`path` argument should be a String").into());
+    };
+
+    let Ann(Expr::String(content), ..) = content else {
+        return Err(Error::invalid_arguments("`content` argument should be a String").into());
+    };
+
+    fs::write(path, content)?;
+
+    Ok(Expr::One.into())
 }

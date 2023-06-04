@@ -5,9 +5,9 @@
         "score" 100
     })
 
-   (let name (dict "given_name"))
+    (let name (dict "given_name"))
 
-   name
+    name
 )
 
 ; (let name (((users "gmosx") "properties") 2))
