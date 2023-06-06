@@ -29,6 +29,7 @@ impl Resolver {
         self.errors.push(error);
     }
 
+    // #TODO maybe return multiple errors?
     pub fn resolve_expr(&mut self, mut expr: Ann<Expr>, env: &mut Env) -> Ann<Expr> {
         // #TODO update the original annotations!
         // #TODO need to handle _all_ Expr variants.
@@ -153,9 +154,9 @@ impl Resolver {
                             let result = eval(&value, env);
 
                             let Ok(value) = eval(&value, env) else {
-                                // #TODO properly handle the error!
+                                // #TODO how should the error get handled?
                                 let err = result.unwrap_err();
-                                dbg!(err);
+                                self.push_error(err);
                                 // #TODO totally random.
                                 return value;
                             };
