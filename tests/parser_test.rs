@@ -32,7 +32,7 @@ fn parse_handles_an_empty_token_list() {
 
 #[test]
 fn parse_handles_multiple_expressions() {
-    let input = &read_input("multiple_expressions.tan");
+    let input = &read_input("multiple-expressions.tan");
     let tokens = lex_tokens(input);
     let mut parser = Parser::new(tokens);
     let expr = parser.parse().unwrap();
@@ -151,7 +151,7 @@ fn parse_handles_one() {
 
 #[test]
 fn parse_handles_a_simple_expression() {
-    let input = &read_input("hello_world.tan");
+    let input = &read_input("hello-world.tan");
     let tokens = lex_tokens(input);
     let mut parser = Parser::new(tokens);
 
@@ -161,7 +161,7 @@ fn parse_handles_a_simple_expression() {
 
 #[test]
 fn parse_reports_unterminated_lists() {
-    let filename = "unterminated_list_expr.tan";
+    let filename = "unterminated-list-expr.tan";
     let input = &read_input(filename);
     let tokens = lex_tokens(input);
     let mut parser = Parser::new(tokens);

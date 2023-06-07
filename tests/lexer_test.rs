@@ -127,7 +127,7 @@ fn lex_handles_number_separators() {
 
 #[test]
 fn lex_handles_signed_numbers() {
-    let input = read_file("signed_number.tan");
+    let input = read_file("signed-number.tan");
     let tokens = Lexer::new(&input).lex();
 
     let tokens = tokens.unwrap();

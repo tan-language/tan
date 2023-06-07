@@ -27,7 +27,7 @@ fn eval_processes_arithmetic_expressions() {
 
 #[test]
 fn do_reports_intermediate_errors() {
-    let result = eval_file("do_intermediate_error.tan");
+    let result = eval_file("do-intermediate-error.tan");
 
     assert!(result.is_err());
 
@@ -223,7 +223,7 @@ fn eval_processes_dict() {
 
 #[test]
 fn eval_processes_multiline_strings() {
-    let result = eval_file("multi-line_string.tan");
+    let result = eval_file("multi-line-string.tan");
 
     assert!(result.is_ok());
 
@@ -235,13 +235,13 @@ fn eval_processes_multiline_strings() {
 
 #[test]
 fn eval_processes_multiline_text() {
-    let result = eval_file("multi-line_text.tan");
+    let result = eval_file("multi-line-text.tan");
 
     assert!(result.is_ok());
 
     // #TODO maybe format_value should be the default `to_string()`/`Display`
     let value = format_value(result.unwrap());
-    let expected_value = read_file("multi-line_text.value.tan");
+    let expected_value = read_file("multi-line-text.value.tan");
 
     assert_eq!(value, expected_value);
 }
