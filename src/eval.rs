@@ -50,7 +50,8 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
             // #TODO handle 'PathSymbol'
 
             let value = if let Some(Expr::Symbol(method)) = expr.get_annotation("method") {
-                // If the symbol is annotated with a method, it's in 'operator' position.
+                // If the symbol is annotated with a `method`, it's in 'operator' position.
+                // `method` is just one of the variants of a multi-method-function.
                 if let Some(value) = env.get(method) {
                     value
                 } else {

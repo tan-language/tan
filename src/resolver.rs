@@ -10,12 +10,12 @@ use crate::{
 };
 
 // #TODO rename file to `sema`?
-// #TODO support multiple errors.
 // #TODO split into multiple passes?
 // #TODO it currently includes the optimize pass, split!
 
 // #Insight resolve_type and resolve_invocable should be combined, cannot be separate passes.
 
+// #TODO explain what the Resolver is doing.
 pub struct Resolver {
     errors: Vec<Ranged<Error>>,
 }
@@ -31,6 +31,7 @@ impl Resolver {
 
     // #TODO maybe return multiple errors?
     pub fn resolve_expr(&mut self, mut expr: Ann<Expr>, env: &mut Env) -> Ann<Expr> {
+        // eprintln!("<<< {} >>>", expr);
         // #TODO update the original annotations!
         // #TODO need to handle _all_ Expr variants.
         match expr {
@@ -100,6 +101,8 @@ impl Resolver {
                 // #TODO Expr.is_invocable, Expr.get_invocable_name, Expr.get_type
                 // #TODO handle non-symbol cases!
                 // #TODO signature should be the type, e.g. +::(Func Int Int Int) instead of +$$Int$$Int
+                // #TODO should handle Func!!
+                // #TODO convert to match, extract the iteration.
                 if let Ann(Expr::Symbol(ref sym), _) = head {
                     // #TODO special handling of def
                     if sym == "let" {
@@ -148,24 +151,57 @@ impl Resolver {
                             // #TODO for some reason, this causes infinite loop
                             // #TODO why is this needed in the first place?
 
-                            // #TODO nasty code, revisit
                             // Try to apply definitions.
 
                             let result = eval(&value, env);
 
-                            let Ok(value) = eval(&value, env) else {
-                                // #TODO how should the error get handled?
+                            if result.is_ok() {
+                                // #TODO notify about overrides? use `set`?
+                                env.insert(s, result.unwrap());
+                            } else {
                                 let err = result.unwrap_err();
                                 self.push_error(err);
-                                // #TODO totally random.
-                                return value;
-                            };
-
-                            // #TODO notify about overrides? use `set`?
-                            env.insert(s, value);
+                            }
                         }
 
                         Ann(Expr::List(resolved_let_list), ann)
+                    } else if sym == "Func" {
+                        // #TODO do something ;-)
+                        // #TODO this is a temp hack, we don't resolve inside a function, argh!
+
+                        // println!("*************************** ARGH");
+
+                        // dbg!(&head);
+                        // dbg!(&tail);
+
+                        // println!("^^^^^");
+
+                        // // Evaluate the arguments before calling the function.
+                        // let args = eval_args(tail, env)?;
+
+                        // // #TODO ultra-hack to kill shared ref to `env`.
+                        // let params = params.clone();
+                        // let body = body.clone();
+
+                        // // Dynamic scoping, #TODO convert to lexical.
+
+                        // env.push_new_scope();
+
+                        // for (param, arg) in params.iter().zip(args) {
+                        //     let Ann(Expr::Symbol(param), ..) = param else {
+                        //             return Err(Ranged(Error::invalid_arguments("parameter is not a symbol"), param.get_range()));
+                        //         };
+
+                        //     env.insert(param, arg);
+                        // }
+
+                        // let result = eval(&body, env);
+
+                        // env.pop();
+
+                        // result
+
+                        expr
                     } else {
                         let mut resolved_tail = Vec::new();
                         for term in tail {
@@ -214,6 +250,9 @@ impl Resolver {
         }
     }
 
+    // #TODO better explain what this function does.
+    // #TODO what exactly is this env? how is this mutated?
+    // Resolve pass (typechecking, definitions, etc)
     pub fn resolve(
         &mut self,
         expr: Ann<Expr>,
@@ -236,6 +275,8 @@ impl Default for Resolver {
         Self::new()
     }
 }
+
+// #TODO move to resolver_test.rs
 
 #[cfg(test)]
 mod tests {
