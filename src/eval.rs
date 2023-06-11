@@ -2,18 +2,17 @@ pub mod env;
 pub mod prelude;
 pub mod util;
 
-use std::{collections::HashMap, fs};
+use std::collections::HashMap;
 
 use crate::{
     ann::Ann,
-    api::resolve_string,
     error::Error,
     expr::{format_value, Expr},
     range::Ranged,
     util::is_reserved_symbol,
 };
 
-use self::env::Env;
+use self::{env::Env, util::eval_module};
 
 // #Insight
 // _Not_ a pure evaluator, performs side-effects.
@@ -380,51 +379,19 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>>
                         "use" => {
                             // Import a directory as a module.
 
-                            let Some(Ann(Expr::Symbol(module_name), _)) = tail.get(0) else {
+                            let Some(Ann(Expr::String(module_path), _)) = tail.get(0) else {
                                 return Err(Ranged(Error::invalid_arguments("malformed use expression"), expr.get_range()));
                             };
 
-                            // #TODO use `modl` instead of `module` or `mod`.
-                            // #TODO support nested modules
-                            // #TODO support 'absolute' modules
-                            // #TODO rewrite separators here.
-                            let module_path = module_name;
+                            // #TODO make sure paths are relative to the current file.
+                            let result = eval_module(module_path, env);
 
-                            let file_paths = fs::read_dir(module_path)?;
-
-                            let mut resolved_exprs: Vec<Ann<Expr>> = Vec::new();
-
-                            for file_path in file_paths {
-                                let path = file_path?.path();
-
-                                if !path.display().to_string().ends_with(".tan") {
-                                    continue;
-                                }
-
-                                // #TODO handle the range of the error.
-                                let input = std::fs::read_to_string(path)?;
-
-                                let result = resolve_string(input, env);
-
-                                let Ok(mut exprs) = result else {
-                                    let err = result.unwrap_err();
-                                    // #TODO better error handling here!
-                                    dbg!(&err);
-                                    // #TODO maybe continue parsing/resolving to find more errors?
-                                    // #TODO better error here!
-                                    return Err(Ranged(Error::FailedUse, expr.get_range()));
-                                };
-
-                                resolved_exprs.append(&mut exprs);
-                            }
-
-                            for expr in resolved_exprs {
-                                if let Err(err) = eval(&expr, env) {
-                                    // #TODO better error handling here!
-                                    dbg!(&err);
-                                    // #TODO better error here!
-                                    return Err(Ranged(Error::FailedUse, expr.get_range()));
-                                }
+                            if let Err(errors) = result {
+                                // #TODO precise formating is _required_ here!
+                                // eprintln!("{}", format_errors(&errors));
+                                dbg!(errors);
+                            } else {
+                                ()
                             }
 
                             // #TODO what could we return here?

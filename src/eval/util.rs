@@ -1,11 +1,8 @@
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::{fs, path::Path};
 
 use crate::{
     ann::Ann,
-    api::{has_tan_extension, resolve_string, TAN_FILE_EMOJI_EXTENSION, TAN_FILE_EXTENSION},
+    api::{has_tan_extension, resolve_string},
     error::Error,
     expr::Expr,
     range::Ranged,
@@ -21,31 +18,33 @@ use super::{env::Env, eval};
 
 // #TODO add unit test.
 pub fn compute_module_file_paths(path: impl AsRef<Path>) -> std::io::Result<Vec<String>> {
-    let mut module_path = path.as_ref();
+    let module_path = path.as_ref();
 
     let mut module_file_paths: Vec<String> = Vec::new();
-    let mut buf: PathBuf;
+    // let mut buf: PathBuf;
+
+    // if !module_path.exists() {
+    //     // #TODO we don't want the auto-add extensions.
+    //     // Automatically try adding the tan extensions.
+
+    //     buf = module_path.to_path_buf();
+    //     buf.set_extension(TAN_FILE_EXTENSION);
+    //     module_path = buf.as_path();
+
+    //     if !module_path.exists() {
+    //         buf = module_path.to_path_buf();
+    //         buf.set_extension(TAN_FILE_EMOJI_EXTENSION);
+    //         module_path = buf.as_path();
+    //     }
 
     if !module_path.exists() {
-        // Automatically try adding the tan extensions.
-
-        buf = module_path.to_path_buf();
-        buf.set_extension(TAN_FILE_EXTENSION);
-        module_path = buf.as_path();
-
-        if !module_path.exists() {
-            buf = module_path.to_path_buf();
-            buf.set_extension(TAN_FILE_EMOJI_EXTENSION);
-            module_path = buf.as_path();
-        }
-
-        if !module_path.exists() {
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::NotFound,
-                format!("`{}` not found", module_path.display()),
-            ));
-        }
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            format!("`{}` not found", module_path.display()),
+        ));
     }
+
+    // }
 
     if module_path.is_dir() {
         let file_paths = fs::read_dir(module_path)?;
@@ -72,7 +71,7 @@ pub fn compute_module_file_paths(path: impl AsRef<Path>) -> std::io::Result<Vec<
 }
 
 // #TODO may be useful in ...use.
-pub fn eval_module(path: impl AsRef<Path>) -> Result<Ann<Expr>, Vec<Ranged<Error>>> {
+pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Ann<Expr>, Vec<Ranged<Error>>> {
     let file_paths = compute_module_file_paths(path);
 
     let Ok(file_paths) = file_paths else {
@@ -82,7 +81,7 @@ pub fn eval_module(path: impl AsRef<Path>) -> Result<Ann<Expr>, Vec<Ranged<Error
     let mut resolved_exprs: Vec<Ann<Expr>> = Vec::new();
 
     // #TODO inject the env from the outside.
-    let mut env = Env::prelude();
+    // let mut env = Env::prelude();
 
     for file_path in file_paths {
         // #TODO keep all inputs in magic variable in env, associate url/key with error.
@@ -92,7 +91,7 @@ pub fn eval_module(path: impl AsRef<Path>) -> Result<Ann<Expr>, Vec<Ranged<Error
             return Err(vec![input.unwrap_err().into()]);
         };
 
-        let result = resolve_string(input, &mut env);
+        let result = resolve_string(input, env);
 
         let Ok(mut exprs) = result else {
             let err = result.unwrap_err();
@@ -106,7 +105,7 @@ pub fn eval_module(path: impl AsRef<Path>) -> Result<Ann<Expr>, Vec<Ranged<Error
     }
 
     for expr in resolved_exprs {
-        if let Err(err) = eval(&expr, &mut env) {
+        if let Err(err) = eval(&expr, env) {
             // #TODO associate input with the error.
             // #TODO better error here!
             return Err(vec![err.into()]);
