@@ -9,3 +9,4 @@ authors = ["George Moschovitis <gmosx@reizu.org>"]
 edition = "2021"
 
 [dependencies]
+tracing = "0.1"

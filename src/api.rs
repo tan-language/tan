@@ -15,14 +15,17 @@ use crate::{
     resolver::Resolver,
 };
 
-pub const TAN_FILE_EXTENSION: &str = ".tan";
+pub const TAN_FILE_EXTENSION: &str = "tan";
 
-pub const TAN_FILE_EMOJI_EXTENSION: &str = ".👅";
+pub const TAN_FILE_EMOJI_EXTENSION: &str = "👅";
 
-// #TODO also take path!
 pub fn has_tan_extension(path: impl AsRef<Path>) -> bool {
     let path = path.as_ref();
-    path.ends_with(TAN_FILE_EXTENSION) || path.ends_with(TAN_FILE_EMOJI_EXTENSION)
+    if let Some(extension) = path.extension() {
+        extension == TAN_FILE_EXTENSION || extension == TAN_FILE_EMOJI_EXTENSION
+    } else {
+        false
+    }
 }
 
 /// Lexes a Tan expression encoded as a text string.
