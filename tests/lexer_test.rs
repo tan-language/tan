@@ -116,6 +116,14 @@ fn lex_scans_multiline_whitespace() {
 }
 
 #[test]
+fn lex_handles_shebang_line() {
+    let input = "#!/usr/bin/sh tan\n(writeln (+ 2 3)))\n";
+    let tokens = Lexer::new(input).lex().unwrap();
+
+    assert!(matches!(tokens[0].as_ref(), Token::LeftParen));
+}
+
+#[test]
 fn lex_handles_number_separators() {
     let input = "(+ 1 3_000)";
     let tokens = Lexer::new(input).lex().unwrap();

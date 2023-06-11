@@ -414,6 +414,18 @@ impl<'a> Lexer<'a> {
                     }
                 }
                 '#' => {
+                    if self.index == 1 {
+                        if let Some(ch1) = self.next_char() {
+                            if ch1 == '!' {
+                                // Shebang line detected, skip.
+                                let _ = self.scan_line();
+                                // #TODO should we keep the shebang as a module annotation?
+                                continue;
+                            } else {
+                                self.put_back_char(ch1);
+                            }
+                        }
+                    }
                     let Some(ann) = self.scan_annotation() else {
                         break 'outer;
                     };

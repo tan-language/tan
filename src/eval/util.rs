@@ -12,28 +12,9 @@ use super::{env::Env, eval};
 
 // #TODO this needs _serious_ cleanup.
 
-// #TODO if needed use OnceLock, but really, Regex is _not_ needed!
-// pub static SHEBANG_RE: Lazy<Regex> = Lazy::new(|| Regex::new("^#!(.*)\n").unwrap());
-
-// #TODO move the skip_shebank to the lexer.
-// #TODO skip_shebang messes with the lexer ranges, FIX!
-/// Skip the 'shebang' line, if it exists.
-fn skip_shebang(input: String) -> String {
-    // if input.starts_with("#!") {
-    //     SHEBANG_RE.replace(&input, "").to_string()
-    // } else {
-    //     input
-    // }
-
-    // #TODO implement me correctly!
-    input
-}
-
 // #TODO error handling!
 fn eval_file(path: impl AsRef<Path>) -> Result<Ann<Expr>, Vec<Ranged<Error>>> {
     let input = std::fs::read_to_string(path).expect("cannot read input");
-
-    let input = skip_shebang(input);
 
     let mut env = Env::prelude();
 
@@ -115,20 +96,4 @@ pub fn eval_module(path: impl AsRef<Path>) -> Result<Ann<Expr>, Vec<Ranged<Error
 
     // #TODO what should we return here?
     Ok(Expr::One.into())
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::eval::util::skip_shebang;
-
-    // #TODO
-    #[test]
-    fn skip_shebang_skips_the_shebang_line() {
-        let input = r#"#!/usr/bin/sh tan\n\n(writeln (+ 2 3)))"#.to_owned();
-
-        let output = skip_shebang(input);
-        println!("{output}");
-
-        // assert!(s.contains("Array([Int(1), Int(2), Int(3), Int(4)])"));
-    }
 }
