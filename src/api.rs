@@ -1,5 +1,7 @@
 // #TODO find a better name, e.g. `lang`, `sys`, `runtime`.
 
+use std::path::Path;
+
 use crate::{
     ann::Ann,
     error::Error,
@@ -17,7 +19,8 @@ pub const TAN_FILE_EXTENSION: &str = ".tan";
 
 pub const TAN_FILE_EMOJI_EXTENSION: &str = ".👅";
 
-pub fn has_tan_extension(path: impl AsRef<str>) -> bool {
+// #TODO also take path!
+pub fn has_tan_extension(path: impl AsRef<Path>) -> bool {
     let path = path.as_ref();
     path.ends_with(TAN_FILE_EXTENSION) || path.ends_with(TAN_FILE_EMOJI_EXTENSION)
 }

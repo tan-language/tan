@@ -98,3 +98,9 @@ impl From<Error> for Ranged<Error> {
         Ranged(value, 0..0)
     }
 }
+
+// impl From<Ranged<Error>> for Vec<Ranged<Error>> {
+//     fn from(value: Ranged<Error>) -> Self {
+//         vec![value]
+//     }
+// }
