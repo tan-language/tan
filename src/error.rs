@@ -3,7 +3,9 @@ use std::{
     num::{ParseFloatError, ParseIntError},
 };
 
-use crate::{lexer::token::Token, range::Ranged};
+use crate::{lexer::token::Token, range::Range};
+
+// #insight The implementation is based on https://doc.rust-lang.org/std/io/struct.Error.html
 
 // #TODO: Split comptime/runtime errors?
 
@@ -13,11 +15,10 @@ use crate::{lexer::token::Token, range::Ranged};
 // #TODO maybe use Ann instead of Ranged?
 // #TODO maybe use Expr for the errors?
 
-// #Insight
-// Eval always returns one error.
+// #Insight Eval always returns one error, actually no it can call read/parse/ that can return many errors!
 
 #[derive(Debug)]
-pub enum Error {
+pub enum ErrorKind {
     // Lexical errors
     UnexpectedEnd,
     MalformedInt(ParseIntError),
@@ -42,65 +43,79 @@ pub enum Error {
     Io(std::io::Error),
 }
 
-impl std::error::Error for Error {}
-
-impl fmt::Display for Error {
+impl fmt::Display for ErrorKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let err = match self {
-            Error::UnexpectedEnd => "unexpected end of input".to_owned(),
-            Error::MalformedInt(pie) => format!("malformed integer number: {pie}"),
-            Error::MalformedFloat(pie) => format!("malformed float number: {pie}"),
-            Error::UnterminatedString => "unterminated string".to_owned(),
-            Error::UnterminatedAnnotation => "unterminated annotation".to_owned(),
-            Error::InvalidQuote => "invalid quote".to_owned(),
-            Error::UnexpectedToken(token) => format!("unexpected `{token}`"),
-            Error::UnterminatedList => "unterminated list".to_owned(),
-            Error::MalformedAnnotation(ann) => format!("malformed annotation `{ann}`"),
-            Error::UndefinedSymbol(sym) => format!("`{sym}` is undefined"),
-            Error::UndefinedFunction(sym, signature) => {
+            ErrorKind::UnexpectedEnd => "unexpected end of input".to_owned(),
+            ErrorKind::MalformedInt(pie) => format!("malformed integer number: {pie}"),
+            ErrorKind::MalformedFloat(pie) => format!("malformed float number: {pie}"),
+            ErrorKind::UnterminatedString => "unterminated string".to_owned(),
+            ErrorKind::UnterminatedAnnotation => "unterminated annotation".to_owned(),
+            ErrorKind::InvalidQuote => "invalid quote".to_owned(),
+            ErrorKind::UnexpectedToken(token) => format!("unexpected `{token}`"),
+            ErrorKind::UnterminatedList => "unterminated list".to_owned(),
+            ErrorKind::MalformedAnnotation(ann) => format!("malformed annotation `{ann}`"),
+            ErrorKind::UndefinedSymbol(sym) => format!("`{sym}` is undefined"),
+            ErrorKind::UndefinedFunction(sym, signature) => {
                 format!("function `{sym}` with signature `{signature}` is undefined")
             }
-            Error::Io(io_err) => format!("i/o error: {io_err}"),
-            Error::FailedUse => "failed use".to_owned(),
-            Error::InvalidArguments(text) => text.to_owned(),
-            Error::NotInvocable(text) => text.to_owned(),
+            ErrorKind::Io(io_err) => format!("i/o error: {io_err}"),
+            ErrorKind::FailedUse => "failed use".to_owned(),
+            ErrorKind::InvalidArguments(text) => text.to_owned(),
+            ErrorKind::NotInvocable(text) => text.to_owned(),
         };
 
         write!(f, "{err}")
     }
 }
 
-impl From<std::io::Error> for Error {
-    fn from(value: std::io::Error) -> Self {
-        Error::Io(value)
-    }
+#[derive(Debug)]
+pub struct Error {
+    /// The kind of the error.
+    kind: ErrorKind,
+    /// The source text where the error occurred.
+    source: Option<String>,
+    /// The range of the error, within the source.
+    range: Option<Range>,
+    // notes: Option<String>,
+    // hint: Option<String>,
 }
 
-impl From<std::io::Error> for Ranged<Error> {
-    fn from(value: std::io::Error) -> Self {
-        Error::Io(value).into()
+impl std::error::Error for Error {}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // #TODO write more information!
+        write!(f, "{}", self.kind)
     }
 }
 
 impl Error {
-    pub fn invalid_arguments(text: impl Into<String>) -> Self {
-        Self::InvalidArguments(text.into())
+    pub fn new(kind: ErrorKind, source: Option<String>, range: Option<Range>) -> Self {
+        Self {
+            kind,
+            source,
+            range,
+        }
     }
 
-    pub fn not_invocable(text: impl Into<String>) -> Self {
-        Self::NotInvocable(text.into())
+    // #TODO add helper constructors.
+
+    pub fn kind(&self) -> &ErrorKind {
+        &self.kind
+    }
+
+    pub fn source(&self) -> &Option<String> {
+        &self.source
+    }
+
+    pub fn range(&self) -> &Option<Range> {
+        &self.range
     }
 }
 
-impl From<Error> for Ranged<Error> {
-    fn from(value: Error) -> Self {
-        // #TODO think about this.
-        Ranged(value, 0..0)
+impl From<std::io::Error> for Error {
+    fn from(value: std::io::Error) -> Self {
+        Error::new(ErrorKind::Io(value), None, None)
     }
 }
-
-// impl From<Ranged<Error>> for Vec<Ranged<Error>> {
-//     fn from(value: Ranged<Error>) -> Self {
-//         vec![value]
-//     }
-// }

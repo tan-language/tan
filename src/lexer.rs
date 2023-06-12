@@ -3,7 +3,7 @@ pub mod token;
 use std::str::Chars;
 
 use crate::{
-    error::Error,
+    error::{Error, ErrorKind},
     range::{Range, Ranged},
 };
 
@@ -62,7 +62,7 @@ pub struct Lexer<'a> {
     start: usize,
     index: usize,
     lookahead: Vec<char>,
-    errors: Vec<Ranged<Error>>,
+    errors: Vec<Error>,
 }
 
 impl<'a> Lexer<'a> {
@@ -108,8 +108,9 @@ impl<'a> Lexer<'a> {
         self.start..self.index
     }
 
-    fn push_error(&mut self, error: Error) {
-        self.errors.push(Ranged(error, self.range()));
+    fn push_error(&mut self, kind: ErrorKind) {
+        self.errors
+            .push(Error::new(kind, Some(self.input()), Some(self.range())));
     }
 
     // #TODO implement scanners with macro or a common function.
@@ -188,7 +189,7 @@ impl<'a> Lexer<'a> {
 
         loop {
             let Some(ch) = self.next_char() else {
-                self.push_error(Error::UnterminatedString);
+                self.push_error(ErrorKind::UnterminatedString);
                 return None;
             };
 
@@ -214,7 +215,7 @@ impl<'a> Lexer<'a> {
 
         loop {
             let Some(ch) = self.next_char() else {
-                self.push_error(Error::UnterminatedString);
+                self.push_error(ErrorKind::UnterminatedString);
                 return None;
             };
 
@@ -229,7 +230,7 @@ impl<'a> Lexer<'a> {
             } else if is_eol(ch) {
                 for _ in 0..indent {
                     let Some(ch1) = self.next_char() else {
-                        self.push_error(Error::UnterminatedString);
+                        self.push_error(ErrorKind::UnterminatedString);
                         return None;
                     };
 
@@ -280,7 +281,7 @@ impl<'a> Lexer<'a> {
         if nesting == 0 {
             Some(ann)
         } else {
-            self.push_error(Error::UnterminatedAnnotation);
+            self.push_error(ErrorKind::UnterminatedAnnotation);
             None
         }
     }
@@ -294,7 +295,7 @@ impl<'a> Lexer<'a> {
     }
 
     // #TODO consider passing into array of chars or something more general.
-    pub fn lex(&mut self) -> Result<Vec<Ranged<Token>>, Vec<Ranged<Error>>> {
+    pub fn lex(&mut self) -> Result<Vec<Ranged<Token>>, Vec<Error>> {
         let mut tokens: Vec<Ranged<Token>> = Vec::new();
 
         'outer: loop {
@@ -339,7 +340,7 @@ impl<'a> Lexer<'a> {
                 }
                 '"' => {
                     let Some(ch1) = self.next_char() else {
-                        self.push_error(Error::UnterminatedString);
+                        self.push_error(ErrorKind::UnterminatedString);
                         break 'outer;
                     };
 
@@ -352,7 +353,7 @@ impl<'a> Lexer<'a> {
 
                                 loop {
                                     let Some(ch3) = self.next_char() else {
-                                        self.push_error(Error::UnterminatedString);
+                                        self.push_error(ErrorKind::UnterminatedString);
                                         break 'outer;
                                     };
 
@@ -387,7 +388,7 @@ impl<'a> Lexer<'a> {
                 }
                 '-' => {
                     let Some(ch1) = self.next_char() else {
-                        self.push_error(Error::UnexpectedEnd);
+                        self.push_error(ErrorKind::UnexpectedEnd);
                         break 'outer;
                     };
 
