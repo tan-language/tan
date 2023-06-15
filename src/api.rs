@@ -29,7 +29,7 @@ pub fn has_tan_extension(path: impl AsRef<Path>) -> bool {
 }
 
 /// Lexes a Tan expression encoded as a text string.
-pub fn lex_string(input: impl AsRef<str>) -> Result<Vec<Ranged<Token>>, Vec<Ranged<Error>>> {
+pub fn lex_string(input: impl AsRef<str>) -> Result<Vec<Ranged<Token>>, Vec<Error>> {
     let input = input.as_ref();
     let mut lexer = Lexer::new(input);
     lexer.lex()
@@ -38,7 +38,7 @@ pub fn lex_string(input: impl AsRef<str>) -> Result<Vec<Ranged<Token>>, Vec<Rang
 // #TODO temp solution for compatibility.
 // #TODO remove this!
 /// Parses a Tan expression encoded as a text string, returns first expression.
-pub fn parse_string(input: impl AsRef<str>) -> Result<Ann<Expr>, Vec<Ranged<Error>>> {
+pub fn parse_string(input: impl AsRef<str>) -> Result<Ann<Expr>, Vec<Error>> {
     let input = input.as_ref();
 
     let mut lexer = Lexer::new(input);
@@ -54,7 +54,7 @@ pub fn parse_string(input: impl AsRef<str>) -> Result<Ann<Expr>, Vec<Ranged<Erro
 }
 
 /// Parses a Tan expression encoded as a text string, returns all expressions parsed.
-pub fn parse_string_all(input: impl AsRef<str>) -> Result<Vec<Ann<Expr>>, Vec<Ranged<Error>>> {
+pub fn parse_string_all(input: impl AsRef<str>) -> Result<Vec<Ann<Expr>>, Vec<Error>> {
     let input = input.as_ref();
 
     let mut lexer = Lexer::new(input);

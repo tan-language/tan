@@ -7,7 +7,14 @@ use crate::{lexer::token::Token, range::Range};
 
 // #insight The implementation is based on https://doc.rust-lang.org/std/io/struct.Error.html
 
-// #TODO: Split comptime/runtime errors?
+// #insight It's useful to have different note texts for the same ErrorKind.
+
+// #TODO UnexpectedEnd is similar to UnterminatedString/Annotation, could reuse the message?
+
+// #TODO keep the error formatting fragments in some reusable form.
+// #TODO examples of good errors: https://jvns.ca/blog/2022/12/02/a-couple-of-rust-error-messages/
+
+// #TODO Split comptime/runtime errors?
 
 // #TODO lexer, parser, resolver, etc should be able to return multiple errors
 // #TODO maybe just use _one_ Error?
@@ -16,6 +23,28 @@ use crate::{lexer::token::Token, range::Range};
 // #TODO maybe use Expr for the errors?
 
 // #Insight Eval always returns one error, actually no it can call read/parse/ that can return many errors!
+
+// Example of a good error:
+//
+// error[E0716]: temporary value dropped while borrowed
+//  --> src/main.rs:5:18
+//   |
+// 5 |     let scores = inputs().iter().map(|(a, b)| {
+//   |                  ^^^^^^^^ creates a temporary value which is freed while still in use
+// 6 |         a + b
+// 7 |     });
+//   |       - temporary value is freed at the end of this statement
+// 8 |     println!("{}", scores.sum::<i32>());
+//   |                    ------ borrow later used here
+//   |
+// help: consider using a `let` binding to create a longer lived value
+//   |
+// 5 ~     let binding = inputs();
+// 6 ~     let scores = binding.iter().map(|(a, b)| {
+//   |
+//
+// For more information about this error, try `rustc --explain E0716`.
+// error: could not compile `playground` (bin "playground") due to previous error
 
 #[derive(Debug)]
 pub enum ErrorKind {
@@ -69,15 +98,45 @@ impl fmt::Display for ErrorKind {
     }
 }
 
+impl ErrorKind {
+    // #insight
+    // We could use a derive macro to generate those, but being explicit is
+    // more readable.
+    pub fn code(&self) -> u32 {
+        // #TODO implement me!
+        0
+    }
+}
+
+// #TODO think of a better name.
+#[derive(Debug)]
+pub struct ErrorNote {
+    /// The text of the note
+    note: String,
+    /// The range of the error, within the source.
+    range: Option<Range>,
+}
+
+impl ErrorNote {
+    pub fn new(note: &str, range: Option<Range>) -> Self {
+        Self {
+            note: note.to_owned(),
+            range,
+        }
+    }
+}
+
+// #insight We keep the file url (instead of the module url) for more precise error reporting.
+
 #[derive(Debug)]
 pub struct Error {
     /// The kind of the error.
     kind: ErrorKind,
-    /// The source text where the error occurred.
-    source: Option<String>,
-    /// The range of the error, within the source.
-    range: Option<Range>,
-    // notes: Option<String>,
+    /// The source text where the error occurred. Typically this field is filled
+    /// at a second stage.
+    pub file_url: Option<String>,
+    pub notes: Vec<ErrorNote>,
+    // #TODO leave hints for a future revision.
     // hint: Option<String>,
 }
 
@@ -91,11 +150,11 @@ impl fmt::Display for Error {
 }
 
 impl Error {
-    pub fn new(kind: ErrorKind, source: Option<String>, range: Option<Range>) -> Self {
+    pub fn new(kind: ErrorKind) -> Self {
         Self {
             kind,
-            source,
-            range,
+            file_url: None,
+            notes: Vec::new(),
         }
     }
 
@@ -105,17 +164,25 @@ impl Error {
         &self.kind
     }
 
-    pub fn source(&self) -> &Option<String> {
-        &self.source
+    pub fn code(&self) -> u32 {
+        self.kind.code()
     }
 
-    pub fn range(&self) -> &Option<Range> {
-        &self.range
+    // pub fn file_url(&self) -> &String {
+    //     &self.file_url
+    // }
+
+    // pub fn notes(&self) -> &[ErrorNote] {
+    //     &self.notes
+    // }
+
+    pub fn push_note(&mut self, note: &str, range: Option<Range>) {
+        self.notes.push(ErrorNote::new(note, range));
     }
 }
 
-impl From<std::io::Error> for Error {
-    fn from(value: std::io::Error) -> Self {
-        Error::new(ErrorKind::Io(value), None, None)
-    }
-}
+// impl From<std::io::Error> for Error {
+//     fn from(value: std::io::Error) -> Self {
+//         Error::new(ErrorKind::Io(value), None, None)
+//     }
+// }

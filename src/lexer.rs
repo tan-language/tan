@@ -3,7 +3,7 @@ pub mod token;
 use std::str::Chars;
 
 use crate::{
-    error::{Error, ErrorKind},
+    error::{Error, ErrorKind, ErrorNote},
     range::{Range, Ranged},
 };
 
@@ -108,10 +108,10 @@ impl<'a> Lexer<'a> {
         self.start..self.index
     }
 
-    fn push_error(&mut self, kind: ErrorKind) {
-        self.errors
-            .push(Error::new(kind, Some(self.input()), Some(self.range())));
-    }
+    // fn push_error(&mut self, kind: ErrorKind) {
+    //     self.errors
+    //         .push(Error::new(kind, Some(self.input()), Some(self.range())));
+    // }
 
     // #TODO implement scanners with macro or a common function.
     // #TODO two functions scan_lexeme, scan_delimited.
@@ -189,7 +189,9 @@ impl<'a> Lexer<'a> {
 
         loop {
             let Some(ch) = self.next_char() else {
-                self.push_error(ErrorKind::UnterminatedString);
+                let mut error = Error::new(ErrorKind::UnterminatedString);
+                error.push_note("String is missing the closing `\"` character", Some(self.range())); // #TODO refine the text.
+                self.errors.push(error);
                 return None;
             };
 
@@ -215,7 +217,9 @@ impl<'a> Lexer<'a> {
 
         loop {
             let Some(ch) = self.next_char() else {
-                self.push_error(ErrorKind::UnterminatedString);
+                let mut error = Error::new(ErrorKind::UnterminatedString);
+                error.push_note("Text string is not closed", Some(self.range())); // #TODO refine the text.
+                self.errors.push(error);
                 return None;
             };
 
@@ -230,7 +234,9 @@ impl<'a> Lexer<'a> {
             } else if is_eol(ch) {
                 for _ in 0..indent {
                     let Some(ch1) = self.next_char() else {
-                        self.push_error(ErrorKind::UnterminatedString);
+                        let mut error = Error::new(ErrorKind::UnterminatedString);
+                        error.push_note("Text string is not closed", Some(self.range())); // #TODO refine the text.
+                        self.errors.push(error);
                         return None;
                     };
 
@@ -281,7 +287,10 @@ impl<'a> Lexer<'a> {
         if nesting == 0 {
             Some(ann)
         } else {
-            self.push_error(ErrorKind::UnterminatedAnnotation);
+            let mut error = Error::new(ErrorKind::UnterminatedAnnotation);
+            error.push_note("Annotation is not closed", Some(self.range())); // #TODO refine the text.
+            self.errors.push(error);
+
             None
         }
     }
@@ -340,7 +349,9 @@ impl<'a> Lexer<'a> {
                 }
                 '"' => {
                     let Some(ch1) = self.next_char() else {
-                        self.push_error(ErrorKind::UnterminatedString);
+                        let mut error = Error::new(ErrorKind::UnterminatedString);
+                        error.push_note("String is not closed", Some(self.range())); // #TODO refine the text.
+                        self.errors.push(error);
                         break 'outer;
                     };
 
@@ -353,7 +364,9 @@ impl<'a> Lexer<'a> {
 
                                 loop {
                                     let Some(ch3) = self.next_char() else {
-                                        self.push_error(ErrorKind::UnterminatedString);
+                                        let mut error = Error::new(ErrorKind::UnterminatedString);
+                                        error.push_note("Text string is not closed", Some(self.range())); // #TODO refine the text.
+                                        self.errors.push(error);
                                         break 'outer;
                                     };
 
@@ -388,7 +401,9 @@ impl<'a> Lexer<'a> {
                 }
                 '-' => {
                     let Some(ch1) = self.next_char() else {
-                        self.push_error(ErrorKind::UnexpectedEnd);
+                        let mut error = Error::new(ErrorKind::UnexpectedEnd);
+                        error.push_note("Text string is not closed", Some(self.range())); // #TODO refine the text.
+                        self.errors.push(error);
                         break 'outer;
                     };
 
@@ -467,9 +482,4 @@ impl<'a> Lexer<'a> {
             Err(errors)
         }
     }
-}
-
-#[cfg(test)]
-mod tests {
-    // #TODO!
 }
