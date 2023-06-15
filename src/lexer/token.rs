@@ -141,6 +141,14 @@ impl Token {
         }
     }
 
+    pub fn kind(&self) -> TokenKind {
+        self.kind
+    }
+
+    pub fn range(&self) -> Range {
+        self.range
+    }
+
     pub fn lexeme(&self) -> String {
         if let Some(lexeme) = self.lexeme {
             lexeme

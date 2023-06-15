@@ -2,7 +2,10 @@ use crate::{
     ann::Ann,
     error::Error,
     expr::Expr,
-    lexer::{token::Token, Lexer},
+    lexer::{
+        token::{Token, TokenKind},
+        Lexer,
+    },
     range::Range,
     util::Break,
 };
@@ -23,18 +26,18 @@ use crate::{
 /// The nodes of the AST are associated with annotations.
 pub struct Parser<I>
 where
-    I: IntoIterator<Item = Ranged<Token>>,
+    I: IntoIterator<Item = Token>,
 {
     tokens: I::IntoIter,
-    buffered_annotations: Option<Vec<Ranged<String>>>,
+    buffered_annotations: Option<Vec<Token>>,
     index: usize,
-    lookahead: Vec<Ranged<Token>>,
-    errors: Vec<Ranged<Error>>,
+    lookahead: Vec<Token>,
+    errors: Vec<Error>,
 }
 
 impl<I> Parser<I>
 where
-    I: IntoIterator<Item = Ranged<Token>>,
+    I: IntoIterator<Item = Token>,
 {
     pub fn new(tokens: I) -> Self {
         let tokens = tokens.into_iter();
@@ -50,22 +53,22 @@ where
 
     // #TODO unit test
     // #TODO refactor
-    fn next_token(&mut self) -> Option<Ranged<Token>> {
+    fn next_token(&mut self) -> Option<Token> {
         if let Some(token) = self.lookahead.pop() {
-            self.index = token.1.end;
+            self.index = token.range().end;
             return Some(token);
         }
 
         if let Some(token) = self.tokens.next() {
-            self.index = token.1.end;
+            self.index = token.range().end;
             Some(token)
         } else {
             None
         }
     }
 
-    fn put_back_token(&mut self, token: Ranged<Token>) {
-        self.index = token.1.start;
+    fn put_back_token(&mut self, token: Token) {
+        self.index = token.range().start;
         self.lookahead.push(token);
     }
 
@@ -156,50 +159,53 @@ where
             return Err(Break {});
         };
 
-        let Ranged(t, range) = token;
+        let range = token.range();
 
         let start = range.start;
 
-        let expr = match t {
-            Token::Comment(s) => {
+        let expr = match token.kind() {
+            TokenKind::Comment => {
                 // Preserve the comments as expressions, may be useful for analysis passes (e.g. formatting)
                 // Comments are elided statically, before the evaluation pass.
-                Some(Expr::Comment(s))
+                Some(Expr::Comment(token.lexeme()))
             }
-            Token::MultiLineWhitespace => {
+            TokenKind::MultiLineWhitespace => {
                 // Preserve for formatter, will be elided statically, before the
                 // evaluation pass.
                 Some(Expr::TextSeparator)
             }
             // Token::Char(c) => Some(Expr::Char(c)),
-            Token::String(s) => Some(Expr::String(s)),
-            Token::Symbol(s) => {
-                if s.starts_with(':') {
-                    let s = s.strip_prefix(':').unwrap();
-                    Some(Expr::KeySymbol(s.to_string()))
-                } else if s == "true" {
+            TokenKind::String => Some(Expr::String(token.lexeme())),
+            TokenKind::Symbol => {
+                let lexeme = token.lexeme();
+                if lexeme.starts_with(':') {
+                    let sym = lexeme.strip_prefix(':').unwrap().to_string();
+                    Some(Expr::KeySymbol(sym))
+                } else if lexeme == "true" {
                     // #TODO consider using (True) for true 'literal'.
                     // #TODO e.g. (let flag (True))
                     // #TODO Bool = True + False = True | False = ~False | False
                     Some(Expr::Bool(true))
-                } else if s == "false" {
+                } else if lexeme == "false" {
                     // #TODO consider using False for false 'literal'.
                     // #TODO consider having only true (and use something like nil for false)
                     // #TODO consider using nil for false and everything else for true
                     // #TODO consider using nothing/never for false and everything else for true.
                     Some(Expr::Bool(false))
                 } else {
-                    Some(Expr::Symbol(s))
+                    Some(Expr::Symbol(lexeme))
                 }
             }
-            Token::Number(mut s) => {
+            TokenKind::Number => {
                 // #TODO more detailed Number error!
                 // #TODO error handling not enough, we need to add context, check error_stack
 
-                if s.contains('.') {
+                let mut lexeme = token.lexeme();
+
+                if lexeme.contains('.') {
                     // #TODO support radix for non-integers?
                     // #TODO find a better name for 'non-integer'.
-                    match s.parse::<f64>().map_err(Error::MalformedFloat) {
+                    match lexeme.parse::<f64>().map_err(Error::MalformedFloat) {
                         Ok(n) => Some(Expr::Float(n)),
                         Err(error) => {
                             self.push_error(error, &range);
@@ -210,19 +216,19 @@ where
                     // #TODO support arbitrary radix https://github.com/golang/go/issues/28256
                     let mut radix = 10;
 
-                    if s.starts_with("0x") {
-                        s = s.replace("0x", "");
+                    if lexeme.starts_with("0x") {
+                        lexeme = lexeme.replace("0x", "");
                         radix = 16
-                    } else if s.starts_with("0b") {
-                        s = s.replace("0b", "");
+                    } else if lexeme.starts_with("0b") {
+                        lexeme = lexeme.replace("0b", "");
                         radix = 2
-                    } else if s.starts_with("0o") {
+                    } else if lexeme.starts_with("0o") {
                         // #Insight Octal literals are supported for historical reasons.
-                        s = s.replace("0o", "");
+                        lexeme = lexeme.replace("0o", "");
                         radix = 8
                     }
 
-                    match i64::from_str_radix(&s, radix).map_err(Error::MalformedInt) {
+                    match i64::from_str_radix(&lexeme, radix).map_err(Error::MalformedInt) {
                         Ok(n) => Some(Expr::Int(n)),
                         Err(error) => {
                             self.push_error(error, &range);
@@ -245,7 +251,7 @@ where
 
                 None
             }
-            Token::Quote => {
+            TokenKind::Quote => {
                 // #Insight we should allow consecutive quotes, emit a linter warning instead!
 
                 let Ok(quot_expr) = self.parse_expr() else {
@@ -266,8 +272,8 @@ where
 
                 Some(Expr::List(vec![Expr::symbol("quot").into(), target]))
             }
-            Token::LeftParen => {
-                let terms = self.parse_many(Token::RightParen, start)?;
+            TokenKind::LeftParen => {
+                let terms = self.parse_many(TokenKind::RightParen, start)?;
 
                 if terms.is_empty() {
                     // #TODO do we _really_ want this or just return a list?
@@ -300,14 +306,14 @@ where
                     // }
                 }
             }
-            Token::LeftBracket => {
+            TokenKind::LeftBracket => {
                 // Syntactic sugar for a List/Array.
 
                 // #Insight
                 // Don't optimize to `Expr::Array` here, leave the parser expr
                 // 'normalized as it is beneficial for some kinds of analysis.
 
-                let exprs = self.parse_many(Token::RightBracket, start)?;
+                let exprs = self.parse_many(TokenKind::RightBracket, start)?;
 
                 let mut items = vec![Ann::with_range(Expr::symbol("Array"), range)];
 
@@ -321,7 +327,7 @@ where
 
                 Some(Expr::List(items))
             }
-            Token::LeftBrace => {
+            TokenKind::LeftBrace => {
                 // Syntactic sugar for a Dict.
 
                 // #Insight
@@ -331,7 +337,7 @@ where
                 // #TODO add error checking!
                 // #TODO optimize.
 
-                let exprs = self.parse_many(Token::RightBrace, start)?;
+                let exprs = self.parse_many(TokenKind::RightBrace, start)?;
 
                 let mut items = vec![Ann::with_range(Expr::symbol("Dict"), range)];
 
@@ -341,7 +347,7 @@ where
 
                 Some(Expr::List(items))
             }
-            Token::RightParen | Token::RightBracket | Token::RightBrace => {
+            TokenKind::RightParen | TokenKind::RightBracket | TokenKind::RightBrace => {
                 // #TODO custom error for this?
                 self.push_error(Error::UnexpectedToken(t), &range);
                 // Parsing can continue.
@@ -359,7 +365,11 @@ where
     }
 
     // #TODO rename to `parse_until`?
-    pub fn parse_many(&mut self, delimiter: Token, start: usize) -> Result<Vec<Ann<Expr>>, Break> {
+    pub fn parse_many(
+        &mut self,
+        delimiter: TokenKind,
+        start: usize,
+    ) -> Result<Vec<Ann<Expr>>, Break> {
         let mut exprs = Vec::new();
 
         loop {
@@ -391,7 +401,7 @@ where
 
     /// Parses the input tokens into expressions.
     /// The parser tries to return as many errors as possible.
-    pub fn parse(&mut self) -> Result<Vec<Ann<Expr>>, Vec<Ranged<Error>>> {
+    pub fn parse(&mut self) -> Result<Vec<Ann<Expr>>, Vec<Error>> {
         let mut exprs = Vec::new();
 
         loop {
