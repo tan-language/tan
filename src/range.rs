@@ -15,31 +15,31 @@ pub type Range = std::ops::Range<usize>;
 
 // #Insight Ranged works better as a tuple, it simplifies the code at use site.
 
-#[derive(Debug, Clone)]
-pub struct Ranged<T>(pub T, pub Range);
+// #[derive(Debug, Clone)]
+// pub struct Ranged<T>(pub T, pub Range);
 
-// #TODO is this good? it hides the wrapped data.
-impl<T> fmt::Display for Ranged<T>
-where
-    T: fmt::Display,
-{
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
+// // #TODO is this good? it hides the wrapped data.
+// impl<T> fmt::Display for Ranged<T>
+// where
+//     T: fmt::Display,
+// {
+//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//         self.0.fmt(f)
+//     }
+// }
 
-impl<T> Ranged<T> {
-    pub fn new(value: T) -> Self {
-        // #TODO ultra-hack
-        Ranged(value, 0..0)
-    }
-}
+// impl<T> Ranged<T> {
+//     pub fn new(value: T) -> Self {
+//         // #TODO ultra-hack
+//         Ranged(value, 0..0)
+//     }
+// }
 
-impl<T> AsRef<T> for Ranged<T> {
-    fn as_ref(&self) -> &T {
-        &self.0
-    }
-}
+// impl<T> AsRef<T> for Ranged<T> {
+//     fn as_ref(&self) -> &T {
+//         &self.0
+//     }
+// }
 
 /// A position within a text document.
 pub struct Position {

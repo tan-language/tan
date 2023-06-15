@@ -36,11 +36,11 @@ pub enum TokenKind {
     RightBrace,
     Quote,
     // Char(char),
-    String,
-    Symbol,
-    Number,
-    Annotation,
-    Comment,
+    String(String),
+    Symbol(String),
+    Number(String),
+    Annotation(String),
+    Comment(String),
     /// MultiLineWhitespace tokens are leveraged by the formatter to maintain
     /// 'paragraphs' of text.
     MultiLineWhitespace, // #TODO use something more general, like `Pragma`.
@@ -50,49 +50,38 @@ impl fmt::Display for TokenKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // #TODO optimize this!
         // #TODO reconsider how tokens are displayed.
-        f.write_str(
-            (match self {
-                TokenKind::LeftParen => "(",
-                TokenKind::RightParen => ")",
-                TokenKind::LeftBracket => "[",
-                TokenKind::RightBracket => "]",
-                TokenKind::LeftBrace => "{",
-                TokenKind::RightBrace => "}",
-                TokenKind::Quote => "'",
-                TokenKind::String => "String",
-                TokenKind::Symbol => "Symbol",
-                TokenKind::Number => "Number",
-                TokenKind::Annotation => "Annotation",
-                TokenKind::Comment => "Comment",
-                TokenKind::MultiLineWhitespace => "MultiLineWhitespace", // #TODO what should we do here? #Idea convert to comment?
-            }),
-        )
+        f.write_str(match self {
+            TokenKind::LeftParen => "(",
+            TokenKind::RightParen => ")",
+            TokenKind::LeftBracket => "[",
+            TokenKind::RightBracket => "]",
+            TokenKind::LeftBrace => "{",
+            TokenKind::RightBrace => "}",
+            TokenKind::Quote => "'",
+            TokenKind::String(lexeme) => format!("String({lexeme})").as_str(),
+            TokenKind::Symbol(lexeme) => format!("Symbol({lexeme})").as_str(),
+            TokenKind::Number(lexeme) => format!("Number({lexeme})").as_str(),
+            TokenKind::Annotation(lexeme) => format!("Annotation({lexeme})").as_str(),
+            TokenKind::Comment(lexeme) => format!("Comment({lexeme})").as_str(),
+            TokenKind::MultiLineWhitespace => "MultiLineWhitespace", // #TODO what should we do here? #Idea convert to comment?
+        })
     }
 }
 
 #[derive(Debug)]
 pub struct Token {
     kind: TokenKind,
-    lexeme: Option<String>, // #TODO hmm...
     range: Range,
 }
 
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if let Some(lexeme) = self.lexeme {
-            write!(f, "{lexeme}")
-        } else {
-            write!(f, "{}", self.kind)
-        }
+        write!(f, "{}", self.kind)
     }
 }
 
 impl Token {
-    pub fn new(kind: TokenKind, lexeme: Option<String>, range: Range) -> Self {
-        Self {
-            kind,
-            lexeme,
-            range,
-        }
+    pub fn new(kind: TokenKind, range: Range) -> Self {
+        Self { kind, range }
     }
 }

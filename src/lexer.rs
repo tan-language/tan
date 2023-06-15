@@ -311,24 +311,24 @@ impl<'a> Lexer<'a> {
 
             match ch {
                 '(' => {
-                    tokens.push(Token::new(TokenKind::LeftParen, None, self.range()));
+                    tokens.push(Token::new(TokenKind::LeftParen, self.range()));
                 }
                 ')' => {
-                    tokens.push(Token::new(TokenKind::RightParen, None, self.range()));
+                    tokens.push(Token::new(TokenKind::RightParen, self.range()));
                 }
                 // #TODO maybe should just rewrite [..] -> (Array ..)
                 '[' => {
-                    tokens.push(Token::new(TokenKind::LeftBracket, None, self.range()));
+                    tokens.push(Token::new(TokenKind::LeftBracket, self.range()));
                 }
                 ']' => {
-                    tokens.push(Token::new(TokenKind::RightBracket, None, self.range()));
+                    tokens.push(Token::new(TokenKind::RightBracket, self.range()));
                 }
                 // #TODO maybe should just rewrite {..} -> (Dict ..)
                 '{' => {
-                    tokens.push(Token::new(TokenKind::LeftBrace, None, self.range()));
+                    tokens.push(Token::new(TokenKind::LeftBrace, self.range()));
                 }
                 '}' => {
-                    tokens.push(Token::new(TokenKind::RightBrace, None, self.range()));
+                    tokens.push(Token::new(TokenKind::RightBrace, self.range()));
                 }
                 ';' => {
                     // #Insight
@@ -336,11 +336,11 @@ impl<'a> Lexer<'a> {
                     // The `--` line comments don't play well with the use of `-`
                     // as word separator in names.
                     self.put_back_char(ch);
-                    let line = self.scan_line();
-                    tokens.push(Token::new(TokenKind::Comment, Some(line), self.range()));
+                    let lexeme = self.scan_line();
+                    tokens.push(Token::new(TokenKind::Comment(lexeme), self.range()));
                 }
                 '\'' => {
-                    tokens.push(Token::new(TokenKind::Quote, None, self.range()));
+                    tokens.push(Token::new(TokenKind::Quote, self.range()));
                 }
                 '"' => {
                     let Some(ch1) = self.next_char() else {
@@ -376,14 +376,10 @@ impl<'a> Lexer<'a> {
                                     }
                                 }
 
-                                let Some(string) = self.scan_text(indent) else {
+                                let Some(lexeme) = self.scan_text(indent) else {
                                     break;
                                 };
-                                tokens.push(Token::new(
-                                    TokenKind::String,
-                                    Some(string),
-                                    self.range(),
-                                ));
+                                tokens.push(Token::new(TokenKind::String(lexeme), self.range()));
 
                                 continue;
                             }
@@ -393,10 +389,10 @@ impl<'a> Lexer<'a> {
 
                     self.put_back_char(ch1);
 
-                    let Some(string) = self.scan_string() else {
+                    let Some(lexeme) = self.scan_string() else {
                         break;
                     };
-                    tokens.push(Token::new(TokenKind::String, Some(string), self.range()));
+                    tokens.push(Token::new(TokenKind::String(lexeme), self.range()));
                 }
                 '-' => {
                     let Some(ch1) = self.next_char() else {
@@ -418,19 +414,13 @@ impl<'a> Lexer<'a> {
                     // } else
                     if ch1.is_numeric() {
                         // Negative number
-                        tokens.push(Token::new(
-                            TokenKind::Number,
-                            Some(self.scan_number()),
-                            self.range(),
-                        ));
+                        let lexeme = self.scan_number();
+                        tokens.push(Token::new(TokenKind::Number(lexeme), self.range()));
                     } else {
                         // #TODO lint warning for this!
                         // Symbol starting with `-`.
-                        tokens.push(Token::new(
-                            TokenKind::Symbol,
-                            Some(self.scan_lexeme()),
-                            self.range(),
-                        ));
+                        let lexeme = self.scan_lexeme();
+                        tokens.push(Token::new(TokenKind::Symbol(lexeme), self.range()));
                     }
                 }
                 '#' => {
@@ -449,7 +439,7 @@ impl<'a> Lexer<'a> {
                     let Some(ann) = self.scan_annotation() else {
                         break 'outer;
                     };
-                    tokens.push(Token::new(TokenKind::Annotation, Some(ann), self.range()));
+                    tokens.push(Token::new(TokenKind::Annotation(ann), self.range()));
                 }
                 _ if is_whitespace(ch) => {
                     // Consume whitespace
@@ -460,30 +450,18 @@ impl<'a> Lexer<'a> {
                     let lines_count = self.scan_whitespace();
 
                     if lines_count > 1 {
-                        tokens.push(Token::new(
-                            TokenKind::MultiLineWhitespace,
-                            None,
-                            self.range(),
-                        ));
+                        tokens.push(Token::new(TokenKind::MultiLineWhitespace, self.range()));
                     }
                 }
                 _ if ch.is_numeric() => {
                     self.put_back_char(ch);
-
-                    tokens.push(Token::new(
-                        TokenKind::Number,
-                        Some(self.scan_number()),
-                        self.range(),
-                    ));
+                    let lexeme = self.scan_number();
+                    tokens.push(Token::new(TokenKind::Number(lexeme), self.range()));
                 }
                 _ => {
                     self.put_back_char(ch);
-
-                    tokens.push(Token::new(
-                        TokenKind::Symbol,
-                        Some(self.scan_lexeme()),
-                        self.range(),
-                    ));
+                    let lexeme = self.scan_lexeme();
+                    tokens.push(Token::new(TokenKind::Symbol(lexeme), self.range()));
                 }
             }
         }
