@@ -69,10 +69,7 @@ pub fn parse_string_all(input: impl AsRef<str>) -> Result<Vec<Ann<Expr>>, Vec<Er
 // #TODO what is a good name?
 /// Reads and resolves a Tan expression encoded as a text string.
 /// Updates the environment with definitions.
-pub fn resolve_string(
-    input: impl AsRef<str>,
-    env: &mut Env,
-) -> Result<Vec<Ann<Expr>>, Vec<Ranged<Error>>> {
+pub fn resolve_string(input: impl AsRef<str>, env: &mut Env) -> Result<Vec<Ann<Expr>>, Vec<Error>> {
     let exprs = parse_string_all(input)?;
 
     // // Nice debugging tool!
@@ -120,7 +117,7 @@ pub fn resolve_string(
 
 // #TODO this implements in essence a do block. Maybe no value should be returned?
 /// Evaluates a Tan expression encoded as a text string.
-pub fn eval_string(input: impl AsRef<str>, env: &mut Env) -> Result<Ann<Expr>, Vec<Ranged<Error>>> {
+pub fn eval_string(input: impl AsRef<str>, env: &mut Env) -> Result<Ann<Expr>, Vec<Error>> {
     let exprs = resolve_string(input, env)?;
 
     let mut last_value = Expr::One.into();

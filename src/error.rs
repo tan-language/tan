@@ -108,6 +108,8 @@ impl ErrorKind {
     }
 }
 
+// #TODO add ErrorNoteKind?
+// #TODO consider using Ranged<String> instead?
 // #TODO think of a better name.
 #[derive(Debug)]
 pub struct ErrorNote {

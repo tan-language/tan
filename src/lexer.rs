@@ -3,11 +3,11 @@ pub mod token;
 use std::str::Chars;
 
 use crate::{
-    error::{Error, ErrorKind, ErrorNote},
-    range::{Range, Ranged},
+    error::{Error, ErrorKind},
+    range::Range,
 };
 
-use self::token::Token;
+use self::token::{Token, TokenKind};
 
 // https://en.wikipedia.org/wiki/Lexical_analysis
 
@@ -107,11 +107,6 @@ impl<'a> Lexer<'a> {
     fn range(&self) -> Range {
         self.start..self.index
     }
-
-    // fn push_error(&mut self, kind: ErrorKind) {
-    //     self.errors
-    //         .push(Error::new(kind, Some(self.input()), Some(self.range())));
-    // }
 
     // #TODO implement scanners with macro or a common function.
     // #TODO two functions scan_lexeme, scan_delimited.
@@ -304,8 +299,8 @@ impl<'a> Lexer<'a> {
     }
 
     // #TODO consider passing into array of chars or something more general.
-    pub fn lex(&mut self) -> Result<Vec<Ranged<Token>>, Vec<Error>> {
-        let mut tokens: Vec<Ranged<Token>> = Vec::new();
+    pub fn lex(&mut self) -> Result<Vec<Token>, Vec<Error>> {
+        let mut tokens: Vec<Token> = Vec::new();
 
         'outer: loop {
             self.start = self.index;
@@ -316,24 +311,24 @@ impl<'a> Lexer<'a> {
 
             match ch {
                 '(' => {
-                    tokens.push(Ranged(Token::LeftParen, self.range()));
+                    tokens.push(Token::new(TokenKind::LeftParen, None, self.range()));
                 }
                 ')' => {
-                    tokens.push(Ranged(Token::RightParen, self.range()));
+                    tokens.push(Token::new(TokenKind::RightParen, None, self.range()));
                 }
                 // #TODO maybe should just rewrite [..] -> (Array ..)
                 '[' => {
-                    tokens.push(Ranged(Token::LeftBracket, self.range()));
+                    tokens.push(Token::new(TokenKind::LeftBracket, None, self.range()));
                 }
                 ']' => {
-                    tokens.push(Ranged(Token::RightBracket, self.range()));
+                    tokens.push(Token::new(TokenKind::RightBracket, None, self.range()));
                 }
                 // #TODO maybe should just rewrite {..} -> (Dict ..)
                 '{' => {
-                    tokens.push(Ranged(Token::LeftBrace, self.range()));
+                    tokens.push(Token::new(TokenKind::LeftBrace, None, self.range()));
                 }
                 '}' => {
-                    tokens.push(Ranged(Token::RightBrace, self.range()));
+                    tokens.push(Token::new(TokenKind::RightBrace, None, self.range()));
                 }
                 ';' => {
                     // #Insight
@@ -342,10 +337,10 @@ impl<'a> Lexer<'a> {
                     // as word separator in names.
                     self.put_back_char(ch);
                     let line = self.scan_line();
-                    tokens.push(Ranged(Token::Comment(line), self.range()));
+                    tokens.push(Token::new(TokenKind::Comment, Some(line), self.range()));
                 }
                 '\'' => {
-                    tokens.push(Ranged(Token::Quote, self.range()));
+                    tokens.push(Token::new(TokenKind::Quote, None, self.range()));
                 }
                 '"' => {
                     let Some(ch1) = self.next_char() else {
@@ -384,7 +379,11 @@ impl<'a> Lexer<'a> {
                                 let Some(string) = self.scan_text(indent) else {
                                     break;
                                 };
-                                tokens.push(Ranged(Token::String(string), self.range()));
+                                tokens.push(Token::new(
+                                    TokenKind::String,
+                                    Some(string),
+                                    self.range(),
+                                ));
 
                                 continue;
                             }
@@ -397,7 +396,7 @@ impl<'a> Lexer<'a> {
                     let Some(string) = self.scan_string() else {
                         break;
                     };
-                    tokens.push(Ranged(Token::String(string), self.range()));
+                    tokens.push(Token::new(TokenKind::String, Some(string), self.range()));
                 }
                 '-' => {
                     let Some(ch1) = self.next_char() else {
@@ -419,14 +418,19 @@ impl<'a> Lexer<'a> {
                     // } else
                     if ch1.is_numeric() {
                         // Negative number
-                        let token = Token::Number(self.scan_number());
-                        tokens.push(Ranged(token, self.range()));
+                        tokens.push(Token::new(
+                            TokenKind::Number,
+                            Some(self.scan_number()),
+                            self.range(),
+                        ));
                     } else {
                         // #TODO lint warning for this!
                         // Symbol starting with `-`.
-
-                        let sym = self.scan_lexeme();
-                        tokens.push(Ranged(Token::Symbol(sym), self.range()));
+                        tokens.push(Token::new(
+                            TokenKind::Symbol,
+                            Some(self.scan_lexeme()),
+                            self.range(),
+                        ));
                     }
                 }
                 '#' => {
@@ -445,7 +449,7 @@ impl<'a> Lexer<'a> {
                     let Some(ann) = self.scan_annotation() else {
                         break 'outer;
                     };
-                    tokens.push(Ranged(Token::Annotation(ann), self.range()));
+                    tokens.push(Token::new(TokenKind::Annotation, Some(ann), self.range()));
                 }
                 _ if is_whitespace(ch) => {
                     // Consume whitespace
@@ -456,20 +460,30 @@ impl<'a> Lexer<'a> {
                     let lines_count = self.scan_whitespace();
 
                     if lines_count > 1 {
-                        tokens.push(Ranged(Token::MultiLineWhitespace, self.range()));
+                        tokens.push(Token::new(
+                            TokenKind::MultiLineWhitespace,
+                            None,
+                            self.range(),
+                        ));
                     }
                 }
                 _ if ch.is_numeric() => {
                     self.put_back_char(ch);
 
-                    let token = Token::Number(self.scan_number());
-                    tokens.push(Ranged(token, self.range()));
+                    tokens.push(Token::new(
+                        TokenKind::Number,
+                        Some(self.scan_number()),
+                        self.range(),
+                    ));
                 }
                 _ => {
                     self.put_back_char(ch);
 
-                    let sym = self.scan_lexeme();
-                    tokens.push(Ranged(Token::Symbol(sym), self.range()));
+                    tokens.push(Token::new(
+                        TokenKind::Symbol,
+                        Some(self.scan_lexeme()),
+                        self.range(),
+                    ));
                 }
             }
         }

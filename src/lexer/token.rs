@@ -1,29 +1,33 @@
 use std::fmt;
 
-// #Insight
+use crate::range::Range;
+
+// #insight
 // There is no need for an EOF Token. The end of the Token list marks the end
 // of the input.
 
-// #Insight
+// #insight
 // It's not worth it to have token variants for reserved words.
 // The is a benefit, to differentiate reserved words from other symbols, but
 // we will do it in another way.
 
-// #Insight
+// #insight
 // Reserved _word_ is a bad name because it can be more than one word.
 
-// #Insight
+// #insight
 // A general Number token is used, classification is postponed to a later stage.
 
-// #Insight
+// #insight
 // Tan intentionally doesn't provide a Char literal, as chars are not used that
 // often to deserve a dedicated sigil.
 
 // #TODO support #quot annotation?
 
+// #TODO do we ever need a non-ranged Token? should consider Token/TokenKind arrangement?
+
 /// A lexical Token gives semantic meaning to a Lexeme.
 #[derive(Debug, Clone, PartialEq)]
-pub enum Token {
+pub enum TokenKind {
     LeftParen,
     RightParen,
     LeftBracket,
@@ -32,38 +36,63 @@ pub enum Token {
     RightBrace,
     Quote,
     // Char(char),
-    String(String),
-    Symbol(String),
-    Number(String),
-    Annotation(String),
-    Comment(String),
+    String,
+    Symbol,
+    Number,
+    Annotation,
+    Comment,
     /// MultiLineWhitespace tokens are leveraged by the formatter to maintain
     /// 'paragraphs' of text.
     MultiLineWhitespace, // #TODO use something more general, like `Pragma`.
 }
 
-impl fmt::Display for Token {
+impl fmt::Display for TokenKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // #TODO optimize this!
         // #TODO reconsider how tokens are displayed.
         f.write_str(
             (match self {
-                Token::LeftParen => "(".to_owned(),
-                Token::RightParen => ")".to_owned(),
-                Token::LeftBracket => "[".to_owned(),
-                Token::RightBracket => "]".to_owned(),
-                Token::LeftBrace => "{".to_owned(),
-                Token::RightBrace => "}".to_owned(),
-                Token::Quote => "'".to_owned(),
-                // Token::Char(c) => c.to_string(), // #TODO should show the delimiters?
-                Token::String(s) => s.clone(), // #TODO should show the delimiters?
-                Token::Symbol(s) => s.clone(),
-                Token::Number(s) => s.clone(),
-                Token::Annotation(s) => s.clone(),
-                Token::Comment(s) => s.clone(),
-                Token::MultiLineWhitespace => "$".to_owned(), // #TODO what should we do here? #Idea convert to comment?
-            })
-            .as_str(),
+                TokenKind::LeftParen => "(",
+                TokenKind::RightParen => ")",
+                TokenKind::LeftBracket => "[",
+                TokenKind::RightBracket => "]",
+                TokenKind::LeftBrace => "{",
+                TokenKind::RightBrace => "}",
+                TokenKind::Quote => "'",
+                TokenKind::String => "String",
+                TokenKind::Symbol => "Symbol",
+                TokenKind::Number => "Number",
+                TokenKind::Annotation => "Annotation",
+                TokenKind::Comment => "Comment",
+                TokenKind::MultiLineWhitespace => "MultiLineWhitespace", // #TODO what should we do here? #Idea convert to comment?
+            }),
         )
+    }
+}
+
+#[derive(Debug)]
+pub struct Token {
+    kind: TokenKind,
+    lexeme: Option<String>, // #TODO hmm...
+    range: Range,
+}
+
+impl fmt::Display for Token {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if let Some(lexeme) = self.lexeme {
+            write!(f, "{lexeme}")
+        } else {
+            write!(f, "{}", self.kind)
+        }
+    }
+}
+
+impl Token {
+    pub fn new(kind: TokenKind, lexeme: Option<String>, range: Range) -> Self {
+        Self {
+            kind,
+            lexeme,
+            range,
+        }
     }
 }

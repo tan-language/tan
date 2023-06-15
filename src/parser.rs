@@ -3,7 +3,7 @@ use crate::{
     error::Error,
     expr::Expr,
     lexer::{token::Token, Lexer},
-    range::{Range, Ranged},
+    range::Range,
     util::Break,
 };
 
