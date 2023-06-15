@@ -21,6 +21,9 @@ use crate::range::Range;
 // Tan intentionally doesn't provide a Char literal, as chars are not used that
 // often to deserve a dedicated sigil.
 
+// #insight
+// No need to associate the kind with the lexeme.
+
 // #TODO support #quot annotation?
 
 // #TODO do we ever need a non-ranged Token? should consider Token/TokenKind arrangement?
@@ -35,15 +38,15 @@ pub enum TokenKind {
     LeftBrace,
     RightBrace,
     Quote,
-    // Char(char),
-    String(String),
-    Symbol(String),
-    Number(String),
-    Annotation(String),
-    Comment(String),
     /// MultiLineWhitespace tokens are leveraged by the formatter to maintain
     /// 'paragraphs' of text.
     MultiLineWhitespace, // #TODO use something more general, like `Pragma`.
+    // Char(char),
+    String,
+    Symbol,
+    Number,
+    Annotation,
+    Comment,
 }
 
 impl fmt::Display for TokenKind {
@@ -58,11 +61,11 @@ impl fmt::Display for TokenKind {
             TokenKind::LeftBrace => "{",
             TokenKind::RightBrace => "}",
             TokenKind::Quote => "'",
-            TokenKind::String(lexeme) => format!("String({lexeme})").as_str(),
-            TokenKind::Symbol(lexeme) => format!("Symbol({lexeme})").as_str(),
-            TokenKind::Number(lexeme) => format!("Number({lexeme})").as_str(),
-            TokenKind::Annotation(lexeme) => format!("Annotation({lexeme})").as_str(),
-            TokenKind::Comment(lexeme) => format!("Comment({lexeme})").as_str(),
+            TokenKind::String => format!("String").as_str(),
+            TokenKind::Symbol => format!("Symbol").as_str(),
+            TokenKind::Number => format!("Number").as_str(),
+            TokenKind::Annotation => format!("Annotation").as_str(),
+            TokenKind::Comment => format!("Comment").as_str(),
             TokenKind::MultiLineWhitespace => "MultiLineWhitespace", // #TODO what should we do here? #Idea convert to comment?
         })
     }
@@ -72,6 +75,7 @@ impl fmt::Display for TokenKind {
 pub struct Token {
     kind: TokenKind,
     range: Range,
+    lexeme: Option<String>,
 }
 
 impl fmt::Display for Token {
@@ -81,7 +85,67 @@ impl fmt::Display for Token {
 }
 
 impl Token {
-    pub fn new(kind: TokenKind, range: Range) -> Self {
-        Self { kind, range }
+    pub fn new(kind: TokenKind, range: Range, lexeme: Option<String>) -> Self {
+        Self {
+            kind,
+            range,
+            lexeme,
+        }
+    }
+
+    pub fn from_kind(kind: TokenKind, range: Range) -> Self {
+        Self {
+            kind,
+            range,
+            lexeme: None,
+        }
+    }
+
+    pub fn string(lexeme: String, range: Range) -> Self {
+        Self {
+            kind: TokenKind::String,
+            range,
+            lexeme: Some(lexeme),
+        }
+    }
+
+    pub fn symbol(lexeme: String, range: Range) -> Self {
+        Self {
+            kind: TokenKind::Symbol,
+            range,
+            lexeme: Some(lexeme),
+        }
+    }
+
+    pub fn number(lexeme: String, range: Range) -> Self {
+        Self {
+            kind: TokenKind::Number,
+            range,
+            lexeme: Some(lexeme),
+        }
+    }
+
+    pub fn annotation(lexeme: String, range: Range) -> Self {
+        Self {
+            kind: TokenKind::Annotation,
+            range,
+            lexeme: Some(lexeme),
+        }
+    }
+
+    pub fn comment(lexeme: String, range: Range) -> Self {
+        Self {
+            kind: TokenKind::Comment,
+            range,
+            lexeme: Some(lexeme),
+        }
+    }
+
+    pub fn lexeme(&self) -> String {
+        if let Some(lexeme) = self.lexeme {
+            lexeme
+        } else {
+            self.kind.to_string()
+        }
     }
 }
