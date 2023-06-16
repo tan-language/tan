@@ -50,16 +50,16 @@ use crate::{lexer::token::Token, range::Range};
 pub enum ErrorKind {
     // Lexical errors
     UnexpectedEnd,
-    MalformedInt(ParseIntError),
-    MalformedFloat(ParseFloatError),
+    MalformedInt,
+    MalformedFloat,
     UnterminatedString,
     UnterminatedAnnotation,
 
     // Syntactic (parse) errors
     InvalidQuote,
-    UnexpectedToken(Token),
+    UnexpectedToken,
     UnterminatedList,
-    MalformedAnnotation(String),
+    MalformedAnnotation,
 
     // Semantic errors
     UndefinedSymbol(String), // #TODO maybe pass the whole Symbol expression?
@@ -76,14 +76,14 @@ impl fmt::Display for ErrorKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let err = match self {
             ErrorKind::UnexpectedEnd => "unexpected end of input".to_owned(),
-            ErrorKind::MalformedInt(pie) => format!("malformed integer number: {pie}"),
-            ErrorKind::MalformedFloat(pie) => format!("malformed float number: {pie}"),
+            ErrorKind::MalformedInt => "malformed integer number".to_owned(),
+            ErrorKind::MalformedFloat => "malformed float number".to_owned(),
             ErrorKind::UnterminatedString => "unterminated string".to_owned(),
             ErrorKind::UnterminatedAnnotation => "unterminated annotation".to_owned(),
             ErrorKind::InvalidQuote => "invalid quote".to_owned(),
-            ErrorKind::UnexpectedToken(token) => format!("unexpected `{token}`"),
+            ErrorKind::UnexpectedToken => format!("unexpected token"),
             ErrorKind::UnterminatedList => "unterminated list".to_owned(),
-            ErrorKind::MalformedAnnotation(ann) => format!("malformed annotation `{ann}`"),
+            ErrorKind::MalformedAnnotation => "malformed annotation".to_owned(),
             ErrorKind::UndefinedSymbol(sym) => format!("`{sym}` is undefined"),
             ErrorKind::UndefinedFunction(sym, signature) => {
                 format!("function `{sym}` with signature `{signature}` is undefined")

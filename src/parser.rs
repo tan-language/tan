@@ -1,6 +1,6 @@
 use crate::{
     ann::Ann,
-    error::Error,
+    error::{Error, ErrorKind},
     expr::Expr,
     lexer::{
         token::{Token, TokenKind},
@@ -72,27 +72,29 @@ where
         self.lookahead.push(token);
     }
 
-    fn push_error(&mut self, error: Error, range: &Range) {
-        self.errors.push(Ranged(error, range.clone()));
-    }
+    // fn push_error(&mut self, error: Error, range: &Range) {
+    //     self.errors.push(Ranged(error, range.clone()));
+    // }
 
     /// Wrap the `expr` with the buffered (prefix) annotations. The annotations
     /// are parsed into an Expr representation. Also attaches the range of the
     /// expression as an annotation.
-    fn attach_annotations(&mut self, expr: Expr, range: Range) -> Ann<Expr> {
+    fn attach_buffered_annotations(&mut self, expr: Expr, range: Range) -> Ann<Expr> {
         // Annotate the expression with the range, by default.
         let mut expr = Ann::with_range(expr, range);
 
-        let Some(annotations) = self.buffered_annotations.take() else {
+        let Some(buffered_annotations) = self.buffered_annotations.take() else {
             // No annotations for the expression.
             return expr;
         };
 
-        for Ranged(ann_str, ann_range) in annotations {
-            let mut lexer = Lexer::new(&ann_str);
+        for annotation_token in buffered_annotations {
+            let mut lexer = Lexer::new(&annotation_token.lexeme());
 
             let Ok(tokens) = lexer.lex() else {
-                self.push_error(Error::MalformedAnnotation(ann_str), &ann_range);
+                let mut error = Error::new(ErrorKind::MalformedAnnotation);
+                error.push_note(&format!("Lexical error in annotation `{}`", annotation_token.lexeme()), Some(annotation_token.range()));
+                self.errors.push(error);
                 // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
                 return expr;
             };
@@ -101,10 +103,15 @@ where
 
             let ann_expr = parser.parse();
 
-            if let Err(ann_expr_errors) = ann_expr {
-                for error in ann_expr_errors {
-                    self.push_error(error.0, &error.1);
-                }
+            if let Err(errors) = ann_expr {
+                let mut error = Error::new(ErrorKind::MalformedAnnotation);
+                error.push_note(
+                    &format!("Parse error in annotation `{}`", annotation_token.lexeme()),
+                    Some(annotation_token.range()),
+                );
+                self.errors.push(error);
+                // Also append the annotation parsing errors.
+                self.errors.append(&mut errors);
                 // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
                 return expr;
             }
@@ -117,8 +124,15 @@ where
             match &ann_expr {
                 Expr::Symbol(sym) => {
                     if sym.is_empty() {
-                        // #TODO specialized error needed.
-                        self.push_error(Error::MalformedAnnotation(ann_str), &ann_range);
+                        let mut error = Error::new(ErrorKind::MalformedAnnotation);
+                        error.push_note(
+                            &format!(
+                                "Invalid single-symbol annotation`{}`",
+                                annotation_token.lexeme()
+                            ),
+                            Some(annotation_token.range()),
+                        );
+                        self.errors.push(error);
                         // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
                         return expr;
                     }
@@ -138,13 +152,29 @@ where
                     if let Some(Ann(Expr::Symbol(sym), _)) = list.first() {
                         expr.set_annotation(sym.clone(), ann_expr);
                     } else {
-                        self.push_error(Error::MalformedAnnotation(ann_str), &ann_range);
+                        let mut error = Error::new(ErrorKind::MalformedAnnotation);
+                        error.push_note(
+                            &format!(
+                                "First term must be a symbol `{}`",
+                                annotation_token.lexeme()
+                            ),
+                            Some(annotation_token.range()),
+                        );
+                        self.errors.push(error);
                         // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
                         return expr;
                     }
                 }
                 _ => {
-                    self.push_error(Error::MalformedAnnotation(ann_str), &ann_range);
+                    let mut error = Error::new(ErrorKind::MalformedAnnotation);
+                    error.push_note(
+                        &format!(
+                            "An annotation should be either a symbol or a list `{}`",
+                            annotation_token.lexeme()
+                        ),
+                        Some(annotation_token.range()),
+                    );
+                    self.errors.push(error);
                     // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
                     return expr;
                 }
@@ -205,10 +235,12 @@ where
                 if lexeme.contains('.') {
                     // #TODO support radix for non-integers?
                     // #TODO find a better name for 'non-integer'.
-                    match lexeme.parse::<f64>().map_err(Error::MalformedFloat) {
+                    match lexeme.parse::<f64>() {
                         Ok(n) => Some(Expr::Float(n)),
                         Err(error) => {
-                            self.push_error(error, &range);
+                            let mut error = Error::new(ErrorKind::MalformedFloat);
+                            error.push_note(&format!("Invalid float: {error}"), Some(range));
+                            self.errors.push(error);
                             None
                         }
                     }
@@ -228,26 +260,25 @@ where
                         radix = 8
                     }
 
-                    match i64::from_str_radix(&lexeme, radix).map_err(Error::MalformedInt) {
+                    match i64::from_str_radix(&lexeme, radix) {
                         Ok(n) => Some(Expr::Int(n)),
                         Err(error) => {
-                            self.push_error(error, &range);
+                            let mut error = Error::new(ErrorKind::MalformedInt);
+                            error.push_note(&format!("Invalid Int: {error}"), Some(range));
+                            self.errors.push(error);
                             None
                         }
                     }
                 }
             }
-            Token::Annotation(s) => {
+            TokenKind::Annotation => {
                 // #TODO support multiple annotations, e.g. `#[(min 1) (max 2)]`
 
                 if self.buffered_annotations.is_none() {
                     self.buffered_annotations = Some(Vec::new());
                 }
 
-                self.buffered_annotations
-                    .as_mut()
-                    .unwrap()
-                    .push(Ranged(s, range));
+                self.buffered_annotations.as_mut().unwrap().push(token);
 
                 None
             }
@@ -257,12 +288,22 @@ where
                 let Ok(quot_expr) = self.parse_expr() else {
                     // Parsing the quoted expression failed.
                     // Continue parsing to detect more errors.
-                    self.push_error(Error::InvalidQuote, &range);
+                    let mut error = Error::new(ErrorKind::InvalidQuote);
+                    error.push_note(
+                        "Cannot parse quoted expression",
+                        Some(token.range()),
+                    );
+                    self.errors.push(error);
                     return Ok(None);
                 };
 
                 let Some(target) = quot_expr else {
-                    self.push_error(Error::InvalidQuote, &range);
+                    let mut error = Error::new(ErrorKind::InvalidQuote);
+                    error.push_note(
+                        "Invalid quoted expression",
+                        Some(token.range()),
+                    );
+                    self.errors.push(error);
                     // It is recoverable error.
                     return Ok(None);
                 };
@@ -349,7 +390,12 @@ where
             }
             TokenKind::RightParen | TokenKind::RightBracket | TokenKind::RightBrace => {
                 // #TODO custom error for this?
-                self.push_error(Error::UnexpectedToken(t), &range);
+                let mut error = Error::new(ErrorKind::UnexpectedToken);
+                error.push_note(
+                    &format!("Not expecting token `{}`", token.lexeme()),
+                    Some(token.range()),
+                );
+                self.errors.push(error);
                 // Parsing can continue.
                 return Ok(None);
             }
@@ -358,7 +404,7 @@ where
         match expr {
             Some(expr) => {
                 let range = start..self.index;
-                Ok(Some(self.attach_annotations(expr, range)))
+                Ok(Some(self.attach_buffered_annotations(expr, range)))
             }
             _ => Ok(None),
         }
@@ -375,11 +421,16 @@ where
         loop {
             let Some(token) = self.next_token() else {
                 let range = start..self.index;
-                self.push_error(Error::UnterminatedList, &range);
+                let mut error = Error::new(ErrorKind::UnterminatedList);
+                error.push_note(
+                    "List not terminated",
+                    Some(range),
+                );
+                self.errors.push(error);
                 return Err(Break {});
             };
 
-            if token.0 == delimiter {
+            if token.kind() == delimiter {
                 // Will be annotated upstream.
                 return Ok(exprs);
             } else {
