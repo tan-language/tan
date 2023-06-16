@@ -3,7 +3,6 @@ use crate::{
     error::Error,
     eval::{env::Env, eval},
     expr::Expr,
-    range::Ranged,
     util::is_reserved_symbol,
 };
 
@@ -17,7 +16,7 @@ use crate::{
 // #TODO support multiple errors, like in resolve.
 
 /// Expands macro invocations, at compile time.
-pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>, Ranged<Error>> {
+pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>, Error> {
     match expr {
         Ann(Expr::Comment(..), ..) => {
             // #TODO move prune elsewhere.

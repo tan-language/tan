@@ -5,7 +5,6 @@ use crate::{
     error::Error,
     eval::{env::Env, eval},
     expr::Expr,
-    range::Ranged,
     util::is_reserved_symbol,
 };
 
@@ -17,16 +16,12 @@ use crate::{
 
 // #TODO explain what the Resolver is doing.
 pub struct Resolver {
-    errors: Vec<Ranged<Error>>,
+    errors: Vec<Error>,
 }
 
 impl Resolver {
     pub fn new() -> Self {
         Self { errors: Vec::new() }
-    }
-
-    fn push_error(&mut self, error: Ranged<Error>) {
-        self.errors.push(error);
     }
 
     // #TODO maybe return multiple errors?
@@ -253,11 +248,7 @@ impl Resolver {
     // #TODO better explain what this function does.
     // #TODO what exactly is this env? how is this mutated?
     // Resolve pass (typechecking, definitions, etc)
-    pub fn resolve(
-        &mut self,
-        expr: Ann<Expr>,
-        env: &mut Env,
-    ) -> Result<Ann<Expr>, Vec<Ranged<Error>>> {
+    pub fn resolve(&mut self, expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Vec<Error>> {
         let expr = self.resolve_expr(expr, env);
 
         if self.errors.is_empty() {

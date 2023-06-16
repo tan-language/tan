@@ -3,7 +3,7 @@ pub mod expr_transform;
 
 use std::{collections::HashMap, fmt, rc::Rc};
 
-use crate::{ann::Ann, error::Error, eval::env::Env, range::Ranged};
+use crate::{ann::Ann, error::Error, eval::env::Env};
 
 // #TODO separate variant for list and apply/call (can this be defined statically?)
 // #TODO List, MaybeList, Call
@@ -26,7 +26,7 @@ use crate::{ann::Ann, error::Error, eval::env::Env, range::Ranged};
 // #TODO not all Expr variants really need Ann, maybe the annotation should be internal to Expr?
 
 // A function that accepts a list of Exprs and returns an Expr.
-pub type ExprFn = dyn Fn(&[Ann<Expr>], &Env) -> Result<Ann<Expr>, Ranged<Error>>;
+pub type ExprFn = dyn Fn(&[Ann<Expr>], &Env) -> Result<Ann<Expr>, Error>;
 
 // #TODO use normal structs instead of tuple-structs?
 

@@ -8,7 +8,6 @@ use crate::{
     ann::Ann,
     error::Error,
     expr::{format_value, Expr},
-    range::Ranged,
     util::is_reserved_symbol,
 };
 
@@ -36,7 +35,7 @@ fn eval_args(args: &[Ann<Expr>], env: &mut Env) -> Result<Vec<Ann<Expr>>, Ranged
 
 /// Evaluates via expression rewriting. The expression `expr` evaluates to
 /// a fixed point. In essence this is a 'tree-walk' interpreter.
-pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Ranged<Error>> {
+pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
     // let expr = expr.as_ref();
 
     match expr {

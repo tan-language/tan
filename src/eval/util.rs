@@ -5,7 +5,6 @@ use crate::{
     api::{has_tan_extension, resolve_string},
     error::Error,
     expr::Expr,
-    range::Ranged,
 };
 
 use super::{env::Env, eval};
@@ -71,7 +70,7 @@ pub fn compute_module_file_paths(path: impl AsRef<Path>) -> std::io::Result<Vec<
 }
 
 // #TODO may be useful in ...use.
-pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Ann<Expr>, Vec<Ranged<Error>>> {
+pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Ann<Expr>, Vec<Error>> {
     let file_paths = compute_module_file_paths(path);
 
     let Ok(file_paths) = file_paths else {

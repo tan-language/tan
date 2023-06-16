@@ -11,7 +11,6 @@ use crate::{
     macro_expand::macro_expand,
     optimize::optimize,
     parser::Parser,
-    range::Ranged,
     resolver::Resolver,
 };
 
@@ -29,7 +28,7 @@ pub fn has_tan_extension(path: impl AsRef<Path>) -> bool {
 }
 
 /// Lexes a Tan expression encoded as a text string.
-pub fn lex_string(input: impl AsRef<str>) -> Result<Vec<Ranged<Token>>, Vec<Error>> {
+pub fn lex_string(input: impl AsRef<str>) -> Result<Vec<Token>, Vec<Error>> {
     let input = input.as_ref();
     let mut lexer = Lexer::new(input);
     lexer.lex()

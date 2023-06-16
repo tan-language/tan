@@ -72,10 +72,6 @@ where
         self.lookahead.push(token);
     }
 
-    // fn push_error(&mut self, error: Error, range: &Range) {
-    //     self.errors.push(Ranged(error, range.clone()));
-    // }
-
     /// Wrap the `expr` with the buffered (prefix) annotations. The annotations
     /// are parsed into an Expr representation. Also attaches the range of the
     /// expression as an annotation.

@@ -1,7 +1,7 @@
-use crate::{ann::Ann, error::Error, eval::env::Env, expr::Expr, range::Ranged};
+use crate::{ann::Ann, error::Error, eval::env::Env, expr::Expr};
 
 /// Returns a char iterable for the chars in the string.
-pub fn string_chars(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Ranged<Error>> {
+pub fn string_chars(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
     let [this] = args else {
         return Err(Error::invalid_arguments("`chars` requires `this` argument").into());
     };
@@ -19,10 +19,7 @@ pub fn string_chars(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Ranged<
     Ok(Expr::Array(exprs).into())
 }
 
-pub fn string_constructor_from_chars(
-    args: &[Ann<Expr>],
-    _env: &Env,
-) -> Result<Ann<Expr>, Ranged<Error>> {
+pub fn string_constructor_from_chars(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
     let [chars] = args else {
         return Err(Error::invalid_arguments("Requires `chars` argument").into());
     };
