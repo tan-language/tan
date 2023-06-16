@@ -1,9 +1,8 @@
-use std::{
-    fmt,
-    num::{ParseFloatError, ParseIntError},
-};
+use std::fmt;
 
-use crate::{lexer::token::Token, range::Range};
+use crate::range::Range;
+
+// #TODO use `CompositeError` or similar to bundle multiple errors, and maintain consistent interface while avoiding allocations?
 
 // #insight The implementation is based on https://doc.rust-lang.org/std/io/struct.Error.html
 

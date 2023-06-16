@@ -1,8 +1,11 @@
-use crate::{ann::Ann, error::Error, eval::env::Env, expr::Expr, range::Ranged};
+use crate::{ann::Ann, error::Error, eval::env::Env, expr::Expr, range::Range};
 
-pub fn ann(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Ranged<Error>> {
+pub fn ann(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
     if args.len() != 1 {
-        return Err(Error::invalid_arguments("`ann` requires one argument").into());
+        return Err(Error::invalid_arguments(
+            "`ann` requires one argument",
+            Range::default(),
+        )); // #TODO set in caller.
     }
 
     // #TODO support multiple arguments.
