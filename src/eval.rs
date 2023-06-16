@@ -27,7 +27,7 @@ use self::{env::Env, util::eval_module};
 // #TODO https://clojure.org/reference/evaluation
 
 // #TODO give more 'general' name.
-fn eval_args(args: &[Ann<Expr>], env: &mut Env) -> Result<Vec<Ann<Expr>>, Ranged<Error>> {
+fn eval_args(args: &[Ann<Expr>], env: &mut Env) -> Result<Vec<Ann<Expr>>, Error> {
     args.iter()
         .map(|x| eval(x, env))
         .collect::<Result<Vec<_>, _>>()
@@ -39,10 +39,10 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
     // let expr = expr.as_ref();
 
     match expr {
-        Ann(Expr::Symbol(sym), _) => {
+        Ann(Expr::Symbol(symbol), _) => {
             // #TODO differentiate between evaluating symbol in 'op' position.
 
-            if is_reserved_symbol(sym) {
+            if is_reserved_symbol(symbol) {
                 return Ok(expr.clone());
             }
 
@@ -56,14 +56,17 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                 } else {
                     // #TODO ultra-hack, if the method is not found, try to lookup the function symbol, fall-through.
                     // #TODO should do proper type analysis here.
-                    env.get(sym).ok_or::<Ranged<Error>>(Ranged(
-                        Error::UndefinedFunction(sym.to_owned(), method.to_owned()),
+                    env.get(symbol).ok_or::<Error>(Error::undefined_function(
+                        symbol,
+                        method,
+                        &format!("undefined function `{symbol}` with signature `{method}"),
                         expr.get_range(),
                     ))?
                 }
             } else {
-                env.get(sym).ok_or::<Ranged<Error>>(Ranged(
-                    Error::UndefinedSymbol(sym.clone()),
+                env.get(symbol).ok_or::<Error>(Error::undefined_symbol(
+                    &symbol,
+                    &format!("symbol not defined: `{symbol}`"),
                     expr.get_range(),
                 ))?
             };
@@ -83,12 +86,12 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
             // named (keyed) function parameter, enum variants, etc.
             Ok(expr.clone())
         }
-        // #TODO argh, if is unquotable!!
+        // #TODO if is unquotable!!
         Ann(Expr::If(predicate, true_clause, false_clause), ..) => {
             let predicate = eval(predicate, env)?;
 
             let Ann(Expr::Bool(predicate), ..) = predicate else {
-                return Err(Ranged(Error::InvalidArguments("the if predicate is not a boolean value".to_owned()), predicate.get_range()));
+                return Err(Error::invalid_arguments("the if predicate is not a boolean value", predicate.get_range()));
             };
 
             if predicate {
@@ -139,7 +142,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
 
                     for (param, arg) in params.iter().zip(args) {
                         let Ann(Expr::Symbol(param), ..) = param else {
-                                return Err(Ranged(Error::invalid_arguments("parameter is not a symbol"), param.get_range()));
+                                return Err(Error::invalid_arguments("parameter is not a symbol", param.get_range()));
                             };
 
                         env.insert(param, arg);
@@ -169,7 +172,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                     // #TODO error checking, one arg, etc.
                     let index = &args[0];
                     let Ann(Expr::Int(index), ..) = index else {
-                        return Err(Ranged(Error::InvalidArguments("invalid array index, expecting Int".to_string()), index.get_range()));
+                        return Err(Error::invalid_arguments("invalid array index, expecting Int", index.get_range()));
                     };
                     let index = *index as usize;
                     if let Some(value) = arr.get(index) {
@@ -222,8 +225,8 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                             // #TODO try to implement as ForeignFn
 
                             if tail.len() != 1 {
-                                return Err(Ranged(
-                                    Error::invalid_arguments("`ann` requires one argument"),
+                                return Err(Error::invalid_arguments(
+                                    "`ann` requires one argument",
                                     expr.get_range(),
                                 ));
                             }
@@ -240,7 +243,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                         }
                         "eval" => {
                             let [expr] = tail else {
-                                return Err(Ranged(Error::invalid_arguments("missing expression to be evaluated"), expr.get_range()));
+                                return Err(Error::invalid_arguments("missing expression to be evaluated", expr.get_range()));
                             };
 
                             // #TODO consider naming this `form`?
@@ -252,7 +255,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                         // #TODO doesn't quote all exprs, e.g. the if expression.
                         "quot" => {
                             let [value] = tail else {
-                                return Err(Ranged(Error::invalid_arguments("missing quote target"), expr.get_range()));
+                                return Err(Error::invalid_arguments("missing quote target", expr.get_range()));
                             };
 
                             // #TODO hm, that clone, maybe `Rc` can fix this?
@@ -264,7 +267,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                             // `for` is also related with `do`.
                             let [predicate, body] = tail else {
                                 // #TODO proper error!
-                                return Err(Ranged(Error::invalid_arguments("missing for arguments"), expr.get_range()));
+                                return Err(Error::invalid_arguments("missing for arguments", expr.get_range()));
                             };
 
                             let mut value = Expr::One.into();
@@ -273,7 +276,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                                 let predicate = eval(predicate, env)?;
 
                                 let Ann(Expr::Bool(predicate), ..) = predicate else {
-                                    return Err(Ranged(Error::invalid_arguments("the for predicate is not a boolean value"), predicate.get_range()));
+                                    return Err(Error::invalid_arguments("the for predicate is not a boolean value", predicate.get_range()));
                                 };
 
                                 if !predicate {
@@ -288,11 +291,11 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                         "if" => {
                             // #TODO this is a temp hack!
                             let Some(predicate) = tail.get(0) else {
-                                return Err(Ranged(Error::invalid_arguments("malformed if predicate"), expr.get_range()));
+                                return Err(Error::invalid_arguments("malformed if predicate", expr.get_range()));
                             };
 
                             let Some(true_clause) = tail.get(1) else {
-                                return Err(Ranged(Error::invalid_arguments("malformed if true clause"), expr.get_range()));
+                                return Err(Error::invalid_arguments("malformed if true clause", expr.get_range()));
                             };
 
                             let false_clause = tail.get(2);
@@ -300,7 +303,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                             let predicate = eval(predicate, env)?;
 
                             let Ann(Expr::Bool(predicate), ..) = predicate else {
-                                return Err(Ranged(Error::InvalidArguments("the if predicate is not a boolean value".to_owned()), predicate.get_range()));
+                                return Err(Error::invalid_arguments("the if predicate is not a boolean value", predicate.get_range()));
                             };
 
                             if predicate {
@@ -316,17 +319,17 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                         "for_each" => {
                             // #TODO this is a temp hack!
                             let [seq, var, body] = tail else {
-                                return Err(Ranged(Error::invalid_arguments("malformed `for_each`"), expr.get_range()));
+                                return Err(Error::invalid_arguments("malformed `for_each`", expr.get_range()));
                             };
 
                             let seq = eval(seq, env)?;
 
                             let Ann(Expr::Array(arr), ..) = seq else {
-                                return Err(Ranged(Error::invalid_arguments("`for_each` requires a `Seq` as the first argument"), seq.get_range()));
+                                return Err(Error::invalid_arguments("`for_each` requires a `Seq` as the first argument", seq.get_range()));
                             };
 
                             let Ann(Expr::Symbol(sym), _) = var else {
-                                return Err(Ranged(Error::invalid_arguments("`for_each` requires a symbol as the second argument"), var.get_range()));
+                                return Err(Error::invalid_arguments("`for_each` requires a symbol as the second argument", var.get_range()));
                             };
 
                             env.push_new_scope();
@@ -346,17 +349,17 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                         "map" => {
                             // #TODO this is a temp hack!
                             let [seq, var, body] = tail else {
-                                return Err(Ranged(Error::invalid_arguments("malformed `map`"), expr.get_range()));
+                                return Err(Error::invalid_arguments("malformed `map`", expr.get_range()));
                             };
 
                             let seq = eval(seq, env)?;
 
                             let Ann(Expr::Array(arr), ..) = seq else {
-                                return Err(Ranged(Error::invalid_arguments("`map` requires a `Seq` as the first argument"), seq.get_range()));
+                                return Err(Error::invalid_arguments("`map` requires a `Seq` as the first argument", seq.get_range()));
                             };
 
                             let Ann(Expr::Symbol(sym), _) = var else {
-                                return Err(Ranged(Error::invalid_arguments("`map` requires a symbol as the second argument"), var.get_range()));
+                                return Err(Error::invalid_arguments("`map` requires a symbol as the second argument", var.get_range()));
                             };
 
                             env.push_new_scope();
@@ -379,7 +382,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                             // Import a directory as a module.
 
                             let Some(Ann(Expr::String(module_path), _)) = tail.get(0) else {
-                                return Err(Ranged(Error::invalid_arguments("malformed use expression"), expr.get_range()));
+                                return Err(Error::invalid_arguments("malformed use expression", expr.get_range()));
                             };
 
                             // #TODO make sure paths are relative to the current file.
@@ -412,14 +415,12 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                                 };
 
                                 let Ann(Expr::Symbol(s), ..) = sym else {
-                                    return Err(Ranged(Error::invalid_arguments(format!("`{sym}` is not a Symbol")), sym.get_range()));
+                                    return Err(Error::invalid_arguments(&format!("`{sym}` is not a Symbol"), sym.get_range()));
                                 };
 
                                 if is_reserved_symbol(s) {
-                                    return Err(Ranged(
-                                        Error::invalid_arguments(format!(
-                                            "let cannot shadow the reserved symbol `{s}`"
-                                        )),
+                                    return Err(Error::invalid_arguments(
+                                        &format!("let cannot shadow the reserved symbol `{s}`"),
                                         sym.get_range(),
                                     ));
                                 }
@@ -436,15 +437,13 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                         "Char" => {
                             // #TODO report more than 1 arguments.
                             let Some(Ann(Expr::String(c), _)) = tail.get(0) else {
-                                return Err(Ranged(Error::invalid_arguments("malformed Char constructor"), expr.get_range()));
+                                return Err(Error::invalid_arguments("malformed Char constructor", expr.get_range()));
                             };
 
                             if c.len() != 1 {
                                 // #TODO better error message.
-                                return Err(Ranged(
-                                    Error::invalid_arguments(
-                                        "the Char constructor requires a single-char string",
-                                    ),
+                                return Err(Error::invalid_arguments(
+                                    "the Char constructor requires a single-char string",
                                     expr.get_range(),
                                 ));
                             }
@@ -459,11 +458,11 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                         }
                         "Func" => {
                             let [args, body] = tail else {
-                                return Err(Ranged(Error::invalid_arguments("malformed func definition"), expr.get_range()));
+                                return Err(Error::invalid_arguments("malformed func definition", expr.get_range()));
                             };
 
                             let Ann(Expr::List(params), ..) = args else {
-                                return Err(Ranged(Error::invalid_arguments("malformed func parameters definition"), args.get_range()));
+                                return Err(Error::invalid_arguments("malformed func parameters definition", args.get_range()));
                             };
 
                             // #TODO optimize!
@@ -473,27 +472,27 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                         // #TODO actually two passes, macro_def, macro_expand
                         "Macro" => {
                             let [args, body] = tail else {
-                                return Err(Ranged(Error::invalid_arguments("malformed macro definition"), expr.get_range()));
+                                return Err(Error::invalid_arguments("malformed macro definition", expr.get_range()));
                             };
 
                             let Ann(Expr::List(params), ..) = args else {
-                                return Err(Ranged(Error::invalid_arguments("malformed macro parameters definition"), args.get_range()));
+                                return Err(Error::invalid_arguments("malformed macro parameters definition", args.get_range()));
                             };
 
                             // #TODO optimize!
                             Ok(Expr::Macro(params.clone(), Box::new(body.clone())).into())
                         }
                         _ => {
-                            return Err(Ranged(
-                                Error::NotInvocable(format!("symbol `{head}`")),
+                            return Err(Error::not_invocable(
+                                &format!("symbol `{head}`"),
                                 head.get_range(),
                             ));
                         }
                     }
                 }
                 _ => {
-                    return Err(Ranged(
-                        Error::NotInvocable(format!("expression `{head}`")),
+                    return Err(Error::not_invocable(
+                        &format!("expression `{head}`"),
                         head.get_range(),
                     ));
                 }

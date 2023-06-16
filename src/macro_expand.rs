@@ -15,6 +15,8 @@ use crate::{
 // #TODO macro_expand (and all comptime/static passes should return Vec<Ranged<Error>>>)
 // #TODO support multiple errors, like in resolve.
 
+// #TODO return Vec<Error> like all other methods?
+
 /// Expands macro invocations, at compile time.
 pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>, Error> {
     match expr {
@@ -66,8 +68,8 @@ pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>,
 
                     for (param, arg) in params.iter().zip(args) {
                         let Ann(Expr::Symbol(param), ..) = param else {
-                                return Err(Ranged(Error::invalid_arguments("parameter is not a symbol"), param.get_range()));
-                            };
+                            return Err(Error::invalid_arguments("parameter is not a symbol", param.get_range()));
+                        };
 
                         env.insert(param, arg.clone());
                     }
@@ -87,22 +89,20 @@ pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>,
                         // #TODO should be def, no loop.
 
                         let Some(binding_sym) = args.next() else {
-                            return Err(Ranged(Error::invalid_arguments("missing binding symbol"), expr.get_range()));
+                            return Err(Error::invalid_arguments("missing binding symbol", expr.get_range()));
                         };
 
                         let Some(binding_value) = args.next() else {
-                            return Err(Ranged(Error::invalid_arguments("missing binding value"), expr.get_range()));
+                            return Err(Error::invalid_arguments("missing binding value", expr.get_range()));
                         };
 
                         let Ann(Expr::Symbol(s), ..) = binding_sym else {
-                            return Err(Ranged(Error::invalid_arguments(format!("`{sym}` is not a Symbol")), binding_sym.get_range()));
+                            return Err(Error::invalid_arguments(&format!("`{sym}` is not a Symbol"), binding_sym.get_range()));
                         };
 
                         if is_reserved_symbol(s) {
-                            return Err(Ranged(
-                                Error::invalid_arguments(format!(
-                                    "let cannot shadow the reserved symbol `{s}`"
-                                )),
+                            return Err(Error::invalid_arguments(
+                                &format!("let cannot shadow the reserved symbol `{s}`"),
                                 binding_sym.get_range(),
                             ));
                         }
@@ -132,7 +132,7 @@ pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>,
                         ))
                     } else if sym == "quot" {
                         let [value] = tail else {
-                                return Err(Ranged(Error::invalid_arguments("missing quote target"), expr.get_range()));
+                                return Err(Error::invalid_arguments("missing quote target", expr.get_range()));
                             };
 
                         // #TODO super nasty, quotes should be resolved statically (at compile time)
@@ -146,11 +146,11 @@ pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>,
                         ))
                     } else if sym == "Macro" {
                         let [args, body] = tail else {
-                            return Err(Ranged(Error::invalid_arguments("malformed macro definition"), expr.get_range()));
+                            return Err(Error::invalid_arguments("malformed macro definition", expr.get_range()));
                         };
 
                         let Ann(Expr::List(params), ..) = args else {
-                            return Err(Ranged(Error::invalid_arguments("malformed macro parameters definition"), expr.get_range()));
+                            return Err(Error::invalid_arguments("malformed macro parameters definition", expr.get_range()));
                         };
 
                         // #TODO optimize!

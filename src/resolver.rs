@@ -118,16 +118,14 @@ impl Resolver {
                             };
 
                             let Ann(Expr::Symbol(s), ..) = sym else {
-                                self.push_error(Ranged(Error::invalid_arguments(format!("`{sym}` is not a Symbol")), sym.get_range()));
+                                self.errors.push(Error::invalid_arguments(&format!("`{sym}` is not a Symbol"), sym.get_range()));
                                 // Continue to detect more errors.
                                 continue;
                             };
 
                             if is_reserved_symbol(s) {
-                                self.push_error(Ranged(
-                                    Error::invalid_arguments(format!(
-                                        "let cannot shadow the reserved symbol `{s}`"
-                                    )),
+                                self.errors.push(Error::invalid_arguments(
+                                    &format!("let cannot shadow the reserved symbol `{s}`"),
                                     sym.get_range(),
                                 ));
                                 // Continue to detect more errors.
@@ -154,8 +152,7 @@ impl Resolver {
                                 // #TODO notify about overrides? use `set`?
                                 env.insert(s, result.unwrap());
                             } else {
-                                let err = result.unwrap_err();
-                                self.push_error(err);
+                                self.errors.push(result.unwrap_err());
                             }
                         }
 

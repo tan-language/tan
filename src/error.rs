@@ -64,9 +64,9 @@ pub enum ErrorKind {
     // Semantic errors
     UndefinedSymbol(String), // #TODO maybe pass the whole Symbol expression?
     UndefinedFunction(String, String), // #TODO maybe pass the whole Symbol expression?
-    InvalidArguments(String),
-    NotInvocable(String), // #TODO maybe the non-invocable Annotated<Expr> should be the param?
-    FailedUse,            // #TODO temp, better name needed, rethink!
+    InvalidArguments,
+    NotInvocable, // #TODO maybe the non-invocable Annotated<Expr> should be the param?
+    FailedUse,    // #TODO temp, better name needed, rethink!
 
     // Runtime errors
     Io(std::io::Error),
@@ -90,8 +90,8 @@ impl fmt::Display for ErrorKind {
             }
             ErrorKind::Io(io_err) => format!("i/o error: {io_err}"),
             ErrorKind::FailedUse => "failed use".to_owned(),
-            ErrorKind::InvalidArguments(text) => text.to_owned(),
-            ErrorKind::NotInvocable(text) => text.to_owned(),
+            ErrorKind::InvalidArguments => "invalid arguments".to_owned(),
+            ErrorKind::NotInvocable => "not invocable".to_owned(),
         };
 
         write!(f, "{err}")
@@ -160,7 +160,32 @@ impl Error {
         }
     }
 
-    // #TODO add helper constructors.
+    pub fn invalid_arguments(note: &str, range: Range) -> Self {
+        let mut error = Self::new(ErrorKind::InvalidArguments);
+        error.push_note(note, Some(range));
+        error
+    }
+
+    pub fn undefined_function(symbol: &str, method: &str, note: &str, range: Range) -> Self {
+        let mut error = Self::new(ErrorKind::UndefinedFunction(
+            symbol.to_owned(),
+            method.to_owned(),
+        ));
+        error.push_note(note, Some(range));
+        error
+    }
+
+    pub fn undefined_symbol(symbol: &str, note: &str, range: Range) -> Self {
+        let mut error = Self::new(ErrorKind::UndefinedSymbol(symbol.to_owned()));
+        error.push_note(note, Some(range));
+        error
+    }
+
+    pub fn not_invocable(note: &str, range: Range) -> Self {
+        let mut error = Self::new(ErrorKind::NotInvocable);
+        error.push_note(note, Some(range));
+        error
+    }
 
     pub fn kind(&self) -> &ErrorKind {
         &self.kind
