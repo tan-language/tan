@@ -113,15 +113,15 @@ impl ErrorKind {
 #[derive(Debug)]
 pub struct ErrorNote {
     /// The text of the note
-    pub note: String,
+    pub text: String,
     /// The range of the error, within the source.
     pub range: Option<Range>,
 }
 
 impl ErrorNote {
-    pub fn new(note: &str, range: Option<Range>) -> Self {
+    pub fn new(text: &str, range: Option<Range>) -> Self {
         Self {
-            note: note.to_owned(),
+            text: text.to_owned(),
             range,
         }
     }
@@ -135,7 +135,7 @@ pub struct Error {
     pub kind: ErrorKind,
     /// The source text where the error occurred. Typically this field is filled
     /// at a second stage.
-    pub file_url: Option<String>,
+    pub file_url: String,
     pub notes: Vec<ErrorNote>,
     // #TODO leave hints for a future revision.
     // hint: Option<String>,
@@ -154,7 +154,7 @@ impl Error {
     pub fn new(kind: ErrorKind) -> Self {
         Self {
             kind,
-            file_url: None,
+            file_url: "<input>".to_owned(), // #TODO find better marker.
             notes: Vec::new(),
         }
     }

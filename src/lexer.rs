@@ -185,7 +185,7 @@ impl<'a> Lexer<'a> {
         loop {
             let Some(ch) = self.next_char() else {
                 let mut error = Error::new(ErrorKind::UnterminatedString);
-                error.push_note("String is missing the closing `\"` character", Some(self.range())); // #TODO refine the text.
+                error.push_note("string is missing the closing `\"` character", Some(self.range())); // #TODO refine the text.
                 self.errors.push(error);
                 return None;
             };

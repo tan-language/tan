@@ -18,7 +18,7 @@ pub struct Position {
 impl Position {
     // #TODO seems this conversion is needed too often, maybe should keep line,col info in range?
     // #TODO add unit test.
-    pub fn from(index: usize, input: &str) -> Self {
+    pub fn from_index(index: usize, input: &str) -> Self {
         let chars = input.chars();
 
         let mut i: usize = 0;
@@ -41,5 +41,9 @@ impl Position {
         let col = index - line_start;
 
         Self { line, col }
+    }
+
+    pub fn from_range(range: &Range, input: &str) -> Self {
+        Self::from_index(range.start, input)
     }
 }

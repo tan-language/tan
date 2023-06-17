@@ -13,7 +13,7 @@ pub fn add_int(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
 
     for arg in args {
         let Ann(Expr::Int(n), _) = arg else {
-            return Err(Error::invalid_arguments(&format!("`{arg}` is not an Int"), arg.get_range()));
+            return Err(Error::invalid_arguments(&format!("{arg} is not an Int"), arg.get_range()));
         };
         xs.push(*n);
     }
@@ -32,7 +32,7 @@ pub fn add_float(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
 
     for arg in args {
         let Ann(Expr::Float(n), ..) = arg else {
-            return Err(Error::invalid_arguments(&format!("`{arg}` is not a Float"), arg.get_range()));
+            return Err(Error::invalid_arguments(&format!("{arg} is not a Float"), arg.get_range()));
         };
         sum += n;
     }
@@ -44,15 +44,15 @@ pub fn add_float(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
 pub fn sub(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
     // #TODO support multiple arguments.
     let [a, b] = args else {
-        return Err(Error::invalid_arguments("`-` requires at least two arguments", Range::default())); // #TODO add range in caller.
+        return Err(Error::invalid_arguments("- requires at least two arguments", Range::default())); // #TODO add range in caller.
     };
 
     let Ann(Expr::Int(a), ..) = a else {
-        return Err(Error::invalid_arguments(&format!("`{a}` is not an Int"), a.get_range()));
+        return Err(Error::invalid_arguments(&format!("{a} is not an Int"), a.get_range()));
     };
 
     let Ann(Expr::Int(b), ..) = b else {
-        return Err(Error::invalid_arguments(&format!("`{b}` is not an Int"), b.get_range()));
+        return Err(Error::invalid_arguments(&format!("{b} is not an Int"), b.get_range()));
     };
 
     Ok(Expr::Int(a - b).into())
@@ -64,7 +64,7 @@ pub fn mul(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
 
     for arg in args {
         let Ann(Expr::Int(n), ..) = arg else {
-            return Err(Error::invalid_arguments(&format!("`{arg}` is not an Int"), arg.get_range()));
+            return Err(Error::invalid_arguments(&format!("{arg} is not an Int"), arg.get_range()));
         };
         prod *= n;
     }
