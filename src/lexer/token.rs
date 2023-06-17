@@ -61,11 +61,11 @@ impl fmt::Display for TokenKind {
             TokenKind::LeftBrace => "{",
             TokenKind::RightBrace => "}",
             TokenKind::Quote => "'",
-            TokenKind::String(lexeme) => format!("String({lexeme})").as_str(),
-            TokenKind::Symbol(lexeme) => format!("Symbol({lexeme})").as_str(),
-            TokenKind::Number(lexeme) => format!("Number({lexeme})").as_str(),
-            TokenKind::Annotation(lexeme) => format!("Annotation({lexeme})").as_str(),
-            TokenKind::Comment(lexeme) => format!("Comment({lexeme})").as_str(),
+            TokenKind::String(lexeme) => lexeme,
+            TokenKind::Symbol(lexeme) => lexeme,
+            TokenKind::Number(lexeme) => lexeme,
+            TokenKind::Annotation(lexeme) => lexeme,
+            TokenKind::Comment(lexeme) => lexeme,
             TokenKind::MultiLineWhitespace => "MultiLineWhitespace", // #TODO what should we do here? #Idea convert to comment?
         })
     }
@@ -128,17 +128,18 @@ impl Token {
     }
 
     pub fn range(&self) -> Range {
-        self.range
+        self.range.clone()
     }
 
     pub fn lexeme(&self) -> String {
-        match self.kind {
-            TokenKind::String(lexeme) => lexeme,
-            TokenKind::Symbol(lexeme) => lexeme,
-            TokenKind::Number(lexeme) => lexeme,
-            TokenKind::Annotation(lexeme) => lexeme,
-            TokenKind::Comment(lexeme) => lexeme,
-            _ => self.kind.to_string(),
-        }
+        // match &self.kind {
+        //     TokenKind::Symbol(lexeme) => lexeme,
+        //     TokenKind::Number(lexeme) => lexeme,
+        //     TokenKind::Annotation(lexeme) => lexeme,
+        //     TokenKind::Comment(lexeme) => lexeme,
+        //     _ => self.kind.to_string(),
+        // }
+
+        self.kind.to_string()
     }
 }

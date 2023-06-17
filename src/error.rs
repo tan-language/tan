@@ -113,9 +113,9 @@ impl ErrorKind {
 #[derive(Debug)]
 pub struct ErrorNote {
     /// The text of the note
-    note: String,
+    pub note: String,
     /// The range of the error, within the source.
-    range: Option<Range>,
+    pub range: Option<Range>,
 }
 
 impl ErrorNote {
@@ -132,7 +132,7 @@ impl ErrorNote {
 #[derive(Debug)]
 pub struct Error {
     /// The kind of the error.
-    kind: ErrorKind,
+    pub kind: ErrorKind,
     /// The source text where the error occurred. Typically this field is filled
     /// at a second stage.
     pub file_url: Option<String>,
@@ -204,6 +204,14 @@ impl Error {
 
     pub fn push_note(&mut self, note: &str, range: Option<Range>) {
         self.notes.push(ErrorNote::new(note, range));
+    }
+
+    pub fn range(&self) -> Option<&Range> {
+        let note = self.notes.first();
+        if let Some(note) = note {
+            return note.range.as_ref();
+        }
+        None
     }
 }
 

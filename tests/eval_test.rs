@@ -3,10 +3,9 @@ mod common;
 use tan::{
     ann::Ann,
     api::eval_string,
-    error::Error,
+    error::{Error, ErrorKind},
     eval::{env::Env, eval},
     expr::{format_value, Expr},
-    range::Ranged,
 };
 
 use crate::common::{eval_file, read_file};
@@ -34,7 +33,7 @@ fn do_reports_intermediate_errors() {
     let err = result.unwrap_err();
     let err = &err[0];
 
-    assert!(matches!(err, Ranged(Error::UndefinedFunction(s, _), ..) if s == "write33"));
+    assert!(matches!(err, Error{ kind: ErrorKind::UndefinedFunction(s, _), .. } if s == "write33"));
 }
 
 #[test]
@@ -101,11 +100,19 @@ fn eval_reports_let_errors() {
     let err = result.unwrap_err();
     let err = &err[0];
 
-    assert!(
-        matches!(err, Ranged(Error::InvalidArguments(x), ..) if x == "let cannot shadow the reserved symbol `if`")
-    );
+    // assert!(
+    //     matches!(err, Error{ kind: ErrorKind::InvalidArguments(x), .. } if x == "let cannot shadow the reserved symbol `if`")
+    // );
 
-    let range = &err.1;
+    assert!(matches!(
+        err,
+        Error {
+            kind: ErrorKind::InvalidArguments,
+            ..
+        }
+    ));
+
+    let range = err.notes.first().unwrap().range.as_ref().unwrap();
 
     assert_eq!(range.start, 9);
     assert_eq!(range.end, 11);

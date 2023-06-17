@@ -194,7 +194,7 @@ where
             TokenKind::Comment(lexeme) => {
                 // Preserve the comments as expressions, may be useful for analysis passes (e.g. formatting)
                 // Comments are elided statically, before the evaluation pass.
-                Some(Expr::Comment(lexeme))
+                Some(Expr::Comment(lexeme.clone()))
             }
             TokenKind::MultiLineWhitespace => {
                 // Preserve for formatter, will be elided statically, before the
@@ -202,7 +202,7 @@ where
                 Some(Expr::TextSeparator)
             }
             // Token::Char(c) => Some(Expr::Char(c)),
-            TokenKind::String(lexeme) => Some(Expr::String(lexeme)),
+            TokenKind::String(lexeme) => Some(Expr::String(lexeme.clone())),
             TokenKind::Symbol(lexeme) => {
                 if lexeme.starts_with(':') {
                     let sym = lexeme.strip_prefix(':').unwrap().to_string();
@@ -219,10 +219,12 @@ where
                     // #TODO consider using nothing/never for false and everything else for true.
                     Some(Expr::Bool(false))
                 } else {
-                    Some(Expr::Symbol(lexeme))
+                    Some(Expr::Symbol(lexeme.clone()))
                 }
             }
-            TokenKind::Number(mut lexeme) => {
+            TokenKind::Number(lexeme) => {
+                let mut lexeme = lexeme.clone();
+
                 // #TODO more detailed Number error!
                 // #TODO error handling not enough, we need to add context, check error_stack
                 if lexeme.contains('.') {
@@ -423,7 +425,7 @@ where
                 return Err(Break {});
             };
 
-            if token.kind() == delimiter {
+            if *token.kind() == delimiter {
                 // Will be annotated upstream.
                 return Ok(exprs);
             } else {
