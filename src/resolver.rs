@@ -58,7 +58,6 @@ impl Resolver {
                 }
 
                 // #TODO handle 'PathSymbol'
-
                 // #TODO handle a Dict invocable (and other invocables).
                 // #TODO please note that multiple-dispatch is supposed to be dynamic!
 

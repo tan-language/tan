@@ -30,7 +30,7 @@ pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>,
             // Prune TextSeparator expressions.
             Ok(None)
         }
-        Ann(Expr::List(ref list), ..) => {
+        Ann(Expr::List(ref list), ref range) => {
             // if list.is_empty() {
             //     // This is handled statically, in the parser, but an extra, dynamic
             //     // check is needed in the evaluator to handle the case where the
@@ -183,7 +183,7 @@ pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>,
                         }
                     }
 
-                    Ok(Some(Expr::List(terms).into()))
+                    Ok(Some(Ann(Expr::List(terms), range.clone())))
                 }
             }
         }

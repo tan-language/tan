@@ -5,7 +5,6 @@ use crate::{
     error::Error,
     eval::env::Env,
     expr::{format_value, Expr},
-    range::Range,
 };
 
 // #TODO do FFI functions really need an env?
@@ -46,7 +45,7 @@ pub fn writeln(args: &[Ann<Expr>], env: &Env) -> Result<Ann<Expr>, Error> {
 /// Reads the contents of a text file as a string.
 pub fn file_read_as_string(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
     let [path] = args else {
-        return Err(Error::invalid_arguments("`read_as_string` requires a `path` argument", Range::default())); // #TODO range upstream
+        return Err(Error::invalid_arguments("`read_as_string` requires a `path` argument", None));
     };
 
     let Ann(Expr::String(path), ..) = path else {
@@ -61,7 +60,7 @@ pub fn file_read_as_string(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, 
 // #TODO decide on the parameters order.
 pub fn file_write_string(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
     let [path, content] = args else {
-        return Err(Error::invalid_arguments("`read_as_string` requires `path` and `content` arguments", Range::default())); // #TODO range upstream.
+        return Err(Error::invalid_arguments("`read_as_string` requires `path` and `content` arguments", None));
     };
 
     let Ann(Expr::String(path), ..) = path else {

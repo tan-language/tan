@@ -93,10 +93,8 @@ impl<T> Ann<T> {
 
     /// Returns the range of the annotated expression. Forces a default range
     /// if the annotation is missing.
-    pub fn get_range(&self) -> Range {
-        self.get_annotation("range")
-            .map(expr_to_range)
-            .unwrap_or_default()
+    pub fn get_range(&self) -> Option<Range> {
+        self.get_annotation("range").map(expr_to_range)
     }
 
     // #TODO get_method (multiple-dispatch)

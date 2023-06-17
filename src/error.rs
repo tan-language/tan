@@ -107,9 +107,10 @@ impl ErrorKind {
     }
 }
 
+// #insight
+// `note` is a synonym for `annotation`.
+
 // #TODO add ErrorNoteKind?
-// #TODO consider using Ranged<String> instead?
-// #TODO think of a better name.
 #[derive(Debug)]
 pub struct ErrorNote {
     /// The text of the note
@@ -137,8 +138,7 @@ pub struct Error {
     /// at a second stage.
     pub file_path: String,
     pub notes: Vec<ErrorNote>,
-    // #TODO leave hints for a future revision.
-    // hint: Option<String>,
+    pub hint: Option<String>,
 }
 
 impl std::error::Error for Error {}
@@ -156,33 +156,39 @@ impl Error {
             kind,
             file_path: "<input>".to_owned(), // #TODO find better marker.
             notes: Vec::new(),
+            hint: None,
         }
     }
 
-    pub fn invalid_arguments(note: &str, range: Range) -> Self {
+    pub fn invalid_arguments(note: &str, range: Option<Range>) -> Self {
         let mut error = Self::new(ErrorKind::InvalidArguments);
-        error.push_note(note, Some(range));
+        error.push_note(note, range);
         error
     }
 
-    pub fn undefined_function(symbol: &str, method: &str, note: &str, range: Range) -> Self {
+    pub fn undefined_function(
+        symbol: &str,
+        method: &str,
+        note: &str,
+        range: Option<Range>,
+    ) -> Self {
         let mut error = Self::new(ErrorKind::UndefinedFunction(
             symbol.to_owned(),
             method.to_owned(),
         ));
-        error.push_note(note, Some(range));
+        error.push_note(note, range);
         error
     }
 
-    pub fn undefined_symbol(symbol: &str, note: &str, range: Range) -> Self {
+    pub fn undefined_symbol(symbol: &str, note: &str, range: Option<Range>) -> Self {
         let mut error = Self::new(ErrorKind::UndefinedSymbol(symbol.to_owned()));
-        error.push_note(note, Some(range));
+        error.push_note(note, range);
         error
     }
 
-    pub fn not_invocable(note: &str, range: Range) -> Self {
+    pub fn not_invocable(note: &str, range: Option<Range>) -> Self {
         let mut error = Self::new(ErrorKind::NotInvocable);
-        error.push_note(note, Some(range));
+        error.push_note(note, range);
         error
     }
 

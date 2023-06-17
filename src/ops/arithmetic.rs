@@ -1,4 +1,4 @@
-use crate::{ann::Ann, error::Error, eval::env::Env, expr::Expr, range::Range};
+use crate::{ann::Ann, error::Error, eval::env::Env, expr::Expr};
 
 // #Insight
 // Named `arithmetic` as those operators can apply to non-numbers, e.g. Time, Date
@@ -44,7 +44,7 @@ pub fn add_float(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
 pub fn sub(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
     // #TODO support multiple arguments.
     let [a, b] = args else {
-        return Err(Error::invalid_arguments("- requires at least two arguments", Range::default())); // #TODO add range in caller.
+        return Err(Error::invalid_arguments("- requires at least two arguments", None));
     };
 
     let Ann(Expr::Int(a), ..) = a else {

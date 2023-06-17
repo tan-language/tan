@@ -1,4 +1,4 @@
-use crate::{ann::Ann, error::Error, eval::env::Env, expr::Expr, range::Range};
+use crate::{ann::Ann, error::Error, eval::env::Env, expr::Expr};
 
 // #TODO support all types!
 
@@ -9,7 +9,7 @@ pub fn eq(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
     // #TODO support non-Int types
     // #TODO support multiple arguments.
     let [a, b] = args else {
-        return Err(Error::invalid_arguments("`eq` requires at least two arguments", Range::default())); // #TODO set in caller.
+        return Err(Error::invalid_arguments("`eq` requires at least two arguments", None));
     };
 
     let Ann(Expr::Int(a), ..) = a else {
@@ -26,7 +26,7 @@ pub fn eq(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
 pub fn gt(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
     // #TODO support multiple arguments.
     let [a, b] = args else {
-        return Err(Error::invalid_arguments("`>` requires at least two arguments", Range::default())); // #TODO set in caller.
+        return Err(Error::invalid_arguments("`>` requires at least two arguments", None));
     };
 
     let Ann(Expr::Int(a), ..) = a else {
@@ -43,7 +43,7 @@ pub fn gt(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
 pub fn lt(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
     // #TODO support multiple arguments.
     let [a, b] = args else {
-        return Err(Error::invalid_arguments("`<` requires at least two arguments", Range::default())); // #TODO set in caller.
+        return Err(Error::invalid_arguments("`<` requires at least two arguments", None));
     };
 
     let Ann(Expr::Int(a), ..) = a else {

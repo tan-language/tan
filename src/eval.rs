@@ -36,8 +36,6 @@ fn eval_args(args: &[Ann<Expr>], env: &mut Env) -> Result<Vec<Ann<Expr>>, Error>
 /// Evaluates via expression rewriting. The expression `expr` evaluates to
 /// a fixed point. In essence this is a 'tree-walk' interpreter.
 pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
-    // let expr = expr.as_ref();
-
     match expr {
         Ann(Expr::Symbol(symbol), _) => {
             // #TODO differentiate between evaluating symbol in 'op' position.
@@ -162,7 +160,20 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                     // Evaluate the arguments before calling the function.
                     let args = eval_args(tail, env)?;
 
-                    foreign_function(&args, env)
+                    let result = foreign_function(&args, env);
+
+                    // If the error has no range, try to apply the range of the invocation.
+                    if let Err(mut error) = result {
+                        if let Some(note) = error.notes.first_mut() {
+                            if note.range.is_none() {
+                                note.range = expr.get_range()
+                            }
+                        };
+
+                        return Err(error);
+                    };
+
+                    result
                 }
                 Expr::Array(arr) => {
                     // Evaluate the arguments before calling the function.
