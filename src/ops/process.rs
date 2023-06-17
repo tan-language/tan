@@ -4,7 +4,7 @@ use crate::{ann::Ann, error::Error, eval::env::Env, expr::Expr};
 pub fn exit(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
     if let Some(code) = args.first() {
         let Ann(Expr::Int(code), ..) = code else {
-            return Err(Error::InvalidArguments("expected Int argument".to_owned()).into());
+            return Err(Error::invalid_arguments("expected Int argument", code.get_range()));
         };
 
         let code = *code as i32;

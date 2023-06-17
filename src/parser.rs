@@ -85,7 +85,8 @@ where
         };
 
         for annotation_token in buffered_annotations {
-            let mut lexer = Lexer::new(&annotation_token.lexeme());
+            let input = annotation_token.lexeme();
+            let mut lexer = Lexer::new(&input);
 
             let Ok(tokens) = lexer.lex() else {
                 let mut error = Error::new(ErrorKind::MalformedAnnotation);
@@ -99,7 +100,7 @@ where
 
             let ann_expr = parser.parse();
 
-            if let Err(errors) = ann_expr {
+            if let Err(mut errors) = ann_expr {
                 let mut error = Error::new(ErrorKind::MalformedAnnotation);
                 error.push_note(
                     &format!("Parse error in annotation `{}`", annotation_token.lexeme()),
@@ -190,10 +191,10 @@ where
         let start = range.start;
 
         let expr = match token.kind() {
-            TokenKind::Comment => {
+            TokenKind::Comment(lexeme) => {
                 // Preserve the comments as expressions, may be useful for analysis passes (e.g. formatting)
                 // Comments are elided statically, before the evaluation pass.
-                Some(Expr::Comment(token.lexeme()))
+                Some(Expr::Comment(lexeme))
             }
             TokenKind::MultiLineWhitespace => {
                 // Preserve for formatter, will be elided statically, before the
@@ -201,9 +202,8 @@ where
                 Some(Expr::TextSeparator)
             }
             // Token::Char(c) => Some(Expr::Char(c)),
-            TokenKind::String => Some(Expr::String(token.lexeme())),
-            TokenKind::Symbol => {
-                let lexeme = token.lexeme();
+            TokenKind::String(lexeme) => Some(Expr::String(lexeme)),
+            TokenKind::Symbol(lexeme) => {
                 if lexeme.starts_with(':') {
                     let sym = lexeme.strip_prefix(':').unwrap().to_string();
                     Some(Expr::KeySymbol(sym))
@@ -222,20 +222,17 @@ where
                     Some(Expr::Symbol(lexeme))
                 }
             }
-            TokenKind::Number => {
+            TokenKind::Number(mut lexeme) => {
                 // #TODO more detailed Number error!
                 // #TODO error handling not enough, we need to add context, check error_stack
-
-                let mut lexeme = token.lexeme();
-
                 if lexeme.contains('.') {
                     // #TODO support radix for non-integers?
                     // #TODO find a better name for 'non-integer'.
                     match lexeme.parse::<f64>() {
                         Ok(n) => Some(Expr::Float(n)),
-                        Err(error) => {
+                        Err(pf_error) => {
                             let mut error = Error::new(ErrorKind::MalformedFloat);
-                            error.push_note(&format!("Invalid float: {error}"), Some(range));
+                            error.push_note(&format!("Invalid float: {pf_error}"), Some(range));
                             self.errors.push(error);
                             None
                         }
@@ -258,16 +255,16 @@ where
 
                     match i64::from_str_radix(&lexeme, radix) {
                         Ok(n) => Some(Expr::Int(n)),
-                        Err(error) => {
+                        Err(pi_error) => {
                             let mut error = Error::new(ErrorKind::MalformedInt);
-                            error.push_note(&format!("Invalid Int: {error}"), Some(range));
+                            error.push_note(&format!("Invalid Int: {pi_error}"), Some(range));
                             self.errors.push(error);
                             None
                         }
                     }
                 }
             }
-            TokenKind::Annotation => {
+            TokenKind::Annotation(_) => {
                 // #TODO support multiple annotations, e.g. `#[(min 1) (max 2)]`
 
                 if self.buffered_annotations.is_none() {

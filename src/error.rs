@@ -207,8 +207,11 @@ impl Error {
     }
 }
 
-// impl From<std::io::Error> for Error {
-//     fn from(value: std::io::Error) -> Self {
-//         Error::new(ErrorKind::Io(value), None, None)
-//     }
-// }
+impl From<std::io::Error> for Error {
+    fn from(value: std::io::Error) -> Self {
+        let mut error = Error::new(ErrorKind::Io(value));
+        // #TODO more detailed notes.
+        error.push_note("I/O error: {value}", None);
+        error
+    }
+}

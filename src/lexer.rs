@@ -311,24 +311,24 @@ impl<'a> Lexer<'a> {
 
             match ch {
                 '(' => {
-                    tokens.push(Token::from_kind(TokenKind::LeftParen, self.range()));
+                    tokens.push(Token::new(TokenKind::LeftParen, self.range()));
                 }
                 ')' => {
-                    tokens.push(Token::from_kind(TokenKind::RightParen, self.range()));
+                    tokens.push(Token::new(TokenKind::RightParen, self.range()));
                 }
                 // #TODO maybe should just rewrite [..] -> (Array ..)
                 '[' => {
-                    tokens.push(Token::from_kind(TokenKind::LeftBracket, self.range()));
+                    tokens.push(Token::new(TokenKind::LeftBracket, self.range()));
                 }
                 ']' => {
-                    tokens.push(Token::from_kind(TokenKind::RightBracket, self.range()));
+                    tokens.push(Token::new(TokenKind::RightBracket, self.range()));
                 }
                 // #TODO maybe should just rewrite {..} -> (Dict ..)
                 '{' => {
-                    tokens.push(Token::from_kind(TokenKind::LeftBrace, self.range()));
+                    tokens.push(Token::new(TokenKind::LeftBrace, self.range()));
                 }
                 '}' => {
-                    tokens.push(Token::from_kind(TokenKind::RightBrace, self.range()));
+                    tokens.push(Token::new(TokenKind::RightBrace, self.range()));
                 }
                 ';' => {
                     // #Insight
@@ -340,7 +340,7 @@ impl<'a> Lexer<'a> {
                     tokens.push(Token::comment(lexeme, self.range()));
                 }
                 '\'' => {
-                    tokens.push(Token::from_kind(TokenKind::Quote, self.range()));
+                    tokens.push(Token::new(TokenKind::Quote, self.range()));
                 }
                 '"' => {
                     let Some(ch1) = self.next_char() else {
@@ -450,10 +450,7 @@ impl<'a> Lexer<'a> {
                     let lines_count = self.scan_whitespace();
 
                     if lines_count > 1 {
-                        tokens.push(Token::from_kind(
-                            TokenKind::MultiLineWhitespace,
-                            self.range(),
-                        ));
+                        tokens.push(Token::new(TokenKind::MultiLineWhitespace, self.range()));
                     }
                 }
                 _ if ch.is_numeric() => {

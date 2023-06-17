@@ -1,13 +1,13 @@
-use crate::{ann::Ann, error::Error, eval::env::Env, expr::Expr};
+use crate::{ann::Ann, error::Error, eval::env::Env, expr::Expr, range::Range};
 
 /// Returns a char iterable for the chars in the string.
 pub fn string_chars(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
     let [this] = args else {
-        return Err(Error::invalid_arguments("`chars` requires `this` argument").into());
+        return Err(Error::invalid_arguments("`chars` requires `this` argument", Range::default())); // #TODO range upstream.
     };
 
     let Ann(Expr::String(this), ..) = this else {
-        return Err(Error::invalid_arguments("`this` argument should be a String").into());
+        return Err(Error::invalid_arguments("`this` argument should be a String", this.get_range()));
     };
 
     let mut exprs: Vec<Expr> = Vec::new();
@@ -21,11 +21,11 @@ pub fn string_chars(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> 
 
 pub fn string_constructor_from_chars(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
     let [chars] = args else {
-        return Err(Error::invalid_arguments("Requires `chars` argument").into());
+        return Err(Error::invalid_arguments("Requires `chars` argument", Range::default())); // #TODO range upstream.
     };
 
     let Ann(Expr::Array(exprs), ..) = chars else {
-        return Err(Error::invalid_arguments("`chars` argument should be a (Array Char)").into());
+        return Err(Error::invalid_arguments("`chars` argument should be a (Array Char)", chars.get_range()));
     };
 
     let mut chars: Vec<char> = Vec::new();
@@ -43,13 +43,13 @@ pub fn string_constructor_from_chars(args: &[Ann<Expr>], _env: &Env) -> Result<A
 
 // #TODO overload for string and char!
 
-pub fn char_uppercased(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Ranged<Error>> {
+pub fn char_uppercased(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
     let [this] = args else {
-        return Err(Error::invalid_arguments("`uppercased` requires `this` argument").into());
+        return Err(Error::invalid_arguments("`uppercased` requires `this` argument", Range::default())); // #TODO range upstream.
     };
 
     let Ann(Expr::Char(this), ..) = this else {
-        return Err(Error::invalid_arguments("`this` argument should be a Char").into());
+        return Err(Error::invalid_arguments("`this` argument should be a Char", this.get_range()));
     };
 
     // #TODO omg...
