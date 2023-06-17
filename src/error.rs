@@ -135,7 +135,7 @@ pub struct Error {
     pub kind: ErrorKind,
     /// The source text where the error occurred. Typically this field is filled
     /// at a second stage.
-    pub file_url: String,
+    pub file_path: String,
     pub notes: Vec<ErrorNote>,
     // #TODO leave hints for a future revision.
     // hint: Option<String>,
@@ -154,7 +154,7 @@ impl Error {
     pub fn new(kind: ErrorKind) -> Self {
         Self {
             kind,
-            file_url: "<input>".to_owned(), // #TODO find better marker.
+            file_path: "<input>".to_owned(), // #TODO find better marker.
             notes: Vec::new(),
         }
     }

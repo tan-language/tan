@@ -234,7 +234,7 @@ where
                         Ok(n) => Some(Expr::Float(n)),
                         Err(pf_error) => {
                             let mut error = Error::new(ErrorKind::MalformedFloat);
-                            error.push_note(&format!("Invalid float: {pf_error}"), Some(range));
+                            error.push_note(&format!("{pf_error}"), Some(range));
                             self.errors.push(error);
                             None
                         }
@@ -259,7 +259,7 @@ where
                         Ok(n) => Some(Expr::Int(n)),
                         Err(pi_error) => {
                             let mut error = Error::new(ErrorKind::MalformedInt);
-                            error.push_note(&format!("Invalid Int: {pi_error}"), Some(range));
+                            error.push_note(&format!("{pi_error}"), Some(range));
                             self.errors.push(error);
                             None
                         }

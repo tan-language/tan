@@ -93,11 +93,16 @@ pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Ann<Expr>, V
         let result = resolve_string(input, env);
 
         let Ok(mut exprs) = result else {
-            let err = result.unwrap_err();
+            let mut errors = result.unwrap_err();
+
+            for error in &mut errors {
+                error.file_path = file_path.clone();
+            }
+
             // #TODO associate input with the error.
             // #TODO better error handling here!
             // #TODO maybe continue parsing/resolving to find more errors?
-            return Err(err);
+            return Err(errors);
         };
 
         resolved_exprs.append(&mut exprs);
