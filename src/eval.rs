@@ -402,10 +402,9 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                             if let Err(errors) = result {
                                 // #TODO precise formating is _required_ here!
                                 // eprintln!("{}", format_errors(&errors));
-                                dbg!(errors);
-                            } else {
-                                ()
-                            }
+                                // dbg!(errors);
+                                return Err(Error::failed_use(&module_path, errors));
+                            };
 
                             // #TODO what could we return here?
                             Ok(Expr::One.into())

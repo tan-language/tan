@@ -65,7 +65,9 @@ pub enum ErrorKind {
     UndefinedFunction(String, String), // #TODO maybe pass the whole Symbol expression?
     InvalidArguments,
     NotInvocable, // #TODO maybe the non-invocable Annotated<Expr> should be the param?
-    FailedUse,    // #TODO temp, better name needed, rethink!
+    // #TODO better name needed.
+    // #TODO is this a run-time error?
+    FailedUse(String, Vec<Error>),
 
     // Runtime errors
     Io(std::io::Error),
@@ -88,7 +90,7 @@ impl fmt::Display for ErrorKind {
                 format!("function `{sym}` with signature `{signature}` is undefined")
             }
             ErrorKind::Io(io_err) => format!("i/o error: {io_err}"),
-            ErrorKind::FailedUse => "failed use".to_owned(),
+            ErrorKind::FailedUse(url, _) => format!("failed use `{url}`"),
             ErrorKind::InvalidArguments => "invalid arguments".to_owned(),
             ErrorKind::NotInvocable => "not invocable".to_owned(),
         };
@@ -130,6 +132,9 @@ impl ErrorNote {
 
 // #insight We keep the file url (instead of the module url) for more precise error reporting.
 
+// #TODO find better pseudo-name.
+const INPUT_PSEUDO_FILE_PATH: &str = "<input>";
+
 #[derive(Debug)]
 pub struct Error {
     /// The kind of the error.
@@ -154,7 +159,7 @@ impl Error {
     pub fn new(kind: ErrorKind) -> Self {
         Self {
             kind,
-            file_path: "<input>".to_owned(), // #TODO find better marker.
+            file_path: INPUT_PSEUDO_FILE_PATH.to_owned(),
             notes: Vec::new(),
             hint: None,
         }
@@ -192,6 +197,13 @@ impl Error {
         error
     }
 
+    pub fn failed_use(url: &str, errors: Vec<Error>) -> Self {
+        let error = Self::new(ErrorKind::FailedUse(url.to_owned(), errors));
+        // #TODO url is _not_ the error.file_path, we need the caller module path.
+        // error.file_path = url.to_owned();
+        error
+    }
+
     pub fn kind(&self) -> &ErrorKind {
         &self.kind
     }
@@ -207,6 +219,10 @@ impl Error {
     // pub fn notes(&self) -> &[ErrorNote] {
     //     &self.notes
     // }
+
+    pub fn has_file_path(&self) -> bool {
+        self.file_path != INPUT_PSEUDO_FILE_PATH
+    }
 
     pub fn push_note(&mut self, note: &str, range: Option<Range>) {
         self.notes.push(ErrorNote::new(note, range));

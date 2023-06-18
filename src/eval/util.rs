@@ -17,7 +17,7 @@ use super::{env::Env, eval};
 
 // #TODO add unit test.
 pub fn compute_module_file_paths(path: impl AsRef<Path>) -> std::io::Result<Vec<String>> {
-    let module_path = path.as_ref();
+    let module_path = path.as_ref().canonicalize()?;
 
     let mut module_file_paths: Vec<String> = Vec::new();
     // let mut buf: PathBuf;
@@ -51,11 +51,11 @@ pub fn compute_module_file_paths(path: impl AsRef<Path>) -> std::io::Result<Vec<
         for file_path in file_paths {
             let file_path = file_path?.path();
             if has_tan_extension(&file_path) {
-                module_file_paths.push(file_path.display().to_string());
+                module_file_paths.push(file_path.canonicalize()?.display().to_string());
             }
         }
     } else if has_tan_extension(&module_path) {
-        module_file_paths.push(module_path.display().to_string());
+        module_file_paths.push(module_path.canonicalize()?.display().to_string());
     } else {
         return Err(std::io::Error::new(
             std::io::ErrorKind::InvalidInput,
@@ -79,8 +79,7 @@ pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Ann<Expr>, V
 
     let mut resolved_exprs: Vec<Ann<Expr>> = Vec::new();
 
-    // #TODO inject the env from the outside.
-    // let mut env = Env::prelude();
+    // #TODO return Expr::Module, add module metadata: name, path, exports, etc.
 
     for file_path in file_paths {
         // #TODO keep all inputs in magic variable in env, associate url/key with error.
