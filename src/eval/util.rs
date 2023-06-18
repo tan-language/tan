@@ -69,8 +69,38 @@ pub fn compute_module_file_paths(path: impl AsRef<Path>) -> std::io::Result<Vec<
     Ok(module_file_paths)
 }
 
-// #TODO may be useful in ...use.
+// #TODO also consider 'rusty' notation: `(use this.sub-module)`
+
+// #insight It's also used in ..use
+
 pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Ann<Expr>, Vec<Error>> {
+    // #TODO more general solution needed.
+
+    let mut path = path.as_ref().to_string_lossy().into_owned();
+
+    // #TODO what is a good coding convention for 'system' variables?
+    // #TODO support read-only 'system' variables.
+    if let Some(base_path) = env.get("*current-module-path*") {
+        let Ann(Expr::String(base_path), _) = base_path else {
+            // #TODO!
+            panic!("Invalid current-module-path");
+        };
+
+        // Canonicalize the path using the current-module-path as the base path.
+        if path.starts_with("./") {
+            path = format!("{base_path}{}", path.strip_prefix(".").unwrap());
+        } else if !path.starts_with("/") {
+            // #TODO consider not supporting this, always require the "./"
+            path = format!("{base_path}/{}", path);
+        }
+    }
+
+    // #TODO this is not really working, we need recursive, 'folded' environments, but it will do for the moment.
+    env.insert(
+        "*current-module-path*",
+        Ann::new(Expr::String(path.clone())),
+    );
+
     let file_paths = compute_module_file_paths(path);
 
     let Ok(file_paths) = file_paths else {
