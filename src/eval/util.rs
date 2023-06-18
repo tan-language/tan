@@ -15,6 +15,18 @@ use super::{env::Env, eval};
 //     todo!()
 // }
 
+// #TODO
+// Alternative module-path syntax:
+//
+// (use "@gmosx/playground/ray")
+// (use gmosx.playground.ray)
+//
+// (use "./sub/module")
+// (use this.sub.module)
+//
+// (use "@std/math" (pi tau))
+// (use std.math (pi tau))
+
 // #TODO add unit test.
 pub fn compute_module_file_paths(path: impl AsRef<Path>) -> std::io::Result<Vec<String>> {
     let module_path = path.as_ref().canonicalize()?;
