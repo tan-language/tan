@@ -2,6 +2,8 @@ use std::fmt;
 
 use crate::range::Range;
 
+use super::comment::CommentKind;
+
 // #insight
 // There is no need for an EOF Token. The end of the Token list marks the end
 // of the input.
@@ -46,7 +48,7 @@ pub enum TokenKind {
     Symbol(String),
     Number(String),
     Annotation(String),
-    Comment(String),
+    Comment(String, CommentKind),
 }
 
 impl fmt::Display for TokenKind {
@@ -65,7 +67,7 @@ impl fmt::Display for TokenKind {
             TokenKind::Symbol(lexeme) => lexeme,
             TokenKind::Number(lexeme) => lexeme,
             TokenKind::Annotation(lexeme) => lexeme,
-            TokenKind::Comment(lexeme) => lexeme,
+            TokenKind::Comment(lexeme, _) => lexeme,
             TokenKind::MultiLineWhitespace => "MultiLineWhitespace", // #TODO what should we do here? #Idea convert to comment?
         })
     }
@@ -116,9 +118,9 @@ impl Token {
         }
     }
 
-    pub fn comment(lexeme: String, range: Range) -> Self {
+    pub fn comment(lexeme: String, range: Range, comment_kind: CommentKind) -> Self {
         Self {
-            kind: TokenKind::Comment(lexeme),
+            kind: TokenKind::Comment(lexeme, comment_kind),
             range,
         }
     }

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use crate::{
     expr::{format_value, Expr},
-    range::Range,
+    range::{Position, Range},
 };
 
 // #TODO somehow annotations should trigger macros.
@@ -154,36 +154,64 @@ impl<T> From<T> for Ann<T> {
     }
 }
 
+// #TODO implement Defer into Expr!
+
 // #TODO convert to the Expr::Range variant.
+// #TODO convert position to Dict Expr.
+
+pub fn position_to_expr(position: &Position) -> Expr {
+    let mut map: HashMap<String, Expr> = HashMap::new();
+    map.insert("index".to_owned(), Expr::Int(position.index as i64));
+    map.insert("line".to_owned(), Expr::Int(position.line as i64));
+    map.insert("col".to_owned(), Expr::Int(position.line as i64));
+    Expr::Dict(map)
+}
+
+pub fn expr_to_position(expr: &Expr) -> Position {
+    if let Expr::Dict(dict) = expr {
+        let Some(Expr::Int(index)) = dict.get("index") else {
+            // #TODO fix me!
+            return Position::default();
+        };
+
+        let Some(Expr::Int(line)) = dict.get("line") else {
+            // #TODO fix me!
+            return Position::default();
+        };
+
+        let Some(Expr::Int(col)) = dict.get("col") else {
+            // #TODO fix me!
+            return Position::default();
+        };
+
+        return Position {
+            index: *index as usize,
+            line: *line as usize,
+            col: *col as usize,
+        };
+    }
+
+    // #TODO fix me!
+    return Position::default();
+}
 
 pub fn range_to_expr(range: &Range) -> Expr {
-    let terms = vec![
-        Ann::new(Expr::Int(range.start as i64)),
-        Ann::new(Expr::Int(range.end as i64)),
-    ];
-    Expr::List(terms)
+    let start = position_to_expr(&range.start);
+    let end = position_to_expr(&range.end);
+
+    Expr::Array(vec![start, end])
 }
 
 // #TODO nasty code.
 pub fn expr_to_range(expr: &Expr) -> Range {
     // #TODO error checking?
-    let Expr::List(terms) = expr else {
-        // #TODO hmm...
-        return Range::default();
-    };
-
-    let Ann(Expr::Int(start), _) = terms[0] else {
-        // #TODO hmm...
-        return Range::default();
-    };
-
-    let Ann(Expr::Int(end), _) = terms[1] else {
+    let Expr::Array(terms) = expr else {
         // #TODO hmm...
         return Range::default();
     };
 
     Range {
-        start: start as usize,
-        end: end as usize,
+        start: expr_to_position(&terms[0]),
+        end: expr_to_position(&terms[1]),
     }
 }

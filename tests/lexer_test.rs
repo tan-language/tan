@@ -29,9 +29,9 @@ fn lex_returns_tokens() {
     assert_eq!(tokens.len(), 8);
     assert!(matches!(tokens[0].kind(), TokenKind::LeftParen));
     assert!(matches!(tokens[2].kind(), TokenKind::Symbol(lexeme) if lexeme == "+"));
-    assert_eq!(tokens[2].range().start, 2);
+    assert_eq!(tokens[2].range().start.index, 2);
     assert!(matches!(tokens[3].kind(), TokenKind::Number(..)));
-    assert_eq!(tokens[3].range().start, 4);
+    assert_eq!(tokens[3].range().start.index, 4);
     // #TODO add more assertions.
 }
 
@@ -43,19 +43,19 @@ fn lex_parses_comments() {
     let tokens = tokens.unwrap();
 
     assert!(
-        matches!(tokens[0].kind(), TokenKind::Comment(lexeme) if lexeme == "; This is a comment")
+        matches!(tokens[0].kind(), TokenKind::Comment(lexeme, ..) if lexeme == "; This is a comment")
     );
     assert!(
-        matches!(tokens[1].kind(), TokenKind::Comment(lexeme) if lexeme == ";; Another comment")
+        matches!(tokens[1].kind(), TokenKind::Comment(lexeme, ..) if lexeme == ";; Another comment")
     );
 
     let r1 = &tokens[1].range();
-    assert_eq!(r1.start, 20);
-    assert_eq!(r1.end, 38);
+    assert_eq!(r1.start.index, 20);
+    assert_eq!(r1.end.index, 38);
 
     let r2 = &tokens[6].range();
-    assert_eq!(r2.start, 54);
-    assert_eq!(r2.end, input.len());
+    assert_eq!(r2.start.index, 54);
+    assert_eq!(r2.end.index, input.len());
 }
 
 // `--` line comments no longer supported.
@@ -180,8 +180,10 @@ fn lex_reports_unterminated_strings() {
 
     let range = err.range().unwrap();
 
-    assert_eq!(range.start, 7);
-    assert_eq!(range.end, 14);
+    // #TODO add tests for line, col.
+
+    assert_eq!(range.start.index, 7);
+    assert_eq!(range.end.index, 14);
 }
 
 #[test]
@@ -206,5 +208,5 @@ fn lex_reports_unterminated_annotations() {
 
     let range = err.range().unwrap();
 
-    assert_eq!(range.start, 21);
+    assert_eq!(range.start.index, 21);
 }

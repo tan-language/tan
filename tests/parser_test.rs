@@ -54,8 +54,8 @@ fn parse_reports_unexpected_tokens() {
 
     let range = err.range().unwrap();
 
-    assert_eq!(range.start, 0);
-    assert_eq!(range.end, 1);
+    assert_eq!(range.start.index, 0);
+    assert_eq!(range.end.index, 1);
 
     let input = "]";
     let tokens = lex_tokens(input);
@@ -73,8 +73,8 @@ fn parse_reports_unexpected_tokens() {
 
     let range = err.range().unwrap();
 
-    assert_eq!(range.start, 0);
-    assert_eq!(range.end, 1);
+    assert_eq!(range.start.index, 0);
+    assert_eq!(range.end.index, 1);
 
     let input = "}";
     let tokens = lex_tokens(input);
@@ -90,8 +90,8 @@ fn parse_reports_unexpected_tokens() {
 
     let range = err.range().unwrap();
 
-    assert_eq!(range.start, 0);
-    assert_eq!(range.end, 1);
+    assert_eq!(range.start.index, 0);
+    assert_eq!(range.end.index, 1);
 }
 
 #[test]
@@ -121,8 +121,8 @@ fn parse_reports_quote_errors() {
 
     let range = err.range().unwrap();
 
-    assert_eq!(range.start, 0);
-    assert_eq!(range.end, 1);
+    assert_eq!(range.start.index, 0);
+    assert_eq!(range.end.index, 1);
 
     // #Insight we should allow consecutive quotes, emit a linter warning instead!
 
@@ -183,8 +183,8 @@ fn parse_reports_unterminated_lists() {
 
     let range = err.range().unwrap();
 
-    assert_eq!(range.start, 20);
-    assert_eq!(range.end, 34);
+    assert_eq!(range.start.index, 20);
+    assert_eq!(range.end.index, 34);
 }
 
 #[test]
@@ -366,5 +366,5 @@ fn parse_keeps_comments() {
     let exprs = parse_string_all(input).unwrap();
 
     let expr = &exprs[0];
-    assert!(matches!(expr, Ann(Expr::Comment(x), ..) if x == "; This is a comment"));
+    assert!(matches!(expr, Ann(Expr::Comment(x, ..), ..) if x == "; This is a comment"));
 }
