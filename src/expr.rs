@@ -3,7 +3,7 @@ pub mod expr_transform;
 
 use std::{collections::HashMap, fmt, rc::Rc};
 
-use crate::{ann::Ann, error::Error, eval::env::Env};
+use crate::{ann::Ann, error::Error, eval::env::Env, lexer::comment::CommentKind};
 
 // #TODO separate variant for list and apply/call (can this be defined statically?)
 // #TODO List, MaybeList, Call
@@ -25,6 +25,8 @@ use crate::{ann::Ann, error::Error, eval::env::Env};
 
 // #TODO not all Expr variants really need Ann, maybe the annotation should be internal to Expr?
 
+// #TODO consider Visitor pattern instead of enum?
+
 // A function that accepts a list of Exprs and returns an Expr.
 pub type ExprFn = dyn Fn(&[Ann<Expr>], &Env) -> Result<Ann<Expr>, Error>;
 
@@ -36,10 +38,10 @@ pub type ExprFn = dyn Fn(&[Ann<Expr>], &Env) -> Result<Ann<Expr>, Error>;
 /// rewriting to a fixed point.
 pub enum Expr {
     // --- Low-level ---
-    One,             // Unit == List(Vec::new())
-    Comment(String), // #TODO consider renaming to Remark (REM)
-    TextSeparator,   // for the formatter.
-    Bool(bool),      // #TODO remove?
+    One,                          // Unit == List(Vec::new())
+    Comment(String, CommentKind), // #TODO consider renaming to Remark (REM)
+    TextSeparator,                // for the formatter.
+    Bool(bool),                   // #TODO remove?
     Int(i64),
     Float(f64),
     Symbol(String),
@@ -48,6 +50,7 @@ pub enum Expr {
     String(String),
     // #TODO better name for 'generic' List, how about `Cons` or `ConsList` or `Cell`?
     // #TODO add 'quoted' List -> Array!
+    // #TODO do we really need Vec here? Maybe Arc<[Expr]> is enough?
     List(Vec<Ann<Expr>>),
     // #TODO should Array contain Ann<Expr>?
     Array(Vec<Expr>),
@@ -74,7 +77,7 @@ impl fmt::Debug for Expr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let text = match self {
             Expr::One => "()".to_owned(),
-            Expr::Comment(s) => format!("Comment({s})"),
+            Expr::Comment(s, _) => format!("Comment({s})"),
             Expr::TextSeparator => "<TEXT-SEPARATOR>".to_owned(),
             Expr::Bool(b) => format!("Bool({b})"),
             Expr::Symbol(s) => format!("Symbol({s})"),
@@ -114,7 +117,7 @@ impl fmt::Display for Expr {
         f.write_str(
             (match self {
                 Expr::One => "()".to_owned(),
-                Expr::Comment(s) => format!(r#"(rem "{s}")"#), // #TODO what would be a good representation?
+                Expr::Comment(s, _) => format!(r#"(rem "{s}")"#), // #TODO what would be a good representation?
                 Expr::TextSeparator => "<TS>".to_owned(),
                 Expr::Bool(b) => b.to_string(),
                 Expr::Int(n) => n.to_string(),

@@ -6,7 +6,7 @@ use crate::{
         token::{Token, TokenKind},
         Lexer,
     },
-    range::Range,
+    range::{Position, Range},
     util::Break,
 };
 
@@ -30,7 +30,7 @@ where
 {
     tokens: I::IntoIter,
     buffered_annotations: Option<Vec<Token>>,
-    index: usize,
+    current_position: Position,
     lookahead: Vec<Token>,
     errors: Vec<Error>,
 }
@@ -45,7 +45,7 @@ where
         Self {
             tokens,
             buffered_annotations: None,
-            index: 0,
+            current_position: Position::default(),
             lookahead: Vec::new(),
             errors: Vec::new(),
         }
@@ -55,12 +55,12 @@ where
     // #TODO refactor
     fn next_token(&mut self) -> Option<Token> {
         if let Some(token) = self.lookahead.pop() {
-            self.index = token.range().end;
+            self.current_position = token.range().end;
             return Some(token);
         }
 
         if let Some(token) = self.tokens.next() {
-            self.index = token.range().end;
+            self.current_position = token.range().end;
             Some(token)
         } else {
             None
@@ -68,7 +68,7 @@ where
     }
 
     fn put_back_token(&mut self, token: Token) {
-        self.index = token.range().start;
+        self.current_position = token.range().start;
         self.lookahead.push(token);
     }
 
@@ -188,13 +188,13 @@ where
 
         let range = token.range();
 
-        let start = range.start;
+        let start_position = range.start;
 
         let expr = match token.kind() {
-            TokenKind::Comment(lexeme) => {
+            TokenKind::Comment(lexeme, comment_kind) => {
                 // Preserve the comments as expressions, may be useful for analysis passes (e.g. formatting)
                 // Comments are elided statically, before the evaluation pass.
-                Some(Expr::Comment(lexeme.clone()))
+                Some(Expr::Comment(lexeme.clone(), *comment_kind))
             }
             TokenKind::MultiLineWhitespace => {
                 // Preserve for formatter, will be elided statically, before the
@@ -309,7 +309,7 @@ where
                 Some(Expr::List(vec![Expr::symbol("quot").into(), target]))
             }
             TokenKind::LeftParen => {
-                let terms = self.parse_many(TokenKind::RightParen, start)?;
+                let terms = self.parse_many(TokenKind::RightParen, start_position)?;
 
                 if terms.is_empty() {
                     // #TODO do we _really_ want this or just return a list?
@@ -349,7 +349,7 @@ where
                 // Don't optimize to `Expr::Array` here, leave the parser expr
                 // 'normalized as it is beneficial for some kinds of analysis.
 
-                let exprs = self.parse_many(TokenKind::RightBracket, start)?;
+                let exprs = self.parse_many(TokenKind::RightBracket, start_position)?;
 
                 let mut items = vec![Ann::with_range(Expr::symbol("Array"), range)];
 
@@ -373,7 +373,7 @@ where
                 // #TODO add error checking!
                 // #TODO optimize.
 
-                let exprs = self.parse_many(TokenKind::RightBrace, start)?;
+                let exprs = self.parse_many(TokenKind::RightBrace, start_position)?;
 
                 let mut items = vec![Ann::with_range(Expr::symbol("Dict"), range)];
 
@@ -398,7 +398,7 @@ where
 
         match expr {
             Some(expr) => {
-                let range = start..self.index;
+                let range = start_position..self.current_position;
                 Ok(Some(self.attach_buffered_annotations(expr, range)))
             }
             _ => Ok(None),
@@ -409,13 +409,13 @@ where
     pub fn parse_many(
         &mut self,
         delimiter: TokenKind,
-        start: usize,
+        start_position: Position,
     ) -> Result<Vec<Ann<Expr>>, Break> {
         let mut exprs = Vec::new();
 
         loop {
             let Some(token) = self.next_token() else {
-                let range = start..self.index;
+                let range = start_position..self.current_position;
                 let mut error = Error::new(ErrorKind::UnterminatedList);
                 error.push_note(
                     "List not terminated",

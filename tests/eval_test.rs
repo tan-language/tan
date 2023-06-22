@@ -114,8 +114,8 @@ fn eval_reports_let_errors() {
 
     let range = err.notes.first().unwrap().range.as_ref().unwrap();
 
-    assert_eq!(range.start, 9);
-    assert_eq!(range.end, 11);
+    assert_eq!(range.start.index, 9);
+    assert_eq!(range.end.index, 11);
 }
 
 // #TODO extract full testing from file.

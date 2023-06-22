@@ -1,13 +1,17 @@
+pub mod comment;
 pub mod token;
 
 use std::str::Chars;
 
 use crate::{
     error::{Error, ErrorKind},
-    range::Range,
+    range::{Position, Range},
 };
 
-use self::token::{Token, TokenKind};
+use self::{
+    comment::CommentKind,
+    token::{Token, TokenKind},
+};
 
 // https://en.wikipedia.org/wiki/Lexical_analysis
 
@@ -59,8 +63,8 @@ fn is_eol(ch: char) -> bool {
 /// The tokens are associated with ranges (ranges within the input text).
 pub struct Lexer<'a> {
     chars: Chars<'a>,
-    start: usize,
-    index: usize,
+    current_position: Position,
+    start_position: Position,
     lookahead: Vec<char>,
     errors: Vec<Error>,
 }
@@ -70,8 +74,8 @@ impl<'a> Lexer<'a> {
     pub fn new(input: &'a str) -> Self {
         Self {
             chars: input.chars(),
-            start: 0,
-            index: 0,
+            current_position: Position::default(),
+            start_position: Position::default(),
             lookahead: Vec::new(),
             errors: Vec::new(),
         }
@@ -86,12 +90,14 @@ impl<'a> Lexer<'a> {
     // #TODO refactor
     fn next_char(&mut self) -> Option<char> {
         if let Some(ch) = self.lookahead.pop() {
-            self.index += 1;
+            self.current_position.index += 1;
+            self.current_position.col += 1;
             return Some(ch);
         }
 
         if let Some(ch) = self.chars.next() {
-            self.index += 1;
+            self.current_position.index += 1;
+            self.current_position.col += 1;
             Some(ch)
         } else {
             None
@@ -100,12 +106,13 @@ impl<'a> Lexer<'a> {
 
     fn put_back_char(&mut self, ch: char) {
         self.lookahead.push(ch);
-        self.index -= 1;
+        self.current_position.index -= 1;
+        self.current_position.col -= 1;
     }
 
     // #TODO try to remove this!
     fn range(&self) -> Range {
-        self.start..self.index
+        self.start_position..self.current_position
     }
 
     // #TODO implement scanners with macro or a common function.
@@ -142,12 +149,18 @@ impl<'a> Lexer<'a> {
                 break;
             };
 
-            if !(is_whitespace(ch) || is_eol(ch)) {
+            // #insight
+            // is_whitespace returns true for EOL.
+
+            if !is_whitespace(ch) {
                 self.put_back_char(ch);
                 break;
             }
 
             if is_eol(ch) {
+                // #TODO extract position method!
+                self.current_position.line += 1;
+                self.current_position.col = 0;
                 lines_count += 1;
             }
         }
@@ -302,8 +315,10 @@ impl<'a> Lexer<'a> {
     pub fn lex(&mut self) -> Result<Vec<Token>, Vec<Error>> {
         let mut tokens: Vec<Token> = Vec::new();
 
+        let mut previous_token_line = 0;
+
         'outer: loop {
-            self.start = self.index;
+            self.start_position = self.current_position;
 
             let Some(ch) = self.next_char() else {
                 break 'outer;
@@ -337,7 +352,15 @@ impl<'a> Lexer<'a> {
                     // as word separator in names.
                     self.put_back_char(ch);
                     let lexeme = self.scan_line();
-                    tokens.push(Token::comment(lexeme, self.range()));
+
+                    // #TODO temp solution.
+                    let comment_kind = if self.current_position.line == previous_token_line {
+                        CommentKind::Inline
+                    } else {
+                        CommentKind::Line
+                    };
+
+                    tokens.push(Token::comment(lexeme, self.range(), comment_kind));
                 }
                 '\'' => {
                     tokens.push(Token::new(TokenKind::Quote, self.range()));
@@ -424,7 +447,7 @@ impl<'a> Lexer<'a> {
                     }
                 }
                 '#' => {
-                    if self.index == 1 {
+                    if self.current_position.index == 1 {
                         if let Some(ch1) = self.next_char() {
                             if ch1 == '!' {
                                 // Shebang line detected, skip.
@@ -464,6 +487,8 @@ impl<'a> Lexer<'a> {
                     tokens.push(Token::symbol(lexeme, self.range()));
                 }
             }
+
+            previous_token_line = self.current_position.line;
         }
 
         if self.errors.is_empty() {
