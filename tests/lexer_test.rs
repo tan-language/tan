@@ -32,6 +32,8 @@ fn lex_returns_tokens() {
     assert_eq!(tokens[2].range().start.index, 2);
     assert!(matches!(tokens[3].kind(), TokenKind::Number(..)));
     assert_eq!(tokens[3].range().start.index, 4);
+    assert_eq!(tokens[3].range().start.line, 0);
+    assert_eq!(tokens[3].range().start.col, tokens[3].range().start.index);
     // #TODO add more assertions.
 }
 
@@ -51,7 +53,11 @@ fn lex_parses_comments() {
 
     let r1 = &tokens[1].range();
     assert_eq!(r1.start.index, 20);
+    assert_eq!(r1.start.line, 1);
+    assert_eq!(r1.start.col, 0);
     assert_eq!(r1.end.index, 38);
+    assert_eq!(r1.end.line, 1);
+    assert_eq!(r1.end.col, 18);
 
     let r2 = &tokens[6].range();
     assert_eq!(r2.start.index, 54);
