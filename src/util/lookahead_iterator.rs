@@ -6,19 +6,6 @@ where
     lookahead: Vec<T>,
 }
 
-// impl<T, I> IntoIterator for LookaheadIterator<T, I>
-// where
-//     I: IntoIterator<Item = T>,
-// {
-//     type Item = T;
-
-//     type IntoIter = I::IntoIter;
-
-//     fn into_iter(self) -> Self::IntoIter {
-//         todo!()
-//     }
-// }
-
 impl<T, I> LookaheadIterator<T, I>
 where
     I: IntoIterator<Item = T>,
