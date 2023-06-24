@@ -7,7 +7,7 @@ use crate::{
         Lexer,
     },
     range::{Position, Range},
-    util::Break,
+    util::{lookahead_iterator::LookaheadIterator, Break},
 };
 
 // #TODO no need to keep iterator as state in parser!
@@ -21,6 +21,8 @@ use crate::{
 // #Insight
 // We move the tokens into the parser to simplify the code. The tokens are useless outside the parser.
 
+// #TODO can we remove the generics shenanigans form Parser?
+
 /// The Parser performs the syntactic analysis stage of the compilation pipeline.
 /// The input token stream is reduced into and Abstract Syntax Tree (AST).
 /// The nodes of the AST are associated with annotations.
@@ -28,10 +30,9 @@ pub struct Parser<I>
 where
     I: IntoIterator<Item = Token>,
 {
-    tokens: I::IntoIter,
+    tokens: LookaheadIterator<Token, I>,
     buffered_annotations: Option<Vec<Token>>,
     current_position: Position,
-    lookahead: Vec<Token>,
     errors: Vec<Error>,
 }
 
@@ -40,36 +41,27 @@ where
     I: IntoIterator<Item = Token>,
 {
     pub fn new(tokens: I) -> Self {
-        let tokens = tokens.into_iter();
-
         Self {
-            tokens,
+            tokens: LookaheadIterator::new(tokens.into_iter()),
             buffered_annotations: None,
             current_position: Position::default(),
-            lookahead: Vec::new(),
             errors: Vec::new(),
         }
     }
 
-    // #TODO unit test
-    // #TODO refactor
     fn next_token(&mut self) -> Option<Token> {
-        if let Some(token) = self.lookahead.pop() {
+        let maybe_token = self.tokens.next();
+
+        if let Some(ref token) = maybe_token {
             self.current_position = token.range().end;
-            return Some(token);
         }
 
-        if let Some(token) = self.tokens.next() {
-            self.current_position = token.range().end;
-            Some(token)
-        } else {
-            None
-        }
+        maybe_token
     }
 
     fn put_back_token(&mut self, token: Token) {
         self.current_position = token.range().start;
-        self.lookahead.push(token);
+        self.tokens.put_back(token);
     }
 
     /// Wrap the `expr` with the buffered (prefix) annotations. The annotations

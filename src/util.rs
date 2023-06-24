@@ -3,6 +3,8 @@
 
 // #TODO consider using `name` instead of `symbol`?
 
+pub mod lookahead_iterator;
+
 use std::fmt;
 
 /// Returns true if `sym` is reserved.
