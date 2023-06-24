@@ -43,7 +43,7 @@ pub fn parse_string(input: impl AsRef<str>) -> Result<Ann<Expr>, Vec<Error>> {
     let mut lexer = Lexer::new(input);
     let tokens = lexer.lex()?;
 
-    let mut parser = Parser::new(tokens);
+    let mut parser = Parser::new(&tokens);
     let mut expr = parser.parse()?;
 
     // #TODO temp solution
@@ -59,7 +59,7 @@ pub fn parse_string_all(input: impl AsRef<str>) -> Result<Vec<Ann<Expr>>, Vec<Er
     let mut lexer = Lexer::new(input);
     let tokens = lexer.lex()?;
 
-    let mut parser = Parser::new(tokens);
+    let mut parser = Parser::new(&tokens);
     let exprs = parser.parse()?;
 
     Ok(exprs)

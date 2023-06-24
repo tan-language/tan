@@ -22,7 +22,7 @@ fn lex_tokens(input: &str) -> Vec<Token> {
 fn parse_handles_an_empty_token_list() {
     let input = &read_input("empty.tan");
     let tokens = lex_tokens(input);
-    let mut parser = Parser::new(tokens);
+    let mut parser = Parser::new(&tokens);
     let expr = parser.parse().unwrap();
     assert_eq!(expr.len(), 0);
 }
@@ -31,7 +31,7 @@ fn parse_handles_an_empty_token_list() {
 fn parse_handles_multiple_expressions() {
     let input = &read_input("multiple-expressions.tan");
     let tokens = lex_tokens(input);
-    let mut parser = Parser::new(tokens);
+    let mut parser = Parser::new(&tokens);
     let expr = parser.parse().unwrap();
 
     // The comment, TextSeparator, and 3 expressions.
@@ -42,7 +42,7 @@ fn parse_handles_multiple_expressions() {
 fn parse_reports_unexpected_tokens() {
     let input = ")";
     let tokens = lex_tokens(input);
-    let mut parser = Parser::new(tokens);
+    let mut parser = Parser::new(&tokens);
 
     let result = parser.parse();
     assert!(result.is_err());
@@ -59,7 +59,7 @@ fn parse_reports_unexpected_tokens() {
 
     let input = "]";
     let tokens = lex_tokens(input);
-    let mut parser = Parser::new(tokens);
+    let mut parser = Parser::new(&tokens);
 
     let result = parser.parse();
     assert!(result.is_err());
@@ -78,7 +78,7 @@ fn parse_reports_unexpected_tokens() {
 
     let input = "}";
     let tokens = lex_tokens(input);
-    let mut parser = Parser::new(tokens);
+    let mut parser = Parser::new(&tokens);
 
     let result = parser.parse();
     assert!(result.is_err());
@@ -98,7 +98,7 @@ fn parse_reports_unexpected_tokens() {
 fn parse_reports_multiple_unexpected_tokens() {
     let input = "(do (let a ]) (le b ]] 1))";
     let tokens = lex_tokens(input);
-    let mut parser = Parser::new(tokens);
+    let mut parser = Parser::new(&tokens);
 
     let result = parser.parse();
     assert!(result.is_err());
@@ -145,7 +145,7 @@ fn parse_reports_quote_errors() {
 fn parse_handles_one() {
     let input = "()";
     let tokens = lex_tokens(input);
-    let mut parser = Parser::new(tokens);
+    let mut parser = Parser::new(&tokens);
 
     let expr = parser.parse().unwrap();
 
@@ -160,7 +160,7 @@ fn parse_handles_one() {
 fn parse_handles_a_simple_expression() {
     let input = &read_input("hello-world.tan");
     let tokens = lex_tokens(input);
-    let mut parser = Parser::new(tokens);
+    let mut parser = Parser::new(&tokens);
 
     let result = parser.parse();
     dbg!(&result);
@@ -171,7 +171,7 @@ fn parse_reports_unterminated_lists() {
     let filename = "unterminated-list-expr.tan";
     let input = &read_input(filename);
     let tokens = lex_tokens(input);
-    let mut parser = Parser::new(tokens);
+    let mut parser = Parser::new(&tokens);
 
     let result = parser.parse();
     assert!(result.is_err());
@@ -193,7 +193,7 @@ fn parse_handles_annotations() {
     (let a #zonk #Int8 25 b #(inline true) 1)
     "#;
     let tokens = lex_tokens(input);
-    let mut parser = Parser::new(tokens);
+    let mut parser = Parser::new(&tokens);
 
     let expr = parser.parse().unwrap();
     dbg!(&expr);
@@ -203,7 +203,7 @@ fn parse_handles_annotations() {
 fn parse_handles_multiline_whitespace() {
     let input = "(+ 1 2) \n\n(+ 3 4)";
     let tokens = lex_tokens(input);
-    let mut parser = Parser::new(tokens);
+    let mut parser = Parser::new(&tokens);
 
     let expr = parser.parse().unwrap();
     dbg!(&expr);

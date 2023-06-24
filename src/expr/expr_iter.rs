@@ -75,7 +75,7 @@ mod tests {
         let mut lexer = Lexer::new(input);
         let tokens = lexer.lex().unwrap();
 
-        let mut parser = Parser::new(tokens);
+        let mut parser = Parser::new(&tokens);
         let expr = parser.parse().unwrap();
 
         let expr = &expr[0];

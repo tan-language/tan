@@ -2,6 +2,7 @@
 // What we call reserved_symbol is maybe similar to lisp's 'special form'?
 
 // #TODO consider using `name` instead of `symbol`?
+// #TODO better organize the util module.
 
 pub mod lookahead_iterator;
 

@@ -26,30 +26,24 @@ use crate::{
 /// The Parser performs the syntactic analysis stage of the compilation pipeline.
 /// The input token stream is reduced into and Abstract Syntax Tree (AST).
 /// The nodes of the AST are associated with annotations.
-pub struct Parser<I>
-where
-    I: IntoIterator<Item = Token>,
-{
-    tokens: LookaheadIterator<Token, I>,
-    buffered_annotations: Option<Vec<Token>>,
+pub struct Parser<'a> {
+    tokens: LookaheadIterator<'a, Token>,
+    buffered_annotations: Option<Vec<&'a Token>>,
     current_position: Position,
     errors: Vec<Error>,
 }
 
-impl<I> Parser<I>
-where
-    I: IntoIterator<Item = Token>,
-{
-    pub fn new(tokens: I) -> Self {
+impl<'a> Parser<'a> {
+    pub fn new(tokens: &'a [Token]) -> Self {
         Self {
-            tokens: LookaheadIterator::new(tokens.into_iter()),
+            tokens: LookaheadIterator::new(tokens),
             buffered_annotations: None,
             current_position: Position::default(),
             errors: Vec::new(),
         }
     }
 
-    fn next_token(&mut self) -> Option<Token> {
+    fn next_token(&mut self) -> Option<&'a Token> {
         let maybe_token = self.tokens.next();
 
         if let Some(ref token) = maybe_token {
@@ -59,7 +53,7 @@ where
         maybe_token
     }
 
-    fn put_back_token(&mut self, token: Token) {
+    fn put_back_token(&mut self, token: &'a Token) {
         self.current_position = token.range().start;
         self.tokens.put_back(token);
     }
@@ -88,7 +82,7 @@ where
                 return expr;
             };
 
-            let mut parser = Parser::new(tokens);
+            let mut parser = Parser::new(&tokens);
 
             let ann_expr = parser.parse();
 
