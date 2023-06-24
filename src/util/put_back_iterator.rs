@@ -1,17 +1,15 @@
-// #TODO a better name could be PutBackIterator, put_back_buffer.
-
-pub struct LookaheadIterator<'a, T> {
+pub struct PutBackIterator<'a, T> {
     items: std::slice::Iter<'a, T>,
-    lookahead: Vec<&'a T>, // #TODO find a better name.
+    buffer: Vec<&'a T>,
 }
 
-impl<'a, T> Iterator for LookaheadIterator<'a, T> {
+impl<'a, T> Iterator for PutBackIterator<'a, T> {
     type Item = &'a T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        // First try to exhaust the lookahead buffer, containing items that
-        // where 'peeked' and the 'put back' to the buffer.
-        if let Some(item) = self.lookahead.pop() {
+        // First try to exhaust the items that where 'peeked' and the 'put back'
+        // to the buffer.
+        if let Some(item) = self.buffer.pop() {
             return Some(item);
         }
 
@@ -24,17 +22,17 @@ impl<'a, T> Iterator for LookaheadIterator<'a, T> {
 }
 
 // #TODO explain what this does.
-impl<'a, T> LookaheadIterator<'a, T> {
+impl<'a, T> PutBackIterator<'a, T> {
     pub fn new(items: &'a [T]) -> Self {
         Self {
             items: items.iter(),
-            lookahead: Vec::new(),
+            buffer: Vec::new(),
         }
     }
 
     // #TODO find a better name.
     pub fn put_back(&mut self, item: &'a T) {
-        self.lookahead.push(item);
+        self.buffer.push(item);
     }
 }
 

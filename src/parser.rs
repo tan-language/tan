@@ -7,7 +7,7 @@ use crate::{
         Lexer,
     },
     range::{Position, Range},
-    util::{lookahead_iterator::LookaheadIterator, Break},
+    util::{put_back_iterator::PutBackIterator, Break},
 };
 
 // #TODO no need to keep iterator as state in parser!
@@ -27,7 +27,7 @@ use crate::{
 /// The input token stream is reduced into and Abstract Syntax Tree (AST).
 /// The nodes of the AST are associated with annotations.
 pub struct Parser<'a> {
-    tokens: LookaheadIterator<'a, Token>,
+    tokens: PutBackIterator<'a, Token>,
     buffered_annotations: Option<Vec<&'a Token>>,
     current_position: Position,
     errors: Vec<Error>,
@@ -36,7 +36,7 @@ pub struct Parser<'a> {
 impl<'a> Parser<'a> {
     pub fn new(tokens: &'a [Token]) -> Self {
         Self {
-            tokens: LookaheadIterator::new(tokens),
+            tokens: PutBackIterator::new(tokens),
             buffered_annotations: None,
             current_position: Position::default(),
             errors: Vec::new(),

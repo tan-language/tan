@@ -4,7 +4,7 @@
 // #TODO consider using `name` instead of `symbol`?
 // #TODO better organize the util module.
 
-pub mod lookahead_iterator;
+pub mod put_back_iterator;
 
 use std::fmt;
 
