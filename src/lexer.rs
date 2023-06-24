@@ -111,7 +111,7 @@ impl<'a> Lexer<'a> {
     }
 
     // #TODO try to remove this!
-    fn range(&self) -> Range {
+    fn current_range(&self) -> Range {
         self.start_position..self.current_position
     }
 
@@ -198,7 +198,7 @@ impl<'a> Lexer<'a> {
         loop {
             let Some(ch) = self.next_char() else {
                 let mut error = Error::new(ErrorKind::UnterminatedString);
-                error.push_note("string is missing the closing `\"` character", Some(self.range())); // #TODO refine the text.
+                error.push_note("string is missing the closing `\"` character", Some(self.current_range())); // #TODO refine the text.
                 self.errors.push(error);
                 return None;
             };
@@ -226,7 +226,7 @@ impl<'a> Lexer<'a> {
         loop {
             let Some(ch) = self.next_char() else {
                 let mut error = Error::new(ErrorKind::UnterminatedString);
-                error.push_note("Text string is not closed", Some(self.range())); // #TODO refine the text.
+                error.push_note("Text string is not closed", Some(self.current_range())); // #TODO refine the text.
                 self.errors.push(error);
                 return None;
             };
@@ -243,7 +243,7 @@ impl<'a> Lexer<'a> {
                 for _ in 0..indent {
                     let Some(ch1) = self.next_char() else {
                         let mut error = Error::new(ErrorKind::UnterminatedString);
-                        error.push_note("Text string is not closed", Some(self.range())); // #TODO refine the text.
+                        error.push_note("Text string is not closed", Some(self.current_range())); // #TODO refine the text.
                         self.errors.push(error);
                         return None;
                     };
@@ -296,7 +296,7 @@ impl<'a> Lexer<'a> {
             Some(ann)
         } else {
             let mut error = Error::new(ErrorKind::UnterminatedAnnotation);
-            error.push_note("Annotation is not closed", Some(self.range())); // #TODO refine the text.
+            error.push_note("Annotation is not closed", Some(self.current_range())); // #TODO refine the text.
             self.errors.push(error);
 
             None
@@ -326,24 +326,24 @@ impl<'a> Lexer<'a> {
 
             match ch {
                 '(' => {
-                    tokens.push(Token::new(TokenKind::LeftParen, self.range()));
+                    tokens.push(Token::new(TokenKind::LeftParen, self.current_range()));
                 }
                 ')' => {
-                    tokens.push(Token::new(TokenKind::RightParen, self.range()));
+                    tokens.push(Token::new(TokenKind::RightParen, self.current_range()));
                 }
                 // #TODO maybe should just rewrite [..] -> (Array ..)
                 '[' => {
-                    tokens.push(Token::new(TokenKind::LeftBracket, self.range()));
+                    tokens.push(Token::new(TokenKind::LeftBracket, self.current_range()));
                 }
                 ']' => {
-                    tokens.push(Token::new(TokenKind::RightBracket, self.range()));
+                    tokens.push(Token::new(TokenKind::RightBracket, self.current_range()));
                 }
                 // #TODO maybe should just rewrite {..} -> (Dict ..)
                 '{' => {
-                    tokens.push(Token::new(TokenKind::LeftBrace, self.range()));
+                    tokens.push(Token::new(TokenKind::LeftBrace, self.current_range()));
                 }
                 '}' => {
-                    tokens.push(Token::new(TokenKind::RightBrace, self.range()));
+                    tokens.push(Token::new(TokenKind::RightBrace, self.current_range()));
                 }
                 ';' => {
                     // #Insight
@@ -360,15 +360,15 @@ impl<'a> Lexer<'a> {
                         CommentKind::Line
                     };
 
-                    tokens.push(Token::comment(lexeme, self.range(), comment_kind));
+                    tokens.push(Token::comment(lexeme, self.current_range(), comment_kind));
                 }
                 '\'' => {
-                    tokens.push(Token::new(TokenKind::Quote, self.range()));
+                    tokens.push(Token::new(TokenKind::Quote, self.current_range()));
                 }
                 '"' => {
                     let Some(ch1) = self.next_char() else {
                         let mut error = Error::new(ErrorKind::UnterminatedString);
-                        error.push_note("String is not closed", Some(self.range())); // #TODO refine the text.
+                        error.push_note("String is not closed", Some(self.current_range())); // #TODO refine the text.
                         self.errors.push(error);
                         break 'outer;
                     };
@@ -383,7 +383,7 @@ impl<'a> Lexer<'a> {
                                 loop {
                                     let Some(ch3) = self.next_char() else {
                                         let mut error = Error::new(ErrorKind::UnterminatedString);
-                                        error.push_note("Text string is not closed", Some(self.range())); // #TODO refine the text.
+                                        error.push_note("Text string is not closed", Some(self.current_range())); // #TODO refine the text.
                                         self.errors.push(error);
                                         break 'outer;
                                     };
@@ -402,7 +402,7 @@ impl<'a> Lexer<'a> {
                                 let Some(lexeme) = self.scan_text(indent) else {
                                     break;
                                 };
-                                tokens.push(Token::string(lexeme, self.range()));
+                                tokens.push(Token::string(lexeme, self.current_range()));
 
                                 continue;
                             }
@@ -415,12 +415,12 @@ impl<'a> Lexer<'a> {
                     let Some(lexeme) = self.scan_string() else {
                         break;
                     };
-                    tokens.push(Token::string(lexeme, self.range()));
+                    tokens.push(Token::string(lexeme, self.current_range()));
                 }
                 '-' => {
                     let Some(ch1) = self.next_char() else {
                         let mut error = Error::new(ErrorKind::UnexpectedEnd);
-                        error.push_note("Text string is not closed", Some(self.range())); // #TODO refine the text.
+                        error.push_note("Text string is not closed", Some(self.current_range())); // #TODO refine the text.
                         self.errors.push(error);
                         break 'outer;
                     };
@@ -438,12 +438,12 @@ impl<'a> Lexer<'a> {
                     if ch1.is_numeric() {
                         // Negative number
                         let lexeme = self.scan_number();
-                        tokens.push(Token::number(lexeme, self.range()));
+                        tokens.push(Token::number(lexeme, self.current_range()));
                     } else {
                         // #TODO lint warning for this!
                         // Symbol starting with `-`.
                         let lexeme = self.scan_lexeme();
-                        tokens.push(Token::symbol(lexeme, self.range()));
+                        tokens.push(Token::symbol(lexeme, self.current_range()));
                     }
                 }
                 '#' => {
@@ -462,7 +462,7 @@ impl<'a> Lexer<'a> {
                     let Some(lexeme) = self.scan_annotation() else {
                         break 'outer;
                     };
-                    tokens.push(Token::annotation(lexeme, self.range()));
+                    tokens.push(Token::annotation(lexeme, self.current_range()));
                 }
                 _ if is_whitespace(ch) => {
                     // Consume whitespace
@@ -473,18 +473,21 @@ impl<'a> Lexer<'a> {
                     let lines_count = self.scan_whitespace();
 
                     if lines_count > 1 {
-                        tokens.push(Token::new(TokenKind::MultiLineWhitespace, self.range()));
+                        tokens.push(Token::new(
+                            TokenKind::MultiLineWhitespace,
+                            self.current_range(),
+                        ));
                     }
                 }
                 _ if ch.is_numeric() => {
                     self.put_back_char(ch);
                     let lexeme = self.scan_number();
-                    tokens.push(Token::number(lexeme, self.range()));
+                    tokens.push(Token::number(lexeme, self.current_range()));
                 }
                 _ => {
                     self.put_back_char(ch);
                     let lexeme = self.scan_lexeme();
-                    tokens.push(Token::symbol(lexeme, self.range()));
+                    tokens.push(Token::symbol(lexeme, self.current_range()));
                 }
             }
 

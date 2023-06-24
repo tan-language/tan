@@ -1,4 +1,4 @@
-// #TODO implement the Iterator interface!
+// #TODO a better name could be PutBackIterator, put_back_buffer.
 
 pub struct LookaheadIterator<'a, T> {
     items: std::slice::Iter<'a, T>,
