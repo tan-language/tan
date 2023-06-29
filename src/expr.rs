@@ -3,7 +3,12 @@ pub mod expr_transform;
 
 use std::{collections::HashMap, fmt, rc::Rc};
 
-use crate::{error::Error, eval::env::Env, lexer::comment::CommentKind};
+use crate::{
+    error::Error,
+    eval::env::Env,
+    lexer::comment::CommentKind,
+    range::{Position, Range},
+};
 
 // #TODO separate variant for list and apply/call (can this be defined statically?)
 // #TODO List, MaybeList, Call
@@ -197,9 +202,16 @@ impl Expr {
         }
     }
 
+    pub fn extract(&self) -> (&Expr, Option<&HashMap<String, Expr>>) {
+        match self {
+            Expr::Annotated(expr, ann) => (expr, Some(ann)),
+            _ => (self, None),
+        }
+    }
+
     // #TODO unwrap into tuple (expr, ann)
     // #TODO find better name?
-    pub fn unwrap(&self) -> &Self {
+    pub fn unpack(&self) -> &Self {
         match self {
             Expr::Annotated(expr, _) => expr,
             _ => self,
@@ -215,15 +227,19 @@ impl Expr {
 
     // static vs dyn type.
     pub fn static_type(&self) -> &Expr {
-        self.annotation("type").unwrap_or(&Expr::One)
+        match self {
+            Expr::Int(_) => return &Expr::symbol("Int"),
+            Expr::Float(_) => return &Expr::symbol("Float"),
+            _ => return &Expr::symbol("Unknown"),
+        }
     }
 
-    pub fn range(&self) {
-        todo!()
+    pub fn range(&self) -> Option<Range> {
+        self.annotation("range").map(expr_to_range)
     }
 }
 
-pub fn annotate(mut expr: Expr, name: impl Into<String>, ann_expr: Expr) -> Expr {
+pub fn annotate(expr: Expr, name: impl Into<String>, ann_expr: Expr) -> Expr {
     match expr {
         Expr::Annotated(_, mut ann) => {
             ann.insert(name.into(), ann_expr);
@@ -237,6 +253,10 @@ pub fn annotate(mut expr: Expr, name: impl Into<String>, ann_expr: Expr) -> Expr
     }
 }
 
+pub fn annotate_type(expr: Expr, type_name: impl Into<String>) -> Expr {
+    annotate(expr, "type", Expr::Symbol(type_name.into()))
+}
+
 // #TODO think where this function is used. (it is used for Dict keys, hmm...)
 // #TODO this is a confusing name!
 /// Formats the expression as a value
@@ -246,6 +266,70 @@ pub fn format_value(expr: impl AsRef<Expr>) -> String {
         Expr::String(s) => s.to_string(),
         Expr::KeySymbol(s) => s.to_string(),
         _ => expr.to_string(),
+    }
+}
+
+// ---
+
+// #TODO implement Defer into Expr!
+
+// #TODO convert to the Expr::Range variant.
+// #TODO convert position to Dict Expr.
+
+pub fn position_to_expr(position: &Position) -> Expr {
+    let mut map: HashMap<String, Expr> = HashMap::new();
+    map.insert("index".to_owned(), Expr::Int(position.index as i64));
+    map.insert("line".to_owned(), Expr::Int(position.line as i64));
+    map.insert("col".to_owned(), Expr::Int(position.line as i64));
+    Expr::Dict(map)
+}
+
+pub fn expr_to_position(expr: &Expr) -> Position {
+    if let Expr::Dict(dict) = expr {
+        let Some(Expr::Int(index)) = dict.get("index") else {
+            // #TODO fix me!
+            return Position::default();
+        };
+
+        let Some(Expr::Int(line)) = dict.get("line") else {
+            // #TODO fix me!
+            return Position::default();
+        };
+
+        let Some(Expr::Int(col)) = dict.get("col") else {
+            // #TODO fix me!
+            return Position::default();
+        };
+
+        return Position {
+            index: *index as usize,
+            line: *line as usize,
+            col: *col as usize,
+        };
+    }
+
+    // #TODO fix me!
+    return Position::default();
+}
+
+pub fn range_to_expr(range: &Range) -> Expr {
+    let start = position_to_expr(&range.start);
+    let end = position_to_expr(&range.end);
+
+    Expr::Array(vec![start, end])
+}
+
+// #TODO nasty code.
+pub fn expr_to_range(expr: &Expr) -> Range {
+    // #TODO error checking?
+    let Expr::Array(terms) = expr else {
+        // #TODO hmm...
+        return Range::default();
+    };
+
+    Range {
+        start: expr_to_position(&terms[0]),
+        end: expr_to_position(&terms[1]),
     }
 }
 

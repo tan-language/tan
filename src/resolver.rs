@@ -4,7 +4,7 @@ use crate::{
     ann::ANNO,
     error::Error,
     eval::{env::Env, eval},
-    expr::Expr,
+    expr::{annotate, annotate_type, Expr},
     util::is_reserved_symbol,
 };
 
@@ -27,43 +27,35 @@ impl Resolver {
     // #TODO no need to resolve basic types!
 
     // #TODO maybe return multiple errors?
-    pub fn resolve_expr(&mut self, mut expr: Expr, env: &mut Env) -> Expr {
+    pub fn resolve_expr(&mut self, expr: Expr, env: &mut Env) -> Expr {
         // eprintln!("<<< {} >>>", expr);
         // #TODO update the original annotations!
         // #TODO need to handle _all_ Expr variants.
         match expr {
-            Expr::Annotated(Expr::Int(_), _) => {
-                expr.set_type(Expr::symbol("Int"));
-                expr
+            Expr::Annotated(inner, ann) => {
+                if ann.contains_key("type") {
+                    // The expression is already typed.
+                    expr
+                } else {
+                    self.resolve_expr(*inner, env)
+                }
             }
-            ANNO(Expr::Float(_), _) => {
-                expr.set_type(Expr::symbol("Float"));
-                expr
-            }
-            ANNO(Expr::String(_), _) => {
-                expr.set_type(Expr::symbol("String"));
-                expr
-            }
-            ANNO(Expr::KeySymbol(_), _) => {
-                expr.set_type(Expr::symbol("KeySymbol"));
-                expr
-            }
+            Expr::Int(_) => annotate_type(expr, "Int"),
+            Expr::Float(_) => annotate_type(expr, "Float"),
+            Expr::String(_) => annotate_type(expr, "String"),
             // #TODO hmm... ultra-hack.
-            ANNO(Expr::Array(..), _) => {
-                expr.set_type(Expr::symbol("Array"));
-                expr
-            }
-            ANNO(Expr::Symbol(ref sym), _) => {
+            Expr::Array(_) => annotate_type(expr, "Array"),
+            Expr::KeySymbol(_) => annotate_type(expr, "KeySymbol"),
+            Expr::Symbol(ref sym) => {
                 if is_reserved_symbol(sym) {
-                    expr.set_type(Expr::symbol("Symbol"));
-                    return expr;
+                    return annotate_type(expr, "Symbol");
                 }
 
                 // #TODO handle 'PathSymbol'
                 // #TODO handle a Dict invocable (and other invocables).
                 // #TODO please note that multiple-dispatch is supposed to be dynamic!
 
-                let result = if let Some(Expr::Symbol(method)) = expr.get_annotation("method") {
+                let result = if let Some(Expr::Symbol(method)) = expr.annotation("method") {
                     env.get(method)
                 } else {
                     // #TODO ultra-hack just fall-back to 'function' name if method does not exist.
@@ -71,15 +63,13 @@ impl Resolver {
                 };
 
                 let Some(value) = result else {
-                    expr.set_type(Expr::symbol("Symbol"));
-                    return expr;
+                    return annotate_type(expr, "Symbol");
                 };
 
                 let value = self.resolve_expr(value.clone(), env);
-                expr.set_type(value.get_type().clone());
-                expr
+                return annotate(expr, "type", value.static_type().clone());
             }
-            ANNO(Expr::List(ref list), _) => {
+            Expr::List(ref list) => {
                 if list.is_empty() {
                     // This is handled statically, in the parser, but an extra, dynamic
                     // check is needed in resolve to handle the case where the
@@ -99,14 +89,13 @@ impl Resolver {
                 // #TODO signature should be the type, e.g. +::(Func Int Int Int) instead of +$$Int$$Int
                 // #TODO should handle Func!!
                 // #TODO convert to match, extract the iteration.
-                if let ANNO(Expr::Symbol(ref sym), _) = head {
+                if let Expr::Symbol(ref sym) = head.unpack() {
                     // #TODO special handling of def
                     if sym == "let" {
                         // #TODO also report some of these errors statically, maybe in a sema phase?
                         let mut args = tail.iter();
 
-                        let mut resolved_let_list = vec![ANNO::new(Expr::symbol("let"))];
-                        let mut ann = None;
+                        let mut resolved_let_list = vec![*head];
 
                         loop {
                             let Some(sym) = args.next() else {
@@ -118,8 +107,8 @@ impl Resolver {
                                 break;
                             };
 
-                            let ANNO(Expr::Symbol(s), ..) = sym else {
-                                self.errors.push(Error::invalid_arguments(&format!("`{sym}` is not a Symbol"), sym.get_range()));
+                            let Expr::Symbol(s) = sym.unpack() else {
+                                self.errors.push(Error::invalid_arguments(&format!("`{sym}` is not a Symbol"), sym.range()));
                                 // Continue to detect more errors.
                                 continue;
                             };
@@ -127,19 +116,19 @@ impl Resolver {
                             if is_reserved_symbol(s) {
                                 self.errors.push(Error::invalid_arguments(
                                     &format!("let cannot shadow the reserved symbol `{s}`"),
-                                    sym.get_range(),
+                                    sym.range(),
                                 ));
                                 // Continue to detect more errors.
                                 continue;
                             }
 
-                            let value = self.resolve_expr(value.clone(), env);
-                            let mut map = expr.1.clone().unwrap_or_default();
-                            map.insert("type".to_owned(), value.get_type().clone());
-                            ann = Some(map);
+                            let value = self.resolve_expr(*value, env);
+                            // let mut map = expr.1.clone().unwrap_or_default();
+                            // map.insert("type".to_owned(), value.static_type().clone());
+                            // ann = Some(map);
 
-                            resolved_let_list.push(sym.clone());
-                            resolved_let_list.push(value.clone());
+                            resolved_let_list.push(*sym);
+                            resolved_let_list.push(value);
 
                             // #TODO notify about overrides? use `set`?
                             // #TODO for some reason, this causes infinite loop
@@ -157,7 +146,12 @@ impl Resolver {
                             }
                         }
 
-                        ANNO(Expr::List(resolved_let_list), ann)
+                        // ANNO(Expr::List(resolved_let_list), ann)
+                        if let Some(annotations) = expr.annotations() {
+                            Expr::Annotated(Box::new(Expr::List(resolved_let_list)), *annotations)
+                        } else {
+                            Expr::List(resolved_let_list)
+                        }
                     } else if sym == "Func" {
                         // #TODO do something ;-)
                         // #TODO this is a temp hack, we don't resolve inside a function, argh!
@@ -201,8 +195,8 @@ impl Resolver {
                             resolved_tail.push(self.resolve_expr(term.clone(), env));
                         }
 
-                        let head = if let ANNO(Expr::Symbol(ref sym), ann_sym) = head {
-                            let mut ann_sym = ann_sym.clone();
+                        let head = if let Expr::Symbol(ref sym) = head.unpack() {
+                            // let mut ann_sym = ann_sym.clone();
 
                             if !is_reserved_symbol(sym) {
                                 // #TODO should recursively resolve first!
@@ -210,29 +204,36 @@ impl Resolver {
                                 let mut signature = Vec::new();
 
                                 for term in &resolved_tail {
-                                    signature.push(term.to_type_string())
+                                    signature.push(term.static_type().to_string())
                                 }
 
                                 let signature = signature.join("$$");
 
-                                ann_sym.get_or_insert(HashMap::new()).insert(
-                                    "method".to_owned(),
+                                annotate(
+                                    *head,
+                                    "method",
                                     Expr::Symbol(format!("{sym}$${signature}")),
-                                );
-                            };
-
-                            ANNO(Expr::Symbol(sym.clone()), ann_sym)
+                                )
+                            } else {
+                                *head
+                            }
                         } else {
-                            head.clone()
+                            *head
                         };
 
                         // #Insight head should get resolved after the tail.
                         let head = self.resolve_expr(head, env);
 
-                        let mut list = vec![head.clone()];
+                        let mut list = vec![head];
                         list.extend(resolved_tail);
 
-                        ANNO(Expr::List(list), head.1)
+                        // Expr::Annotated(Box::new(Expr::List(list)), head.annotations())
+
+                        if let Some(annotations) = head.annotations() {
+                            Expr::Annotated(Box::new(Expr::List(list)), *annotations)
+                        } else {
+                            Expr::List(list)
+                        }
                     }
                 } else {
                     // #TODO handle map lookup case.
