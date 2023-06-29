@@ -93,7 +93,7 @@ pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Expr, Vec<Er
     // #TODO what is a good coding convention for 'system' variables?
     // #TODO support read-only 'system' variables.
     if let Some(base_path) = env.get("*current-module-path*") {
-        let ANNO(Expr::String(base_path), _) = base_path else {
+        let Expr::String(base_path) = base_path else {
             // #TODO!
             panic!("Invalid current-module-path");
         };
@@ -108,10 +108,7 @@ pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Expr, Vec<Er
     }
 
     // #TODO this is not really working, we need recursive, 'folded' environments, but it will do for the moment.
-    env.insert(
-        "*current-module-path*",
-        ANNO::new(Expr::String(path.clone())),
-    );
+    env.insert("*current-module-path*", Expr::String(path.clone()));
 
     let file_paths = compute_module_file_paths(path);
 

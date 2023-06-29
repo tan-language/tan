@@ -19,26 +19,19 @@ use crate::{
 
 /// Expands macro invocations, at compile time.
 pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
-    match expr {
-        ANNO(Expr::Comment(..), ..) => {
+    match expr.unpack() {
+        Expr::Comment(..) => {
             // #TODO move prune elsewhere.
             // Prune Comment expressions.
             Ok(None)
         }
-        ANNO(Expr::TextSeparator, ..) => {
+        Expr::TextSeparator => {
+            // #TODO remove TextSeparator anws.
             // #TODO move prune elsewhere.
             // Prune TextSeparator expressions.
             Ok(None)
         }
         ANNO(Expr::List(ref list), ref range) => {
-            // if list.is_empty() {
-            //     // This is handled statically, in the parser, but an extra, dynamic
-            //     // check is needed in the evaluator to handle the case where the
-            //     // expression is constructed programmatically (e.g. self-modifying code,
-            //     // dynamically constructed expression, homoiconicity, etc).
-            //     return Ok(None);
-            // }
-
             let head = list.first().unwrap(); // The unwrap here is safe.
             let tail = &list[1..];
 

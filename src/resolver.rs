@@ -146,12 +146,10 @@ impl Resolver {
                             }
                         }
 
-                        // ANNO(Expr::List(resolved_let_list), ann)
-                        if let Some(annotations) = expr.annotations() {
-                            Expr::Annotated(Box::new(Expr::List(resolved_let_list)), *annotations)
-                        } else {
-                            Expr::List(resolved_let_list)
-                        }
+                        return Expr::maybe_annotated(
+                            Expr::List(resolved_let_list),
+                            head.annotations(),
+                        );
                     } else if sym == "Func" {
                         // #TODO do something ;-)
                         // #TODO this is a temp hack, we don't resolve inside a function, argh!
@@ -227,13 +225,7 @@ impl Resolver {
                         let mut list = vec![head];
                         list.extend(resolved_tail);
 
-                        // Expr::Annotated(Box::new(Expr::List(list)), head.annotations())
-
-                        if let Some(annotations) = head.annotations() {
-                            Expr::Annotated(Box::new(Expr::List(list)), *annotations)
-                        } else {
-                            Expr::List(list)
-                        }
+                        return Expr::maybe_annotated(Expr::List(list), head.annotations());
                     }
                 } else {
                     // #TODO handle map lookup case.

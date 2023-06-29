@@ -192,6 +192,14 @@ impl Expr {
     pub fn annotated(expr: Expr) -> Self {
         Expr::Annotated(Box::new(expr), HashMap::new())
     }
+
+    pub fn maybe_annotated(expr: Expr, annotations: Option<&HashMap<String, Expr>>) -> Self {
+        if let Some(annotations) = annotations {
+            Expr::Annotated(Box::new(expr), *annotations)
+        } else {
+            expr
+        }
+    }
 }
 
 impl Expr {
@@ -209,6 +217,7 @@ impl Expr {
         }
     }
 
+    // #TODO unpack is very dangerous, we need to encode in the typesystem that the expr is unpacked.
     // #TODO unwrap into tuple (expr, ann)
     // #TODO find better name?
     pub fn unpack(&self) -> &Self {

@@ -25,7 +25,7 @@ impl Expr {
 
 #[cfg(test)]
 mod tests {
-    use crate::{ann::ANNO, api::parse_string, expr::Expr};
+    use crate::{api::parse_string, expr::Expr};
 
     pub fn identity_fn(expr: Expr) -> Expr {
         expr

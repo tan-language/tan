@@ -10,23 +10,25 @@ use crate::{
 // #Insight
 // The optimizer does not err.
 
+// #TODO what does optimize do? I think it just removes some annotations.
+
 pub fn optimize_fn(expr: Expr) -> Expr {
-    match expr {
-        ANNO(Expr::List(ref terms), ..) => {
+    match expr.unpack() {
+        Expr::List(ref terms) => {
             if !terms.is_empty() {
-                if let ANNO(Expr::Symbol(s), ..) = &terms[0] {
+                if let Expr::Symbol(s) = &terms[0].unpack() {
                     if s == "Array" {
-                        let items = terms[1..].iter().map(|ax| ax.0.clone()).collect();
-                        return ANNO(Expr::Array(items), expr.1);
+                        let items = terms[1..].iter().map(|ax| *ax.unpack()).collect();
+                        return Expr::maybe_annotated(Expr::Array(items), expr.annotations());
                     } else if s == "Dict" {
-                        let items: Vec<Expr> = terms[1..].iter().map(|ax| ax.0.clone()).collect();
+                        let items: Vec<Expr> = terms[1..].iter().map(|ax| *ax.unpack()).collect();
                         let mut dict = HashMap::new();
                         for pair in items.chunks(2) {
                             let k = pair[0].clone();
                             let v = pair[1].clone();
                             dict.insert(format_value(k), v);
                         }
-                        return ANNO(Expr::Dict(dict), expr.1);
+                        return Expr::maybe_annotated(Expr::Dict(dict), expr.annotations());
                     }
                 }
             }
