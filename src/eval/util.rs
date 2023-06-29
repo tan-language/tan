@@ -1,7 +1,7 @@
 use std::{fs, path::Path};
 
 use crate::{
-    ann::Ann,
+    ann::ANNO,
     api::{has_tan_extension, resolve_string},
     error::Error,
     expr::Expr,
@@ -85,7 +85,7 @@ pub fn compute_module_file_paths(path: impl AsRef<Path>) -> std::io::Result<Vec<
 
 // #insight It's also used in ..use
 
-pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Ann<Expr>, Vec<Error>> {
+pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Expr, Vec<Error>> {
     // #TODO more general solution needed.
 
     let mut path = path.as_ref().to_string_lossy().into_owned();
@@ -93,7 +93,7 @@ pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Ann<Expr>, V
     // #TODO what is a good coding convention for 'system' variables?
     // #TODO support read-only 'system' variables.
     if let Some(base_path) = env.get("*current-module-path*") {
-        let Ann(Expr::String(base_path), _) = base_path else {
+        let ANNO(Expr::String(base_path), _) = base_path else {
             // #TODO!
             panic!("Invalid current-module-path");
         };
@@ -110,7 +110,7 @@ pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Ann<Expr>, V
     // #TODO this is not really working, we need recursive, 'folded' environments, but it will do for the moment.
     env.insert(
         "*current-module-path*",
-        Ann::new(Expr::String(path.clone())),
+        ANNO::new(Expr::String(path.clone())),
     );
 
     let file_paths = compute_module_file_paths(path);
@@ -119,7 +119,7 @@ pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Ann<Expr>, V
         return Err(vec![file_paths.unwrap_err().into()]);
     };
 
-    let mut resolved_exprs: Vec<Ann<Expr>> = Vec::new();
+    let mut resolved_exprs: Vec<Expr> = Vec::new();
 
     // #TODO return Expr::Module, add module metadata: name, path, exports, etc.
 

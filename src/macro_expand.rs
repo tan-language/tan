@@ -1,5 +1,5 @@
 use crate::{
-    ann::Ann,
+    ann::ANNO,
     error::Error,
     eval::{env::Env, eval},
     expr::Expr,
@@ -18,19 +18,19 @@ use crate::{
 // #TODO return Vec<Error> like all other methods?
 
 /// Expands macro invocations, at compile time.
-pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>, Error> {
+pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
     match expr {
-        Ann(Expr::Comment(..), ..) => {
+        ANNO(Expr::Comment(..), ..) => {
             // #TODO move prune elsewhere.
             // Prune Comment expressions.
             Ok(None)
         }
-        Ann(Expr::TextSeparator, ..) => {
+        ANNO(Expr::TextSeparator, ..) => {
             // #TODO move prune elsewhere.
             // Prune TextSeparator expressions.
             Ok(None)
         }
-        Ann(Expr::List(ref list), ref range) => {
+        ANNO(Expr::List(ref list), ref range) => {
             // if list.is_empty() {
             //     // This is handled statically, in the parser, but an extra, dynamic
             //     // check is needed in the evaluator to handle the case where the
@@ -67,7 +67,7 @@ pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>,
                     env.push_new_scope();
 
                     for (param, arg) in params.iter().zip(args) {
-                        let Ann(Expr::Symbol(param), ..) = param else {
+                        let ANNO(Expr::Symbol(param), ..) = param else {
                             return Err(Error::invalid_arguments("parameter is not a symbol", param.get_range()));
                         };
 
@@ -96,7 +96,7 @@ pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>,
                             return Err(Error::invalid_arguments("missing binding value", expr.get_range()));
                         };
 
-                        let Ann(Expr::Symbol(s), ..) = binding_sym else {
+                        let ANNO(Expr::Symbol(s), ..) = binding_sym else {
                             return Err(Error::invalid_arguments(&format!("`{sym}` is not a Symbol"), binding_sym.get_range()));
                         };
 
@@ -112,7 +112,7 @@ pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>,
                         // #TODO notify about overrides? use `set`?
                         // #TODO consider if we should allow redefinitions.
 
-                        if let Some(Ann(Expr::Macro(..), ..)) = binding_value {
+                        if let Some(ANNO(Expr::Macro(..), ..)) = binding_value {
                             // #TODO put all the definitions in one pass.
                             // Only define macros in this pass.
                             env.insert(s, binding_value.unwrap());
@@ -149,7 +149,7 @@ pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>,
                             return Err(Error::invalid_arguments("malformed macro definition", expr.get_range()));
                         };
 
-                        let Ann(Expr::List(params), ..) = args else {
+                        let ANNO(Expr::List(params), ..) = args else {
                             return Err(Error::invalid_arguments("malformed macro parameters definition", expr.get_range()));
                         };
 
@@ -183,7 +183,7 @@ pub fn macro_expand(expr: Ann<Expr>, env: &mut Env) -> Result<Option<Ann<Expr>>,
                         }
                     }
 
-                    Ok(Some(Ann(Expr::List(terms), range.clone())))
+                    Ok(Some(ANNO(Expr::List(terms), range.clone())))
                 }
             }
         }

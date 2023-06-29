@@ -3,7 +3,7 @@ pub mod expr_transform;
 
 use std::{collections::HashMap, fmt, rc::Rc};
 
-use crate::{ann::Ann, error::Error, eval::env::Env, lexer::comment::CommentKind};
+use crate::{ann::ANNO, error::Error, eval::env::Env, lexer::comment::CommentKind};
 
 // #TODO separate variant for list and apply/call (can this be defined statically?)
 // #TODO List, MaybeList, Call
@@ -28,7 +28,7 @@ use crate::{ann::Ann, error::Error, eval::env::Env, lexer::comment::CommentKind}
 // #TODO consider Visitor pattern instead of enum?
 
 // A function that accepts a list of Exprs and returns an Expr.
-pub type ExprFn = dyn Fn(&[Ann<Expr>], &Env) -> Result<Ann<Expr>, Error>;
+pub type ExprFn = dyn Fn(&[Expr], &Env) -> Result<Expr, Error>;
 
 // #TODO use normal structs instead of tuple-structs?
 
@@ -51,7 +51,7 @@ pub enum Expr {
     // #TODO better name for 'generic' List, how about `Cons` or `ConsList` or `Cell`?
     // #TODO add 'quoted' List -> Array!
     // #TODO do we really need Vec here? Maybe Arc<[Expr]> is enough?
-    List(Vec<Ann<Expr>>),
+    List(Vec<Expr>),
     // #TODO should Array contain Ann<Expr>?
     Array(Vec<Expr>),
     // #TODO different name?
@@ -59,8 +59,8 @@ pub enum Expr {
     // #TODO should Dict contain Ann<Expr>?
     Dict(HashMap<String, Expr>),
     // Range(Box<Ann<Expr>>, Box<Ann<Expr>>, Option<Box<Ann<Expr>>>),
-    Func(Vec<Ann<Expr>>, Box<Ann<Expr>>), // #TODO is there a need to use Rc instead of Box? YES! fast clones? INVESTIGATE!
-    Macro(Vec<Ann<Expr>>, Box<Ann<Expr>>),
+    Func(Vec<Expr>, Box<Expr>), // #TODO is there a need to use Rc instead of Box? YES! fast clones? INVESTIGATE!
+    Macro(Vec<Expr>, Box<Expr>),
     ForeignFunc(Rc<ExprFn>), // #TODO for some reason, Box is not working here!
     // --- High-level ---
     // #TODO do should contain the expressions also, pre-parsed!
@@ -68,7 +68,8 @@ pub enum Expr {
     // #TODO let should contain the expressions also, pre-parsed!
     Let,
     // #TODO maybe this 'compound' if prohibits homoiconicity?
-    If(Box<Ann<Expr>>, Box<Ann<Expr>>, Option<Box<Ann<Expr>>>),
+    If(Box<Expr>, Box<Expr>, Option<Box<Expr>>),
+    Ann(Box<Expr>),
 }
 
 // #TODO what is the Expr default? One (Unit/Any) or Zero (Noting/Never)
@@ -105,6 +106,7 @@ impl fmt::Debug for Expr {
             Expr::Let => "let".to_owned(),
             // #TODO properly format do, let, if, etc.
             Expr::If(_, _, _) => "if".to_owned(),
+            Expr::Ann(expr) => format!("ANN({:?})", expr), // #TODO format the annotation!
         };
 
         write!(f, "{text}")
@@ -160,6 +162,7 @@ impl fmt::Display for Expr {
                 Expr::Func(..) => "#<func>".to_owned(),
                 Expr::Macro(..) => "#<func>".to_owned(),
                 Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
+                Expr::Ann(expr) => format!("ANN({})", expr), // #TODO format the annotation!
             })
             .as_str(),
         )

@@ -1,12 +1,12 @@
-use crate::{ann::Ann, error::Error, eval::env::Env, expr::Expr};
+use crate::{ann::ANNO, error::Error, eval::env::Env, expr::Expr};
 
 /// Returns a char iterable for the chars in the string.
-pub fn string_chars(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
+pub fn string_chars(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     let [this] = args else {
         return Err(Error::invalid_arguments("`chars` requires `this` argument", None));
     };
 
-    let Ann(Expr::String(this), ..) = this else {
+    let ANNO(Expr::String(this), ..) = this else {
         return Err(Error::invalid_arguments("`this` argument should be a String", this.get_range()));
     };
 
@@ -19,12 +19,12 @@ pub fn string_chars(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> 
     Ok(Expr::Array(exprs).into())
 }
 
-pub fn string_constructor_from_chars(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
+pub fn string_constructor_from_chars(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     let [chars] = args else {
         return Err(Error::invalid_arguments("Requires `chars` argument", None));
     };
 
-    let Ann(Expr::Array(exprs), ..) = chars else {
+    let ANNO(Expr::Array(exprs), ..) = chars else {
         return Err(Error::invalid_arguments("`chars` argument should be a (Array Char)", chars.get_range()));
     };
 
@@ -43,12 +43,12 @@ pub fn string_constructor_from_chars(args: &[Ann<Expr>], _env: &Env) -> Result<A
 
 // #TODO overload for string and char!
 
-pub fn char_uppercased(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
+pub fn char_uppercased(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     let [this] = args else {
         return Err(Error::invalid_arguments("`uppercased` requires `this` argument", None));
     };
 
-    let Ann(Expr::Char(this), ..) = this else {
+    let ANNO(Expr::Char(this), ..) = this else {
         return Err(Error::invalid_arguments("`this` argument should be a Char", this.get_range()));
     };
 

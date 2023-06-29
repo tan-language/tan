@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    ann::Ann,
+    ann::ANNO,
     error::Error,
     eval::{env::Env, eval},
     expr::Expr,
@@ -25,33 +25,33 @@ impl Resolver {
     }
 
     // #TODO maybe return multiple errors?
-    pub fn resolve_expr(&mut self, mut expr: Ann<Expr>, env: &mut Env) -> Ann<Expr> {
+    pub fn resolve_expr(&mut self, mut expr: Expr, env: &mut Env) -> Expr {
         // eprintln!("<<< {} >>>", expr);
         // #TODO update the original annotations!
         // #TODO need to handle _all_ Expr variants.
         match expr {
-            Ann(Expr::Int(_), _) => {
+            ANNO(Expr::Int(_), _) => {
                 expr.set_type(Expr::symbol("Int"));
                 expr
             }
-            Ann(Expr::Float(_), _) => {
+            ANNO(Expr::Float(_), _) => {
                 expr.set_type(Expr::symbol("Float"));
                 expr
             }
-            Ann(Expr::String(_), _) => {
+            ANNO(Expr::String(_), _) => {
                 expr.set_type(Expr::symbol("String"));
                 expr
             }
-            Ann(Expr::KeySymbol(_), _) => {
+            ANNO(Expr::KeySymbol(_), _) => {
                 expr.set_type(Expr::symbol("KeySymbol"));
                 expr
             }
             // #TODO hmm... ultra-hack.
-            Ann(Expr::Array(..), _) => {
+            ANNO(Expr::Array(..), _) => {
                 expr.set_type(Expr::symbol("Array"));
                 expr
             }
-            Ann(Expr::Symbol(ref sym), _) => {
+            ANNO(Expr::Symbol(ref sym), _) => {
                 if is_reserved_symbol(sym) {
                     expr.set_type(Expr::symbol("Symbol"));
                     return expr;
@@ -77,7 +77,7 @@ impl Resolver {
                 expr.set_type(value.get_type().clone());
                 expr
             }
-            Ann(Expr::List(ref list), _) => {
+            ANNO(Expr::List(ref list), _) => {
                 if list.is_empty() {
                     // This is handled statically, in the parser, but an extra, dynamic
                     // check is needed in resolve to handle the case where the
@@ -97,13 +97,13 @@ impl Resolver {
                 // #TODO signature should be the type, e.g. +::(Func Int Int Int) instead of +$$Int$$Int
                 // #TODO should handle Func!!
                 // #TODO convert to match, extract the iteration.
-                if let Ann(Expr::Symbol(ref sym), _) = head {
+                if let ANNO(Expr::Symbol(ref sym), _) = head {
                     // #TODO special handling of def
                     if sym == "let" {
                         // #TODO also report some of these errors statically, maybe in a sema phase?
                         let mut args = tail.iter();
 
-                        let mut resolved_let_list = vec![Ann::new(Expr::symbol("let"))];
+                        let mut resolved_let_list = vec![ANNO::new(Expr::symbol("let"))];
                         let mut ann = None;
 
                         loop {
@@ -116,7 +116,7 @@ impl Resolver {
                                 break;
                             };
 
-                            let Ann(Expr::Symbol(s), ..) = sym else {
+                            let ANNO(Expr::Symbol(s), ..) = sym else {
                                 self.errors.push(Error::invalid_arguments(&format!("`{sym}` is not a Symbol"), sym.get_range()));
                                 // Continue to detect more errors.
                                 continue;
@@ -155,7 +155,7 @@ impl Resolver {
                             }
                         }
 
-                        Ann(Expr::List(resolved_let_list), ann)
+                        ANNO(Expr::List(resolved_let_list), ann)
                     } else if sym == "Func" {
                         // #TODO do something ;-)
                         // #TODO this is a temp hack, we don't resolve inside a function, argh!
@@ -199,7 +199,7 @@ impl Resolver {
                             resolved_tail.push(self.resolve_expr(term.clone(), env));
                         }
 
-                        let head = if let Ann(Expr::Symbol(ref sym), ann_sym) = head {
+                        let head = if let ANNO(Expr::Symbol(ref sym), ann_sym) = head {
                             let mut ann_sym = ann_sym.clone();
 
                             if !is_reserved_symbol(sym) {
@@ -219,7 +219,7 @@ impl Resolver {
                                 );
                             };
 
-                            Ann(Expr::Symbol(sym.clone()), ann_sym)
+                            ANNO(Expr::Symbol(sym.clone()), ann_sym)
                         } else {
                             head.clone()
                         };
@@ -230,7 +230,7 @@ impl Resolver {
                         let mut list = vec![head.clone()];
                         list.extend(resolved_tail);
 
-                        Ann(Expr::List(list), head.1)
+                        ANNO(Expr::List(list), head.1)
                     }
                 } else {
                     // #TODO handle map lookup case.
@@ -244,7 +244,7 @@ impl Resolver {
     // #TODO better explain what this function does.
     // #TODO what exactly is this env? how is this mutated?
     // Resolve pass (typechecking, definitions, etc)
-    pub fn resolve(&mut self, expr: Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Vec<Error>> {
+    pub fn resolve(&mut self, expr: Expr, env: &mut Env) -> Result<Expr, Vec<Error>> {
         let expr = self.resolve_expr(expr, env);
 
         if self.errors.is_empty() {

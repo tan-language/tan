@@ -1,10 +1,10 @@
 use std::mem;
 
-use crate::ann::Ann;
+use crate::ann::ANNO;
 
 use super::Expr;
 
-impl Ann<Expr> {
+impl Expr {
     pub fn iter(&self) -> ExprIter<'_> {
         ExprIter {
             children: std::slice::from_ref(self),
@@ -25,12 +25,12 @@ impl Ann<Expr> {
 /// A depth-first Expr iterator.
 #[derive(Default)]
 pub struct ExprIter<'a> {
-    children: &'a [Ann<Expr>],
+    children: &'a [Expr],
     parent: Option<Box<ExprIter<'a>>>,
 }
 
 impl<'a> Iterator for ExprIter<'a> {
-    type Item = &'a Ann<Expr>;
+    type Item = &'a Expr;
 
     // #TODO this does not traverse Array, Dict, etc.
     fn next(&mut self) -> Option<Self::Item> {
@@ -45,7 +45,7 @@ impl<'a> Iterator for ExprIter<'a> {
                 }
                 None => None,
             },
-            Some(Ann(Expr::List(children), ..)) => {
+            Some(ANNO(Expr::List(children), ..)) => {
                 self.children = &self.children[1..];
                 // iterate the sub-trees
                 *self = ExprIter {

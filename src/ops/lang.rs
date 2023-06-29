@@ -1,6 +1,6 @@
-use crate::{ann::Ann, error::Error, eval::env::Env, expr::Expr};
+use crate::{ann::ANNO, error::Error, eval::env::Env, expr::Expr};
 
-pub fn ann(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
+pub fn ann(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     if args.len() != 1 {
         return Err(Error::invalid_arguments(
             "`ann` requires one argument",

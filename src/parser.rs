@@ -1,5 +1,5 @@
 use crate::{
-    ann::Ann,
+    ann::ANNO,
     error::{Error, ErrorKind},
     expr::Expr,
     lexer::{
@@ -61,9 +61,9 @@ impl<'a> Parser<'a> {
     /// Wrap the `expr` with the buffered (prefix) annotations. The annotations
     /// are parsed into an Expr representation. Also attaches the range of the
     /// expression as an annotation.
-    fn attach_buffered_annotations(&mut self, expr: Expr, range: Range) -> Ann<Expr> {
+    fn attach_buffered_annotations(&mut self, expr: Expr, range: Range) -> Expr {
         // Annotate the expression with the range, by default.
-        let mut expr = Ann::with_range(expr, range);
+        let mut expr = ANNO::with_range(expr, range);
 
         let Some(buffered_annotations) = self.buffered_annotations.take() else {
             // No annotations for the expression.
@@ -132,7 +132,7 @@ impl<'a> Parser<'a> {
                 }
                 Expr::List(list) => {
                     // #TODO support more than symbols, e.g. KeySymbols or Strings.
-                    if let Some(Ann(Expr::Symbol(sym), _)) = list.first() {
+                    if let Some(ANNO(Expr::Symbol(sym), _)) = list.first() {
                         expr.set_annotation(sym.clone(), ann_expr);
                     } else {
                         let mut error = Error::new(ErrorKind::MalformedAnnotation);
@@ -167,7 +167,7 @@ impl<'a> Parser<'a> {
         expr
     }
 
-    pub fn parse_expr(&mut self) -> Result<Option<Ann<Expr>>, Break> {
+    pub fn parse_expr(&mut self) -> Result<Option<Expr>, Break> {
         let Some(token) = self.next_token() else {
             return Err(Break {});
         };
@@ -337,7 +337,7 @@ impl<'a> Parser<'a> {
 
                 let exprs = self.parse_many(TokenKind::RightBracket, start_position)?;
 
-                let mut items = vec![Ann::with_range(Expr::symbol("Array"), range)];
+                let mut items = vec![ANNO::with_range(Expr::symbol("Array"), range)];
 
                 // #TODO add error checking!
                 // #TODO optimize.
@@ -361,7 +361,7 @@ impl<'a> Parser<'a> {
 
                 let exprs = self.parse_many(TokenKind::RightBrace, start_position)?;
 
-                let mut items = vec![Ann::with_range(Expr::symbol("Dict"), range)];
+                let mut items = vec![ANNO::with_range(Expr::symbol("Dict"), range)];
 
                 for expr in exprs {
                     items.push(expr);
@@ -396,7 +396,7 @@ impl<'a> Parser<'a> {
         &mut self,
         delimiter: TokenKind,
         start_position: Position,
-    ) -> Result<Vec<Ann<Expr>>, Break> {
+    ) -> Result<Vec<Expr>, Break> {
         let mut exprs = Vec::new();
 
         loop {
@@ -433,7 +433,7 @@ impl<'a> Parser<'a> {
 
     /// Parses the input tokens into expressions.
     /// The parser tries to return as many errors as possible.
-    pub fn parse(&mut self) -> Result<Vec<Ann<Expr>>, Vec<Error>> {
+    pub fn parse(&mut self) -> Result<Vec<Expr>, Vec<Error>> {
         let mut exprs = Vec::new();
 
         loop {

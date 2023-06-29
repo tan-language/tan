@@ -1,8 +1,8 @@
-use crate::ann::Ann;
+use crate::ann::ANNO;
 
 use super::Expr;
 
-impl Ann<Expr> {
+impl Expr {
     // #TODO this is some kind of map-reduce, try to use some kind of interator.
     // #TODO alternatively, this implements some kind of visitor pattern.
 
@@ -13,9 +13,9 @@ impl Ann<Expr> {
         F: Fn(Self) -> Self,
     {
         match self {
-            Ann(Expr::List(terms), ann) => {
+            ANNO(Expr::List(terms), ann) => {
                 let terms = terms.into_iter().map(|t| t.transform(f)).collect();
-                let list = Ann(Expr::List(terms), ann);
+                let list = ANNO(Expr::List(terms), ann);
                 f(list)
             }
             _ => f(self),
@@ -25,9 +25,9 @@ impl Ann<Expr> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{ann::Ann, api::parse_string, expr::Expr};
+    use crate::{ann::ANNO, api::parse_string, expr::Expr};
 
-    pub fn identity_fn(expr: Ann<Expr>) -> Ann<Expr> {
+    pub fn identity_fn(expr: Expr) -> Expr {
         expr
     }
 

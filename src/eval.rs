@@ -5,7 +5,7 @@ pub mod util;
 use std::collections::HashMap;
 
 use crate::{
-    ann::Ann,
+    ann::ANNO,
     error::Error,
     expr::{format_value, Expr},
     util::is_reserved_symbol,
@@ -27,7 +27,7 @@ use self::{env::Env, util::eval_module};
 // #TODO https://clojure.org/reference/evaluation
 
 // #TODO give more 'general' name.
-fn eval_args(args: &[Ann<Expr>], env: &mut Env) -> Result<Vec<Ann<Expr>>, Error> {
+fn eval_args(args: &[Expr], env: &mut Env) -> Result<Vec<Expr>, Error> {
     args.iter()
         .map(|x| eval(x, env))
         .collect::<Result<Vec<_>, _>>()
@@ -35,9 +35,9 @@ fn eval_args(args: &[Ann<Expr>], env: &mut Env) -> Result<Vec<Ann<Expr>>, Error>
 
 /// Evaluates via expression rewriting. The expression `expr` evaluates to
 /// a fixed point. In essence this is a 'tree-walk' interpreter.
-pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
+pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
     match expr {
-        Ann(Expr::Symbol(symbol), _) => {
+        ANNO(Expr::Symbol(symbol), _) => {
             // #TODO differentiate between evaluating symbol in 'op' position.
 
             if is_reserved_symbol(symbol) {
@@ -72,7 +72,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
             // #TODO hm, can we somehow work with references?
             Ok(value.clone())
         }
-        Ann(Expr::KeySymbol(..), ..) => {
+        ANNO(Expr::KeySymbol(..), ..) => {
             // #TODO handle 'PathSymbol'
 
             // #TODO lint '::' etc.
@@ -85,10 +85,10 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
             Ok(expr.clone())
         }
         // #TODO if is unquotable!!
-        Ann(Expr::If(predicate, true_clause, false_clause), ..) => {
+        ANNO(Expr::If(predicate, true_clause, false_clause), ..) => {
             let predicate = eval(predicate, env)?;
 
-            let Ann(Expr::Bool(predicate), ..) = predicate else {
+            let ANNO(Expr::Bool(predicate), ..) = predicate else {
                 return Err(Error::invalid_arguments("the if predicate is not a boolean value", predicate.get_range()));
             };
 
@@ -101,7 +101,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                 Ok(Expr::One.into())
             }
         }
-        Ann(Expr::List(list), ..) => {
+        ANNO(Expr::List(list), ..) => {
             // #TODO no need for dynamic invocable, can use (apply f ...) / (invoke f ...) instead.
             // #TODO replace head/tail with first/rest
 
@@ -139,7 +139,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                     env.push_new_scope();
 
                     for (param, arg) in params.iter().zip(args) {
-                        let Ann(Expr::Symbol(param), ..) = param else {
+                        let ANNO(Expr::Symbol(param), ..) = param else {
                                 return Err(Error::invalid_arguments("parameter is not a symbol", param.get_range()));
                             };
 
@@ -182,7 +182,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                     // #TODO optimize this!
                     // #TODO error checking, one arg, etc.
                     let index = &args[0];
-                    let Ann(Expr::Int(index), ..) = index else {
+                    let ANNO(Expr::Int(index), ..) = index else {
                         return Err(Error::invalid_arguments("invalid array index, expecting Int", index.get_range()));
                     };
                     let index = *index as usize;
@@ -286,7 +286,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                             loop {
                                 let predicate = eval(predicate, env)?;
 
-                                let Ann(Expr::Bool(predicate), ..) = predicate else {
+                                let ANNO(Expr::Bool(predicate), ..) = predicate else {
                                     return Err(Error::invalid_arguments("the for predicate is not a boolean value", predicate.get_range()));
                                 };
 
@@ -313,7 +313,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
 
                             let predicate = eval(predicate, env)?;
 
-                            let Ann(Expr::Bool(predicate), ..) = predicate else {
+                            let ANNO(Expr::Bool(predicate), ..) = predicate else {
                                 return Err(Error::invalid_arguments("the if predicate is not a boolean value", predicate.get_range()));
                             };
 
@@ -335,11 +335,11 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
 
                             let seq = eval(seq, env)?;
 
-                            let Ann(Expr::Array(arr), ..) = seq else {
+                            let ANNO(Expr::Array(arr), ..) = seq else {
                                 return Err(Error::invalid_arguments("`for_each` requires a `Seq` as the first argument", seq.get_range()));
                             };
 
-                            let Ann(Expr::Symbol(sym), _) = var else {
+                            let ANNO(Expr::Symbol(sym), _) = var else {
                                 return Err(Error::invalid_arguments("`for_each` requires a symbol as the second argument", var.get_range()));
                             };
 
@@ -347,7 +347,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
 
                             for x in arr {
                                 // #TODO array should have Ann<Expr> use Ann<Expr> everywhere, avoid the clones!
-                                env.insert(sym, Ann::new(x.clone()));
+                                env.insert(sym, ANNO::new(x.clone()));
                                 eval(body, env)?;
                             }
 
@@ -365,11 +365,11 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
 
                             let seq = eval(seq, env)?;
 
-                            let Ann(Expr::Array(arr), ..) = seq else {
+                            let ANNO(Expr::Array(arr), ..) = seq else {
                                 return Err(Error::invalid_arguments("`map` requires a `Seq` as the first argument", seq.get_range()));
                             };
 
-                            let Ann(Expr::Symbol(sym), _) = var else {
+                            let ANNO(Expr::Symbol(sym), _) = var else {
                                 return Err(Error::invalid_arguments("`map` requires a symbol as the second argument", var.get_range()));
                             };
 
@@ -379,7 +379,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
 
                             for x in arr {
                                 // #TODO array should have Ann<Expr> use Ann<Expr> everywhere, avoid the clones!
-                                env.insert(sym, Ann::new(x.clone()));
+                                env.insert(sym, ANNO::new(x.clone()));
                                 let result = eval(body, env)?;
                                 results.push(result.0);
                             }
@@ -392,7 +392,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                         "use" => {
                             // Import a directory as a module.
 
-                            let Some(Ann(Expr::String(module_path), _)) = tail.get(0) else {
+                            let Some(ANNO(Expr::String(module_path), _)) = tail.get(0) else {
                                 return Err(Error::invalid_arguments("malformed use expression", expr.get_range()));
                             };
 
@@ -424,7 +424,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                                     break;
                                 };
 
-                                let Ann(Expr::Symbol(s), ..) = sym else {
+                                let ANNO(Expr::Symbol(s), ..) = sym else {
                                     return Err(Error::invalid_arguments(&format!("`{sym}` is not a Symbol"), sym.get_range()));
                                 };
 
@@ -446,7 +446,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                         }
                         "Char" => {
                             // #TODO report more than 1 arguments.
-                            let Some(Ann(Expr::String(c), _)) = tail.get(0) else {
+                            let Some(ANNO(Expr::String(c), _)) = tail.get(0) else {
                                 return Err(Error::invalid_arguments("malformed Char constructor", expr.get_range()));
                             };
 
@@ -471,7 +471,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                                 return Err(Error::invalid_arguments("malformed func definition", expr.get_range()));
                             };
 
-                            let Ann(Expr::List(params), ..) = args else {
+                            let ANNO(Expr::List(params), ..) = args else {
                                 return Err(Error::invalid_arguments("malformed func parameters definition", args.get_range()));
                             };
 
@@ -485,7 +485,7 @@ pub fn eval(expr: &Ann<Expr>, env: &mut Env) -> Result<Ann<Expr>, Error> {
                                 return Err(Error::invalid_arguments("malformed macro definition", expr.get_range()));
                             };
 
-                            let Ann(Expr::List(params), ..) = args else {
+                            let ANNO(Expr::List(params), ..) = args else {
                                 return Err(Error::invalid_arguments("malformed macro parameters definition", args.get_range()));
                             };
 

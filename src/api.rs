@@ -3,7 +3,7 @@
 use std::path::Path;
 
 use crate::{
-    ann::Ann,
+    ann::ANNO,
     error::Error,
     eval::{env::Env, eval},
     expr::Expr,
@@ -37,7 +37,7 @@ pub fn lex_string(input: impl AsRef<str>) -> Result<Vec<Token>, Vec<Error>> {
 // #TODO temp solution for compatibility.
 // #TODO remove this!
 /// Parses a Tan expression encoded as a text string, returns first expression.
-pub fn parse_string(input: impl AsRef<str>) -> Result<Ann<Expr>, Vec<Error>> {
+pub fn parse_string(input: impl AsRef<str>) -> Result<Expr, Vec<Error>> {
     let input = input.as_ref();
 
     let mut lexer = Lexer::new(input);
@@ -53,7 +53,7 @@ pub fn parse_string(input: impl AsRef<str>) -> Result<Ann<Expr>, Vec<Error>> {
 }
 
 /// Parses a Tan expression encoded as a text string, returns all expressions parsed.
-pub fn parse_string_all(input: impl AsRef<str>) -> Result<Vec<Ann<Expr>>, Vec<Error>> {
+pub fn parse_string_all(input: impl AsRef<str>) -> Result<Vec<Expr>, Vec<Error>> {
     let input = input.as_ref();
 
     let mut lexer = Lexer::new(input);
@@ -68,7 +68,7 @@ pub fn parse_string_all(input: impl AsRef<str>) -> Result<Vec<Ann<Expr>>, Vec<Er
 // #TODO what is a good name?
 /// Reads and resolves a Tan expression encoded as a text string.
 /// Updates the environment with definitions.
-pub fn resolve_string(input: impl AsRef<str>, env: &mut Env) -> Result<Vec<Ann<Expr>>, Vec<Error>> {
+pub fn resolve_string(input: impl AsRef<str>, env: &mut Env) -> Result<Vec<Expr>, Vec<Error>> {
     let exprs = parse_string_all(input)?;
 
     // // Nice debugging tool!
@@ -116,7 +116,7 @@ pub fn resolve_string(input: impl AsRef<str>, env: &mut Env) -> Result<Vec<Ann<E
 
 // #TODO this implements in essence a do block. Maybe no value should be returned?
 /// Evaluates a Tan expression encoded as a text string.
-pub fn eval_string(input: impl AsRef<str>, env: &mut Env) -> Result<Ann<Expr>, Vec<Error>> {
+pub fn eval_string(input: impl AsRef<str>, env: &mut Env) -> Result<Expr, Vec<Error>> {
     let exprs = resolve_string(input, env)?;
 
     let mut last_value = Expr::One.into();

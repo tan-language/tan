@@ -3,21 +3,21 @@
 use std::collections::HashMap;
 
 use crate::{
-    ann::Ann,
+    ann::ANNO,
     expr::{format_value, Expr},
 };
 
 // #Insight
 // The optimizer does not err.
 
-pub fn optimize_fn(expr: Ann<Expr>) -> Ann<Expr> {
+pub fn optimize_fn(expr: Expr) -> Expr {
     match expr {
-        Ann(Expr::List(ref terms), ..) => {
+        ANNO(Expr::List(ref terms), ..) => {
             if !terms.is_empty() {
-                if let Ann(Expr::Symbol(s), ..) = &terms[0] {
+                if let ANNO(Expr::Symbol(s), ..) = &terms[0] {
                     if s == "Array" {
                         let items = terms[1..].iter().map(|ax| ax.0.clone()).collect();
-                        return Ann(Expr::Array(items), expr.1);
+                        return ANNO(Expr::Array(items), expr.1);
                     } else if s == "Dict" {
                         let items: Vec<Expr> = terms[1..].iter().map(|ax| ax.0.clone()).collect();
                         let mut dict = HashMap::new();
@@ -26,7 +26,7 @@ pub fn optimize_fn(expr: Ann<Expr>) -> Ann<Expr> {
                             let v = pair[1].clone();
                             dict.insert(format_value(k), v);
                         }
-                        return Ann(Expr::Dict(dict), expr.1);
+                        return ANNO(Expr::Dict(dict), expr.1);
                     }
                 }
             }
@@ -36,7 +36,7 @@ pub fn optimize_fn(expr: Ann<Expr>) -> Ann<Expr> {
     }
 }
 
-pub fn optimize(expr: Ann<Expr>) -> Ann<Expr> {
+pub fn optimize(expr: Expr) -> Expr {
     expr.transform(&optimize_fn)
 }
 

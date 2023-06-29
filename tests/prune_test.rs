@@ -1,7 +1,7 @@
 mod common;
 
 use tan::{
-    ann::Ann, api::parse_string_all, eval::env::Env, expr::Expr, macro_expand::macro_expand,
+    ann::ANNO, api::parse_string_all, eval::env::Env, expr::Expr, macro_expand::macro_expand,
 };
 
 #[test]
@@ -10,7 +10,7 @@ fn parse_removes_comments() {
     let exprs = parse_string_all(input).unwrap();
 
     let mut env = Env::prelude();
-    let exprs: Vec<Ann<Expr>> = exprs
+    let exprs: Vec<Expr> = exprs
         .into_iter()
         .filter_map(|expr| macro_expand(expr, &mut env).unwrap())
         .collect();
