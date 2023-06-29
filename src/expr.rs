@@ -210,6 +210,7 @@ impl Expr {
         }
     }
 
+    // #TODO name unpack? / project?
     pub fn extract(&self) -> (&Expr, Option<&HashMap<String, Expr>>) {
         match self {
             Expr::Annotated(expr, ann) => (expr, Some(ann)),
@@ -217,6 +218,7 @@ impl Expr {
         }
     }
 
+    // #TODO name unwrap?
     // #TODO unpack is very dangerous, we need to encode in the typesystem that the expr is unpacked.
     // #TODO unwrap into tuple (expr, ann)
     // #TODO find better name?

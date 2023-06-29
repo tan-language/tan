@@ -1,7 +1,5 @@
 use std::mem;
 
-use crate::ann::ANNO;
-
 use super::Expr;
 
 impl Expr {

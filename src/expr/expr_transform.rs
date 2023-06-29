@@ -12,10 +12,10 @@ impl Expr {
     where
         F: Fn(Self) -> Self,
     {
-        match self {
-            ANNO(Expr::List(terms), ann) => {
+        match self.extract() {
+            (Expr::List(terms), ann) => {
                 let terms = terms.into_iter().map(|t| t.transform(f)).collect();
-                let list = ANNO(Expr::List(terms), ann);
+                let list = Expr::maybe_annotated(Expr::List(terms), ann);
                 f(list)
             }
             _ => f(self),
@@ -37,10 +37,10 @@ mod tests {
 
         let expr = parse_string(input).unwrap();
 
-        let expr_string = expr.0.to_string();
+        let expr_string = expr.to_string();
 
         let expr_transformed = expr.transform(&identity_fn);
 
-        assert_eq!(expr_string, expr_transformed.0.to_string());
+        assert_eq!(expr_string, expr_transformed.to_string());
     }
 }
