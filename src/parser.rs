@@ -1,7 +1,7 @@
 use crate::{
     ann::ANNO,
     error::{Error, ErrorKind},
-    expr::Expr,
+    expr::{annotate, annotate_range, Expr},
     lexer::{
         token::{Token, TokenKind},
         Lexer,
@@ -63,7 +63,7 @@ impl<'a> Parser<'a> {
     /// expression as an annotation.
     fn attach_buffered_annotations(&mut self, expr: Expr, range: Range) -> Expr {
         // Annotate the expression with the range, by default.
-        let mut expr = ANNO::with_range(expr, range);
+        let mut expr = annotate_range(expr, range);
 
         let Some(buffered_annotations) = self.buffered_annotations.take() else {
             // No annotations for the expression.
@@ -102,7 +102,7 @@ impl<'a> Parser<'a> {
             // #TODO temp, support multiple expressions in annotation?
             let ann_expr = ann_expr.unwrap().swap_remove(0);
 
-            let ann_expr = ann_expr.0;
+            let ann_expr = ann_expr.unpack();
 
             match &ann_expr {
                 Expr::Symbol(sym) => {
@@ -123,17 +123,17 @@ impl<'a> Parser<'a> {
                     if sym.chars().next().unwrap().is_uppercase() {
                         // Type shorthand: If the annotation starts with uppercase
                         // letter, it's considered type annotations.
-                        expr.set_annotation("type", ann_expr);
+                        expr = annotate(expr, "type", *ann_expr);
                     } else {
                         // Bool=true shorthand: If the annotation starts with lowercase
                         // letter, it's considered a boolean flag.
-                        expr.set_annotation(sym.clone(), Expr::Bool(true));
+                        expr = annotate(expr, sym.clone(), Expr::Bool(true));
                     }
                 }
                 Expr::List(list) => {
                     // #TODO support more than symbols, e.g. KeySymbols or Strings.
-                    if let Some(ANNO(Expr::Symbol(sym), _)) = list.first() {
-                        expr.set_annotation(sym.clone(), ann_expr);
+                    if let Some(Expr::Symbol(sym)) = list.first().map(|x| x.unpack()) {
+                        expr = annotate(expr, sym.clone(), *ann_expr);
                     } else {
                         let mut error = Error::new(ErrorKind::MalformedAnnotation);
                         error.push_note(
@@ -337,7 +337,7 @@ impl<'a> Parser<'a> {
 
                 let exprs = self.parse_many(TokenKind::RightBracket, start_position)?;
 
-                let mut items = vec![ANNO::with_range(Expr::symbol("Array"), range)];
+                let mut items = vec![annotate_range(Expr::symbol("Array"), range)];
 
                 // #TODO add error checking!
                 // #TODO optimize.
@@ -361,7 +361,7 @@ impl<'a> Parser<'a> {
 
                 let exprs = self.parse_many(TokenKind::RightBrace, start_position)?;
 
-                let mut items = vec![ANNO::with_range(Expr::symbol("Dict"), range)];
+                let mut items = vec![annotate_range(Expr::symbol("Dict"), range)];
 
                 for expr in exprs {
                     items.push(expr);

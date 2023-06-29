@@ -239,6 +239,7 @@ impl Expr {
     }
 }
 
+#[must_use]
 pub fn annotate(expr: Expr, name: impl Into<String>, ann_expr: Expr) -> Expr {
     match expr {
         Expr::Annotated(_, mut ann) => {
@@ -253,8 +254,16 @@ pub fn annotate(expr: Expr, name: impl Into<String>, ann_expr: Expr) -> Expr {
     }
 }
 
+// #TODO use special sigil for implicit/system annotations.
+
+#[must_use]
 pub fn annotate_type(expr: Expr, type_name: impl Into<String>) -> Expr {
     annotate(expr, "type", Expr::Symbol(type_name.into()))
+}
+
+#[must_use]
+pub fn annotate_range(expr: Expr, range: Range) -> Expr {
+    annotate(expr, "range", range_to_expr(&range))
 }
 
 // #TODO think where this function is used. (it is used for Dict keys, hmm...)
