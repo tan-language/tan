@@ -36,8 +36,10 @@ fn eval_args(args: &[Expr], env: &mut Env) -> Result<Vec<Expr>, Error> {
 /// Evaluates via expression rewriting. The expression `expr` evaluates to
 /// a fixed point. In essence this is a 'tree-walk' interpreter.
 pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
+    let expr = expr.unwrap();
+
     match expr {
-        ANNO(Expr::Symbol(symbol), _) => {
+        Expr::Symbol(symbol) => {
             // #TODO differentiate between evaluating symbol in 'op' position.
 
             if is_reserved_symbol(symbol) {

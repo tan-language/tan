@@ -3,7 +3,7 @@ pub mod expr_transform;
 
 use std::{collections::HashMap, fmt, rc::Rc};
 
-use crate::{ann::ANNO, error::Error, eval::env::Env, lexer::comment::CommentKind};
+use crate::{error::Error, eval::env::Env, lexer::comment::CommentKind};
 
 // #TODO separate variant for list and apply/call (can this be defined statically?)
 // #TODO List, MaybeList, Call
@@ -69,7 +69,7 @@ pub enum Expr {
     Let,
     // #TODO maybe this 'compound' if prohibits homoiconicity?
     If(Box<Expr>, Box<Expr>, Option<Box<Expr>>),
-    Ann(Box<Expr>),
+    Ann(Box<Expr>, HashMap<String, Expr>),
 }
 
 // #TODO what is the Expr default? One (Unit/Any) or Zero (Noting/Never)
@@ -162,7 +162,7 @@ impl fmt::Display for Expr {
                 Expr::Func(..) => "#<func>".to_owned(),
                 Expr::Macro(..) => "#<func>".to_owned(),
                 Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
-                Expr::Ann(expr) => format!("ANN({})", expr), // #TODO format the annotation!
+                Expr::Ann(expr, _) => format!("ANN({})", expr), // #TODO format the annotation!
             })
             .as_str(),
         )
@@ -182,6 +182,55 @@ impl Expr {
 
     pub fn string(s: impl Into<String>) -> Self {
         Expr::String(s.into())
+    }
+}
+
+impl Expr {
+    pub fn ann(&self) -> Option<&HashMap<String, Expr>> {
+        match self {
+            Expr::Ann(_, ann) => Some(ann),
+            _ => None,
+        }
+    }
+
+    // #TODO unwrap into tuple (expr, ann)
+    // #TODO find better name?
+    pub fn unwrap(&self) -> &Self {
+        match self {
+            Expr::Ann(expr, _) => expr,
+            _ => self,
+        }
+    }
+
+    pub fn set_annotation(&mut self, name: impl Into<String>, ann_expr: Expr) ->  {
+        match self {
+            Expr::Ann(_, ann) => {
+                ann.insert(name.into(), ann_expr);
+                self
+            }
+            expr => {
+                let mut ann = HashMap::new();
+                ann.insert(name.into(), ann_expr);
+                Expr::Ann(expr, ann)
+            }
+        }
+    }
+
+    pub fn get_annotation(&self, name: impl Into<String>) -> Option<&Expr> {
+        let Some(ref ann ) = self.1 else {
+            return None;
+        };
+
+        ann.get(&name.into())
+    }
+
+    // static vs dyn type.
+    pub fn static_type(&self) -> String {
+        todo!()
+    }
+
+    pub fn range(&self) {
+        todo!()
     }
 }
 
