@@ -69,7 +69,7 @@ pub enum Expr {
     Let,
     // #TODO maybe this 'compound' if prohibits homoiconicity?
     If(Box<Expr>, Box<Expr>, Option<Box<Expr>>),
-    Ann(Box<Expr>, HashMap<String, Expr>),
+    Annotated(Box<Expr>, HashMap<String, Expr>),
 }
 
 // #TODO what is the Expr default? One (Unit/Any) or Zero (Noting/Never)
@@ -106,7 +106,7 @@ impl fmt::Debug for Expr {
             Expr::Let => "let".to_owned(),
             // #TODO properly format do, let, if, etc.
             Expr::If(_, _, _) => "if".to_owned(),
-            Expr::Ann(expr) => format!("ANN({:?})", expr), // #TODO format the annotation!
+            Expr::Annotated(expr, _) => format!("ANN({:?})", expr), // #TODO format the annotation!
         };
 
         write!(f, "{text}")
@@ -162,7 +162,7 @@ impl fmt::Display for Expr {
                 Expr::Func(..) => "#<func>".to_owned(),
                 Expr::Macro(..) => "#<func>".to_owned(),
                 Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
-                Expr::Ann(expr, _) => format!("ANN({})", expr), // #TODO format the annotation!
+                Expr::Annotated(expr, _) => format!("ANN({})", expr), // #TODO format the annotation!
             })
             .as_str(),
         )
@@ -183,12 +183,16 @@ impl Expr {
     pub fn string(s: impl Into<String>) -> Self {
         Expr::String(s.into())
     }
+
+    pub fn annotated(expr: Expr) -> Self {
+        Expr::Annotated(Box::new(expr), HashMap::new())
+    }
 }
 
 impl Expr {
-    pub fn ann(&self) -> Option<&HashMap<String, Expr>> {
+    pub fn annotations(&self) -> Option<&HashMap<String, Expr>> {
         match self {
-            Expr::Ann(_, ann) => Some(ann),
+            Expr::Annotated(_, ann) => Some(ann),
             _ => None,
         }
     }
@@ -197,40 +201,39 @@ impl Expr {
     // #TODO find better name?
     pub fn unwrap(&self) -> &Self {
         match self {
-            Expr::Ann(expr, _) => expr,
+            Expr::Annotated(expr, _) => expr,
             _ => self,
         }
     }
 
-    pub fn set_annotation(&mut self, name: impl Into<String>, ann_expr: Expr) ->  {
+    pub fn annotation(&self, name: impl Into<String>) -> Option<&Expr> {
         match self {
-            Expr::Ann(_, ann) => {
-                ann.insert(name.into(), ann_expr);
-                self
-            }
-            expr => {
-                let mut ann = HashMap::new();
-                ann.insert(name.into(), ann_expr);
-                Expr::Ann(expr, ann)
-            }
+            Expr::Annotated(_, ann) => ann.get(&name.into()),
+            _ => None,
         }
     }
 
-    pub fn get_annotation(&self, name: impl Into<String>) -> Option<&Expr> {
-        let Some(ref ann ) = self.1 else {
-            return None;
-        };
-
-        ann.get(&name.into())
-    }
-
     // static vs dyn type.
-    pub fn static_type(&self) -> String {
-        todo!()
+    pub fn static_type(&self) -> &Expr {
+        self.annotation("type").unwrap_or(&Expr::One)
     }
 
     pub fn range(&self) {
         todo!()
+    }
+}
+
+pub fn annotate(mut expr: Expr, name: impl Into<String>, ann_expr: Expr) -> Expr {
+    match expr {
+        Expr::Annotated(_, mut ann) => {
+            ann.insert(name.into(), ann_expr);
+            expr
+        }
+        expr => {
+            let mut ann = HashMap::new();
+            ann.insert(name.into(), ann_expr);
+            Expr::Annotated(Box::new(expr), ann)
+        }
     }
 }
 

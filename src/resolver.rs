@@ -24,13 +24,15 @@ impl Resolver {
         Self { errors: Vec::new() }
     }
 
+    // #TODO no need to resolve basic types!
+
     // #TODO maybe return multiple errors?
     pub fn resolve_expr(&mut self, mut expr: Expr, env: &mut Env) -> Expr {
         // eprintln!("<<< {} >>>", expr);
         // #TODO update the original annotations!
         // #TODO need to handle _all_ Expr variants.
         match expr {
-            ANNO(Expr::Int(_), _) => {
+            Expr::Annotated(Expr::Int(_), _) => {
                 expr.set_type(Expr::symbol("Int"));
                 expr
             }
