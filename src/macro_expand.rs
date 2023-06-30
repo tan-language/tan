@@ -1,8 +1,7 @@
 use crate::{
-    ann::ANNO,
     error::Error,
     eval::{env::Env, eval},
-    expr::Expr,
+    expr::{annotate_range, Expr},
     util::is_reserved_symbol,
 };
 
@@ -31,7 +30,7 @@ pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
             // Prune TextSeparator expressions.
             Ok(None)
         }
-        ANNO(Expr::List(ref list), ref range) => {
+        Expr::List(ref list) => {
             let head = list.first().unwrap(); // The unwrap here is safe.
             let tail = &list[1..];
 
@@ -60,8 +59,8 @@ pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
                     env.push_new_scope();
 
                     for (param, arg) in params.iter().zip(args) {
-                        let ANNO(Expr::Symbol(param), ..) = param else {
-                            return Err(Error::invalid_arguments("parameter is not a symbol", param.get_range()));
+                        let Expr::Symbol(param) = param.unpack() else {
+                            return Err(Error::invalid_arguments("parameter is not a symbol", param.range()));
                         };
 
                         env.insert(param, arg.clone());
@@ -82,21 +81,21 @@ pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
                         // #TODO should be def, no loop.
 
                         let Some(binding_sym) = args.next() else {
-                            return Err(Error::invalid_arguments("missing binding symbol", expr.get_range()));
+                            return Err(Error::invalid_arguments("missing binding symbol", expr.range()));
                         };
 
                         let Some(binding_value) = args.next() else {
-                            return Err(Error::invalid_arguments("missing binding value", expr.get_range()));
+                            return Err(Error::invalid_arguments("missing binding value", expr.range()));
                         };
 
-                        let ANNO(Expr::Symbol(s), ..) = binding_sym else {
-                            return Err(Error::invalid_arguments(&format!("`{sym}` is not a Symbol"), binding_sym.get_range()));
+                        let Expr::Symbol(s) = binding_sym.unpack() else {
+                            return Err(Error::invalid_arguments(&format!("`{sym}` is not a Symbol"), binding_sym.range()));
                         };
 
                         if is_reserved_symbol(s) {
                             return Err(Error::invalid_arguments(
                                 &format!("let cannot shadow the reserved symbol `{s}`"),
-                                binding_sym.get_range(),
+                                binding_sym.range(),
                             ));
                         }
 
@@ -105,14 +104,16 @@ pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
                         // #TODO notify about overrides? use `set`?
                         // #TODO consider if we should allow redefinitions.
 
-                        if let Some(ANNO(Expr::Macro(..), ..)) = binding_value {
-                            // #TODO put all the definitions in one pass.
-                            // Only define macros in this pass.
-                            env.insert(s, binding_value.unwrap());
+                        if let Some(binding_value) = binding_value {
+                            if let Expr::Macro(..) = binding_value.unpack() {
+                                // #TODO put all the definitions in one pass.
+                                // Only define macros in this pass.
+                                env.insert(s, binding_value);
 
-                            // #TODO verify with unit-test.
-                            // Macro definition is pruned.
-                            return Ok(None);
+                                // #TODO verify with unit-test.
+                                // Macro definition is pruned.
+                                return Ok(None);
+                            }
                         }
 
                         Ok(Some(
@@ -125,7 +126,7 @@ pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
                         ))
                     } else if sym == "quot" {
                         let [value] = tail else {
-                                return Err(Error::invalid_arguments("missing quote target", expr.get_range()));
+                                return Err(Error::invalid_arguments("missing quote target", expr.range()));
                             };
 
                         // #TODO super nasty, quotes should be resolved statically (at compile time)
@@ -133,17 +134,17 @@ pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
                         Ok(Some(
                             Expr::List(vec![
                                 Expr::Symbol("quot".to_owned()).into(),
-                                value.0.clone().into(),
+                                *value.unpack(),
                             ])
                             .into(),
                         ))
                     } else if sym == "Macro" {
                         let [args, body] = tail else {
-                            return Err(Error::invalid_arguments("malformed macro definition", expr.get_range()));
+                            return Err(Error::invalid_arguments("malformed macro definition", expr.range()));
                         };
 
-                        let ANNO(Expr::List(params), ..) = args else {
-                            return Err(Error::invalid_arguments("malformed macro parameters definition", expr.get_range()));
+                        let Expr::List(params) = args.unpack() else {
+                            return Err(Error::invalid_arguments("malformed macro parameters definition", expr.range()));
                         };
 
                         // #TODO optimize!
@@ -176,7 +177,11 @@ pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
                         }
                     }
 
-                    Ok(Some(ANNO(Expr::List(terms), range.clone())))
+                    Ok(Some(annotate_range(
+                        Expr::List(terms),
+                        // #TODO hmmmm this unwrap!!!
+                        expr.range().unwrap(),
+                    )))
                 }
             }
         }
