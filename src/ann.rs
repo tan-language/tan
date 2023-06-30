@@ -6,6 +6,9 @@ use crate::{
     range::{Position, Range},
 };
 
+// #insight
+// We keep this file for the comments.
+
 // #TODO somehow annotations should trigger macros.
 // #TODO initially keep the range as a list
 

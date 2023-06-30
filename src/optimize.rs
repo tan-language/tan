@@ -1,5 +1,3 @@
-// #TODO combine a vec of expressions into one `do` expression?, in this pass?
-
 use std::collections::HashMap;
 
 use crate::expr::{format_value, Expr};
@@ -22,7 +20,8 @@ pub fn optimize_fn(expr: Expr) -> Expr {
                         let items = terms[1..].iter().map(|ax| ax.unpack().clone()).collect();
                         return Expr::maybe_annotated(Expr::Array(items), expr.annotations());
                     } else if s == "Dict" {
-                        let items: Vec<Expr> = terms[1..].iter().map(|ax| ax.unpack().clone()).collect();
+                        let items: Vec<Expr> =
+                            terms[1..].iter().map(|ax| ax.unpack().clone()).collect();
                         let mut dict = HashMap::new();
                         for pair in items.chunks(2) {
                             let k = pair[0].clone();
@@ -61,8 +60,8 @@ mod tests {
     }
 
     // #TODO the test is flaky for some reason, temporarily disabled, investigate.
-    // #[test]
-    fn _optimize_rewrites_dict_expressions() {
+    #[test]
+    fn optimize_rewrites_dict_expressions() {
         let input = r#"(let a {:name "George" :age 25})"#;
 
         let expr = parse_string(input).unwrap();

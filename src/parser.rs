@@ -425,7 +425,7 @@ impl<'a> Parser<'a> {
     // #Insight
     // The parse function intentionally returns an 'unstructured' vector of
     // expressions instead of something like a do-block or a module. Downstream
-    // functions can enforce some structure.dd
+    // functions can enforce some structure.
 
     // #Insight
     // The loop in the parser is also useful to skip over comments.

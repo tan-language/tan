@@ -16,8 +16,10 @@ use crate::{
 
 // #TODO return Vec<Error> like all other methods?
 
+// #TODO move pruning to optimize to run AFTER macro-expansion, macros could produce prunable exprs?
 // #TODO add macro-expansion tests!!!
 
+// #TODO
 /// Expands macro invocations, at compile time.
 pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
     match expr.unpack() {
@@ -51,9 +53,10 @@ pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
 
                     let args = tail;
 
+                    // #TODO wtf is this ultra-hack?
                     // #TODO ultra-hack to kill shared ref to `env`.
-                    let params = params.clone();
-                    let body = body.clone();
+                    // let params = params.clone();
+                    // let body = body.clone();
 
                     // #TODO what kind of scoping is this?
 

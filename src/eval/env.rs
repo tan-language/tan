@@ -28,7 +28,7 @@ pub type Scope = HashMap<String, Expr>;
 /// A binding binds a symbol to a value/expr.
 #[derive(Debug)]
 pub struct Env {
-    pub global: Scope,
+    pub global: Scope, // #TODO no global, abuse a module for 'global', like CommonJS.
     pub local: Vec<Scope>,
     // #TODO maybe even keep the inner local scope as field?
 }
