@@ -254,9 +254,12 @@ fn eval_processes_multiline_text() {
     assert_eq!(value, expected_value);
 }
 
+// #TODO doesn't pass!
 #[test]
 fn eval_processes_deep_data() {
     let result = eval_file("data.tan");
+
+    dbg!(&result);
 
     assert!(result.is_ok());
 
@@ -266,6 +269,7 @@ fn eval_processes_deep_data() {
     assert_eq!(value, expected_value);
 }
 
+// #TODO doesn't pass!
 #[test]
 fn eval_processes_macros() {
     let result = eval_file("macro.tan");
