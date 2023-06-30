@@ -1,8 +1,6 @@
 mod common;
 
-use tan::{
-    ann::ANNO, api::parse_string_all, eval::env::Env, expr::Expr, macro_expand::macro_expand,
-};
+use tan::{api::parse_string_all, eval::env::Env, expr::Expr, macro_expand::macro_expand};
 
 #[test]
 fn parse_removes_comments() {

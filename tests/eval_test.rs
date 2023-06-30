@@ -1,7 +1,6 @@
 mod common;
 
 use tan::{
-    ann::ANNO,
     api::eval_string,
     error::{Error, ErrorKind},
     eval::{env::Env, eval},
@@ -52,7 +51,7 @@ fn eval_processes_keyword_symbols() {
     let mut env = Env::prelude();
     let result = eval_string(":key", &mut env).unwrap();
 
-    assert!(matches!(result, ANNO(Expr::KeySymbol(x), ..) if x == "key"));
+    assert!(matches!(result.unpack(), Expr::KeySymbol(x) if x == "key"));
 }
 
 #[test]
@@ -61,7 +60,7 @@ fn eval_processes_empty_list() {
     let mut env = Env::prelude();
     let value = eval(&expr, &mut env).unwrap();
 
-    assert!(matches!(value, ANNO(Expr::One, ..)));
+    assert!(matches!(value.unpack(), Expr::One));
 }
 
 #[test]
@@ -77,17 +76,17 @@ fn eval_processes_let() {
 fn eval_processes_booleans() {
     let mut env = Env::prelude();
     let value = eval_string("(do (let flag true) flag)", &mut env).unwrap();
-    assert!(matches!(value, ANNO(Expr::Bool(x), ..) if x));
+    assert!(matches!(value.unpack(), Expr::Bool(x) if *x));
 
     let value = eval_string("(do (let flag false) flag)", &mut env).unwrap();
-    assert!(matches!(value, ANNO(Expr::Bool(x), ..) if !x));
+    assert!(matches!(value.unpack(), Expr::Bool(x) if !x));
 }
 
 #[test]
 fn eval_processes_chars() {
     let mut env = Env::prelude();
     let value = eval_string(r#"(let ch (Char "r")) ch"#, &mut env).unwrap();
-    assert!(matches!(value, ANNO(Expr::Char(c), ..) if c == 'r'));
+    assert!(matches!(value.unpack(), Expr::Char(c) if *c == 'r'));
 }
 
 #[test]
