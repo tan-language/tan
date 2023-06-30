@@ -3,7 +3,6 @@
 use std::path::Path;
 
 use crate::{
-    ann::ANNO,
     error::Error,
     eval::{env::Env, eval},
     expr::Expr,

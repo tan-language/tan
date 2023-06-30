@@ -1,7 +1,4 @@
-use std::collections::HashMap;
-
 use crate::{
-    ann::ANNO,
     error::Error,
     eval::{env::Env, eval},
     expr::{annotate, annotate_type, Expr},

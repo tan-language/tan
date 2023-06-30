@@ -1,7 +1,6 @@
 //! Common testing-support functions and utilities.
 
 use tan::{
-    ann::ANNO,
     api::{eval_string, parse_string, resolve_string},
     error::Error,
     eval::env::Env,

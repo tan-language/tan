@@ -1,7 +1,6 @@
 use std::{fs, path::Path};
 
 use crate::{
-    ann::ANNO,
     api::{has_tan_extension, resolve_string},
     error::Error,
     expr::Expr,

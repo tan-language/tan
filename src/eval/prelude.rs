@@ -1,7 +1,6 @@
 use std::rc::Rc;
 
 use crate::{
-    ann::ANNO,
     expr::{annotate_type, Expr},
     ops::{
         arithmetic::{add_float, add_int, mul, sub},
