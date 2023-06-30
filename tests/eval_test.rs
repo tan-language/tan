@@ -269,7 +269,6 @@ fn eval_processes_deep_data() {
     assert_eq!(value, expected_value);
 }
 
-// #TODO doesn't pass!
 #[test]
 fn eval_processes_macros() {
     let result = eval_file("macro.tan");

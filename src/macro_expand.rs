@@ -16,6 +16,8 @@ use crate::{
 
 // #TODO return Vec<Error> like all other methods?
 
+// #TODO add macro-expansion tests!!!
+
 /// Expands macro invocations, at compile time.
 pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
     match expr.unpack() {
@@ -40,8 +42,7 @@ pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
                 return Ok(Some(expr));
             };
 
-            // #TODO can we remove this as_ref?
-            match head.as_ref() {
+            match head.unpack() {
                 Expr::Macro(params, body) => {
                     // This is the actual macro-expansion
 
