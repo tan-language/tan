@@ -4,7 +4,7 @@ use tan::{
     api::eval_string,
     error::{Error, ErrorKind},
     eval::{env::Env, eval},
-    expr::{format_value, Expr},
+    expr::Expr,
 };
 
 use crate::common::{eval_file, read_file};
@@ -32,7 +32,6 @@ fn do_reports_intermediate_errors() {
     let err = result.unwrap_err();
     let err = &err[0];
 
-    dbg!(&err);
     assert!(matches!(err, Error{ kind: ErrorKind::UndefinedFunction(s, _), .. } if s == "write33"));
 }
 
@@ -216,9 +215,12 @@ fn eval_processes_function_definition_and_application() {
     assert_eq!(value, expected_value);
 }
 
+// #TODO not passing!!!!
 #[test]
 fn eval_processes_dict() {
     let result = eval_file("dict.tan");
+
+    dbg!(&result);
 
     assert!(result.is_ok());
 
@@ -246,8 +248,7 @@ fn eval_processes_multiline_text() {
 
     assert!(result.is_ok());
 
-    // #TODO maybe format_value should be the default `to_string()`/`Display`
-    let value = format_value(result.unwrap());
+    let value = result.unwrap().to_string();
     let expected_value = read_file("multi-line-text.value.tan");
 
     assert_eq!(value, expected_value);

@@ -126,6 +126,8 @@ pub fn resolve_string(input: impl AsRef<str>, env: &mut Env) -> Result<Vec<Expr>
 pub fn eval_string(input: impl AsRef<str>, env: &mut Env) -> Result<Expr, Vec<Error>> {
     let exprs = resolve_string(input, env)?;
 
+    // dbg!(&exprs);
+
     let mut last_value = Expr::One.into();
 
     for expr in exprs {
