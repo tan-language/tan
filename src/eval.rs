@@ -129,7 +129,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
 
             // #TODO move special forms to prelude, as Expr::Macro or Expr::Special
 
-            match head.as_ref() {
+            match head.unpack() {
                 Expr::Func(params, body) => {
                     // Evaluate the arguments before calling the function.
                     let args = eval_args(tail, env)?;
