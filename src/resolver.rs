@@ -35,8 +35,14 @@ impl Resolver {
                     // The expression is already typed.
                     expr.clone()
                 } else {
-                    // #TODO argh!!
-                    self.resolve_expr(expr.unpack().clone(), env)
+                    // #TODO refactor and/or extract this functionality.
+                    let mut resolved_expr = self.resolve_expr(expr.unpack().clone(), env);
+                    if let Expr::Annotated(_, ref mut resolved_ann) = resolved_expr {
+                        for (key, value) in ann {
+                            resolved_ann.insert(key.clone(), value.clone());
+                        }
+                    }
+                    resolved_expr
                 }
             }
             Expr::Int(_) => annotate_type(expr, "Int"),

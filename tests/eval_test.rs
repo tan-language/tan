@@ -32,6 +32,7 @@ fn do_reports_intermediate_errors() {
     let err = result.unwrap_err();
     let err = &err[0];
 
+    dbg!(&err);
     assert!(matches!(err, Error{ kind: ErrorKind::UndefinedFunction(s, _), .. } if s == "write33"));
 }
 
