@@ -197,7 +197,8 @@ impl Expr {
 
     pub fn maybe_annotated(expr: Expr, annotations: Option<&HashMap<String, Expr>>) -> Self {
         if let Some(annotations) = annotations {
-            Expr::Annotated(Box::new(expr), *annotations)
+            // #TODO do something about this clone!!
+            Expr::Annotated(Box::new(expr), annotations.clone())
         } else {
             expr
         }
@@ -238,13 +239,17 @@ impl Expr {
         }
     }
 
-    // static vs dyn type.
+    // // static vs dyn type.
+    // pub fn static_type(&self) -> Expr {
+    //     match self {
+    //         Expr::Int(_) => return Expr::symbol("Int"),
+    //         Expr::Float(_) => return Expr::symbol("Float"),
+    //         _ => return Expr::symbol("Unknown"),
+    //     }
+    // }
+
     pub fn static_type(&self) -> &Expr {
-        match self {
-            Expr::Int(_) => return &Expr::symbol("Int"),
-            Expr::Float(_) => return &Expr::symbol("Float"),
-            _ => return &Expr::symbol("Unknown"),
-        }
+        self.annotation("type").unwrap_or(&Expr::One)
     }
 
     pub fn range(&self) -> Option<Range> {
@@ -253,9 +258,9 @@ impl Expr {
 }
 
 #[must_use]
-pub fn annotate(expr: Expr, name: impl Into<String>, ann_expr: Expr) -> Expr {
+pub fn annotate(mut expr: Expr, name: impl Into<String>, ann_expr: Expr) -> Expr {
     match expr {
-        Expr::Annotated(_, mut ann) => {
+        Expr::Annotated(_, ref mut ann) => {
             ann.insert(name.into(), ann_expr);
             expr
         }

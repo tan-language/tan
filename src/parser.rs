@@ -1,5 +1,4 @@
 use crate::{
-    ann::ANNO,
     error::{Error, ErrorKind},
     expr::{annotate, annotate_range, Expr},
     lexer::{
@@ -123,7 +122,7 @@ impl<'a> Parser<'a> {
                     if sym.chars().next().unwrap().is_uppercase() {
                         // Type shorthand: If the annotation starts with uppercase
                         // letter, it's considered type annotations.
-                        expr = annotate(expr, "type", *ann_expr);
+                        expr = annotate(expr, "type", ann_expr.clone());
                     } else {
                         // Bool=true shorthand: If the annotation starts with lowercase
                         // letter, it's considered a boolean flag.
@@ -133,7 +132,7 @@ impl<'a> Parser<'a> {
                 Expr::List(list) => {
                     // #TODO support more than symbols, e.g. KeySymbols or Strings.
                     if let Some(Expr::Symbol(sym)) = list.first().map(|x| x.unpack()) {
-                        expr = annotate(expr, sym.clone(), *ann_expr);
+                        expr = annotate(expr, sym.clone(), ann_expr.clone());
                     } else {
                         let mut error = Error::new(ErrorKind::MalformedAnnotation);
                         error.push_note(

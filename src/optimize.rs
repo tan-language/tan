@@ -19,10 +19,10 @@ pub fn optimize_fn(expr: Expr) -> Expr {
             if !terms.is_empty() {
                 if let Expr::Symbol(s) = &terms[0].unpack() {
                     if s == "Array" {
-                        let items = terms[1..].iter().map(|ax| *ax.unpack()).collect();
+                        let items = terms[1..].iter().map(|ax| ax.unpack().clone()).collect();
                         return Expr::maybe_annotated(Expr::Array(items), expr.annotations());
                     } else if s == "Dict" {
-                        let items: Vec<Expr> = terms[1..].iter().map(|ax| *ax.unpack()).collect();
+                        let items: Vec<Expr> = terms[1..].iter().map(|ax| ax.unpack().clone()).collect();
                         let mut dict = HashMap::new();
                         for pair in items.chunks(2) {
                             let k = pair[0].clone();
@@ -59,7 +59,7 @@ mod tests {
 
         assert!(s.contains("Array([Int(1), Int(2), Int(3), Int(4)])"));
     }
-    
+
     // #TODO the test is flaky for some reason, temporarily disabled, investigate.
     // #[test]
     fn _optimize_rewrites_dict_expressions() {

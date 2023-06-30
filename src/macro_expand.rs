@@ -104,23 +104,25 @@ pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
                         // #TODO notify about overrides? use `set`?
                         // #TODO consider if we should allow redefinitions.
 
-                        if let Some(binding_value) = binding_value {
-                            if let Expr::Macro(..) = binding_value.unpack() {
-                                // #TODO put all the definitions in one pass.
-                                // Only define macros in this pass.
-                                env.insert(s, binding_value);
+                        let Some(binding_value) = binding_value else {
+                            return Err(Error::invalid_arguments("Invalid arguments", None));
+                        };
 
-                                // #TODO verify with unit-test.
-                                // Macro definition is pruned.
-                                return Ok(None);
-                            }
+                        if let Expr::Macro(..) = binding_value.unpack() {
+                            // #TODO put all the definitions in one pass.
+                            // Only define macros in this pass.
+                            env.insert(s, binding_value);
+
+                            // #TODO verify with unit-test.
+                            // Macro definition is pruned.
+                            return Ok(None);
                         }
 
                         Ok(Some(
                             Expr::List(vec![
                                 Expr::Symbol("let".to_owned()).into(),
                                 binding_sym.clone(),
-                                binding_value.unwrap(), // #TODO argh, remove the unwrap!
+                                binding_value,
                             ])
                             .into(),
                         ))
@@ -134,7 +136,7 @@ pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
                         Ok(Some(
                             Expr::List(vec![
                                 Expr::Symbol("quot".to_owned()).into(),
-                                *value.unpack(),
+                                value.unpack().clone(),
                             ])
                             .into(),
                         ))

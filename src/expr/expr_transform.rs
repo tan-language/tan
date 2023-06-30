@@ -1,5 +1,3 @@
-use crate::ann::ANNO;
-
 use super::Expr;
 
 impl Expr {
@@ -14,7 +12,8 @@ impl Expr {
     {
         match self.extract() {
             (Expr::List(terms), ann) => {
-                let terms = terms.into_iter().map(|t| t.transform(f)).collect();
+                // #TODO investigate this clone!!!!
+                let terms = terms.into_iter().map(|t| t.clone().transform(f)).collect();
                 let list = Expr::maybe_annotated(Expr::List(terms), ann);
                 f(list)
             }
