@@ -16,7 +16,7 @@ pub fn string_chars(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
         exprs.push(Expr::Char(char));
     }
 
-    Ok(Expr::Array(exprs).into())
+    Ok(Expr::Array(exprs))
 }
 
 pub fn string_constructor_from_chars(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
@@ -38,7 +38,7 @@ pub fn string_constructor_from_chars(args: &[Expr], _env: &Env) -> Result<Expr, 
 
     let string = String::from_iter(chars);
 
-    Ok(Expr::String(string).into())
+    Ok(Expr::String(string))
 }
 
 // #TODO overload for string and char!
@@ -55,5 +55,5 @@ pub fn char_uppercased(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     // #TODO omg...
     let uppercased = this.to_uppercase().next().unwrap();
 
-    Ok(Expr::Char(uppercased).into())
+    Ok(Expr::Char(uppercased))
 }

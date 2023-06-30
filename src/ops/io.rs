@@ -29,13 +29,13 @@ pub fn write(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
         }
     }
 
-    Ok(Expr::One.into())
+    Ok(Expr::One)
 }
 
 pub fn writeln(args: &[Expr], env: &Env) -> Result<Expr, Error> {
     // #TODO nasty implementation!
     write(args, env)?;
-    write(&[Expr::string("\n").into()], env)
+    write(&[Expr::string("\n")], env)
 }
 
 // File < Resource
@@ -54,7 +54,7 @@ pub fn file_read_as_string(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
 
     let contents = fs::read_to_string(path)?;
 
-    Ok(Expr::String(contents).into())
+    Ok(Expr::String(contents))
 }
 
 // #TODO decide on the parameters order.
@@ -73,5 +73,5 @@ pub fn file_write_string(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
 
     fs::write(path, content)?;
 
-    Ok(Expr::One.into())
+    Ok(Expr::One)
 }

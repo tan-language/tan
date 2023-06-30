@@ -111,7 +111,8 @@ impl fmt::Debug for Expr {
             Expr::Let => "let".to_owned(),
             // #TODO properly format do, let, if, etc.
             Expr::If(_, _, _) => "if".to_owned(),
-            Expr::Annotated(expr, _) => format!("ANN({:?})", expr), // #TODO format the annotation!
+            // #insight intentionally pass through the formatting.
+            Expr::Annotated(expr, _) => format!("{expr:?}"),
         };
 
         write!(f, "{text}")
@@ -167,7 +168,8 @@ impl fmt::Display for Expr {
                 Expr::Func(..) => "#<func>".to_owned(),
                 Expr::Macro(..) => "#<func>".to_owned(),
                 Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
-                Expr::Annotated(expr, _) => format!("ANN({})", expr), // #TODO format the annotation!
+                // #insight intentionally pass through the formatting.
+                Expr::Annotated(expr, _) => format!("{expr}"),
             })
             .as_str(),
         )

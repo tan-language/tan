@@ -7,12 +7,16 @@ use crate::{ann::ANNO, error::Error, eval::env::Env, expr::Expr};
 // #TODO use macros to generate specializations for generic versions.
 // #TODO deduct from type if the function can affect the env or have any other side-effects.
 
+// #TODO ranges for arguments is too detailed, most probably we do not have the ranges!
+// #TODO support invalid_arguments without range.
+
 // #TODO autogen with a macro!
 pub fn add_int(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     let mut xs = Vec::new();
 
     for arg in args {
         let ANNO(Expr::Int(n), _) = arg else {
+            // #TODO hmm, the error is too precise here, do we really need the annotations?
             return Err(Error::invalid_arguments(&format!("{arg} is not an Int"), arg.get_range()));
         };
         xs.push(*n);
@@ -20,9 +24,10 @@ pub fn add_int(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
 
     let sum = add_int_impl(xs);
 
-    Ok(Expr::Int(sum).into())
+    Ok(Expr::Int(sum))
 }
 
+// #insight example of splitting wrapper from impl.
 fn add_int_impl(xs: Vec<i64>) -> i64 {
     xs.iter().sum()
 }
@@ -37,7 +42,7 @@ pub fn add_float(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
         sum += n;
     }
 
-    Ok(Expr::Float(sum).into())
+    Ok(Expr::Float(sum))
 }
 
 // #TODO should return the error without range and range should be added by caller.
@@ -55,7 +60,7 @@ pub fn sub(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
         return Err(Error::invalid_arguments(&format!("{b} is not an Int"), b.get_range()));
     };
 
-    Ok(Expr::Int(a - b).into())
+    Ok(Expr::Int(a - b))
 }
 
 pub fn mul(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
@@ -69,5 +74,5 @@ pub fn mul(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
         prod *= n;
     }
 
-    Ok(Expr::Int(prod).into())
+    Ok(Expr::Int(prod))
 }

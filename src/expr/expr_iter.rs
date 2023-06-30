@@ -32,31 +32,30 @@ impl<'a> Iterator for ExprIter<'a> {
 
     // #TODO this does not traverse Array, Dict, etc.
     fn next(&mut self) -> Option<Self::Item> {
-        let expr = self.children.get(0);
-
-        match expr {
-            None => match self.parent.take() {
+        let Some(expr) = self.children.get(0) else {
+            return match self.parent.take() {
                 Some(parent) => {
                     // continue with the parent expr
                     *self = *parent;
                     self.next()
                 }
                 None => None,
-            },
-            Some(ANNO(Expr::List(children), ..)) => {
+            };
+        };
+
+        match expr.unpack() {
+            Expr::List(children) => {
                 self.children = &self.children[1..];
                 // iterate the sub-trees
                 *self = ExprIter {
                     children: children.as_slice(),
                     parent: Some(Box::new(mem::take(self))),
                 };
-                // self.next()
-                expr
+                Some(expr)
             }
             _ => {
-                // let x = self.children.get(0);
                 self.children = &self.children[1..];
-                expr
+                Some(expr)
             }
         }
     }
@@ -78,7 +77,7 @@ mod tests {
 
         let expr = &expr[0];
 
-        let terms: Vec<String> = expr.iter().map(|ax| ax.0.to_string()).collect();
+        let terms: Vec<String> = expr.iter().map(|ax| ax.to_string()).collect();
         let expected_terms = vec![
             "(quot (1 2 3 (4 5) (6 (+ 7 8)) 9 10))",
             "quot",

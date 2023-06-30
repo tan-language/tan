@@ -39,6 +39,8 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
     let expr = expr.unpack();
 
     match expr {
+        // #TODO are you sure?
+        // Expr::Annotated(..) => eval(expr.unpack(), env),
         Expr::Symbol(symbol) => {
             // #TODO differentiate between evaluating symbol in 'op' position.
 
@@ -48,6 +50,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
 
             // #TODO handle 'PathSymbol'
 
+            // #TODO maybe resolve or optimize should already have placed the method in the AST?
             let value = if let Some(Expr::Symbol(method)) = expr.get_annotation("method") {
                 // If the symbol is annotated with a `method`, it's in 'operator' position.
                 // `method` is just one of the variants of a multi-method-function.

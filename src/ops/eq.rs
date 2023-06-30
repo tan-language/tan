@@ -20,7 +20,7 @@ pub fn eq(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
         return Err(Error::invalid_arguments(&format!("`{b}` is not an Int"), b.get_range()));
     };
 
-    Ok(Expr::Bool(a == b).into())
+    Ok(Expr::Bool(a == b))
 }
 
 pub fn gt(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
@@ -37,7 +37,7 @@ pub fn gt(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
         return Err(Error::invalid_arguments(&format!("`{b}` is not an Int"), b.get_range()));
     };
 
-    Ok(Expr::Bool(a > b).into())
+    Ok(Expr::Bool(a > b))
 }
 
 pub fn lt(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
@@ -54,5 +54,5 @@ pub fn lt(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
         return Err(Error::invalid_arguments(&format!("`{b}` is not an Int"), b.get_range()));
     };
 
-    Ok(Expr::Bool(a < b).into())
+    Ok(Expr::Bool(a < b))
 }
