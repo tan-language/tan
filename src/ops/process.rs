@@ -1,10 +1,10 @@
-use crate::{ann::ANNO, error::Error, eval::env::Env, expr::Expr};
+use crate::{error::Error, eval::env::Env, expr::Expr};
 
 /// Terminates the current process with the specified exit code.
 pub fn exit(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     if let Some(code) = args.first() {
-        let ANNO(Expr::Int(code), ..) = code else {
-            return Err(Error::invalid_arguments("expected Int argument", code.get_range()));
+        let Expr::Int(code) = code.unpack() else {
+            return Err(Error::invalid_arguments("expected Int argument", code.range()));
         };
 
         let code = *code as i32;

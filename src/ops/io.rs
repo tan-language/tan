@@ -1,7 +1,6 @@
 use std::fs;
 
 use crate::{
-    ann::ANNO,
     error::Error,
     eval::env::Env,
     expr::{format_value, Expr},
@@ -48,8 +47,8 @@ pub fn file_read_as_string(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
         return Err(Error::invalid_arguments("`read_as_string` requires a `path` argument", None));
     };
 
-    let ANNO(Expr::String(path), ..) = path else {
-        return Err(Error::invalid_arguments("`path` argument should be a String", path.get_range()));
+    let Expr::String(path) = path.unpack() else {
+        return Err(Error::invalid_arguments("`path` argument should be a String", path.range()));
     };
 
     let contents = fs::read_to_string(path)?;
@@ -63,12 +62,12 @@ pub fn file_write_string(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
         return Err(Error::invalid_arguments("`read_as_string` requires `path` and `content` arguments", None));
     };
 
-    let ANNO(Expr::String(path), ..) = path else {
-        return Err(Error::invalid_arguments("`path` argument should be a String", path.get_range()));
+    let Expr::String(path) = path.unpack() else {
+        return Err(Error::invalid_arguments("`path` argument should be a String", path.range()));
     };
 
-    let ANNO(Expr::String(content), ..) = content else {
-        return Err(Error::invalid_arguments("`content` argument should be a String", content.get_range()));
+    let Expr::String(content) = content.unpack() else {
+        return Err(Error::invalid_arguments("`content` argument should be a String", content.range()));
     };
 
     fs::write(path, content)?;

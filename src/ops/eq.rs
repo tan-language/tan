@@ -1,4 +1,4 @@
-use crate::{ann::ANNO, error::Error, eval::env::Env, expr::Expr};
+use crate::{error::Error, eval::env::Env, expr::Expr};
 
 // #TODO support all types!
 
@@ -12,12 +12,12 @@ pub fn eq(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
         return Err(Error::invalid_arguments("`eq` requires at least two arguments", None));
     };
 
-    let ANNO(Expr::Int(a), ..) = a else {
-        return Err(Error::invalid_arguments(&format!("`{a}` is not an Int"), a.get_range()));
+    let Expr::Int(a) = a.unpack() else {
+        return Err(Error::invalid_arguments(&format!("`{a}` is not an Int"), a.range()));
     };
 
-    let ANNO(Expr::Int(b), ..) = b else {
-        return Err(Error::invalid_arguments(&format!("`{b}` is not an Int"), b.get_range()));
+    let Expr::Int(b) = b.unpack() else {
+        return Err(Error::invalid_arguments(&format!("`{b}` is not an Int"), b.range()));
     };
 
     Ok(Expr::Bool(a == b))
@@ -29,12 +29,12 @@ pub fn gt(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
         return Err(Error::invalid_arguments("`>` requires at least two arguments", None));
     };
 
-    let ANNO(Expr::Int(a), ..) = a else {
-        return Err(Error::invalid_arguments(&format!("`{a}` is not an Int"), a.get_range()));
+    let Expr::Int(a) = a.unpack() else {
+        return Err(Error::invalid_arguments(&format!("`{a}` is not an Int"), a.range()));
     };
 
-    let ANNO(Expr::Int(b), ..) = b else {
-        return Err(Error::invalid_arguments(&format!("`{b}` is not an Int"), b.get_range()));
+    let Expr::Int(b) = b.unpack() else {
+        return Err(Error::invalid_arguments(&format!("`{b}` is not an Int"), b.range()));
     };
 
     Ok(Expr::Bool(a > b))
@@ -46,12 +46,12 @@ pub fn lt(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
         return Err(Error::invalid_arguments("`<` requires at least two arguments", None));
     };
 
-    let ANNO(Expr::Int(a), ..) = a else {
-        return Err(Error::invalid_arguments(&format!("`{a}` is not an Int"), a.get_range()));
+    let Expr::Int(a) = a.unpack() else {
+        return Err(Error::invalid_arguments(&format!("`{a}` is not an Int"), a.range()));
     };
 
-    let ANNO(Expr::Int(b), ..) = b else {
-        return Err(Error::invalid_arguments(&format!("`{b}` is not an Int"), b.get_range()));
+    let Expr::Int(b) = b.unpack() else {
+        return Err(Error::invalid_arguments(&format!("`{b}` is not an Int"), b.range()));
     };
 
     Ok(Expr::Bool(a < b))

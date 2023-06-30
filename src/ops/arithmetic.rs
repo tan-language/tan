@@ -1,4 +1,4 @@
-use crate::{ann::ANNO, error::Error, eval::env::Env, expr::Expr};
+use crate::{error::Error, eval::env::Env, expr::Expr};
 
 // #Insight
 // Named `arithmetic` as those operators can apply to non-numbers, e.g. Time, Date
@@ -15,9 +15,10 @@ pub fn add_int(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     let mut xs = Vec::new();
 
     for arg in args {
-        let ANNO(Expr::Int(n), _) = arg else {
+        let Expr::Int(n) = arg.unpack() else {
+            // #TODO we could return the argument position here and enrich the error upstream.
             // #TODO hmm, the error is too precise here, do we really need the annotations?
-            return Err(Error::invalid_arguments(&format!("{arg} is not an Int"), arg.get_range()));
+            return Err(Error::invalid_arguments(&format!("{arg} is not an Int"), arg.range()));
         };
         xs.push(*n);
     }
@@ -36,8 +37,8 @@ pub fn add_float(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     let mut sum = 0.0;
 
     for arg in args {
-        let ANNO(Expr::Float(n), ..) = arg else {
-            return Err(Error::invalid_arguments(&format!("{arg} is not a Float"), arg.get_range()));
+        let Expr::Float(n) = arg.unpack() else {
+            return Err(Error::invalid_arguments(&format!("{arg} is not a Float"), arg.range()));
         };
         sum += n;
     }
@@ -52,12 +53,12 @@ pub fn sub(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
         return Err(Error::invalid_arguments("- requires at least two arguments", None));
     };
 
-    let ANNO(Expr::Int(a), ..) = a else {
-        return Err(Error::invalid_arguments(&format!("{a} is not an Int"), a.get_range()));
+    let Expr::Int(a) = a.unpack() else {
+        return Err(Error::invalid_arguments(&format!("{a} is not an Int"), a.range()));
     };
 
-    let ANNO(Expr::Int(b), ..) = b else {
-        return Err(Error::invalid_arguments(&format!("{b} is not an Int"), b.get_range()));
+    let Expr::Int(b) = b.unpack() else {
+        return Err(Error::invalid_arguments(&format!("{b} is not an Int"), b.range()));
     };
 
     Ok(Expr::Int(a - b))
@@ -68,8 +69,8 @@ pub fn mul(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     let mut prod = 1;
 
     for arg in args {
-        let ANNO(Expr::Int(n), ..) = arg else {
-            return Err(Error::invalid_arguments(&format!("{arg} is not an Int"), arg.get_range()));
+        let Expr::Int(n) = arg.unpack() else {
+            return Err(Error::invalid_arguments(&format!("{arg} is not an Int"), arg.range()));
         };
         prod *= n;
     }
