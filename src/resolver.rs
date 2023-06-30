@@ -27,17 +27,19 @@ impl Resolver {
     // #TODO no need to resolve basic types!
 
     // #TODO maybe return multiple errors?
+    // #TODO should pass &Expr
     pub fn resolve_expr(&mut self, expr: Expr, env: &mut Env) -> Expr {
         // eprintln!("<<< {} >>>", expr);
         // #TODO update the original annotations!
         // #TODO need to handle _all_ Expr variants.
         match expr {
-            Expr::Annotated(inner, ann) => {
+            Expr::Annotated(_, ref ann) => {
                 if ann.contains_key("type") {
                     // The expression is already typed.
-                    expr
+                    expr.clone()
                 } else {
-                    self.resolve_expr(*inner, env)
+                    // #TODO argh!!
+                    self.resolve_expr(expr.unpack().clone(), env)
                 }
             }
             Expr::Int(_) => annotate_type(expr, "Int"),
@@ -95,7 +97,7 @@ impl Resolver {
                         // #TODO also report some of these errors statically, maybe in a sema phase?
                         let mut args = tail.iter();
 
-                        let mut resolved_let_list = vec![*head];
+                        let mut resolved_let_list = vec![head.clone()];
 
                         loop {
                             let Some(sym) = args.next() else {
@@ -122,13 +124,13 @@ impl Resolver {
                                 continue;
                             }
 
-                            let value = self.resolve_expr(*value, env);
+                            let value = self.resolve_expr(value.clone(), env);
                             // let mut map = expr.1.clone().unwrap_or_default();
                             // map.insert("type".to_owned(), value.static_type().clone());
                             // ann = Some(map);
 
-                            resolved_let_list.push(*sym);
-                            resolved_let_list.push(value);
+                            resolved_let_list.push(sym.clone());
+                            resolved_let_list.push(value.clone());
 
                             // #TODO notify about overrides? use `set`?
                             // #TODO for some reason, this causes infinite loop
@@ -208,21 +210,21 @@ impl Resolver {
                                 let signature = signature.join("$$");
 
                                 annotate(
-                                    *head,
+                                    head.clone(),
                                     "method",
                                     Expr::Symbol(format!("{sym}$${signature}")),
                                 )
                             } else {
-                                *head
+                                head.clone()
                             }
                         } else {
-                            *head
+                            head.clone()
                         };
 
                         // #Insight head should get resolved after the tail.
                         let head = self.resolve_expr(head, env);
 
-                        let mut list = vec![head];
+                        let mut list = vec![head.clone()];
                         list.extend(resolved_tail);
 
                         return Expr::maybe_annotated(Expr::List(list), head.annotations());
