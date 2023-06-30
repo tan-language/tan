@@ -2,13 +2,14 @@
 
 use std::collections::HashMap;
 
-use crate::{
-    ann::ANNO,
-    expr::{format_value, Expr},
-};
+use crate::expr::{format_value, Expr};
 
-// #Insight
-// The optimizer does not err.
+// #insight The optimizer does not err.
+
+// #insight
+// The optimizer converts general Expr::List expressions into execution-friendly
+// expressions like Expr::Array, Expr::Dict, etc. It also strips unnecessary
+// annotations.
 
 // #TODO what does optimize do? I think it just removes some annotations.
 
@@ -58,7 +59,7 @@ mod tests {
 
         assert!(s.contains("Array([Int(1), Int(2), Int(3), Int(4)])"));
     }
-
+    
     // #TODO the test is flaky for some reason, temporarily disabled, investigate.
     // #[test]
     fn _optimize_rewrites_dict_expressions() {

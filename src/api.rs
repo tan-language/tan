@@ -71,6 +71,14 @@ pub fn parse_string_all(input: impl AsRef<str>) -> Result<Vec<Expr>, Vec<Error>>
 pub fn resolve_string(input: impl AsRef<str>, env: &mut Env) -> Result<Vec<Expr>, Vec<Error>> {
     let exprs = parse_string_all(input)?;
 
+    // #insight
+    //
+    // AST -> Executable pipeline:
+    //
+    // - macro-expand
+    // - resolve
+    // - optimize
+
     // // Nice debugging tool!
     // for ex in &exprs {
     //     for e in ex.iter() {
