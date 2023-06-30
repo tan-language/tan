@@ -290,6 +290,7 @@ pub fn annotate_range(expr: Expr, range: Range) -> Expr {
 pub fn format_value(expr: impl AsRef<Expr>) -> String {
     let expr = expr.as_ref();
     match expr {
+        Expr::Annotated(expr, _) => format_value(expr),
         Expr::String(s) => s.to_string(),
         Expr::KeySymbol(s) => s.to_string(),
         _ => expr.to_string(),

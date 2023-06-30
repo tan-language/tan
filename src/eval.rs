@@ -203,6 +203,8 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
 
                     // #TODO optimize this!
                     // #TODO error checking, one arg, stringable, etc.
+
+                    // #insight no need to unpack, format_value sees-through.
                     let key = format_value(&args[0]);
                     if let Some(value) = dict.get(&key) {
                         Ok(value.clone().into())
