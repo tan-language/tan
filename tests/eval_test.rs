@@ -5,6 +5,7 @@ use tan::{
     error::{Error, ErrorKind},
     eval::{env::Env, eval},
     expr::Expr,
+    util::fmt::format_float,
 };
 
 use crate::common::{eval_file, read_file};
@@ -271,6 +272,31 @@ fn eval_processes_macros() {
 
     let value = format!("{}", result.unwrap());
     let expected_value = read_file("macro.value.tan");
+
+    assert_eq!(value, expected_value);
+}
+
+#[test]
+fn eval_resolves_function_methods() {
+    // assert Int method.
+
+    let result = eval_file("add-int.tan");
+
+    assert!(result.is_ok());
+
+    let value = format!("{}", result.unwrap());
+    let expected_value = read_file("add-int.value.tan");
+
+    assert_eq!(value, expected_value);
+
+    // assert Float method.
+
+    let result = eval_file("add-float.tan");
+
+    assert!(result.is_ok());
+
+    let value = format_float(result.unwrap().as_float().unwrap());
+    let expected_value = read_file("add-float.value.tan");
 
     assert_eq!(value, expected_value);
 }

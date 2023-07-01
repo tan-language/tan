@@ -31,19 +31,18 @@ impl Resolver {
         // #TODO need to handle _all_ Expr variants.
         match expr {
             Expr::Annotated(_, ref ann) => {
-                if ann.contains_key("type") {
-                    // The expression is already typed.
-                    expr.clone()
-                } else {
-                    // #TODO refactor and/or extract this functionality.
-                    let mut resolved_expr = self.resolve_expr(expr.unpack().clone(), env);
-                    if let Expr::Annotated(_, ref mut resolved_ann) = resolved_expr {
-                        for (key, value) in ann {
-                            resolved_ann.insert(key.clone(), value.clone());
-                        }
+                // #insight
+                // We have to resolve even if the expr has a type annotation, it
+                // might be missing a 'method' or other annotation.
+
+                // #TODO refactor and/or extract this functionality.
+                let mut resolved_expr = self.resolve_expr(expr.unpack().clone(), env);
+                if let Expr::Annotated(_, ref mut resolved_ann) = resolved_expr {
+                    for (key, value) in ann {
+                        resolved_ann.insert(key.clone(), value.clone());
                     }
-                    resolved_expr
                 }
+                resolved_expr
             }
             Expr::Int(_) => annotate_type(expr, "Int"),
             Expr::Float(_) => annotate_type(expr, "Float"),
@@ -199,10 +198,10 @@ impl Resolver {
                         }
 
                         let head = if let Expr::Symbol(ref sym) = head.unpack() {
-                            // let mut ann_sym = ann_sym.clone();
-
                             if !is_reserved_symbol(sym) {
                                 // #TODO should recursively resolve first!
+                                // #TODO signature should also encode the return type!!
+                                // #TODO how to handle VARARG functions ?!?!
 
                                 let mut signature = Vec::new();
 

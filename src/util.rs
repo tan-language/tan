@@ -4,9 +4,8 @@
 // #TODO consider using `name` instead of `symbol`?
 // #TODO better organize the util module.
 
+pub mod fmt;
 pub mod put_back_iterator;
-
-use std::fmt;
 
 /// Returns true if `sym` is reserved.
 pub fn is_reserved_symbol(sym: &str) -> bool {
@@ -39,8 +38,8 @@ pub struct Break {}
 
 impl std::error::Error for Break {}
 
-impl fmt::Display for Break {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl std::fmt::Display for Break {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "Break")
     }
 }

@@ -39,12 +39,12 @@ pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
             let tail = &list[1..];
 
             // Evaluate the head
-            let Ok(head) = eval(head, env) else {
+            let Ok(op) = eval(head, env) else {
                 // Don't err if we cannot eval the head.
                 return Ok(Some(expr));
             };
 
-            match head.unpack() {
+            match op.unpack() {
                 Expr::Macro(params, body) => {
                     // This is the actual macro-expansion
 
@@ -161,7 +161,7 @@ pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
                         // Other kind of list with symbol head, macro-expand tail.
 
                         let mut terms = Vec::new();
-                        terms.push(head.clone());
+                        terms.push(op.clone());
                         for term in tail {
                             let term = macro_expand(term.clone(), env)?;
                             if let Some(term) = term {

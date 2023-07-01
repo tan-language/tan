@@ -112,7 +112,7 @@ impl fmt::Debug for Expr {
             // #TODO properly format do, let, if, etc.
             Expr::If(_, _, _) => "if".to_owned(),
             // #insight intentionally pass through the formatting.
-            Expr::Annotated(expr, _) => format!("{expr:?}"),
+            Expr::Annotated(expr, ann) => format!("ANN({expr:?}, {ann:?})"),
         };
 
         write!(f, "{text}")
@@ -234,6 +234,7 @@ impl Expr {
     }
 
     pub fn annotation(&self, name: impl Into<String>) -> Option<&Expr> {
+        // #TODO dangerous method, emit a warning if it's called on a non-annotated Expr !!!
         match self {
             Expr::Annotated(_, ann) => ann.get(&name.into()),
             _ => None,
