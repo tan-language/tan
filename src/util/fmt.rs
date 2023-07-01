@@ -9,3 +9,5 @@ pub fn format_float(n: f64) -> String {
         s
     }
 }
+
+// #TODO move format_error_pretty here?

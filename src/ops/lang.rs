@@ -1,5 +1,6 @@
 use crate::{error::Error, eval::env::Env, expr::Expr};
 
+// #TODO extract *_impl function.
 pub fn ann(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     if args.len() != 1 {
         return Err(Error::invalid_arguments(
@@ -10,10 +11,12 @@ pub fn ann(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
 
     // #TODO support multiple arguments.
 
-    let _expr = args.first().unwrap();
+    let expr = args.first().unwrap();
 
-    // #TODO aargh, no access to annotations!
-    // #TODO now we DO (potentially) have access to annotations!!!
-
-    Ok(Expr::One.into())
+    if let Some(ann) = expr.annotations() {
+        Ok(Expr::Dict(ann.clone()))
+    } else {
+        // #TODO what to return here?
+        Ok(Expr::One.into())
+    }
 }
