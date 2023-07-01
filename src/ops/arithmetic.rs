@@ -15,12 +15,12 @@ pub fn add_int(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     let mut xs = Vec::new();
 
     for arg in args {
-        let Expr::Int(n) = arg.unpack() else {
+        let Some(n) = arg.as_int() else {
             // #TODO we could return the argument position here and enrich the error upstream.
             // #TODO hmm, the error is too precise here, do we really need the annotations?
             return Err(Error::invalid_arguments(&format!("{arg} is not an Int"), arg.range()));
         };
-        xs.push(*n);
+        xs.push(n);
     }
 
     let sum = add_int_impl(xs);
@@ -37,7 +37,7 @@ pub fn add_float(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     let mut sum = 0.0;
 
     for arg in args {
-        let Expr::Float(n) = arg.unpack() else {
+        let Some(n) = arg.as_float() else {
             return Err(Error::invalid_arguments(&format!("{arg} is not a Float"), arg.range()));
         };
         sum += n;
@@ -53,11 +53,11 @@ pub fn sub(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
         return Err(Error::invalid_arguments("- requires at least two arguments", None));
     };
 
-    let Expr::Int(a) = a.unpack() else {
+    let Some(a) = a.as_int() else {
         return Err(Error::invalid_arguments(&format!("{a} is not an Int"), a.range()));
     };
 
-    let Expr::Int(b) = b.unpack() else {
+    let Some(b) = b.as_int() else {
         return Err(Error::invalid_arguments(&format!("{b} is not an Int"), b.range()));
     };
 
@@ -69,7 +69,7 @@ pub fn mul(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     let mut prod = 1;
 
     for arg in args {
-        let Expr::Int(n) = arg.unpack() else {
+        let Some(n) = arg.as_int() else {
             return Err(Error::invalid_arguments(&format!("{arg} is not an Int"), arg.range()));
         };
         prod *= n;

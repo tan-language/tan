@@ -6,7 +6,7 @@ pub fn string_chars(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
         return Err(Error::invalid_arguments("`chars` requires `this` argument", None));
     };
 
-    let Expr::String(this) = this.unpack() else {
+    let Some(this) = this.as_string() else {
         return Err(Error::invalid_arguments("`this` argument should be a String", this.range()));
     };
 
@@ -24,15 +24,17 @@ pub fn string_constructor_from_chars(args: &[Expr], _env: &Env) -> Result<Expr, 
         return Err(Error::invalid_arguments("Requires `chars` argument", None));
     };
 
-    let Expr::Array(exprs) = chars.unpack() else {
+    let Some(exprs) = chars.as_array() else {
         return Err(Error::invalid_arguments("`chars` argument should be a (Array Char)", chars.range()));
     };
+
+    // #TODO verify Array item type!
 
     let mut chars: Vec<char> = Vec::new();
 
     for expr in exprs {
-        if let Expr::Char(c) = expr {
-            chars.push(*c);
+        if let Some(c) = expr.as_char() {
+            chars.push(c);
         }
     }
 

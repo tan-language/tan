@@ -225,6 +225,7 @@ impl Expr {
     // #TODO unpack is very dangerous, we need to encode in the typesystem that the expr is unpacked.
     // #TODO unwrap into tuple (expr, ann)
     // #TODO find better name?
+    #[inline]
     pub fn unpack(&self) -> &Self {
         match self {
             Expr::Annotated(expr, _) => expr,
@@ -237,6 +238,42 @@ impl Expr {
             Expr::Annotated(_, ann) => ann.get(&name.into()),
             _ => None,
         }
+    }
+
+    // #TODO consider #[inline]
+    pub fn as_int(&self) -> Option<i64> {
+        let Expr::Int(n) = self.unpack() else {
+            return None;
+        };
+        Some(*n)
+    }
+
+    pub fn as_float(&self) -> Option<f64> {
+        let Expr::Float(n) = self.unpack() else {
+            return None;
+        };
+        Some(*n)
+    }
+
+    pub fn as_string(&self) -> Option<&str> {
+        let Expr::String(s) = self.unpack() else {
+            return None;
+        };
+        Some(s)
+    }
+
+    pub fn as_char(&self) -> Option<char> {
+        let Expr::Char(c) = self.unpack() else {
+            return None;
+        };
+        Some(*c)
+    }
+
+    pub fn as_array(&self) -> Option<&Vec<Expr>> {
+        let Expr::Array(v) = self.unpack() else {
+            return None;
+        };
+        Some(v)
     }
 
     // // static vs dyn type.

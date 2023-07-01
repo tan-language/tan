@@ -13,6 +13,7 @@ pub fn ann(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     let _expr = args.first().unwrap();
 
     // #TODO aargh, no access to annotations!
+    // #TODO now we DO (potentially) have access to annotations!!!
 
     Ok(Expr::One.into())
 }

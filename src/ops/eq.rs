@@ -12,11 +12,11 @@ pub fn eq(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
         return Err(Error::invalid_arguments("`eq` requires at least two arguments", None));
     };
 
-    let Expr::Int(a) = a.unpack() else {
+    let Some(a) = a.as_int() else {
         return Err(Error::invalid_arguments(&format!("`{a}` is not an Int"), a.range()));
     };
 
-    let Expr::Int(b) = b.unpack() else {
+    let Some(b) = b.as_int() else {
         return Err(Error::invalid_arguments(&format!("`{b}` is not an Int"), b.range()));
     };
 
@@ -29,11 +29,11 @@ pub fn gt(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
         return Err(Error::invalid_arguments("`>` requires at least two arguments", None));
     };
 
-    let Expr::Int(a) = a.unpack() else {
+    let Some(a) = a.as_int() else {
         return Err(Error::invalid_arguments(&format!("`{a}` is not an Int"), a.range()));
     };
 
-    let Expr::Int(b) = b.unpack() else {
+    let Some(b) = b.as_int() else {
         return Err(Error::invalid_arguments(&format!("`{b}` is not an Int"), b.range()));
     };
 
@@ -46,11 +46,11 @@ pub fn lt(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
         return Err(Error::invalid_arguments("`<` requires at least two arguments", None));
     };
 
-    let Expr::Int(a) = a.unpack() else {
+    let Some(a) = a.as_int() else {
         return Err(Error::invalid_arguments(&format!("`{a}` is not an Int"), a.range()));
     };
 
-    let Expr::Int(b) = b.unpack() else {
+    let Some(b) = b.as_int() else {
         return Err(Error::invalid_arguments(&format!("`{b}` is not an Int"), b.range()));
     };
 

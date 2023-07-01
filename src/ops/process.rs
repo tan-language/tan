@@ -3,13 +3,11 @@ use crate::{error::Error, eval::env::Env, expr::Expr};
 /// Terminates the current process with the specified exit code.
 pub fn exit(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     if let Some(code) = args.first() {
-        let Expr::Int(code) = code.unpack() else {
+        let Some(code) = code.as_int() else {
             return Err(Error::invalid_arguments("expected Int argument", code.range()));
         };
 
-        let code = *code as i32;
-
-        std::process::exit(code);
+        std::process::exit(code as i32);
     } else {
         // Exit with code=0 by default.
         std::process::exit(0);

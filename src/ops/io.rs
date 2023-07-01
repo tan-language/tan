@@ -47,7 +47,7 @@ pub fn file_read_as_string(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
         return Err(Error::invalid_arguments("`read_as_string` requires a `path` argument", None));
     };
 
-    let Expr::String(path) = path.unpack() else {
+    let Some(path) = path.as_string() else {
         return Err(Error::invalid_arguments("`path` argument should be a String", path.range()));
     };
 
