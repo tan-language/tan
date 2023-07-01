@@ -5,10 +5,12 @@
 
 ; desugared
 ;
+; #TODO no need for for-each, just use ...for
+;
 ; (for (let x (next xs)) (do ...))
-; (for_each xs x (do ...))
+; (for-each xs x (do ...))
 ; (for (next xs_iter x) (do
-; (for_each (Fn (x) (writeln "value: " x)) xs)
-; (for_each (writeln "value: " %1) xs)
-; (let write_each (curry (for_each (writeln "value: " %1))))
+; (for-each (Fn (x) (writeln "value: " x)) xs)
+; (for-each (writeln "value: " %1) xs)
+; (let write_each (curry (for-each (writeln "value: " %1))))
 ; (write_each xs)

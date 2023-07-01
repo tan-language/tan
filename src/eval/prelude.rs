@@ -3,7 +3,7 @@ use std::rc::Rc;
 use crate::{
     expr::{annotate_type, Expr},
     ops::{
-        arithmetic::{add_float, add_int, mul, sub},
+        arithmetic::{add_float, add_int, div_float, mul, sub},
         eq::{eq, gt, lt},
         io::{file_read_as_string, file_write_string, write, writeln},
         process::exit,
@@ -41,6 +41,10 @@ pub fn setup_prelude(env: Env) -> Env {
     );
     env.insert("-", Expr::ForeignFunc(Rc::new(sub)));
     env.insert("*", Expr::ForeignFunc(Rc::new(mul)));
+    env.insert(
+        "/",
+        annotate_type(Expr::ForeignFunc(Rc::new(div_float)), "Float"),
+    );
 
     // eq
 

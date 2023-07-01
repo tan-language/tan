@@ -66,14 +66,37 @@ pub fn sub(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
 
 pub fn mul(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     // #TODO optimize!
-    let mut prod = 1;
+    let mut product = 1;
 
     for arg in args {
         let Some(n) = arg.as_int() else {
             return Err(Error::invalid_arguments(&format!("{arg} is not an Int"), arg.range()));
         };
-        prod *= n;
+        product *= n;
     }
 
-    Ok(Expr::Int(prod))
+    Ok(Expr::Int(product))
+}
+
+// #TODO support int/float.
+pub fn div_float(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
+    // #TODO optimize!
+    let mut quotient = f64::NAN;
+
+    // #TODO check for divide by zero! even statically check!
+    // #TODO actually, divide by zero should return Infinity, not panic!!
+
+    for arg in args {
+        let Some(n) = arg.as_float() else {
+            return Err(Error::invalid_arguments(&format!("{arg} is not a Float"), arg.range()));
+        };
+
+        if quotient.is_nan() {
+            quotient = n;
+        } else {
+            quotient /= n;
+        }
+    }
+
+    Ok(Expr::Float(quotient))
 }
