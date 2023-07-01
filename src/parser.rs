@@ -1,7 +1,6 @@
 use crate::{
-    ann::Ann,
     error::{Error, ErrorKind},
-    expr::Expr,
+    expr::{annotate, annotate_range, Expr},
     lexer::{
         token::{Token, TokenKind},
         Lexer,
@@ -61,9 +60,9 @@ impl<'a> Parser<'a> {
     /// Wrap the `expr` with the buffered (prefix) annotations. The annotations
     /// are parsed into an Expr representation. Also attaches the range of the
     /// expression as an annotation.
-    fn attach_buffered_annotations(&mut self, expr: Expr, range: Range) -> Ann<Expr> {
+    fn attach_buffered_annotations(&mut self, expr: Expr, range: Range) -> Expr {
         // Annotate the expression with the range, by default.
-        let mut expr = Ann::with_range(expr, range);
+        let mut expr = annotate_range(expr, range);
 
         let Some(buffered_annotations) = self.buffered_annotations.take() else {
             // No annotations for the expression.
@@ -102,7 +101,7 @@ impl<'a> Parser<'a> {
             // #TODO temp, support multiple expressions in annotation?
             let ann_expr = ann_expr.unwrap().swap_remove(0);
 
-            let ann_expr = ann_expr.0;
+            let ann_expr = ann_expr.unpack();
 
             match &ann_expr {
                 Expr::Symbol(sym) => {
@@ -123,17 +122,17 @@ impl<'a> Parser<'a> {
                     if sym.chars().next().unwrap().is_uppercase() {
                         // Type shorthand: If the annotation starts with uppercase
                         // letter, it's considered type annotations.
-                        expr.set_annotation("type", ann_expr);
+                        expr = annotate(expr, "type", ann_expr.clone());
                     } else {
                         // Bool=true shorthand: If the annotation starts with lowercase
                         // letter, it's considered a boolean flag.
-                        expr.set_annotation(sym.clone(), Expr::Bool(true));
+                        expr = annotate(expr, sym.clone(), Expr::Bool(true));
                     }
                 }
                 Expr::List(list) => {
                     // #TODO support more than symbols, e.g. KeySymbols or Strings.
-                    if let Some(Ann(Expr::Symbol(sym), _)) = list.first() {
-                        expr.set_annotation(sym.clone(), ann_expr);
+                    if let Some(Expr::Symbol(sym)) = list.first().map(|x| x.unpack()) {
+                        expr = annotate(expr, sym.clone(), ann_expr.clone());
                     } else {
                         let mut error = Error::new(ErrorKind::MalformedAnnotation);
                         error.push_note(
@@ -167,7 +166,7 @@ impl<'a> Parser<'a> {
         expr
     }
 
-    pub fn parse_expr(&mut self) -> Result<Option<Ann<Expr>>, Break> {
+    pub fn parse_expr(&mut self) -> Result<Option<Expr>, Break> {
         let Some(token) = self.next_token() else {
             return Err(Break {});
         };
@@ -337,7 +336,7 @@ impl<'a> Parser<'a> {
 
                 let exprs = self.parse_many(TokenKind::RightBracket, start_position)?;
 
-                let mut items = vec![Ann::with_range(Expr::symbol("Array"), range)];
+                let mut items = vec![annotate_range(Expr::symbol("Array"), range)];
 
                 // #TODO add error checking!
                 // #TODO optimize.
@@ -361,7 +360,7 @@ impl<'a> Parser<'a> {
 
                 let exprs = self.parse_many(TokenKind::RightBrace, start_position)?;
 
-                let mut items = vec![Ann::with_range(Expr::symbol("Dict"), range)];
+                let mut items = vec![annotate_range(Expr::symbol("Dict"), range)];
 
                 for expr in exprs {
                     items.push(expr);
@@ -396,7 +395,7 @@ impl<'a> Parser<'a> {
         &mut self,
         delimiter: TokenKind,
         start_position: Position,
-    ) -> Result<Vec<Ann<Expr>>, Break> {
+    ) -> Result<Vec<Expr>, Break> {
         let mut exprs = Vec::new();
 
         loop {
@@ -426,14 +425,14 @@ impl<'a> Parser<'a> {
     // #Insight
     // The parse function intentionally returns an 'unstructured' vector of
     // expressions instead of something like a do-block or a module. Downstream
-    // functions can enforce some structure.dd
+    // functions can enforce some structure.
 
     // #Insight
     // The loop in the parser is also useful to skip over comments.
 
     /// Parses the input tokens into expressions.
     /// The parser tries to return as many errors as possible.
-    pub fn parse(&mut self) -> Result<Vec<Ann<Expr>>, Vec<Error>> {
+    pub fn parse(&mut self) -> Result<Vec<Expr>, Vec<Error>> {
         let mut exprs = Vec::new();
 
         loop {

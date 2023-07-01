@@ -1,8 +1,7 @@
 use std::rc::Rc;
 
 use crate::{
-    ann::Ann,
-    expr::Expr,
+    expr::{annotate_type, Expr},
     ops::{
         arithmetic::{add_float, add_int, mul, sub},
         eq::{eq, gt, lt},
@@ -28,17 +27,17 @@ pub fn setup_prelude(env: Env) -> Env {
     // #TODO forget the mangling, implement with a dispatcher function, multi-function.
     env.insert(
         "+",
-        Ann::with_type(Expr::ForeignFunc(Rc::new(add_int)), Expr::symbol("Int")),
+        annotate_type(Expr::ForeignFunc(Rc::new(add_int)), "Int"),
     );
     env.insert(
         "+$$Int$$Int",
-        Ann::with_type(Expr::ForeignFunc(Rc::new(add_int)), Expr::symbol("Int")),
+        annotate_type(Expr::ForeignFunc(Rc::new(add_int)), "Int"),
     );
     env.insert(
         "+$$Float$$Float",
         // #TODO add the proper type: (Func Float Float Float)
         // #TODO even better: (Func (Many Float) Float)
-        Ann::with_type(Expr::ForeignFunc(Rc::new(add_float)), Expr::symbol("Float")),
+        annotate_type(Expr::ForeignFunc(Rc::new(add_float)), "Float"),
     );
     env.insert("-", Expr::ForeignFunc(Rc::new(sub)));
     env.insert("*", Expr::ForeignFunc(Rc::new(mul)));

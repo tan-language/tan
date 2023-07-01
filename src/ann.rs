@@ -6,6 +6,9 @@ use crate::{
     range::{Position, Range},
 };
 
+// #insight
+// We keep this file for the comments.
+
 // #TODO somehow annotations should trigger macros.
 // #TODO initially keep the range as a list
 
@@ -32,9 +35,9 @@ use crate::{
 // #TODO actually, we don't need insertion order but alphabetical order, a BTreeMap can work
 
 #[derive(Clone)]
-pub struct Ann<T>(pub T, pub Option<HashMap<String, Expr>>);
+pub struct ANNO<T>(pub T, pub Option<HashMap<String, Expr>>);
 
-impl<T> Ann<T> {
+impl<T> ANNO<T> {
     pub fn with_type(value: T, type_expr: Expr) -> Self {
         let mut map = HashMap::new();
         map.insert("type".to_owned(), type_expr);
@@ -48,7 +51,7 @@ impl<T> Ann<T> {
     }
 }
 
-impl<T> Ann<T> {
+impl<T> ANNO<T> {
     pub fn set_annotation(&mut self, name: impl Into<String>, expr: Expr) {
         self.1
             .get_or_insert(HashMap::new())
@@ -100,7 +103,7 @@ impl<T> Ann<T> {
     // #TODO get_method (multiple-dispatch)
 }
 
-impl<T> fmt::Debug for Ann<T>
+impl<T> fmt::Debug for ANNO<T>
 where
     T: fmt::Debug,
 {
@@ -121,7 +124,7 @@ where
     }
 }
 
-impl<T> fmt::Display for Ann<T>
+impl<T> fmt::Display for ANNO<T>
 where
     T: fmt::Display,
 {
@@ -130,27 +133,27 @@ where
     }
 }
 
-impl<T> Ann<T> {
+impl<T> ANNO<T> {
     pub fn new(value: T) -> Self {
         Self(value, None)
     }
 }
 
-impl<T> AsRef<T> for Ann<T> {
+impl<T> AsRef<T> for ANNO<T> {
     fn as_ref(&self) -> &T {
         &self.0
     }
 }
 
-impl<T> AsRef<T> for Box<Ann<T>> {
+impl<T> AsRef<T> for Box<ANNO<T>> {
     fn as_ref(&self) -> &T {
         &self.0
     }
 }
 
-impl<T> From<T> for Ann<T> {
+impl<T> From<T> for ANNO<T> {
     fn from(value: T) -> Self {
-        Ann::new(value)
+        ANNO::new(value)
     }
 }
 

@@ -1,8 +1,6 @@
 mod common;
 
-use tan::{
-    ann::Ann, api::parse_string_all, eval::env::Env, expr::Expr, macro_expand::macro_expand,
-};
+use tan::{api::parse_string_all, eval::env::Env, expr::Expr, macro_expand::macro_expand};
 
 #[test]
 fn parse_removes_comments() {
@@ -10,10 +8,12 @@ fn parse_removes_comments() {
     let exprs = parse_string_all(input).unwrap();
 
     let mut env = Env::prelude();
-    let exprs: Vec<Ann<Expr>> = exprs
+    let exprs: Vec<Expr> = exprs
         .into_iter()
         .filter_map(|expr| macro_expand(expr, &mut env).unwrap())
         .collect();
 
     assert_eq!(exprs.len(), 1);
 }
+
+// #TODO there are no macro-expansion tests!!!

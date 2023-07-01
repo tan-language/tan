@@ -3,7 +3,12 @@ pub mod expr_transform;
 
 use std::{collections::HashMap, fmt, rc::Rc};
 
-use crate::{ann::Ann, error::Error, eval::env::Env, lexer::comment::CommentKind};
+use crate::{
+    error::Error,
+    eval::env::Env,
+    lexer::comment::CommentKind,
+    range::{Position, Range},
+};
 
 // #TODO separate variant for list and apply/call (can this be defined statically?)
 // #TODO List, MaybeList, Call
@@ -28,7 +33,7 @@ use crate::{ann::Ann, error::Error, eval::env::Env, lexer::comment::CommentKind}
 // #TODO consider Visitor pattern instead of enum?
 
 // A function that accepts a list of Exprs and returns an Expr.
-pub type ExprFn = dyn Fn(&[Ann<Expr>], &Env) -> Result<Ann<Expr>, Error>;
+pub type ExprFn = dyn Fn(&[Expr], &Env) -> Result<Expr, Error>;
 
 // #TODO use normal structs instead of tuple-structs?
 
@@ -51,7 +56,7 @@ pub enum Expr {
     // #TODO better name for 'generic' List, how about `Cons` or `ConsList` or `Cell`?
     // #TODO add 'quoted' List -> Array!
     // #TODO do we really need Vec here? Maybe Arc<[Expr]> is enough?
-    List(Vec<Ann<Expr>>),
+    List(Vec<Expr>),
     // #TODO should Array contain Ann<Expr>?
     Array(Vec<Expr>),
     // #TODO different name?
@@ -59,8 +64,8 @@ pub enum Expr {
     // #TODO should Dict contain Ann<Expr>?
     Dict(HashMap<String, Expr>),
     // Range(Box<Ann<Expr>>, Box<Ann<Expr>>, Option<Box<Ann<Expr>>>),
-    Func(Vec<Ann<Expr>>, Box<Ann<Expr>>), // #TODO is there a need to use Rc instead of Box? YES! fast clones? INVESTIGATE!
-    Macro(Vec<Ann<Expr>>, Box<Ann<Expr>>),
+    Func(Vec<Expr>, Box<Expr>), // #TODO is there a need to use Rc instead of Box? YES! fast clones? INVESTIGATE!
+    Macro(Vec<Expr>, Box<Expr>),
     ForeignFunc(Rc<ExprFn>), // #TODO for some reason, Box is not working here!
     // --- High-level ---
     // #TODO do should contain the expressions also, pre-parsed!
@@ -68,7 +73,8 @@ pub enum Expr {
     // #TODO let should contain the expressions also, pre-parsed!
     Let,
     // #TODO maybe this 'compound' if prohibits homoiconicity?
-    If(Box<Ann<Expr>>, Box<Ann<Expr>>, Option<Box<Ann<Expr>>>),
+    If(Box<Expr>, Box<Expr>, Option<Box<Expr>>),
+    Annotated(Box<Expr>, HashMap<String, Expr>),
 }
 
 // #TODO what is the Expr default? One (Unit/Any) or Zero (Noting/Never)
@@ -105,6 +111,8 @@ impl fmt::Debug for Expr {
             Expr::Let => "let".to_owned(),
             // #TODO properly format do, let, if, etc.
             Expr::If(_, _, _) => "if".to_owned(),
+            // #insight intentionally pass through the formatting.
+            Expr::Annotated(expr, _) => format!("{expr:?}"),
         };
 
         write!(f, "{text}")
@@ -160,6 +168,8 @@ impl fmt::Display for Expr {
                 Expr::Func(..) => "#<func>".to_owned(),
                 Expr::Macro(..) => "#<func>".to_owned(),
                 Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
+                // #insight intentionally pass through the formatting.
+                Expr::Annotated(expr, _) => format!("{expr}"),
             })
             .as_str(),
         )
@@ -180,6 +190,98 @@ impl Expr {
     pub fn string(s: impl Into<String>) -> Self {
         Expr::String(s.into())
     }
+
+    pub fn annotated(expr: Expr) -> Self {
+        Expr::Annotated(Box::new(expr), HashMap::new())
+    }
+
+    pub fn maybe_annotated(expr: Expr, annotations: Option<&HashMap<String, Expr>>) -> Self {
+        if let Some(annotations) = annotations {
+            // #TODO do something about this clone!!
+            Expr::Annotated(Box::new(expr), annotations.clone())
+        } else {
+            expr
+        }
+    }
+}
+
+impl Expr {
+    pub fn annotations(&self) -> Option<&HashMap<String, Expr>> {
+        match self {
+            Expr::Annotated(_, ann) => Some(ann),
+            _ => None,
+        }
+    }
+
+    // #TODO name unpack? / project?
+    pub fn extract(&self) -> (&Expr, Option<&HashMap<String, Expr>>) {
+        match self {
+            Expr::Annotated(expr, ann) => (expr, Some(ann)),
+            _ => (self, None),
+        }
+    }
+
+    // #TODO name unwrap?
+    // #TODO unpack is very dangerous, we need to encode in the typesystem that the expr is unpacked.
+    // #TODO unwrap into tuple (expr, ann)
+    // #TODO find better name?
+    pub fn unpack(&self) -> &Self {
+        match self {
+            Expr::Annotated(expr, _) => expr,
+            _ => self,
+        }
+    }
+
+    pub fn annotation(&self, name: impl Into<String>) -> Option<&Expr> {
+        match self {
+            Expr::Annotated(_, ann) => ann.get(&name.into()),
+            _ => None,
+        }
+    }
+
+    // // static vs dyn type.
+    // pub fn static_type(&self) -> Expr {
+    //     match self {
+    //         Expr::Int(_) => return Expr::symbol("Int"),
+    //         Expr::Float(_) => return Expr::symbol("Float"),
+    //         _ => return Expr::symbol("Unknown"),
+    //     }
+    // }
+
+    pub fn static_type(&self) -> &Expr {
+        self.annotation("type").unwrap_or(&Expr::One)
+    }
+
+    pub fn range(&self) -> Option<Range> {
+        self.annotation("range").map(expr_to_range)
+    }
+}
+
+#[must_use]
+pub fn annotate(mut expr: Expr, name: impl Into<String>, ann_expr: Expr) -> Expr {
+    match expr {
+        Expr::Annotated(_, ref mut ann) => {
+            ann.insert(name.into(), ann_expr);
+            expr
+        }
+        expr => {
+            let mut ann = HashMap::new();
+            ann.insert(name.into(), ann_expr);
+            Expr::Annotated(Box::new(expr), ann)
+        }
+    }
+}
+
+// #TODO use special sigil for implicit/system annotations.
+
+#[must_use]
+pub fn annotate_type(expr: Expr, type_name: impl Into<String>) -> Expr {
+    annotate(expr, "type", Expr::Symbol(type_name.into()))
+}
+
+#[must_use]
+pub fn annotate_range(expr: Expr, range: Range) -> Expr {
+    annotate(expr, "range", range_to_expr(&range))
 }
 
 // #TODO think where this function is used. (it is used for Dict keys, hmm...)
@@ -188,9 +290,74 @@ impl Expr {
 pub fn format_value(expr: impl AsRef<Expr>) -> String {
     let expr = expr.as_ref();
     match expr {
+        Expr::Annotated(expr, _) => format_value(expr),
         Expr::String(s) => s.to_string(),
         Expr::KeySymbol(s) => s.to_string(),
         _ => expr.to_string(),
+    }
+}
+
+// ---
+
+// #TODO implement Defer into Expr!
+
+// #TODO convert to the Expr::Range variant.
+// #TODO convert position to Dict Expr.
+
+pub fn position_to_expr(position: &Position) -> Expr {
+    let mut map: HashMap<String, Expr> = HashMap::new();
+    map.insert("index".to_owned(), Expr::Int(position.index as i64));
+    map.insert("line".to_owned(), Expr::Int(position.line as i64));
+    map.insert("col".to_owned(), Expr::Int(position.line as i64));
+    Expr::Dict(map)
+}
+
+pub fn expr_to_position(expr: &Expr) -> Position {
+    if let Expr::Dict(dict) = expr {
+        let Some(Expr::Int(index)) = dict.get("index") else {
+            // #TODO fix me!
+            return Position::default();
+        };
+
+        let Some(Expr::Int(line)) = dict.get("line") else {
+            // #TODO fix me!
+            return Position::default();
+        };
+
+        let Some(Expr::Int(col)) = dict.get("col") else {
+            // #TODO fix me!
+            return Position::default();
+        };
+
+        return Position {
+            index: *index as usize,
+            line: *line as usize,
+            col: *col as usize,
+        };
+    }
+
+    // #TODO fix me!
+    return Position::default();
+}
+
+pub fn range_to_expr(range: &Range) -> Expr {
+    let start = position_to_expr(&range.start);
+    let end = position_to_expr(&range.end);
+
+    Expr::Array(vec![start, end])
+}
+
+// #TODO nasty code.
+pub fn expr_to_range(expr: &Expr) -> Range {
+    // #TODO error checking?
+    let Expr::Array(terms) = expr else {
+        // #TODO hmm...
+        return Range::default();
+    };
+
+    Range {
+        start: expr_to_position(&terms[0]),
+        end: expr_to_position(&terms[1]),
     }
 }
 

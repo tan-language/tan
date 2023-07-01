@@ -1,32 +1,34 @@
-// #TODO combine a vec of expressions into one `do` expression?, in this pass?
-
 use std::collections::HashMap;
 
-use crate::{
-    ann::Ann,
-    expr::{format_value, Expr},
-};
+use crate::expr::{format_value, Expr};
 
-// #Insight
-// The optimizer does not err.
+// #insight The optimizer does not err.
 
-pub fn optimize_fn(expr: Ann<Expr>) -> Ann<Expr> {
-    match expr {
-        Ann(Expr::List(ref terms), ..) => {
+// #insight
+// The optimizer converts general Expr::List expressions into execution-friendly
+// expressions like Expr::Array, Expr::Dict, etc. It also strips unnecessary
+// annotations.
+
+// #TODO what does optimize do? I think it just removes some annotations.
+
+pub fn optimize_fn(expr: Expr) -> Expr {
+    match expr.unpack() {
+        Expr::List(ref terms) => {
             if !terms.is_empty() {
-                if let Ann(Expr::Symbol(s), ..) = &terms[0] {
+                if let Expr::Symbol(s) = &terms[0].unpack() {
                     if s == "Array" {
-                        let items = terms[1..].iter().map(|ax| ax.0.clone()).collect();
-                        return Ann(Expr::Array(items), expr.1);
+                        let items = terms[1..].iter().map(|ax| ax.unpack().clone()).collect();
+                        return Expr::maybe_annotated(Expr::Array(items), expr.annotations());
                     } else if s == "Dict" {
-                        let items: Vec<Expr> = terms[1..].iter().map(|ax| ax.0.clone()).collect();
+                        let items: Vec<Expr> =
+                            terms[1..].iter().map(|ax| ax.unpack().clone()).collect();
                         let mut dict = HashMap::new();
                         for pair in items.chunks(2) {
                             let k = pair[0].clone();
                             let v = pair[1].clone();
                             dict.insert(format_value(k), v);
                         }
-                        return Ann(Expr::Dict(dict), expr.1);
+                        return Expr::maybe_annotated(Expr::Dict(dict), expr.annotations());
                     }
                 }
             }
@@ -36,7 +38,7 @@ pub fn optimize_fn(expr: Ann<Expr>) -> Ann<Expr> {
     }
 }
 
-pub fn optimize(expr: Ann<Expr>) -> Ann<Expr> {
+pub fn optimize(expr: Expr) -> Expr {
     expr.transform(&optimize_fn)
 }
 
@@ -59,15 +61,15 @@ mod tests {
 
     // #TODO the test is flaky for some reason, temporarily disabled, investigate.
     // #[test]
-    fn _optimize_rewrites_dict_expressions() {
-        let input = r#"(let a {:name "George" :age 25})"#;
+    // fn optimize_rewrites_dict_expressions() {
+    //     let input = r#"(let a {:name "George" :age 25})"#;
 
-        let expr = parse_string(input).unwrap();
+    //     let expr = parse_string(input).unwrap();
 
-        let expr_optimized = optimize(expr);
+    //     let expr_optimized = optimize(expr);
 
-        let s = format!("{expr_optimized:?}");
+    //     let s = format!("{expr_optimized:?}");
 
-        assert!(s.contains(r#"Dict({"name": String("George"), "age": Int(25)})"#));
-    }
+    //     assert!(s.contains(r#"Dict({"name": String("George"), "age": Int(25)})"#));
+    // }
 }

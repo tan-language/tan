@@ -1,8 +1,8 @@
-use crate::{ann::Ann, error::Error, eval::env::Env, expr::Expr};
+use crate::{error::Error, eval::env::Env, expr::Expr};
 
 // #TODO support all types!
 
-pub fn eq(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
+pub fn eq(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
     // #TODO support overloading,
     // #TODO make equality a method of Expr?
@@ -12,47 +12,47 @@ pub fn eq(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
         return Err(Error::invalid_arguments("`eq` requires at least two arguments", None));
     };
 
-    let Ann(Expr::Int(a), ..) = a else {
-        return Err(Error::invalid_arguments(&format!("`{a}` is not an Int"), a.get_range()));
+    let Expr::Int(a) = a.unpack() else {
+        return Err(Error::invalid_arguments(&format!("`{a}` is not an Int"), a.range()));
     };
 
-    let Ann(Expr::Int(b), ..) = b else {
-        return Err(Error::invalid_arguments(&format!("`{b}` is not an Int"), b.get_range()));
+    let Expr::Int(b) = b.unpack() else {
+        return Err(Error::invalid_arguments(&format!("`{b}` is not an Int"), b.range()));
     };
 
-    Ok(Expr::Bool(a == b).into())
+    Ok(Expr::Bool(a == b))
 }
 
-pub fn gt(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
+pub fn gt(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     // #TODO support multiple arguments.
     let [a, b] = args else {
         return Err(Error::invalid_arguments("`>` requires at least two arguments", None));
     };
 
-    let Ann(Expr::Int(a), ..) = a else {
-        return Err(Error::invalid_arguments(&format!("`{a}` is not an Int"), a.get_range()));
+    let Expr::Int(a) = a.unpack() else {
+        return Err(Error::invalid_arguments(&format!("`{a}` is not an Int"), a.range()));
     };
 
-    let Ann(Expr::Int(b), ..) = b else {
-        return Err(Error::invalid_arguments(&format!("`{b}` is not an Int"), b.get_range()));
+    let Expr::Int(b) = b.unpack() else {
+        return Err(Error::invalid_arguments(&format!("`{b}` is not an Int"), b.range()));
     };
 
-    Ok(Expr::Bool(a > b).into())
+    Ok(Expr::Bool(a > b))
 }
 
-pub fn lt(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
+pub fn lt(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     // #TODO support multiple arguments.
     let [a, b] = args else {
         return Err(Error::invalid_arguments("`<` requires at least two arguments", None));
     };
 
-    let Ann(Expr::Int(a), ..) = a else {
-        return Err(Error::invalid_arguments(&format!("`{a}` is not an Int"), a.get_range()));
+    let Expr::Int(a) = a.unpack() else {
+        return Err(Error::invalid_arguments(&format!("`{a}` is not an Int"), a.range()));
     };
 
-    let Ann(Expr::Int(b), ..) = b else {
-        return Err(Error::invalid_arguments(&format!("`{b}` is not an Int"), b.get_range()));
+    let Expr::Int(b) = b.unpack() else {
+        return Err(Error::invalid_arguments(&format!("`{b}` is not an Int"), b.range()));
     };
 
-    Ok(Expr::Bool(a < b).into())
+    Ok(Expr::Bool(a < b))
 }

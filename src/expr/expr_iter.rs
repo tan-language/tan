@@ -1,10 +1,8 @@
 use std::mem;
 
-use crate::ann::Ann;
-
 use super::Expr;
 
-impl Ann<Expr> {
+impl Expr {
     pub fn iter(&self) -> ExprIter<'_> {
         ExprIter {
             children: std::slice::from_ref(self),
@@ -25,40 +23,39 @@ impl Ann<Expr> {
 /// A depth-first Expr iterator.
 #[derive(Default)]
 pub struct ExprIter<'a> {
-    children: &'a [Ann<Expr>],
+    children: &'a [Expr],
     parent: Option<Box<ExprIter<'a>>>,
 }
 
 impl<'a> Iterator for ExprIter<'a> {
-    type Item = &'a Ann<Expr>;
+    type Item = &'a Expr;
 
     // #TODO this does not traverse Array, Dict, etc.
     fn next(&mut self) -> Option<Self::Item> {
-        let expr = self.children.get(0);
-
-        match expr {
-            None => match self.parent.take() {
+        let Some(expr) = self.children.get(0) else {
+            return match self.parent.take() {
                 Some(parent) => {
                     // continue with the parent expr
                     *self = *parent;
                     self.next()
                 }
                 None => None,
-            },
-            Some(Ann(Expr::List(children), ..)) => {
+            };
+        };
+
+        match expr.unpack() {
+            Expr::List(children) => {
                 self.children = &self.children[1..];
                 // iterate the sub-trees
                 *self = ExprIter {
                     children: children.as_slice(),
                     parent: Some(Box::new(mem::take(self))),
                 };
-                // self.next()
-                expr
+                Some(expr)
             }
             _ => {
-                // let x = self.children.get(0);
                 self.children = &self.children[1..];
-                expr
+                Some(expr)
             }
         }
     }
@@ -80,7 +77,7 @@ mod tests {
 
         let expr = &expr[0];
 
-        let terms: Vec<String> = expr.iter().map(|ax| ax.0.to_string()).collect();
+        let terms: Vec<String> = expr.iter().map(|ax| ax.to_string()).collect();
         let expected_terms = vec![
             "(quot (1 2 3 (4 5) (6 (+ 7 8)) 9 10))",
             "quot",

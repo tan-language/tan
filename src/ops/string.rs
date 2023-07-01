@@ -1,13 +1,13 @@
-use crate::{ann::Ann, error::Error, eval::env::Env, expr::Expr};
+use crate::{error::Error, eval::env::Env, expr::Expr};
 
 /// Returns a char iterable for the chars in the string.
-pub fn string_chars(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
+pub fn string_chars(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     let [this] = args else {
         return Err(Error::invalid_arguments("`chars` requires `this` argument", None));
     };
 
-    let Ann(Expr::String(this), ..) = this else {
-        return Err(Error::invalid_arguments("`this` argument should be a String", this.get_range()));
+    let Expr::String(this) = this.unpack() else {
+        return Err(Error::invalid_arguments("`this` argument should be a String", this.range()));
     };
 
     let mut exprs: Vec<Expr> = Vec::new();
@@ -16,16 +16,16 @@ pub fn string_chars(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> 
         exprs.push(Expr::Char(char));
     }
 
-    Ok(Expr::Array(exprs).into())
+    Ok(Expr::Array(exprs))
 }
 
-pub fn string_constructor_from_chars(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
+pub fn string_constructor_from_chars(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     let [chars] = args else {
         return Err(Error::invalid_arguments("Requires `chars` argument", None));
     };
 
-    let Ann(Expr::Array(exprs), ..) = chars else {
-        return Err(Error::invalid_arguments("`chars` argument should be a (Array Char)", chars.get_range()));
+    let Expr::Array(exprs) = chars.unpack() else {
+        return Err(Error::invalid_arguments("`chars` argument should be a (Array Char)", chars.range()));
     };
 
     let mut chars: Vec<char> = Vec::new();
@@ -38,22 +38,22 @@ pub fn string_constructor_from_chars(args: &[Ann<Expr>], _env: &Env) -> Result<A
 
     let string = String::from_iter(chars);
 
-    Ok(Expr::String(string).into())
+    Ok(Expr::String(string))
 }
 
 // #TODO overload for string and char!
 
-pub fn char_uppercased(args: &[Ann<Expr>], _env: &Env) -> Result<Ann<Expr>, Error> {
+pub fn char_uppercased(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     let [this] = args else {
         return Err(Error::invalid_arguments("`uppercased` requires `this` argument", None));
     };
 
-    let Ann(Expr::Char(this), ..) = this else {
-        return Err(Error::invalid_arguments("`this` argument should be a Char", this.get_range()));
+    let Expr::Char(this) = this.unpack() else {
+        return Err(Error::invalid_arguments("`this` argument should be a Char", this.range()));
     };
 
     // #TODO omg...
     let uppercased = this.to_uppercase().next().unwrap();
 
-    Ok(Expr::Char(uppercased).into())
+    Ok(Expr::Char(uppercased))
 }
