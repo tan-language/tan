@@ -17,7 +17,7 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
             | "let"
             | "if"
             | "for"
-            | "for_each"
+            | "for-each"
             | "map"
             | "eval"
             | "quot"

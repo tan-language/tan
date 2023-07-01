@@ -333,20 +333,20 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                             }
                         }
                         // #TODO for-each or overload for?
-                        "for_each" => {
+                        "for-each" => {
                             // #TODO this is a temp hack!
                             let [seq, var, body] = tail else {
-                                return Err(Error::invalid_arguments("malformed `for_each`", expr.range()));
+                                return Err(Error::invalid_arguments("malformed `for-each`", expr.range()));
                             };
 
                             let seq = eval(seq, env)?;
 
                             let Expr::Array(arr) = seq.unpack() else {
-                                return Err(Error::invalid_arguments("`for_each` requires a `Seq` as the first argument", seq.range()));
+                                return Err(Error::invalid_arguments("`for-each` requires a `Seq` as the first argument", seq.range()));
                             };
 
                             let Expr::Symbol(sym) = var.unpack() else {
-                                return Err(Error::invalid_arguments("`for_each` requires a symbol as the second argument", var.range()));
+                                return Err(Error::invalid_arguments("`for-each` requires a symbol as the second argument", var.range()));
                             };
 
                             env.push_new_scope();

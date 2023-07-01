@@ -1,7 +1,5 @@
 (do
-    (for_each [1 2 3 4] x
-        (writeln "value: " x)
-    )
+    (for-each [1 2 3 4] x (writeln "value: " x))
     (writeln "READY")
 )
 
