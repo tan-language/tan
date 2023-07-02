@@ -115,11 +115,9 @@ pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Expr, Vec<Er
         return Err(vec![file_paths.unwrap_err().into()]);
     };
 
-    let mut resolved_exprs: Vec<Expr> = Vec::new();
-
     // #TODO return Expr::Module, add module metadata: name, path, exports, etc.
 
-    for file_path in file_paths {
+    for file_path in &file_paths {
         // #TODO keep all inputs in magic variable in env, associate url/key with error.
 
         let input = std::fs::read_to_string(&file_path);
@@ -129,27 +127,24 @@ pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Expr, Vec<Er
 
         let result = resolve_string(input, env);
 
-        let Ok(mut exprs) = result else {
+        let Ok(exprs) = result else {
             let mut errors = result.unwrap_err();
 
             for error in &mut errors {
                 error.file_path = file_path.clone();
             }
 
-            // #TODO associate input with the error.
             // #TODO better error handling here!
             // #TODO maybe continue parsing/resolving to find more errors?
             return Err(errors);
         };
 
-        resolved_exprs.append(&mut exprs);
-    }
-
-    for expr in resolved_exprs {
-        if let Err(err) = eval(&expr, env) {
-            // #TODO associate input with the error.
-            // #TODO better error here!
-            return Err(vec![err.into()]);
+        for expr in exprs {
+            if let Err(mut error) = eval(&expr, env) {
+                error.file_path = file_path.clone();
+                // #TODO better error here!
+                return Err(vec![error]);
+            }
         }
     }
 
