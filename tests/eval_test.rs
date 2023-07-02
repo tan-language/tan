@@ -300,3 +300,19 @@ fn eval_resolves_function_methods() {
 
     assert_eq!(value, expected_value);
 }
+
+// #TODO make this pass!
+// #[test]
+fn eval_resolves_multi_let() {
+    let result = eval_file("multi-let.tan");
+
+    dbg!(&result);
+    assert!(result.is_ok());
+
+    let value = format!("{}", result.unwrap());
+    let expected_value = read_file("multi-let.value.tan");
+
+    assert_eq!(value, expected_value);
+}
+
+// #TODO add unit-test for function with multiple expressions.

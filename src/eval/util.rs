@@ -141,6 +141,7 @@ pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Expr, Vec<Er
 
         for expr in exprs {
             if let Err(mut error) = eval(&expr, env) {
+                // #TODO add a unit test to check that the file_path is added here!
                 error.file_path = file_path.clone();
                 // #TODO better error here!
                 return Err(vec![error]);
