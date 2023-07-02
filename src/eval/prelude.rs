@@ -3,7 +3,7 @@ use std::rc::Rc;
 use crate::{
     expr::{annotate_type, Expr},
     ops::{
-        arithmetic::{add_float, add_int, cos_float, div_float, mul, sin_float, sub},
+        arithmetic::{add_float, add_int, cos_float, div_float, mul, powi_float, sin_float, sub},
         eq::{eq, gt, lt},
         io::{file_read_as_string, file_write_string, write, writeln},
         process::exit,
@@ -63,6 +63,10 @@ pub fn setup_prelude(env: Env) -> Env {
     env.insert(
         "cos",
         annotate_type(Expr::ForeignFunc(Rc::new(cos_float)), "Float"),
+    );
+    env.insert(
+        "**",
+        annotate_type(Expr::ForeignFunc(Rc::new(powi_float)), "Float"),
     );
 
     // eq

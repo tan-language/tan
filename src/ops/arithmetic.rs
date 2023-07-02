@@ -46,6 +46,8 @@ pub fn add_float(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     Ok(Expr::Float(sum))
 }
 
+// #TODO keep separate, optimized version with just 2 arguments!
+// #TODO should support varargs.
 // #TODO should return the error without range and range should be added by caller.
 pub fn sub(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     // #TODO support multiple arguments.
@@ -123,4 +125,22 @@ pub fn cos_float(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     };
 
     Ok(Expr::Float(n.cos()))
+}
+
+// #TODO support varargs?
+pub fn powi_float(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
+    let [n, e] = args else {
+        return Err(Error::invalid_arguments("- requires at least two arguments", None));
+    };
+
+    // #TODO version of as_float that automatically throws an Error?
+    let Some(n) = n.as_float() else {
+        return Err(Error::invalid_arguments(&format!("{n} is not a Float"), n.range()));
+    };
+
+    let Some(e) = e.as_int() else {
+        return Err(Error::invalid_arguments(&format!("{e} is not an Int"), e.range()));
+    };
+
+    Ok(Expr::Float(n.powi(e as i32)))
 }

@@ -482,7 +482,10 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                             Ok(Expr::List(args).into())
                         }
                         "Func" => {
+                            // #TODO the function should accept a block (list) of expressions also, i.e. implicit do!
+                            // #TODO add unit test to check this!
                             let [args, body] = tail else {
+                                // #TODO seems the range is not reported correctly here!!!
                                 return Err(Error::invalid_arguments("malformed func definition", expr.range()));
                             };
 
