@@ -100,3 +100,27 @@ pub fn div_float(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
 
     Ok(Expr::Float(quotient))
 }
+
+pub fn sin_float(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
+    let Some(n) = args.first() else {
+        return Err(Error::invalid_arguments("missing argument", None));
+    };
+
+    let Some(n) = n.as_float() else {
+        return Err(Error::invalid_arguments("expected Float argument", n.range()));
+    };
+
+    Ok(Expr::Float(n.sin()))
+}
+
+pub fn cos_float(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
+    let Some(n) = args.first() else {
+        return Err(Error::invalid_arguments("missing argument", None));
+    };
+
+    let Some(n) = n.as_float() else {
+        return Err(Error::invalid_arguments("expected Float argument", n.range()));
+    };
+
+    Ok(Expr::Float(n.cos()))
+}

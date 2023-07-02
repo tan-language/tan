@@ -3,7 +3,7 @@ use std::rc::Rc;
 use crate::{
     expr::{annotate_type, Expr},
     ops::{
-        arithmetic::{add_float, add_int, div_float, mul, sub},
+        arithmetic::{add_float, add_int, cos_float, div_float, mul, sin_float, sub},
         eq::{eq, gt, lt},
         io::{file_read_as_string, file_write_string, write, writeln},
         process::exit,
@@ -18,6 +18,7 @@ use super::env::Env;
 // #TODO alternative Env::prelude()
 // #TODO this part needs _complete_ rewrite.
 // #TODO better syntax for type annotations needed.
+// #TODO organize in modules.
 
 pub fn setup_prelude(env: Env) -> Env {
     let mut env = env;
@@ -54,6 +55,14 @@ pub fn setup_prelude(env: Env) -> Env {
     env.insert(
         "/$$Float$$Float$$Float",
         annotate_type(Expr::ForeignFunc(Rc::new(div_float)), "Float"),
+    );
+    env.insert(
+        "sin",
+        annotate_type(Expr::ForeignFunc(Rc::new(sin_float)), "Float"),
+    );
+    env.insert(
+        "cos",
+        annotate_type(Expr::ForeignFunc(Rc::new(cos_float)), "Float"),
     );
 
     // eq
