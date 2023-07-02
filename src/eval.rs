@@ -425,7 +425,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                             let mut args = tail.iter();
 
                             loop {
-                                let Some(sym) = args.next() else {
+                                let Some(name) = args.next() else {
                                     break;
                                 };
 
@@ -434,14 +434,15 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                                     break;
                                 };
 
-                                let Expr::Symbol(s) = sym.unpack() else {
-                                    return Err(Error::invalid_arguments(&format!("`{sym}` is not a Symbol"), sym.range()));
+                                let Some(s) = name.as_symbol() else {
+                                    return Err(Error::invalid_arguments(&format!("`{name}` is not a Symbol"), name.range()));
                                 };
 
+                                // #TODO do we really want this? Maybe convert to a lint?
                                 if is_reserved_symbol(s) {
                                     return Err(Error::invalid_arguments(
                                         &format!("let cannot shadow the reserved symbol `{s}`"),
-                                        sym.range(),
+                                        name.range(),
                                     ));
                                 }
 

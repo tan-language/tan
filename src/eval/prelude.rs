@@ -3,7 +3,10 @@ use std::rc::Rc;
 use crate::{
     expr::{annotate_type, Expr},
     ops::{
-        arithmetic::{add_float, add_int, cos_float, div_float, mul, powi_float, sin_float, sub},
+        arithmetic::{
+            add_float, add_int, cos_float, div_float, mul_float, mul_int, powi_float, sin_float,
+            sub,
+        },
         eq::{eq, gt, lt},
         io::{file_read_as_string, file_write_string, write, writeln},
         process::exit,
@@ -41,7 +44,17 @@ pub fn setup_prelude(env: Env) -> Env {
         annotate_type(Expr::ForeignFunc(Rc::new(add_float)), "Float"),
     );
     env.insert("-", Expr::ForeignFunc(Rc::new(sub)));
-    env.insert("*", Expr::ForeignFunc(Rc::new(mul)));
+    env.insert("*", Expr::ForeignFunc(Rc::new(mul_int)));
+    env.insert(
+        "*$$Int$$Int",
+        annotate_type(Expr::ForeignFunc(Rc::new(mul_int)), "Int"),
+    );
+    env.insert(
+        "*$$Float$$Float",
+        // #TODO add the proper type: (Func Float Float Float)
+        // #TODO even better: (Func (Many Float) Float)
+        annotate_type(Expr::ForeignFunc(Rc::new(mul_float)), "Float"),
+    );
     env.insert(
         "/",
         annotate_type(Expr::ForeignFunc(Rc::new(div_float)), "Float"),

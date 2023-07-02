@@ -19,21 +19,14 @@ use crate::{
 // #TODO move pruning to optimize to run AFTER macro-expansion, macros could produce prunable exprs?
 // #TODO add macro-expansion tests!!!
 
-// #TODO
+// #insight
+// If the input expr is just a macro definition, it can be elided!
+
+// #TODO maybe separate macro_def from macro_expand?
+
 /// Expands macro invocations, at compile time.
 pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
     match expr.unpack() {
-        Expr::Comment(..) => {
-            // #TODO move prune elsewhere.
-            // Prune Comment expressions.
-            Ok(None)
-        }
-        Expr::TextSeparator => {
-            // #TODO remove TextSeparator anws.
-            // #TODO move prune elsewhere.
-            // Prune TextSeparator expressions.
-            Ok(None)
-        }
         Expr::List(ref list) => {
             let head = list.first().unwrap(); // The unwrap here is safe.
             let tail = &list[1..];
@@ -82,54 +75,56 @@ pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
                     if sym == "let" {
                         let mut args = tail.iter();
 
-                        // #TODO should be def, no loop.
+                        // #TODO should be def, no loop. <-- IMPORTANT!!
+                        // #TODO make more similar to the corresponding eval code.
 
-                        let Some(binding_sym) = args.next() else {
-                            return Err(Error::invalid_arguments("missing binding symbol", expr.range()));
-                        };
+                        let mut result_exprs = vec![Expr::Symbol("let".to_owned())];
 
-                        let Some(binding_value) = args.next() else {
-                            return Err(Error::invalid_arguments("missing binding value", expr.range()));
-                        };
+                        loop {
+                            let Some(binding_sym) = args.next() else {
+                                break;
+                                // return Err(Error::invalid_arguments("missing binding symbol", expr.range()));
+                            };
 
-                        let Expr::Symbol(s) = binding_sym.unpack() else {
-                            return Err(Error::invalid_arguments(&format!("`{sym}` is not a Symbol"), binding_sym.range()));
-                        };
+                            let Some(binding_value) = args.next() else {
+                                return Err(Error::invalid_arguments("missing binding value", expr.range()));
+                            };
 
-                        if is_reserved_symbol(s) {
-                            return Err(Error::invalid_arguments(
-                                &format!("let cannot shadow the reserved symbol `{s}`"),
-                                binding_sym.range(),
-                            ));
+                            let Expr::Symbol(s) = binding_sym.unpack() else {
+                                return Err(Error::invalid_arguments(&format!("`{sym}` is not a Symbol <<<<"), binding_sym.range()));
+                            };
+
+                            if is_reserved_symbol(s) {
+                                return Err(Error::invalid_arguments(
+                                    &format!("let cannot shadow the reserved symbol `{s}`"),
+                                    binding_sym.range(),
+                                ));
+                            }
+
+                            let binding_value = macro_expand(binding_value.clone(), env)?;
+
+                            // #TODO notify about overrides? use `set`?
+                            // #TODO consider if we should allow redefinitions.
+
+                            let Some(binding_value) = binding_value else {
+                                return Err(Error::invalid_arguments("Invalid arguments", None));
+                            };
+
+                            if let Expr::Macro(..) = binding_value.unpack() {
+                                // #TODO put all the definitions in one pass.
+                                // Only define macros in this pass.
+                                env.insert(s, binding_value);
+
+                                // #TODO verify with unit-test.
+                                // Macro definition is pruned.
+                                // return Ok(None);
+                            } else {
+                                result_exprs.push(binding_sym.clone());
+                                result_exprs.push(binding_value);
+                            }
                         }
 
-                        let binding_value = macro_expand(binding_value.clone(), env)?;
-
-                        // #TODO notify about overrides? use `set`?
-                        // #TODO consider if we should allow redefinitions.
-
-                        let Some(binding_value) = binding_value else {
-                            return Err(Error::invalid_arguments("Invalid arguments", None));
-                        };
-
-                        if let Expr::Macro(..) = binding_value.unpack() {
-                            // #TODO put all the definitions in one pass.
-                            // Only define macros in this pass.
-                            env.insert(s, binding_value);
-
-                            // #TODO verify with unit-test.
-                            // Macro definition is pruned.
-                            return Ok(None);
-                        }
-
-                        Ok(Some(
-                            Expr::List(vec![
-                                Expr::Symbol("let".to_owned()).into(),
-                                binding_sym.clone(),
-                                binding_value,
-                            ])
-                            .into(),
-                        ))
+                        Ok(Some(Expr::List(result_exprs)))
                     } else if sym == "quot" {
                         let [value] = tail else {
                                 return Err(Error::invalid_arguments("missing quote target", expr.range()));

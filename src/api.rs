@@ -10,6 +10,7 @@ use crate::{
     macro_expand::macro_expand,
     optimize::optimize,
     parser::Parser,
+    prune::prune,
     resolver::Resolver,
 };
 
@@ -91,6 +92,15 @@ pub fn resolve_string(input: impl AsRef<str>, env: &mut Env) -> Result<Vec<Expr>
         // #Insight
         // Macro expansion should be performed before resolving.
 
+        // Prune pass
+
+        // #insight first prune pass needed before macro_expand.
+
+        let Some(expr) = prune(expr) else {
+            // The expression is pruned (elided)
+            continue;
+        };
+
         // Expand macros.
 
         let expr = macro_expand(expr, env);
@@ -100,8 +110,11 @@ pub fn resolve_string(input: impl AsRef<str>, env: &mut Env) -> Result<Vec<Expr>
             return Err(vec![expr.unwrap_err()]);
         };
 
+        // #TODO maybe a second `prune` pass is needed?
+
         let Some(expr) = expr else {
             // The expression is pruned (elided)
+            // #insight elision can happen also in macro_expand!
             continue;
         };
 

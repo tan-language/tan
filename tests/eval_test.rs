@@ -301,12 +301,10 @@ fn eval_resolves_function_methods() {
     assert_eq!(value, expected_value);
 }
 
-// #TODO make this pass!
-// #[test]
+#[test]
 fn eval_resolves_multi_let() {
     let result = eval_file("multi-let.tan");
 
-    dbg!(&result);
     assert!(result.is_ok());
 
     let value = format!("{}", result.unwrap());

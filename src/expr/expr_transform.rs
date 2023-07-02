@@ -20,6 +20,26 @@ impl Expr {
             _ => f(self),
         }
     }
+
+    /// Transforms the expression by recursively applying the `f` mapping
+    /// function.
+    pub fn filter_transform<F>(self, f: &F) -> Option<Self>
+    where
+        F: Fn(Self) -> Option<Self>,
+    {
+        match self.extract() {
+            (Expr::List(terms), ann) => {
+                // #TODO investigate this clone!!!!
+                let terms = terms
+                    .into_iter()
+                    .filter_map(|t| t.clone().filter_transform(f))
+                    .collect();
+                let list = Expr::maybe_annotated(Expr::List(terms), ann);
+                f(list)
+            }
+            _ => f(self),
+        }
+    }
 }
 
 #[cfg(test)]

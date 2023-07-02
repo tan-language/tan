@@ -38,6 +38,7 @@ pub fn resolve_file(filename: &str) -> Result<Vec<Expr>, Vec<Error>> {
 
 #[allow(dead_code)]
 pub fn eval_file(filename: &str) -> Result<Expr, Vec<Error>> {
+    // #TODO use eval_module here!!
     let input = &read_file(filename);
     let mut env = Env::prelude();
     eval_string(input, &mut env)

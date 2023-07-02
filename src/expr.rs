@@ -23,6 +23,7 @@ use crate::{
 // #Insight
 // No need for a Zero/Never/Nothing Expr variant?
 
+// #TODO what would be the 'default'?
 // #TODO consider parsing to 'simple' Expr, only List and Symbols
 // #TODO optimize 'simple' Expr to 'execution' Expr
 // #TODO introduce ForeignValue?
@@ -262,6 +263,15 @@ impl Expr {
         };
         Some(s)
     }
+
+    pub fn as_symbol(&self) -> Option<&str> {
+        let Expr::Symbol(s) = self.unpack() else {
+            return None;
+        };
+        Some(s)
+    }
+
+    // #TODO add an extra function to extract all string-
 
     pub fn as_char(&self) -> Option<char> {
         let Expr::Char(c) = self.unpack() else {

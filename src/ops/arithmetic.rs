@@ -66,7 +66,7 @@ pub fn sub(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     Ok(Expr::Int(a - b))
 }
 
-pub fn mul(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
+pub fn mul_int(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     // #TODO optimize!
     let mut product = 1;
 
@@ -78,6 +78,20 @@ pub fn mul(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     }
 
     Ok(Expr::Int(product))
+}
+
+pub fn mul_float(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
+    // #TODO optimize!
+    let mut product = 1.0;
+
+    for arg in args {
+        let Some(n) = arg.as_float() else {
+            return Err(Error::invalid_arguments(&format!("{arg} is not a Float"), arg.range()));
+        };
+        product *= n;
+    }
+
+    Ok(Expr::Float(product))
 }
 
 // #TODO support int/float.
