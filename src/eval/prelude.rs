@@ -7,7 +7,7 @@ use crate::{
         eq::{eq, gt, lt},
         io::{file_read_as_string, file_write_string, write, writeln},
         process::exit,
-        string::{char_uppercased, string_chars, string_constructor_from_chars},
+        string::{char_uppercased, format, string_chars, string_constructor_from_chars},
     },
 };
 
@@ -43,6 +43,16 @@ pub fn setup_prelude(env: Env) -> Env {
     env.insert("*", Expr::ForeignFunc(Rc::new(mul)));
     env.insert(
         "/",
+        annotate_type(Expr::ForeignFunc(Rc::new(div_float)), "Float"),
+    );
+    // #TODO ultra-hack
+    env.insert(
+        "/$$Float$$Float",
+        annotate_type(Expr::ForeignFunc(Rc::new(div_float)), "Float"),
+    );
+    // #TODO ultra-hack
+    env.insert(
+        "/$$Float$$Float$$Float",
         annotate_type(Expr::ForeignFunc(Rc::new(div_float)), "Float"),
     );
 
@@ -101,6 +111,8 @@ pub fn setup_prelude(env: Env) -> Env {
         "uppercases$$Char",
         Expr::ForeignFunc(Rc::new(char_uppercased)),
     );
+
+    env.insert("format", Expr::ForeignFunc(Rc::new(format)));
 
     env
 }

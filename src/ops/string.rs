@@ -1,4 +1,8 @@
-use crate::{error::Error, eval::env::Env, expr::Expr};
+use crate::{
+    error::Error,
+    eval::env::Env,
+    expr::{format_value, Expr},
+};
 
 /// Returns a char iterable for the chars in the string.
 pub fn string_chars(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
@@ -58,4 +62,17 @@ pub fn char_uppercased(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     let uppercased = this.to_uppercase().next().unwrap();
 
     Ok(Expr::Char(uppercased))
+}
+
+// #TODO make this a String constructor?
+// #TODO 'join' and 'format' versions?
+
+// #TODO find another name, this is too common: `fmt`? `stringf`?
+pub fn format(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
+    let output = args.iter().fold(String::new(), |mut str, x| {
+        str.push_str(&format_value(x));
+        str
+    });
+
+    Ok(Expr::String(output))
 }
