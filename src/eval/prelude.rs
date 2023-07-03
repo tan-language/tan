@@ -10,6 +10,7 @@ use crate::{
         eq::{eq, gt, lt},
         io::{file_read_as_string, file_write_string, write, writeln},
         process::exit,
+        seq::array_join,
         string::{char_uppercased, format, string_chars, string_constructor_from_chars},
     },
 };
@@ -120,6 +121,10 @@ pub fn setup_prelude(env: Env) -> Env {
 
     env.insert("exit", Expr::ForeignFunc(Rc::new(exit)));
     env.insert("exit$$", Expr::ForeignFunc(Rc::new(exit)));
+
+    // seq
+
+    env.insert("join", Expr::ForeignFunc(Rc::new(array_join)));
 
     // string
 

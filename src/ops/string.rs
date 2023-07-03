@@ -25,7 +25,7 @@ pub fn string_chars(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
 
 pub fn string_constructor_from_chars(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     let [chars] = args else {
-        return Err(Error::invalid_arguments("Requires `chars` argument", None));
+        return Err(Error::invalid_arguments("requires `chars` argument", None));
     };
 
     let Some(exprs) = chars.as_array() else {

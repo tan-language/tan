@@ -3,6 +3,7 @@ pub mod eq;
 pub mod io;
 pub mod lang;
 pub mod process;
+pub mod seq;
 pub mod string;
 
 // #TODO helper function or macro for arithmetic operations!
