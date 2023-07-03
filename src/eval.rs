@@ -25,6 +25,8 @@ use self::{env::Env, util::eval_module};
 // #TODO Stack-trace is needed!
 // #TODO https://clojure.org/reference/evaluation
 
+// #TODO try to remove non-needed .into()s
+
 // #TODO give more 'general' name.
 fn eval_args(args: &[Expr], env: &mut Env) -> Result<Vec<Expr>, Error> {
     args.iter()
@@ -136,7 +138,6 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
 
                     // #TODO ultra-hack to kill shared ref to `env`.
                     let params = params.clone();
-                    let body = body.clone();
 
                     // Dynamic scoping, #TODO convert to lexical.
 
@@ -150,11 +151,18 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                         env.insert(param, arg);
                     }
 
-                    let result = eval(&body, env);
+                    // #TODO this code is the same as in the (do ..) block, extract.
+
+                    // #TODO do should be 'monadic', propagate Eff (effect) wrapper.
+                    let mut value = Expr::One;
+
+                    for expr in body {
+                        value = eval(expr, env)?;
+                    }
 
                     env.pop();
 
-                    result
+                    Ok(value)
                 }
                 Expr::ForeignFunc(foreign_function) => {
                     // #TODO do NOT pre-evaluate args for ForeignFunc, allow to implement 'macros'.
@@ -483,33 +491,43 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                             Ok(Expr::List(args).into())
                         }
                         "Func" => {
-                            // #TODO the function should accept a block (list) of expressions also, i.e. implicit do!
-                            // #TODO add unit test to check this!
-                            let [args, body] = tail else {
+                            let Some(params) = tail.first() else {
                                 // #TODO seems the range is not reported correctly here!!!
-                                return Err(Error::invalid_arguments("malformed func definition", expr.range()));
+                                return Err(Error::invalid_arguments(
+                                    "malformed func definition, missing function parameters",
+                                    expr.range(),
+                                ));
                             };
 
-                            let Expr::List(params) = args.unpack() else {
-                                return Err(Error::invalid_arguments("malformed func parameters definition", args.range()));
+                            let body = &tail[1..];
+
+                            let Expr::List(params) = params.unpack() else {
+                                return Err(Error::invalid_arguments("malformed func parameters definition", params.range()));
                             };
 
                             // #TODO optimize!
-                            Ok(Expr::Func(params.clone(), Box::new(body.clone())).into())
+                            Ok(Expr::Func(params.clone(), body.into()))
                         }
                         // #TODO macros should be handled at a separate, comptime, macroexpand pass.
                         // #TODO actually two passes, macro_def, macro_expand
+                        // #TODO probably macro handling should be removed from eval, there are no runtime/dynamic macro definitions!!
                         "Macro" => {
-                            let [args, body] = tail else {
-                                return Err(Error::invalid_arguments("malformed macro definition", expr.range()));
+                            let Some(params) = tail.first() else {
+                                // #TODO seems the range is not reported correctly here!!!
+                                return Err(Error::invalid_arguments(
+                                    "malformed macro definition, missing function parameters",
+                                    expr.range(),
+                                ));
                             };
 
-                            let Expr::List(params) = args.unpack() else {
-                                return Err(Error::invalid_arguments("malformed macro parameters definition", args.range()));
+                            let body = &tail[1..];
+
+                            let Expr::List(params) = params.unpack() else {
+                                return Err(Error::invalid_arguments("malformed macro parameters definition", params.range()));
                             };
 
                             // #TODO optimize!
-                            Ok(Expr::Macro(params.clone(), Box::new(body.clone())).into())
+                            Ok(Expr::Macro(params.clone(), body.into()))
                         }
                         _ => {
                             return Err(Error::not_invocable(

@@ -62,12 +62,18 @@ pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
 
                         env.insert(param, arg.clone());
                     }
+                    // #TODO this code is the same as in the (do ..) block, extract.
 
-                    let result = eval(&body, env)?;
+                    // #TODO do should be 'monadic', propagate Eff (effect) wrapper.
+                    let mut value = Expr::One;
+
+                    for expr in body {
+                        value = eval(expr, env)?;
+                    }
 
                     env.pop();
 
-                    Ok(Some(result))
+                    Ok(Some(value))
                 }
                 Expr::Symbol(sym) => {
                     // #TODO oof the checks here happen also in resolver and eval, fix!
@@ -140,18 +146,24 @@ pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
                             .into(),
                         ))
                     } else if sym == "Macro" {
-                        let [args, body] = tail else {
-                            return Err(Error::invalid_arguments("malformed macro definition", expr.range()));
+                        // #TODO this is duplicated in eval, think about this!!! probably should remove from eval.
+
+                        let Some(params) = tail.first() else {
+                            // #TODO seems the range is not reported correctly here!!!
+                            return Err(Error::invalid_arguments(
+                                "malformed macro definition, missing function parameters",
+                                expr.range(),
+                            ));
                         };
 
-                        let Expr::List(params) = args.unpack() else {
-                            return Err(Error::invalid_arguments("malformed macro parameters definition", expr.range()));
+                        let body = &tail[1..];
+
+                        let Expr::List(params) = params.unpack() else {
+                            return Err(Error::invalid_arguments("malformed macro parameters definition", params.range()));
                         };
 
                         // #TODO optimize!
-                        Ok(Some(
-                            Expr::Macro(params.clone(), Box::new(body.clone())).into(),
-                        ))
+                        Ok(Some(Expr::Macro(params.clone(), body.into())))
                     } else {
                         // Other kind of list with symbol head, macro-expand tail.
 

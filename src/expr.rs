@@ -58,15 +58,13 @@ pub enum Expr {
     // #TODO add 'quoted' List -> Array!
     // #TODO do we really need Vec here? Maybe Arc<[Expr]> is enough?
     List(Vec<Expr>),
-    // #TODO should Array contain Ann<Expr>?
     Array(Vec<Expr>),
     // #TODO different name?
     // #TODO support Expr as keys?
-    // #TODO should Dict contain Ann<Expr>?
     Dict(HashMap<String, Expr>),
-    // Range(Box<Ann<Expr>>, Box<Ann<Expr>>, Option<Box<Ann<Expr>>>),
-    Func(Vec<Expr>, Box<Expr>), // #TODO is there a need to use Rc instead of Box? YES! fast clones? INVESTIGATE!
-    Macro(Vec<Expr>, Box<Expr>),
+    // Range(...),
+    Func(Vec<Expr>, Vec<Expr>),
+    Macro(Vec<Expr>, Vec<Expr>),
     ForeignFunc(Rc<ExprFn>), // #TODO for some reason, Box is not working here!
     // --- High-level ---
     // #TODO do should contain the expressions also, pre-parsed!

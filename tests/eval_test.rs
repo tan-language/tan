@@ -313,4 +313,15 @@ fn eval_resolves_multi_let() {
     assert_eq!(value, expected_value);
 }
 
-// #TODO add unit-test for function with multiple expressions.
+#[test]
+fn eval_handles_functions_with_multiple_expressions() {
+    let result = eval_file("block-function.tan");
+
+    dbg!(&result);
+    assert!(result.is_ok());
+
+    let value = format!("{}", result.unwrap());
+    let expected_value = read_file("block-function.value.tan");
+
+    assert_eq!(value, expected_value);
+}
