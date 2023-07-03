@@ -545,6 +545,15 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                 }
             }
         }
+        Expr::Array(items) => {
+            // #insight [...] => (Array ...) => it's like a function.
+            // #TODO can this get pre-evaluated statically in some cases?
+            let mut evaled_items = Vec::new();
+            for item in items {
+                evaled_items.push(eval(item, env)?);
+            }
+            Ok(Expr::Array(evaled_items))
+        }
         _ => {
             // #TODO hm, maybe need to report an error here? or even select the desired behavior? -> NO ERROR
             // #TODO can we avoid the clone?

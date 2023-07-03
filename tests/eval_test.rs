@@ -325,3 +325,16 @@ fn eval_handles_functions_with_multiple_expressions() {
 
     assert_eq!(value, expected_value);
 }
+
+#[test]
+fn eval_handles_arrays() {
+    let result = eval_file("array.tan");
+
+    dbg!(&result);
+    assert!(result.is_ok());
+
+    let value = format!("{}", result.unwrap());
+    let expected_value = read_file("array.value.tan");
+
+    assert_eq!(value, expected_value);
+}
