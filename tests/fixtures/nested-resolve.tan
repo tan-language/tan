@@ -1,0 +1,14 @@
+(do
+    (let outer (Func (x)
+        (let inner (Func (y)
+            (let z 1.0
+                 r (/ 1.0 y)
+            )
+            (+ z r)
+        ))
+
+        (inner 2.0)
+    ))
+
+    (outer 1.0)
+)

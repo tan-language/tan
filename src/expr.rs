@@ -255,6 +255,13 @@ impl Expr {
         Some(*n)
     }
 
+    pub fn as_bool(&self) -> Option<bool> {
+        let Expr::Bool(b) = self.unpack() else {
+            return None;
+        };
+        Some(*b)
+    }
+
     pub fn as_string(&self) -> Option<&str> {
         let Expr::String(s) = self.unpack() else {
             return None;

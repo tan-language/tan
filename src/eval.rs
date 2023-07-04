@@ -94,7 +94,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
         Expr::If(predicate, true_clause, false_clause) => {
             let predicate = eval(predicate, env)?;
 
-            let Expr::Bool(predicate) = *predicate.unpack() else {
+            let Some(predicate) = predicate.as_bool() else {
                 return Err(Error::invalid_arguments("the if predicate is not a boolean value", predicate.range()));
             };
 
@@ -144,7 +144,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                     env.push_new_scope();
 
                     for (param, arg) in params.iter().zip(args) {
-                        let Expr::Symbol(param) = param.unpack() else {
+                        let Some(param) = param.as_symbol() else {
                                 return Err(Error::invalid_arguments("parameter is not a symbol", param.range()));
                             };
 
@@ -194,10 +194,11 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                     // #TODO optimize this!
                     // #TODO error checking, one arg, etc.
                     let index = &args[0];
-                    let Expr::Int(index) = index.unpack() else {
+                    // #TODO we need UInt, USize, Nat type
+                    let Some(index) = index.as_int() else {
                         return Err(Error::invalid_arguments("invalid array index, expecting Int", index.range()));
                     };
-                    let index = *index as usize;
+                    let index = index as usize;
                     if let Some(value) = arr.get(index) {
                         Ok(value.clone().into())
                     } else {
@@ -300,7 +301,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                             loop {
                                 let predicate = eval(predicate, env)?;
 
-                                let Expr::Bool(predicate) = predicate.unpack() else {
+                                let Some(predicate) = predicate.as_bool() else {
                                     return Err(Error::invalid_arguments("the for predicate is not a boolean value", predicate.range()));
                                 };
 
@@ -327,7 +328,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
 
                             let predicate = eval(predicate, env)?;
 
-                            let Expr::Bool(predicate) = *predicate.unpack() else {
+                            let Some(predicate) = predicate.as_bool() else {
                                 return Err(Error::invalid_arguments("the if predicate is not a boolean value", predicate.range()));
                             };
 

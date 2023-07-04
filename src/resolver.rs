@@ -93,7 +93,7 @@ impl Resolver {
                 // #TODO signature should be the type, e.g. +::(Func Int Int Int) instead of +$$Int$$Int
                 // #TODO should handle Func!!
                 // #TODO convert to match, extract the iteration.
-                if let Expr::Symbol(ref sym) = head.unpack() {
+                if let Some(sym) = head.as_symbol() {
                     // #TODO special handling of def
                     if sym == "let" {
                         // #TODO also report some of these errors statically, maybe in a sema phase?
@@ -111,7 +111,7 @@ impl Resolver {
                                 break;
                             };
 
-                            let Expr::Symbol(s) = sym.unpack() else {
+                            let Some(s) = sym.as_symbol() else {
                                 self.errors.push(Error::invalid_arguments(&format!("`{sym}` is not a Symbol"), sym.range()));
                                 // Continue to detect more errors.
                                 continue;
@@ -155,6 +155,45 @@ impl Resolver {
                             head.annotations(),
                         );
                     } else if sym == "Func" {
+                        // let mut resolved_tail = Vec::new();
+                        // for term in tail {
+                        //     resolved_tail.push(self.resolve_expr(term.clone(), env));
+                        // }
+
+                        // let head = if let Expr::Symbol(ref sym) = head.unpack() {
+                        //     if !is_reserved_symbol(sym) {
+                        //         // #TODO should recursively resolve first!
+                        //         // #TODO signature should also encode the return type!!
+                        //         // #TODO how to handle VARARG functions ?!?!
+
+                        //         let mut signature = Vec::new();
+
+                        //         for term in &resolved_tail {
+                        //             signature.push(term.static_type().to_string())
+                        //         }
+
+                        //         let signature = signature.join("$$");
+
+                        //         annotate(
+                        //             head.clone(),
+                        //             "method",
+                        //             Expr::Symbol(format!("{sym}$${signature}")),
+                        //         )
+                        //     } else {
+                        //         head.clone()
+                        //     }
+                        // } else {
+                        //     head.clone()
+                        // };
+
+                        // // #Insight head should get resolved after the tail.
+                        // let head = self.resolve_expr(head, env);
+
+                        // let mut list = vec![head.clone()];
+                        // list.extend(resolved_tail);
+
+                        // return Expr::maybe_annotated(Expr::List(list), head.annotations());
+
                         // #TODO do something ;-)
                         // #TODO this is a temp hack, we don't resolve inside a function, argh!
 
@@ -197,7 +236,7 @@ impl Resolver {
                             resolved_tail.push(self.resolve_expr(term.clone(), env));
                         }
 
-                        let head = if let Expr::Symbol(ref sym) = head.unpack() {
+                        let head = if let Some(sym) = head.as_symbol() {
                             if !is_reserved_symbol(sym) {
                                 // #TODO should recursively resolve first!
                                 // #TODO signature should also encode the return type!!
