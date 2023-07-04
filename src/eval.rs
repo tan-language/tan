@@ -350,11 +350,11 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
 
                             let seq = eval(seq, env)?;
 
-                            let Expr::Array(arr) = seq.unpack() else {
+                            let Some(arr) = seq.as_array() else {
                                 return Err(Error::invalid_arguments("`for-each` requires a `Seq` as the first argument", seq.range()));
                             };
 
-                            let Expr::Symbol(sym) = var.unpack() else {
+                            let Some(sym) = var.as_symbol() else {
                                 return Err(Error::invalid_arguments("`for-each` requires a symbol as the second argument", var.range()));
                             };
 
@@ -372,6 +372,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                             Ok(Expr::One.into())
                         }
                         // #TODO extract
+                        // #TODO functions implemented here have dynamic dispatch!
                         "map" => {
                             // #TODO this is a temp hack!
                             let [seq, var, body] = tail else {
@@ -380,11 +381,11 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
 
                             let seq = eval(seq, env)?;
 
-                            let Expr::Array(arr) = seq.unpack() else {
+                            let Some(arr) = seq.as_array() else {
                                 return Err(Error::invalid_arguments("`map` requires a `Seq` as the first argument", seq.range()));
                             };
 
-                            let Expr::Symbol(sym) = var.unpack() else {
+                            let Some(sym) = var.as_symbol() else {
                                 return Err(Error::invalid_arguments("`map` requires a symbol as the second argument", var.range()));
                             };
 
@@ -411,7 +412,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                                 return Err(Error::invalid_arguments("malformed use expression", expr.range()));
                             };
 
-                            let Expr::String(module_path) = term.unpack() else {
+                            let Some(module_path) = term.as_string() else {
                                 return Err(Error::invalid_arguments("malformed use expression", expr.range()));
                             };
 
@@ -471,7 +472,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                                 return Err(Error::invalid_arguments("malformed Char constructor, missing argument", expr.range()));
                             };
 
-                            let Expr::String(c) = arg.unpack() else {
+                            let Some(c) = arg.as_string() else {
                                 return Err(Error::invalid_arguments("malformed Char constructor, expected String argument", expr.range()));
                             };
 
@@ -502,7 +503,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
 
                             let body = &tail[1..];
 
-                            let Expr::List(params) = params.unpack() else {
+                            let Some(params) = params.as_list() else {
                                 return Err(Error::invalid_arguments("malformed func parameters definition", params.range()));
                             };
 
@@ -523,7 +524,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
 
                             let body = &tail[1..];
 
-                            let Expr::List(params) = params.unpack() else {
+                            let Some(params) = params.as_list() else {
                                 return Err(Error::invalid_arguments("malformed macro parameters definition", params.range()));
                             };
 

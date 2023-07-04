@@ -285,6 +285,13 @@ impl Expr {
         Some(*c)
     }
 
+    pub fn as_list(&self) -> Option<&Vec<Expr>> {
+        let Expr::List(v) = self.unpack() else {
+            return None;
+        };
+        Some(v)
+    }
+
     pub fn as_array(&self) -> Option<&Vec<Expr>> {
         let Expr::Array(v) = self.unpack() else {
             return None;
