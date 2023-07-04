@@ -63,9 +63,9 @@ pub enum Expr {
     // #TODO support Expr as keys?
     Dict(HashMap<String, Expr>),
     // Range(...),
-    Func(Vec<Expr>, Vec<Expr>),
-    Macro(Vec<Expr>, Vec<Expr>),
-    ForeignFunc(Rc<ExprFn>), // #TODO for some reason, Box is not working here!
+    Func(Vec<Expr>, Vec<Expr>), // #TODO maybe should have explicit do block?
+    Macro(Vec<Expr>, Vec<Expr>), // #TODO maybe should have explicit do block?
+    ForeignFunc(Rc<ExprFn>),    // #TODO for some reason, Box is not working here!
     // --- High-level ---
     // #TODO do should contain the expressions also, pre-parsed!
     Do,

@@ -19,8 +19,6 @@ use self::{
 // #TODO introduce SemanticToken, with extra semantic information, _after_ parsing.
 // #TODO use annotations before number literals to set the type?
 // #TODO use (doc_comment ...) for doc-comments.
-// #TODO support `\ ` for escaped space in symbols.
-// #TODO implement PutBackIterator
 // #TODO no need to keep iterator as state in Lexer!
 // #TODO accept IntoIterator
 // #TODO try to use `let mut reader = BufReader::new(source.as_bytes());` like an older version
@@ -195,6 +193,8 @@ impl<'a> Lexer<'a> {
     fn scan_string(&mut self) -> Option<String> {
         let mut string = String::new();
 
+        let mut is_escaping = false;
+
         loop {
             let Some(ch) = self.next_char() else {
                 let mut error = Error::new(ErrorKind::UnterminatedString);
@@ -202,6 +202,25 @@ impl<'a> Lexer<'a> {
                 self.errors.push(error);
                 return None;
             };
+
+            // #TODO support escaping more than one char
+            if ch == '\\' {
+                is_escaping = true;
+                continue;
+            }
+
+            if is_escaping {
+                // #TODO add additional escape sequences.
+                match ch {
+                    '\\' | '"' => string.push(ch),
+                    'n' => string.push('\n'),
+                    't' => string.push('\t'),
+                    _ => string.push_str(&format!("\\{ch}")), //#TODO what to do here?
+                }
+
+                is_escaping = false;
+                continue;
+            }
 
             if ch == '"' {
                 break;

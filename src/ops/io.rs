@@ -9,6 +9,8 @@ use crate::{
 // #TODO do FFI functions really need an env?
 // #TODO differentiate pure functions that do not change the env!
 
+// #TODO (write ...) should take one string parameter and an optional stream/port parameter, like scheme
+// #TODO it could also get an Array/Seq parameter and join it, like JavaScript console.log
 /// Writes one or more expressions to the STDOUT sink/stream.
 pub fn write(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     let output = args.iter().fold(String::new(), |mut str, x| {
