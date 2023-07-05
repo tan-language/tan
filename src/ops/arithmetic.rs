@@ -49,7 +49,7 @@ pub fn add_float(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
 // #TODO keep separate, optimized version with just 2 arguments!
 // #TODO should support varargs.
 // #TODO should return the error without range and range should be added by caller.
-pub fn sub(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
+pub fn sub_int(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     // #TODO support multiple arguments.
     let [a, b] = args else {
         return Err(Error::invalid_arguments("- requires at least two arguments", None));
@@ -64,6 +64,23 @@ pub fn sub(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     };
 
     Ok(Expr::Int(a - b))
+}
+
+pub fn sub_float(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
+    // #TODO support multiple arguments.
+    let [a, b] = args else {
+        return Err(Error::invalid_arguments("- requires at least two arguments", None));
+    };
+
+    let Some(a) = a.as_float() else {
+        return Err(Error::invalid_arguments(&format!("{a} is not a Float"), a.range()));
+    };
+
+    let Some(b) = b.as_float() else {
+        return Err(Error::invalid_arguments(&format!("{b} is not a Float"), b.range()));
+    };
+
+    Ok(Expr::Float(a - b))
 }
 
 pub fn mul_int(args: &[Expr], _env: &Env) -> Result<Expr, Error> {

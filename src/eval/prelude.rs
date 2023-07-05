@@ -5,7 +5,7 @@ use crate::{
     ops::{
         arithmetic::{
             add_float, add_int, cos_float, div_float, mul_float, mul_int, powi_float, sin_float,
-            sub,
+            sub_float, sub_int,
         },
         eq::{eq, gt, lt},
         io::{file_read_as_string, file_write_string, write, writeln},
@@ -44,7 +44,15 @@ pub fn setup_prelude(env: Env) -> Env {
         // #TODO even better: (Func (Many Float) Float)
         annotate_type(Expr::ForeignFunc(Rc::new(add_float)), "Float"),
     );
-    env.insert("-", Expr::ForeignFunc(Rc::new(sub)));
+    env.insert("-", Expr::ForeignFunc(Rc::new(sub_int)));
+    env.insert(
+        "-$$Int$$Int",
+        annotate_type(Expr::ForeignFunc(Rc::new(sub_int)), "Int"),
+    );
+    env.insert(
+        "-$$Float$$Float",
+        annotate_type(Expr::ForeignFunc(Rc::new(sub_float)), "Float"),
+    );
     env.insert("*", Expr::ForeignFunc(Rc::new(mul_int)));
     env.insert(
         "*$$Int$$Int",
