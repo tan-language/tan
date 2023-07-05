@@ -7,8 +7,8 @@
             (+ z r)
         ))
 
-        (inner 2.0)
+        (+ x (inner 2.0))
     ))
 
-    (outer 1.0)
+    (outer 3.0)
 )

@@ -312,6 +312,25 @@ impl Expr {
         self.annotation("type").unwrap_or(&Expr::One)
     }
 
+    pub fn dyn_type(&self, env: &Env) -> Expr {
+        if let Some(typ) = self.annotation("type") {
+            return typ.clone();
+        }
+
+        match self.unpack() {
+            Expr::Int(_) => Expr::symbol("Int"),
+            Expr::Float(_) => Expr::symbol("Float"),
+            Expr::Symbol(name) => {
+                if let Some(value) = env.get(name) {
+                    value.dyn_type(env)
+                } else {
+                    Expr::symbol("Unknown")
+                }
+            }
+            _ => Expr::symbol("Unknown"),
+        }
+    }
+
     pub fn range(&self) -> Option<Range> {
         self.annotation("range").map(expr_to_range)
     }

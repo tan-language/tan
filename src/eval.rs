@@ -6,7 +6,8 @@ use std::collections::HashMap;
 
 use crate::{
     error::Error,
-    expr::{format_value, Expr},
+    expr::{annotate, format_value, Expr},
+    resolver::compute_dyn_signature,
     util::is_reserved_symbol,
 };
 
@@ -60,6 +61,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                 } else {
                     // #TODO ultra-hack, if the method is not found, try to lookup the function symbol, fall-through.
                     // #TODO should do proper type analysis here.
+
                     env.get(symbol).ok_or::<Error>(Error::undefined_function(
                         symbol,
                         method,
@@ -126,8 +128,62 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
 
             // #TODO could check special forms before the eval
 
-            // Evaluate the head
-            let head = eval(head, env)?;
+            // #TODO this is an ULTRA-HACK! SUPER NASTY/UGLY CODE, refactor!
+
+            // Evaluate the head, try to find dynamic signature
+            let head = if let Some(name) = head.as_symbol() {
+                if !is_reserved_symbol(name) {
+                    // #TODO super arghhhh!!!!
+                    let args = eval_args(tail, env)?;
+
+                    if let Some(value) = env.get(name) {
+                        if let Expr::Func(params, _) = value.unpack() {
+                            // #TODO ultra-hack to kill shared ref to `env`.
+                            let params = params.clone();
+
+                            env.push_new_scope();
+
+                            for (param, arg) in params.iter().zip(&args) {
+                                let Some(param) = param.as_symbol() else {
+                                        return Err(Error::invalid_arguments("parameter is not a symbol", param.range()));
+                                    };
+
+                                env.insert(param, arg.clone());
+                            }
+
+                            let signature = compute_dyn_signature(&args, env);
+                            let head = annotate(
+                                head.clone(),
+                                "method",
+                                Expr::Symbol(format!("{name}$${signature}")),
+                            );
+                            let head = eval(&head, env)?;
+
+                            env.pop();
+
+                            head
+                        } else if let Expr::ForeignFunc(_) = value.unpack() {
+                            let signature = compute_dyn_signature(&args, env);
+                            let head = annotate(
+                                head.clone(),
+                                "method",
+                                Expr::Symbol(format!("{name}$${signature}")),
+                            );
+                            let head = eval(&head, env)?;
+
+                            head
+                        } else {
+                            eval(head, env)?
+                        }
+                    } else {
+                        eval(head, env)?
+                    }
+                } else {
+                    eval(head, env)?
+                }
+            } else {
+                eval(head, env)?
+            };
 
             // #TODO move special forms to prelude, as Expr::Macro or Expr::Special
 

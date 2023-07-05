@@ -350,15 +350,14 @@ fn eval_escaped_strings() {
     assert_eq!(value, expected_value);
 }
 
-// #[test]
-// fn eval_handles_nested_resolve() {
-//     let result = eval_file("nested-resolve.tan");
+#[test]
+fn eval_handles_nested_resolve() {
+    let result = eval_file("nested-resolve.tan");
 
-//     dbg!(&result);
-//     assert!(result.is_ok());
+    assert!(result.is_ok());
 
-//     let value = format_value(result.unwrap());
-//     let expected_value = read_file("nested-resolve.value.tan");
+    let value = format_value(result.unwrap());
+    let expected_value = read_file("nested-resolve.value.tan");
 
-//     assert_eq!(value, expected_value);
-// }
+    assert_eq!(value, expected_value);
+}

@@ -11,6 +11,32 @@ use crate::{
 
 // #Insight resolve_type and resolve_invocable should be combined, cannot be separate passes.
 
+// #TODO signature should also encode the return type!!
+// #TODO how to handle VARARG functions ?!?!
+pub fn compute_signature(args: &[Expr]) -> String {
+    let mut signature = Vec::new();
+
+    for arg in args {
+        signature.push(arg.static_type().to_string())
+    }
+
+    let signature = signature.join("$$");
+
+    signature
+}
+
+pub fn compute_dyn_signature(args: &[Expr], env: &Env) -> String {
+    let mut signature = Vec::new();
+
+    for arg in args {
+        signature.push(arg.dyn_type(env).to_string())
+    }
+
+    let signature = signature.join("$$");
+
+    signature
+}
+
 // #TODO explain what the Resolver is doing.
 pub struct Resolver {
     errors: Vec<Error>,
@@ -242,13 +268,7 @@ impl Resolver {
                                 // #TODO signature should also encode the return type!!
                                 // #TODO how to handle VARARG functions ?!?!
 
-                                let mut signature = Vec::new();
-
-                                for term in &resolved_tail {
-                                    signature.push(term.static_type().to_string())
-                                }
-
-                                let signature = signature.join("$$");
+                                let signature = compute_signature(&resolved_tail);
 
                                 annotate(
                                     head.clone(),
