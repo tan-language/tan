@@ -1,8 +1,8 @@
 [package]
 name = "tan"
 description = "The Tan language"
-version = "0.6.0"
-license = "MIT OR Apache-2.0"
+version = "0.7.0"
+license = "Apache-2.0"
 repository = "https://github.com/tanlang-org/tan"
 keywords = ["language", "functional", "lisp", "jsonrpc", "api"]
 authors = ["George Moschovitis <gmosx@reizu.org>"]
