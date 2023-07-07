@@ -4,8 +4,8 @@ description = "The Tan language"
 version = "0.7.0"
 license = "Apache-2.0"
 repository = "https://github.com/tanlang-org/tan"
-keywords = ["language", "functional", "lisp", "jsonrpc", "api"]
-authors = ["George Moschovitis <gmosx@reizu.org>"]
+keywords = ["language", "functional", "lisp"]
+authors = ["Georgios Moschovitis <gmosx@reizu.org>"]
 edition = "2021"
 
 [dependencies]
