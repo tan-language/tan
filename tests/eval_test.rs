@@ -3,7 +3,7 @@ mod common;
 use tan::{
     api::eval_string,
     error::{Error, ErrorKind},
-    eval::{env::Env, eval},
+    eval::{env::Env, eval, util::eval_module},
     expr::{format_value, Expr},
     util::fmt::format_float,
 };
@@ -360,4 +360,16 @@ fn eval_handles_nested_resolve() {
     let expected_value = read_file("nested-resolve.value.tan");
 
     assert_eq!(value, expected_value);
+}
+
+#[test]
+fn module_cannot_access_private_members_of_other_modules() {
+    let mut env = Env::prelude();
+    env.insert("*current-module-path*", Expr::string("tests/fixtures"));
+    let result = eval_module(format!("main.tan"), &mut env);
+
+    // #todo should return the error!
+
+    dbg!(&result);
+    // assert!(result.is_ok());
 }

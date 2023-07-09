@@ -1,0 +1,4 @@
+(let cfunc (Func (s)
+    (afunc "hello") ; should _not_ have access here!
+    (writeln "C: " s)
+))

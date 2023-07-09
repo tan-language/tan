@@ -63,9 +63,11 @@ pub enum Expr {
     // #TODO support Expr as keys?
     Dict(HashMap<String, Expr>),
     // Range(...),
+    // #todo, the Func should probably store the Module environment.
     Func(Vec<Expr>, Vec<Expr>), // #TODO maybe should have explicit do block?
     Macro(Vec<Expr>, Vec<Expr>), // #TODO maybe should have explicit do block?
-    ForeignFunc(Rc<ExprFn>),    // #TODO for some reason, Box is not working here!
+    // #todo, the ForeignFunc should probably store the Module environment.
+    ForeignFunc(Rc<ExprFn>), // #TODO for some reason, Box is not working here!
     // --- High-level ---
     // #TODO do should contain the expressions also, pre-parsed!
     Do,
@@ -74,6 +76,10 @@ pub enum Expr {
     // #TODO maybe this 'compound' if prohibits homoiconicity?
     If(Box<Expr>, Box<Expr>, Option<Box<Expr>>),
     Annotated(Box<Expr>, HashMap<String, Expr>),
+    // #todo maybe use annotation in Expr for public/exported? no Vec<String> for exported?
+    // #todo convert free-expression into pseudo-function?
+    // Module(HashMap<String, Expr>, Vec<String>, Vec<Expr>), // bindings, public/exported, free-expressions.
+    Module(HashMap<String, Expr>),
 }
 
 // #TODO what is the Expr default? One (Unit/Any) or Zero (Noting/Never)
@@ -112,6 +118,7 @@ impl fmt::Debug for Expr {
             Expr::If(_, _, _) => "if".to_owned(),
             // #insight intentionally pass through the formatting.
             Expr::Annotated(expr, ann) => format!("ANN({expr:?}, {ann:?})"),
+            Expr::Module(..) => "#<module>".to_owned(),
         };
 
         write!(f, "{text}")
@@ -169,6 +176,7 @@ impl fmt::Display for Expr {
                 Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
                 // #insight intentionally pass through the formatting.
                 Expr::Annotated(expr, _) => format!("{expr}"),
+                Expr::Module(..) => "#<module>".to_owned(), // #todo how can we improve?
             })
             .as_str(),
         )

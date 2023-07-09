@@ -9,6 +9,8 @@ use super::prelude::setup_prelude;
 // #TODO {insert/update}_{global/local}
 // #TODO support namespaces
 
+// #todo rename Scope to Bindings, rename Env to Scope?
+
 // #TODO find another name than `Scope`?
 pub type Scope = HashMap<String, Expr>;
 

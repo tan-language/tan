@@ -27,6 +27,19 @@ pub fn has_tan_extension(path: impl AsRef<Path>) -> bool {
     }
 }
 
+// #todo argh! optimize this!!
+pub fn strip_tan_extension(path: impl Into<String>) -> String {
+    let path = path.into();
+
+    if let Some(path) = path.strip_suffix(&format!(".{TAN_FILE_EXTENSION}")) {
+        return path.to_owned();
+    } else if let Some(path) = path.strip_suffix(&format!(".{TAN_FILE_EMOJI_EXTENSION}")) {
+        return path.to_owned();
+    } else {
+        return path;
+    }
+}
+
 /// Lexes a Tan expression encoded as a text string.
 pub fn lex_string(input: impl AsRef<str>) -> Result<Vec<Token>, Vec<Error>> {
     let input = input.as_ref();

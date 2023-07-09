@@ -1,0 +1,3 @@
+(let bfunc (Func (s)
+    (writeln "B: " s)
+))

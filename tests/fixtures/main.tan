@@ -1,0 +1,6 @@
+(use "./submodule")
+(use "./another")
+
+(afunc "hello")
+(bfunc "world")
+(cfunc "ditto")
