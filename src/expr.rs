@@ -1,7 +1,7 @@
 pub mod expr_iter;
 pub mod expr_transform;
 
-use std::{collections::HashMap, fmt, rc::Rc};
+use std::{collections::HashMap, fmt, sync::Arc};
 
 use crate::{
     error::Error,
@@ -33,8 +33,9 @@ use crate::{
 
 // #TODO consider Visitor pattern instead of enum?
 
-// A function that accepts a list of Exprs and returns an Expr.
-pub type ExprFn = dyn Fn(&[Expr], &Env) -> Result<Expr, Error>;
+// #insight the `+ Send + Sync + 'static` suffix allows Expr to be Sync.
+/// A function that accepts a list of Exprs and returns an Expr.
+pub type ExprFn = dyn Fn(&[Expr], &Env) -> Result<Expr, Error> + Send + Sync + 'static;
 
 // #TODO use normal structs instead of tuple-structs?
 
@@ -67,7 +68,7 @@ pub enum Expr {
     Func(Vec<Expr>, Vec<Expr>), // #TODO maybe should have explicit do block?
     Macro(Vec<Expr>, Vec<Expr>), // #TODO maybe should have explicit do block?
     // #todo, the ForeignFunc should probably store the Module environment.
-    ForeignFunc(Rc<ExprFn>), // #TODO for some reason, Box is not working here!
+    ForeignFunc(Arc<ExprFn>), // #TODO for some reason, Box is not working here!
     // --- High-level ---
     // #TODO do should contain the expressions also, pre-parsed!
     Do,
@@ -197,6 +198,10 @@ impl Expr {
     pub fn string(s: impl Into<String>) -> Self {
         Expr::String(s.into())
     }
+
+    // pub fn foreign_func(f: &ExprFn) -> Self {
+    //     Expr::ForeignFunc(Arc::new(*f))
+    // }
 
     pub fn annotated(expr: Expr) -> Self {
         Expr::Annotated(Box::new(expr), HashMap::new())

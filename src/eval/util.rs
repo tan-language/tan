@@ -202,6 +202,8 @@ pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Expr, Vec<Er
         env.insert(CURRENT_MODULE_PATH, previous_module_path);
     }
 
+    // #todo should return an Expr::Module.
+
     // #TODO what should we return here? the last value.
     Ok(Expr::One.into())
 }
