@@ -6,6 +6,7 @@
 
 pub mod fmt;
 pub mod put_back_iterator;
+pub mod standard_names;
 
 /// Returns true if `sym` is reserved.
 pub fn is_reserved_symbol(sym: &str) -> bool {

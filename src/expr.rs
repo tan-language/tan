@@ -5,7 +5,7 @@ use std::{collections::HashMap, fmt, rc::Rc};
 
 use crate::{
     error::Error,
-    eval::env::Env,
+    eval::env::{Env, Scope},
     lexer::comment::CommentKind,
     range::{Position, Range},
 };
@@ -79,7 +79,7 @@ pub enum Expr {
     // #todo maybe use annotation in Expr for public/exported? no Vec<String> for exported?
     // #todo convert free-expression into pseudo-function?
     // Module(HashMap<String, Expr>, Vec<String>, Vec<Expr>), // bindings, public/exported, free-expressions.
-    Module(HashMap<String, Expr>),
+    Module(Scope),
 }
 
 // #TODO what is the Expr default? One (Unit/Any) or Zero (Noting/Never)

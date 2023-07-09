@@ -7,6 +7,7 @@ use crate::{
     api::{has_tan_extension, resolve_string},
     error::Error,
     expr::Expr,
+    util::standard_names::CURRENT_MODULE_PATH,
 };
 
 use super::{env::Env, eval};
@@ -36,7 +37,7 @@ pub fn canonicalize_module_path(path: impl AsRef<Path>, env: &Env) -> String {
 
     // #TODO what is a good coding convention for 'system' variables?
     // #TODO support read-only 'system' variables.
-    if let Some(base_path) = env.get("*current-module-path*") {
+    if let Some(base_path) = env.get(CURRENT_MODULE_PATH) {
         let Expr::String(base_path) = base_path else {
             // #TODO!
             panic!("Invalid current-module-path");
@@ -125,7 +126,7 @@ pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Expr, Vec<Er
 
     let path = canonicalize_module_path(&path, env);
 
-    // println!("==== {:?}", env.get("*current-module-path*"));
+    // println!("==== {:?}", env.get(CURRENT_MODULE_PATH_NA));
     // println!("------>>>--- {}", path);
 
     // let mut env = Env::prelude();
@@ -134,7 +135,7 @@ pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Expr, Vec<Er
     // #TODO this is not really working, we need recursive, 'folded' environments, but it will do for the moment.
 
     let previous_module_path = {
-        if let Some(pmp) = env.get("*current-module-path*") {
+        if let Some(pmp) = env.get(CURRENT_MODULE_PATH) {
             Some(pmp.clone())
         } else {
             None
@@ -143,7 +144,7 @@ pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Expr, Vec<Er
 
     if has_tan_extension(&path) {
         env.insert(
-            "*current-module-path*",
+            CURRENT_MODULE_PATH,
             Expr::string(
                 PathBuf::from(&path)
                     .parent()
@@ -154,7 +155,7 @@ pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Expr, Vec<Er
         );
     } else {
         // #insight only update the current-module-path on 'proper' ('dir') modules.
-        env.insert("*current-module-path*", Expr::string(&path));
+        env.insert(CURRENT_MODULE_PATH, Expr::string(&path));
     }
 
     let file_paths = compute_module_file_paths(path);
@@ -198,7 +199,7 @@ pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Expr, Vec<Er
     }
 
     if let Some(previous_module_path) = previous_module_path {
-        env.insert("*current-module-path*", previous_module_path);
+        env.insert(CURRENT_MODULE_PATH, previous_module_path);
     }
 
     // #TODO what should we return here? the last value.
