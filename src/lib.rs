@@ -11,4 +11,5 @@ pub mod parser;
 pub mod prune;
 pub mod range;
 pub mod resolver;
+pub mod scope;
 pub mod util;

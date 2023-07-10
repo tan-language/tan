@@ -12,7 +12,7 @@ use super::prelude::setup_prelude;
 // #todo rename Scope to Bindings, rename Env to Scope or Context?
 
 // #TODO find another name than `Scope`?
-pub type Scope = HashMap<String, Expr>;
+type Scope = HashMap<String, Expr>;
 
 // #TODO support global scope + lexical/static scope + dynamic scope.
 
