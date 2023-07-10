@@ -1,0 +1,5 @@
+(do
+    (let add (Func (x) (Func (y) (+ x y))))
+    (let add2 (add 2))
+    (add2 3)
+)

@@ -28,7 +28,7 @@ pub type Scope = HashMap<String, Expr>;
 /// An environment is a stack of scopes.
 /// A scope is a a collection of bindings.
 /// A binding binds a symbol to a value/expr.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Env {
     pub global: Scope, // #TODO no global, abuse a module for 'global', like CommonJS.
     pub local: Vec<Scope>,
