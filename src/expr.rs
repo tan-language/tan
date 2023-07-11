@@ -7,8 +7,11 @@ use crate::{
     error::Error,
     eval::env::Env,
     lexer::comment::CommentKind,
+    module::Module,
     range::{Position, Range},
 };
+
+// #insight use structs for enum values, is more ..structured, readable and can have methods.
 
 // #TODO separate variant for list and apply/call (can this be defined statically?)
 // #TODO List, MaybeList, Call
@@ -65,8 +68,8 @@ pub enum Expr {
     Dict(HashMap<String, Expr>),
     // Range(...),
     // #todo, the Func should probably store the Module environment.
-    Func(Vec<Expr>, Vec<Expr>, Env), // #TODO maybe should have explicit do block?
-    Macro(Vec<Expr>, Vec<Expr>),     // #TODO maybe should have explicit do block?
+    Func(Vec<Expr>, Vec<Expr>), // #TODO maybe should have explicit do block?
+    Macro(Vec<Expr>, Vec<Expr>), // #TODO maybe should have explicit do block?
     // #todo, the ForeignFunc should probably store the Module environment.
     ForeignFunc(Arc<ExprFn>), // #TODO for some reason, Box is not working here!
     // --- High-level ---
@@ -80,7 +83,7 @@ pub enum Expr {
     // #todo maybe use annotation in Expr for public/exported? no Vec<String> for exported?
     // #todo convert free-expression into pseudo-function?
     // Module(HashMap<String, Expr>, Vec<String>, Vec<Expr>), // bindings, public/exported, free-expressions.
-    Module(Env),
+    Module(Module),
 }
 
 // #TODO what is the Expr default? One (Unit/Any) or Zero (Noting/Never)

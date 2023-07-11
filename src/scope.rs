@@ -28,6 +28,7 @@ use crate::expr::Expr;
 // context -> dynamic
 // scope/environment -> static? what about closure's scope? could merge scope + context?
 
+#[derive(Debug)]
 pub struct Scope {
     // #todo add global/session ?
     // #todo support read-only bindings?

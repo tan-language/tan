@@ -188,7 +188,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
             // #TODO move special forms to prelude, as Expr::Macro or Expr::Special
 
             match head.unpack() {
-                Expr::Func(params, body, _fn_env) => {
+                Expr::Func(params, body) => {
                     // Evaluate the arguments before calling the function.
                     let args = eval_args(tail, env)?;
 
@@ -564,7 +564,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                             };
 
                             // #TODO optimize!
-                            Ok(Expr::Func(params.clone(), body.into(), env.clone()))
+                            Ok(Expr::Func(params.clone(), body.into()))
                         }
                         // #TODO macros should be handled at a separate, comptime, macroexpand pass.
                         // #TODO actually two passes, macro_def, macro_expand
