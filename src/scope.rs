@@ -1,10 +1,38 @@
-use std::{collections::HashMap, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::expr::Expr;
 
+// #todo should we name this `Env`?
+// #todo consider removing `Into`s and `AsRef`s
+
+// #insight
+// To implement lexical scoping we need multiple shared references to
+// scopes, in general to implement a dynamic language we need some kind of automated
+// memory management, hence the `Rc`s.
+
+// #insight
+// A stack of owned scopes cannot be used like in a previous implementation, as
+// multiple other functions can refer to (close-over) upstream (or downstream) scopes.
+
+// #insight
+// binding = name -> value
+// annotation = name -> meta(-value)
+
+// #insight annotations are defined _statically_, they are static
+
+// #insight only named (binded) values can be annotated, annotations to literals are resolved/handled statically
+
+// #href https://stackoverflow.com/questions/12599965/lexical-environment-and-function-scope
+
+// #think
+// context -> dynamic
+// scope/environment -> static? what about closure's scope? could merge scope + context?
+
 pub struct Scope {
+    // #todo add global/session ?
+    // #todo support read-only bindings?
     pub parent: Option<Rc<Scope>>,
-    pub bindings: HashMap<String, Rc<Expr>>,
+    pub bindings: RefCell<HashMap<String, Rc<Expr>>>,
     // #idea have separate values/annotations!!!
     // #idea annotate only named expressions/bindings, don't annotate literals! to make the above work.
 }
@@ -14,24 +42,28 @@ impl Scope {
     pub fn prelude() -> Self {
         Self {
             parent: None,
-            bindings: HashMap::new(), // #todo initialize with prelude!
+            bindings: RefCell::new(HashMap::new()), // #todo initialize with prelude!
         }
     }
 
     pub fn new(parent: Rc<Scope>) -> Self {
         Self {
             parent: Some(parent),
-            bindings: HashMap::new(),
+            bindings: RefCell::new(HashMap::new()),
         }
     }
 
     // #todo do the impl Intos slow down?
-    pub fn insert(&mut self, name: impl Into<String>, value: impl Into<Expr>) -> Option<Rc<Expr>> {
-        self.bindings.insert(name.into(), Rc::new(value.into()))
+    pub fn insert(&self, name: impl Into<String>, value: impl Into<Expr>) -> Option<Rc<Expr>> {
+        self.bindings
+            .borrow_mut()
+            .insert(name.into(), Rc::new(value.into()))
     }
 
     pub fn get(&self, name: impl AsRef<str>) -> Option<Rc<Expr>> {
-        let value = self.bindings.get(name.as_ref());
+        let bindings = self.bindings.borrow();
+
+        let value = bindings.get(name.as_ref());
 
         if let Some(value) = value {
             Some(value.clone())
@@ -40,6 +72,23 @@ impl Scope {
                 parent.get(name)
             } else {
                 None
+            }
+        }
+    }
+
+    // #todo only allow updating mutable bindings
+    // #todo should we even allow this?
+    /// Updates an existing binding, walks the environment.
+    pub fn update(&self, name: impl AsRef<str>, value: impl Into<Expr>) {
+        let mut bindings = self.bindings.borrow_mut();
+
+        let binding = bindings.get_mut(name.as_ref());
+
+        if let Some(binding) = binding {
+            *binding = Rc::new(value.into());
+        } else {
+            if let Some(parent) = &self.parent {
+                parent.update(name, value);
             }
         }
     }
