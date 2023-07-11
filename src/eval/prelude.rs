@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::{
     expr::{annotate_type, Expr},
@@ -13,9 +13,8 @@ use crate::{
         seq::array_join,
         string::{char_uppercased, format, string_chars, string_constructor_from_chars},
     },
+    scope::Scope,
 };
-
-use super::env::Env;
 
 // #TODO use typeclasses (== traits) for overloading
 // #TODO make Env::top() -> in fact it's bottom (of the stack)
@@ -24,134 +23,134 @@ use super::env::Env;
 // #TODO better syntax for type annotations needed.
 // #TODO organize in modules.
 
-pub fn setup_prelude(env: Env) -> Env {
-    let mut env = env;
+pub fn setup_prelude(scope: Scope) -> Scope {
+    let scope = scope;
 
     // num
 
     // #TODO forget the mangling, implement with a dispatcher function, multi-function.
-    env.insert(
+    scope.insert(
         "+",
-        annotate_type(Expr::ForeignFunc(Rc::new(add_int)), "Int"),
+        annotate_type(Expr::ForeignFunc(Arc::new(add_int)), "Int"),
     );
-    env.insert(
+    scope.insert(
         "+$$Int$$Int",
-        annotate_type(Expr::ForeignFunc(Rc::new(add_int)), "Int"),
+        annotate_type(Expr::ForeignFunc(Arc::new(add_int)), "Int"),
     );
-    env.insert(
+    scope.insert(
         "+$$Float$$Float",
         // #TODO add the proper type: (Func Float Float Float)
         // #TODO even better: (Func (Many Float) Float)
-        annotate_type(Expr::ForeignFunc(Rc::new(add_float)), "Float"),
+        annotate_type(Expr::ForeignFunc(Arc::new(add_float)), "Float"),
     );
-    env.insert("-", Expr::ForeignFunc(Rc::new(sub_int)));
-    env.insert(
+    scope.insert("-", Expr::ForeignFunc(Arc::new(sub_int)));
+    scope.insert(
         "-$$Int$$Int",
-        annotate_type(Expr::ForeignFunc(Rc::new(sub_int)), "Int"),
+        annotate_type(Expr::ForeignFunc(Arc::new(sub_int)), "Int"),
     );
-    env.insert(
+    scope.insert(
         "-$$Float$$Float",
-        annotate_type(Expr::ForeignFunc(Rc::new(sub_float)), "Float"),
+        annotate_type(Expr::ForeignFunc(Arc::new(sub_float)), "Float"),
     );
-    env.insert("*", Expr::ForeignFunc(Rc::new(mul_int)));
-    env.insert(
+    scope.insert("*", Expr::ForeignFunc(Arc::new(mul_int)));
+    scope.insert(
         "*$$Int$$Int",
-        annotate_type(Expr::ForeignFunc(Rc::new(mul_int)), "Int"),
+        annotate_type(Expr::ForeignFunc(Arc::new(mul_int)), "Int"),
     );
-    env.insert(
+    scope.insert(
         "*$$Float$$Float",
         // #TODO add the proper type: (Func Float Float Float)
         // #TODO even better: (Func (Many Float) Float)
-        annotate_type(Expr::ForeignFunc(Rc::new(mul_float)), "Float"),
+        annotate_type(Expr::ForeignFunc(Arc::new(mul_float)), "Float"),
     );
-    env.insert(
+    scope.insert(
         "/",
-        annotate_type(Expr::ForeignFunc(Rc::new(div_float)), "Float"),
+        annotate_type(Expr::ForeignFunc(Arc::new(div_float)), "Float"),
     );
     // #TODO ultra-hack
-    env.insert(
+    scope.insert(
         "/$$Float$$Float",
-        annotate_type(Expr::ForeignFunc(Rc::new(div_float)), "Float"),
+        annotate_type(Expr::ForeignFunc(Arc::new(div_float)), "Float"),
     );
     // #TODO ultra-hack
-    env.insert(
+    scope.insert(
         "/$$Float$$Float$$Float",
-        annotate_type(Expr::ForeignFunc(Rc::new(div_float)), "Float"),
+        annotate_type(Expr::ForeignFunc(Arc::new(div_float)), "Float"),
     );
-    env.insert(
+    scope.insert(
         "sin",
-        annotate_type(Expr::ForeignFunc(Rc::new(sin_float)), "Float"),
+        annotate_type(Expr::ForeignFunc(Arc::new(sin_float)), "Float"),
     );
-    env.insert(
+    scope.insert(
         "cos",
-        annotate_type(Expr::ForeignFunc(Rc::new(cos_float)), "Float"),
+        annotate_type(Expr::ForeignFunc(Arc::new(cos_float)), "Float"),
     );
-    env.insert(
+    scope.insert(
         "**",
-        annotate_type(Expr::ForeignFunc(Rc::new(powi_float)), "Float"),
+        annotate_type(Expr::ForeignFunc(Arc::new(powi_float)), "Float"),
     );
 
     // eq
 
-    env.insert("=", Expr::ForeignFunc(Rc::new(eq)));
-    env.insert(">", Expr::ForeignFunc(Rc::new(gt)));
-    env.insert("<", Expr::ForeignFunc(Rc::new(lt)));
+    scope.insert("=", Expr::ForeignFunc(Arc::new(eq)));
+    scope.insert(">", Expr::ForeignFunc(Arc::new(gt)));
+    scope.insert("<", Expr::ForeignFunc(Arc::new(lt)));
 
     // io
 
-    env.insert("write", Expr::ForeignFunc(Rc::new(write)));
-    env.insert("write$$String", Expr::ForeignFunc(Rc::new(write)));
+    scope.insert("write", Expr::ForeignFunc(Arc::new(write)));
+    scope.insert("write$$String", Expr::ForeignFunc(Arc::new(write)));
 
-    env.insert("writeln", Expr::ForeignFunc(Rc::new(writeln)));
-    env.insert("writeln$$String", Expr::ForeignFunc(Rc::new(writeln)));
+    scope.insert("writeln", Expr::ForeignFunc(Arc::new(writeln)));
+    scope.insert("writeln$$String", Expr::ForeignFunc(Arc::new(writeln)));
 
-    env.insert(
+    scope.insert(
         "File:read-string",
-        Expr::ForeignFunc(Rc::new(file_read_as_string)),
+        Expr::ForeignFunc(Arc::new(file_read_as_string)),
     );
-    env.insert(
+    scope.insert(
         "File:read-string$$String",
-        Expr::ForeignFunc(Rc::new(file_read_as_string)),
+        Expr::ForeignFunc(Arc::new(file_read_as_string)),
     );
 
     // #TODO consider just `write`.
-    env.insert(
+    scope.insert(
         // #TODO alternatives: "std:fs:write_string", "std:url:write_string", "str.url.write-string"
         "File:write-string",
-        Expr::ForeignFunc(Rc::new(file_write_string)),
+        Expr::ForeignFunc(Arc::new(file_write_string)),
     );
-    env.insert(
+    scope.insert(
         "File:write-string$$String",
-        Expr::ForeignFunc(Rc::new(file_write_string)),
+        Expr::ForeignFunc(Arc::new(file_write_string)),
     );
 
     // process
 
-    env.insert("exit", Expr::ForeignFunc(Rc::new(exit)));
-    env.insert("exit$$", Expr::ForeignFunc(Rc::new(exit)));
+    scope.insert("exit", Expr::ForeignFunc(Arc::new(exit)));
+    scope.insert("exit$$", Expr::ForeignFunc(Arc::new(exit)));
 
     // seq
 
-    env.insert("join", Expr::ForeignFunc(Rc::new(array_join)));
+    scope.insert("join", Expr::ForeignFunc(Arc::new(array_join)));
 
     // string
 
-    env.insert(
+    scope.insert(
         "String",
-        Expr::ForeignFunc(Rc::new(string_constructor_from_chars)),
+        Expr::ForeignFunc(Arc::new(string_constructor_from_chars)),
     );
-    // env.insert("String$$Array", Expr::ForeignFunc(Rc::new(string_constructor_from_chars)));
+    // env.insert("String$$Array", Expr::ForeignFunc(Arc::new(string_constructor_from_chars)));
 
-    env.insert("chars", Expr::ForeignFunc(Rc::new(string_chars)));
-    env.insert("chars$$String", Expr::ForeignFunc(Rc::new(string_chars)));
+    scope.insert("chars", Expr::ForeignFunc(Arc::new(string_chars)));
+    scope.insert("chars$$String", Expr::ForeignFunc(Arc::new(string_chars)));
 
-    env.insert("uppercased", Expr::ForeignFunc(Rc::new(char_uppercased)));
-    env.insert(
+    scope.insert("uppercased", Expr::ForeignFunc(Arc::new(char_uppercased)));
+    scope.insert(
         "uppercases$$Char",
-        Expr::ForeignFunc(Rc::new(char_uppercased)),
+        Expr::ForeignFunc(Arc::new(char_uppercased)),
     );
 
-    env.insert("format", Expr::ForeignFunc(Rc::new(format)));
+    scope.insert("format", Expr::ForeignFunc(Arc::new(format)));
 
-    env
+    scope
 }

@@ -1,8 +1,8 @@
 use std::fs;
 
 use crate::{
+    context::Context,
     error::Error,
-    eval::env::Env,
     expr::{format_value, Expr},
 };
 
@@ -12,7 +12,7 @@ use crate::{
 // #TODO (write ...) should take one string parameter and an optional stream/port parameter, like scheme
 // #TODO it could also get an Array/Seq parameter and join it, like JavaScript console.log
 /// Writes one or more expressions to the STDOUT sink/stream.
-pub fn write(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
+pub fn write(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let output = args.iter().fold(String::new(), |mut str, x| {
         str.push_str(&format_value(x));
         str
@@ -33,10 +33,10 @@ pub fn write(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     Ok(Expr::One)
 }
 
-pub fn writeln(args: &[Expr], env: &Env) -> Result<Expr, Error> {
+pub fn writeln(args: &[Expr], context: &Context) -> Result<Expr, Error> {
     // #TODO nasty implementation!
-    write(args, env)?;
-    write(&[Expr::string("\n")], env)
+    write(args, context)?;
+    write(&[Expr::string("\n")], context)
 }
 
 // File < Resource
@@ -44,7 +44,7 @@ pub fn writeln(args: &[Expr], env: &Env) -> Result<Expr, Error> {
 // #TODO consider mapping `:` to `__` and use #[allow(snake_case)]
 
 /// Reads the contents of a text file as a string.
-pub fn file_read_as_string(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
+pub fn file_read_as_string(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [path] = args else {
         return Err(Error::invalid_arguments("`read_as_string` requires a `path` argument", None));
     };
@@ -59,7 +59,7 @@ pub fn file_read_as_string(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
 }
 
 // #TODO decide on the parameters order.
-pub fn file_write_string(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
+pub fn file_write_string(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [path, content] = args else {
         return Err(Error::invalid_arguments("`read_as_string` requires `path` and `content` arguments", None));
     };

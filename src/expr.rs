@@ -1,14 +1,25 @@
 pub mod expr_iter;
 pub mod expr_transform;
 
-use std::{collections::HashMap, fmt, rc::Rc};
+use std::{collections::HashMap, fmt, rc::Rc, sync::Arc};
 
 use crate::{
+    context::Context,
     error::Error,
-    eval::env::Env,
     lexer::comment::CommentKind,
+    module::Module,
     range::{Position, Range},
+    scope::Scope,
 };
+
+// #todo introduce Expr::Ref() with an Rc reference to avoid excessive cloning!
+
+// #insight
+// Annotations are only for named bindings, static-time pseudo-annotations for
+// literals are resolved before dynamic-time, Expr::Ann() is useful for that! But,
+// we can probably skip most expr.unpack()s.
+
+// #insight use structs for enum values, is more ..structured, readable and can have methods.
 
 // #TODO separate variant for list and apply/call (can this be defined statically?)
 // #TODO List, MaybeList, Call
@@ -23,6 +34,8 @@ use crate::{
 // #Insight
 // No need for a Zero/Never/Nothing Expr variant?
 
+// #todo (do ...) blocks should also have lexical scope.
+
 // #TODO what would be the 'default'?
 // #TODO consider parsing to 'simple' Expr, only List and Symbols
 // #TODO optimize 'simple' Expr to 'execution' Expr
@@ -33,8 +46,10 @@ use crate::{
 
 // #TODO consider Visitor pattern instead of enum?
 
-// A function that accepts a list of Exprs and returns an Expr.
-pub type ExprFn = dyn Fn(&[Expr], &Env) -> Result<Expr, Error>;
+// #todo consider &mut Context
+// #insight the `+ Send + Sync + 'static` suffix allows Expr to be Sync.
+/// A function that accepts a list of Exprs and returns an Expr.
+pub type ExprFn = dyn Fn(&[Expr], &Context) -> Result<Expr, Error> + Send + Sync + 'static;
 
 // #TODO use normal structs instead of tuple-structs?
 
@@ -63,9 +78,11 @@ pub enum Expr {
     // #TODO support Expr as keys?
     Dict(HashMap<String, Expr>),
     // Range(...),
-    Func(Vec<Expr>, Vec<Expr>), // #TODO maybe should have explicit do block?
-    Macro(Vec<Expr>, Vec<Expr>), // #TODO maybe should have explicit do block?
-    ForeignFunc(Rc<ExprFn>),    // #TODO for some reason, Box is not working here!
+    // #todo, the Func should probably store the Module environment.
+    Func(Vec<Expr>, Vec<Expr>, Rc<Scope>), // #TODO maybe should have explicit do block?
+    Macro(Vec<Expr>, Vec<Expr>),           // #TODO maybe should have explicit do block?
+    // #todo, the ForeignFunc should probably store the Module environment.
+    ForeignFunc(Arc<ExprFn>), // #TODO for some reason, Box is not working here!
     // --- High-level ---
     // #TODO do should contain the expressions also, pre-parsed!
     Do,
@@ -74,6 +91,10 @@ pub enum Expr {
     // #TODO maybe this 'compound' if prohibits homoiconicity?
     If(Box<Expr>, Box<Expr>, Option<Box<Expr>>),
     Annotated(Box<Expr>, HashMap<String, Expr>),
+    // #todo maybe use annotation in Expr for public/exported? no Vec<String> for exported?
+    // #todo convert free-expression into pseudo-function?
+    // Module(HashMap<String, Expr>, Vec<String>, Vec<Expr>), // bindings, public/exported, free-expressions.
+    Module(Module),
 }
 
 // #TODO what is the Expr default? One (Unit/Any) or Zero (Noting/Never)
@@ -112,6 +133,7 @@ impl fmt::Debug for Expr {
             Expr::If(_, _, _) => "if".to_owned(),
             // #insight intentionally pass through the formatting.
             Expr::Annotated(expr, ann) => format!("ANN({expr:?}, {ann:?})"),
+            Expr::Module(..) => "#<module>".to_owned(),
         };
 
         write!(f, "{text}")
@@ -169,6 +191,7 @@ impl fmt::Display for Expr {
                 Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
                 // #insight intentionally pass through the formatting.
                 Expr::Annotated(expr, _) => format!("{expr}"),
+                Expr::Module(..) => "#<module>".to_owned(), // #todo how can we improve?
             })
             .as_str(),
         )
@@ -189,6 +212,10 @@ impl Expr {
     pub fn string(s: impl Into<String>) -> Self {
         Expr::String(s.into())
     }
+
+    // pub fn foreign_func(f: &ExprFn) -> Self {
+    //     Expr::ForeignFunc(Arc::new(*f))
+    // }
 
     pub fn annotated(expr: Expr) -> Self {
         Expr::Annotated(Box::new(expr), HashMap::new())
@@ -312,7 +339,7 @@ impl Expr {
         self.annotation("type").unwrap_or(&Expr::One)
     }
 
-    pub fn dyn_type(&self, env: &Env) -> Expr {
+    pub fn dyn_type(&self, context: &Context) -> Expr {
         if let Some(typ) = self.annotation("type") {
             return typ.clone();
         }
@@ -321,8 +348,8 @@ impl Expr {
             Expr::Int(_) => Expr::symbol("Int"),
             Expr::Float(_) => Expr::symbol("Float"),
             Expr::Symbol(name) => {
-                if let Some(value) = env.get(name) {
-                    value.dyn_type(env)
+                if let Some(value) = context.scope.get(name) {
+                    value.dyn_type(context)
                 } else {
                     Expr::symbol("Unknown")
                 }

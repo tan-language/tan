@@ -1,0 +1,14 @@
+(let afunc (Func (s)
+    (writeln "A: " s)
+))
+
+(let users [
+    "George"
+    "Stella"
+    "Chris"
+])
+
+(let roles {
+    "George" "admin"
+    "Stella" "user"
+})

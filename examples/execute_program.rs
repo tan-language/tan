@@ -1,13 +1,15 @@
-use tan::{api::eval_string, eval::env::Env};
+use tan::{api::eval_string, context::Context};
+
+// #todo use api::eval_module here.
 
 pub fn main() {
     let input_path = "tests/fixtures/fibonacci.tan";
 
     let input = std::fs::read_to_string(input_path).expect("cannot read input");
 
-    let mut env = Env::prelude();
+    let mut context = Context::new();
 
-    let value = eval_string(&input, &mut env);
+    let value = eval_string(&input, &mut context);
 
     if let Ok(value) = value {
         println!("{value}");

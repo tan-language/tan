@@ -1,12 +1,19 @@
-use std::{fs, path::Path};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 use crate::{
     api::{has_tan_extension, resolve_string},
+    context::Context,
     error::Error,
     expr::Expr,
+    util::standard_names::CURRENT_MODULE_PATH,
 };
 
-use super::{env::Env, eval};
+use super::eval;
+
+// #todo split read_module, eval(_module)
 
 // // #TODO map module name to path
 // // #TODO resolve crate.x.y, or this.x.y
@@ -26,8 +33,32 @@ use super::{env::Env, eval};
 // (use "@std/math" (pi tau))
 // (use std.math (pi tau))
 
+pub fn canonicalize_module_path(path: impl AsRef<Path>, context: &Context) -> String {
+    let mut path = path.as_ref().to_string_lossy().into_owned();
+
+    // #TODO what is a good coding convention for 'system' variables?
+    // #TODO support read-only 'system' variables.
+    if let Some(base_path) = context.scope.get(CURRENT_MODULE_PATH) {
+        let Some(base_path) = base_path.as_string() else {
+            // #TODO!
+            panic!("Invalid current-module-path");
+        };
+
+        // Canonicalize the path using the current-module-path as the base path.
+        if path.starts_with("./") {
+            path = format!("{base_path}{}", path.strip_prefix(".").unwrap());
+        } else if !path.starts_with("/") {
+            // #TODO consider not supporting this, always require the "./"
+            path = format!("{base_path}/{}", path);
+        }
+    }
+
+    path.clone()
+}
+
 // #TODO add unit test.
 pub fn compute_module_file_paths(path: impl AsRef<Path>) -> std::io::Result<Vec<String>> {
+    // #TODO move the canonicalize to the canonicalize_module_path function?
     let module_path = path.as_ref().canonicalize()?;
 
     let mut module_file_paths: Vec<String> = Vec::new();
@@ -80,34 +111,56 @@ pub fn compute_module_file_paths(path: impl AsRef<Path>) -> std::io::Result<Vec<
     Ok(module_file_paths)
 }
 
+// #todo probably need to move at least the 'read' code somewhere else.
 // #TODO also consider 'rusty' notation: `(use this.sub-module)`
 
 // #insight It's also used in ..use
 
-pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Expr, Vec<Error>> {
+// #TODO create a test to verify that module bindings are independent.
+
+pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr, Vec<Error>> {
+    // #TODO a new environment for the module should be created here!!!
+    // #TODO cache the modules, and avoid second eval.
+    // #TODO we need a global env for the cache, the global env should not be accessible from tan code.
+
     // #TODO more general solution needed.
 
-    let mut path = path.as_ref().to_string_lossy().into_owned();
+    let path = canonicalize_module_path(&path, context);
 
-    // #TODO what is a good coding convention for 'system' variables?
-    // #TODO support read-only 'system' variables.
-    if let Some(base_path) = env.get("*current-module-path*") {
-        let Expr::String(base_path) = base_path else {
-            // #TODO!
-            panic!("Invalid current-module-path");
-        };
+    // println!("==== {:?}", env.get(CURRENT_MODULE_PATH_NA));
+    // println!("------>>>--- {}", path);
 
-        // Canonicalize the path using the current-module-path as the base path.
-        if path.starts_with("./") {
-            path = format!("{base_path}{}", path.strip_prefix(".").unwrap());
-        } else if !path.starts_with("/") {
-            // #TODO consider not supporting this, always require the "./"
-            path = format!("{base_path}/{}", path);
-        }
-    }
+    // let mut env = Env::prelude();
+    // let env = &mut env;
 
     // #TODO this is not really working, we need recursive, 'folded' environments, but it will do for the moment.
-    env.insert("*current-module-path*", Expr::String(path.clone()));
+
+    let previous_module_path = {
+        if let Some(pmp) = context.scope.get(CURRENT_MODULE_PATH) {
+            Some(pmp.clone())
+        } else {
+            None
+        }
+    };
+
+    if has_tan_extension(&path) {
+        // #todo use context.insert_special!
+        context.scope.insert(
+            CURRENT_MODULE_PATH,
+            Expr::string(
+                PathBuf::from(&path)
+                    .parent()
+                    .unwrap()
+                    .to_string_lossy()
+                    .to_string(),
+            ),
+        );
+    } else {
+        // #insight only update the current-module-path on 'proper' ('dir') modules.
+        context
+            .scope
+            .insert(CURRENT_MODULE_PATH, Expr::string(&path));
+    }
 
     let file_paths = compute_module_file_paths(path);
 
@@ -125,7 +178,7 @@ pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Expr, Vec<Er
             return Err(vec![input.unwrap_err().into()]);
         };
 
-        let result = resolve_string(input, env);
+        let result = resolve_string(input, context);
 
         let Ok(exprs) = result else {
             let mut errors = result.unwrap_err();
@@ -140,7 +193,7 @@ pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Expr, Vec<Er
         };
 
         for expr in exprs {
-            if let Err(mut error) = eval(&expr, env) {
+            if let Err(mut error) = eval(&expr, context) {
                 // #TODO add a unit test to check that the file_path is added here!
                 error.file_path = file_path.clone();
                 // #TODO better error here!
@@ -148,6 +201,14 @@ pub fn eval_module(path: impl AsRef<Path>, env: &mut Env) -> Result<Expr, Vec<Er
             }
         }
     }
+
+    if let Some(previous_module_path) = previous_module_path {
+        context
+            .scope
+            .insert(CURRENT_MODULE_PATH, previous_module_path);
+    }
+
+    // #todo should return an Expr::Module.
 
     // #TODO what should we return here? the last value.
     Ok(Expr::One.into())
