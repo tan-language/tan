@@ -1,7 +1,7 @@
-use crate::{error::Error, eval::env::Env, expr::Expr};
+use crate::{context::Context, error::Error, expr::Expr};
 
 // #TODO extract *_impl function.
-pub fn ann(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
+pub fn ann(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     if args.len() != 1 {
         return Err(Error::invalid_arguments(
             "`ann` requires one argument",

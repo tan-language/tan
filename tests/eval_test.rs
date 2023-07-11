@@ -2,8 +2,9 @@ mod common;
 
 use tan::{
     api::eval_string,
+    context::Context,
     error::{Error, ErrorKind},
-    eval::{env::Env, eval, util::eval_module},
+    eval::{eval, util::eval_module},
     expr::{format_value, Expr},
     util::fmt::format_float,
 };
@@ -49,8 +50,8 @@ fn eval_processes_conditionals() {
 
 #[test]
 fn eval_processes_keyword_symbols() {
-    let mut env = Env::prelude();
-    let result = eval_string(":key", &mut env).unwrap();
+    let mut context = Context::new();
+    let result = eval_string(":key", &mut context).unwrap();
 
     assert!(matches!(result.unpack(), Expr::KeySymbol(x) if x == "key"));
 }
@@ -58,16 +59,17 @@ fn eval_processes_keyword_symbols() {
 #[test]
 fn eval_processes_empty_list() {
     let expr = Expr::List(Vec::new()).into();
-    let mut env = Env::prelude();
-    let value = eval(&expr, &mut env).unwrap();
+
+    let mut context = Context::new();
+    let value = eval(&expr, &mut context).unwrap();
 
     assert!(matches!(value.unpack(), Expr::One));
 }
 
 #[test]
 fn eval_processes_let() {
-    let mut env = Env::prelude();
-    let result = eval_string("(do (let a (+ 1 2 3)) a)", &mut env);
+    let mut context = Context::new();
+    let result = eval_string("(do (let a (+ 1 2 3)) a)", &mut context);
     dbg!(&result);
 
     // #TODO add asserts!
@@ -75,25 +77,25 @@ fn eval_processes_let() {
 
 #[test]
 fn eval_processes_booleans() {
-    let mut env = Env::prelude();
-    let value = eval_string("(do (let flag true) flag)", &mut env).unwrap();
+    let mut context = Context::new();
+    let value = eval_string("(do (let flag true) flag)", &mut context).unwrap();
     assert!(matches!(value.unpack(), Expr::Bool(x) if *x));
 
-    let value = eval_string("(do (let flag false) flag)", &mut env).unwrap();
+    let value = eval_string("(do (let flag false) flag)", &mut context).unwrap();
     assert!(matches!(value.unpack(), Expr::Bool(x) if !x));
 }
 
 #[test]
 fn eval_processes_chars() {
-    let mut env = Env::prelude();
-    let value = eval_string(r#"(let ch (Char "r")) ch"#, &mut env).unwrap();
+    let mut context = Context::new();
+    let value = eval_string(r#"(let ch (Char "r")) ch"#, &mut context).unwrap();
     assert!(matches!(value.unpack(), Expr::Char(c) if *c == 'r'));
 }
 
 #[test]
 fn eval_reports_let_errors() {
-    let mut env = Env::prelude();
-    let result = eval_string("(do (let if (+ 1 2 3)) a)", &mut env);
+    let mut context = Context::new();
+    let result = eval_string("(do (let if (+ 1 2 3)) a)", &mut context);
 
     assert!(result.is_err());
 
@@ -134,7 +136,7 @@ fn eval_processes_quoted_expressions() {
 
 #[test]
 fn do_creates_new_lexical_scope() {
-    let mut env = Env::prelude();
+    let mut context = Context::new();
     let result = eval_string(
         "
     (do
@@ -144,7 +146,7 @@ fn do_creates_new_lexical_scope() {
         )
         a
     )",
-        &mut env,
+        &mut context,
     );
     assert!(result.is_ok());
 
@@ -156,7 +158,7 @@ fn do_creates_new_lexical_scope() {
 
 #[test]
 fn ensure_a_infinite_recursion_is_fixed() {
-    let mut env = Env::prelude();
+    let mut context = Context::new();
     let result = eval_string(
         "
     (do
@@ -164,7 +166,7 @@ fn ensure_a_infinite_recursion_is_fixed() {
         (let a (+ a 2))
         a
     )",
-        &mut env,
+        &mut context,
     );
     assert!(result.is_ok());
 
@@ -176,8 +178,8 @@ fn ensure_a_infinite_recursion_is_fixed() {
 
 #[test]
 fn quot_handles_lists() {
-    let mut env = Env::prelude();
-    let result = eval_string("'(let a 1)", &mut env);
+    let mut context = Context::new();
+    let result = eval_string("'(let a 1)", &mut context);
     assert!(result.is_ok());
 
     let value = format!("{}", result.unwrap());
@@ -186,8 +188,8 @@ fn quot_handles_lists() {
     assert_eq!(value, expected_value);
 
     // #TODO argh! cannot quote if expressions (and more)
-    let mut env = Env::prelude();
-    let result = eval_string("'(if \"a\" b 1)", &mut env);
+    let mut context = Context::new();
+    let result = eval_string("'(if \"a\" b 1)", &mut context);
     assert!(result.is_ok());
 
     let value = format!("{}", result.unwrap());
@@ -380,9 +382,11 @@ fn eval_handles_nested_resolve() {
 
 #[test]
 fn module_cannot_access_private_members_of_other_modules() {
-    let mut env = Env::prelude();
-    env.insert("*current-module-path*", Expr::string("tests/fixtures"));
-    let result = eval_module(format!("main.tan"), &mut env);
+    let mut context = Context::new();
+    context
+        .scope
+        .insert("*current-module-path*", Expr::string("tests/fixtures"));
+    let result = eval_module(format!("main.tan"), &mut context);
 
     // #todo should return the error!
 

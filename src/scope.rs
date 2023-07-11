@@ -1,6 +1,6 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use crate::expr::Expr;
+use crate::{eval::prelude::setup_prelude, expr::Expr};
 
 // #todo should we name this `Env`?
 // #todo consider removing `Into`s and `AsRef`s
@@ -41,10 +41,10 @@ pub struct Scope {
 impl Scope {
     // #todo consider different name.
     pub fn prelude() -> Self {
-        Self {
+        setup_prelude(Self {
             parent: None,
-            bindings: RefCell::new(HashMap::new()), // #todo initialize with prelude!
-        }
+            bindings: RefCell::new(HashMap::new()),
+        })
     }
 
     pub fn new(parent: Rc<Scope>) -> Self {
@@ -55,10 +55,8 @@ impl Scope {
     }
 
     // #todo do the impl Intos slow down?
-    pub fn insert(&self, name: impl Into<String>, value: impl Into<Expr>) -> Option<Rc<Expr>> {
-        self.bindings
-            .borrow_mut()
-            .insert(name.into(), Rc::new(value.into()))
+    pub fn insert(&self, name: impl Into<String>, value: impl Into<Rc<Expr>>) -> Option<Rc<Expr>> {
+        self.bindings.borrow_mut().insert(name.into(), value.into())
     }
 
     pub fn get(&self, name: impl AsRef<str>) -> Option<Rc<Expr>> {

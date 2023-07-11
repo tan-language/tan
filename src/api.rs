@@ -3,8 +3,9 @@
 use std::path::Path;
 
 use crate::{
+    context::Context,
     error::Error,
-    eval::{env::Env, eval},
+    eval::eval,
     expr::Expr,
     lexer::{token::Token, Lexer},
     macro_expand::macro_expand,
@@ -81,8 +82,13 @@ pub fn parse_string_all(input: impl AsRef<str>) -> Result<Vec<Expr>, Vec<Error>>
 // #TODO what is a good name?
 /// Reads and resolves a Tan expression encoded as a text string.
 /// Updates the environment with definitions.
-pub fn resolve_string(input: impl AsRef<str>, env: &mut Env) -> Result<Vec<Expr>, Vec<Error>> {
+pub fn resolve_string(
+    input: impl AsRef<str>,
+    context: &mut Context,
+) -> Result<Vec<Expr>, Vec<Error>> {
     let exprs = parse_string_all(input)?;
+
+    // #todo also resolve static-use (normal use) here!
 
     // #insight
     //
@@ -116,7 +122,8 @@ pub fn resolve_string(input: impl AsRef<str>, env: &mut Env) -> Result<Vec<Expr>
 
         // Expand macros.
 
-        let expr = macro_expand(expr, env);
+        // #TODO pass a dummy scope here? no need to polute the dyn-time environment with macro stuff.
+        let expr = macro_expand(expr, context);
 
         // #TODO temp hack until macro_expand returns multiple errors.
         let Ok(expr) = expr else {
@@ -140,7 +147,7 @@ pub fn resolve_string(input: impl AsRef<str>, env: &mut Env) -> Result<Vec<Expr>
 
         // #TODO should we push a new env?
         let mut resolver = Resolver::new();
-        let expr = resolver.resolve(expr, env)?;
+        let expr = resolver.resolve(expr, context)?;
 
         resolved_exprs.push(expr);
     }
@@ -150,13 +157,13 @@ pub fn resolve_string(input: impl AsRef<str>, env: &mut Env) -> Result<Vec<Expr>
 
 // #TODO this implements in essence a do block. Maybe no value should be returned?
 /// Evaluates a Tan expression encoded as a text string.
-pub fn eval_string(input: impl AsRef<str>, env: &mut Env) -> Result<Expr, Vec<Error>> {
-    let exprs = resolve_string(input, env)?;
+pub fn eval_string(input: impl AsRef<str>, context: &mut Context) -> Result<Expr, Vec<Error>> {
+    let exprs = resolve_string(input, context)?;
 
     let mut last_value = Expr::One.into();
 
     for expr in exprs {
-        let value = eval(&expr, env);
+        let value = eval(&expr, context);
 
         let Ok(value) = value else {
             return Err(vec![value.unwrap_err()]);

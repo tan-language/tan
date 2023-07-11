@@ -1,7 +1,11 @@
+use std::rc::Rc;
+
 use crate::{
+    context::Context,
     error::Error,
-    eval::{env::Env, eval},
+    eval::eval,
     expr::{annotate_range, Expr},
+    scope::Scope,
     util::is_reserved_symbol,
 };
 
@@ -25,14 +29,14 @@ use crate::{
 // #TODO maybe separate macro_def from macro_expand?
 
 /// Expands macro invocations, at compile time.
-pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
+pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, Error> {
     match expr.unpack() {
         Expr::List(ref list) => {
             let head = list.first().unwrap(); // The unwrap here is safe.
             let tail = &list[1..];
 
             // Evaluate the head
-            let Ok(op) = eval(head, env) else {
+            let Ok(op) = eval(head, context) else {
                 // Don't err if we cannot eval the head.
                 return Ok(Some(expr));
             };
@@ -53,14 +57,17 @@ pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
 
                     // #TODO what kind of scoping is this?
 
-                    env.push_new_scope();
+                    // env.push_new_scope();
+
+                    let prev_scope = context.scope.clone();
+                    context.scope = Rc::new(Scope::new(prev_scope.clone()));
 
                     for (param, arg) in params.iter().zip(args) {
                         let Expr::Symbol(param) = param.unpack() else {
                             return Err(Error::invalid_arguments("parameter is not a symbol", param.range()));
                         };
 
-                        env.insert(param, arg.clone());
+                        context.scope.insert(param, arg.clone());
                     }
                     // #TODO this code is the same as in the (do ..) block, extract.
 
@@ -68,10 +75,11 @@ pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
                     let mut value = Expr::One;
 
                     for expr in body {
-                        value = eval(expr, env)?;
+                        value = eval(expr, context)?;
                     }
 
-                    env.pop();
+                    // env.pop();
+                    context.scope = prev_scope;
 
                     Ok(Some(value))
                 }
@@ -107,7 +115,7 @@ pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
                                 ));
                             }
 
-                            let binding_value = macro_expand(binding_value.clone(), env)?;
+                            let binding_value = macro_expand(binding_value.clone(), context)?;
 
                             // #TODO notify about overrides? use `set`?
                             // #TODO consider if we should allow redefinitions.
@@ -119,7 +127,7 @@ pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
                             if let Expr::Macro(..) = binding_value.unpack() {
                                 // #TODO put all the definitions in one pass.
                                 // Only define macros in this pass.
-                                env.insert(s, binding_value);
+                                context.scope.insert(s, binding_value);
 
                                 // #TODO verify with unit-test.
                                 // Macro definition is pruned.
@@ -170,7 +178,7 @@ pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
                         let mut terms = Vec::new();
                         terms.push(op.clone());
                         for term in tail {
-                            let term = macro_expand(term.clone(), env)?;
+                            let term = macro_expand(term.clone(), context)?;
                             if let Some(term) = term {
                                 terms.push(term);
                             }
@@ -184,7 +192,7 @@ pub fn macro_expand(expr: Expr, env: &mut Env) -> Result<Option<Expr>, Error> {
                     let mut terms = Vec::new();
                     terms.push(head.clone());
                     for term in tail {
-                        let term = macro_expand(term.clone(), env)?;
+                        let term = macro_expand(term.clone(), context)?;
                         if let Some(term) = term {
                             terms.push(term);
                         }

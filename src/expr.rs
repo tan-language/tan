@@ -4,12 +4,17 @@ pub mod expr_transform;
 use std::{collections::HashMap, fmt, sync::Arc};
 
 use crate::{
+    context::Context,
     error::Error,
-    eval::env::Env,
     lexer::comment::CommentKind,
     module::Module,
     range::{Position, Range},
 };
+
+// #insight
+// Annotations are only for named bindings, static-time pseudo-annotations for
+// literals are resolved before dynamic-time, Expr::Ann() is useful for that! But,
+// we can probably skip most expr.unpack()s.
 
 // #insight use structs for enum values, is more ..structured, readable and can have methods.
 
@@ -36,9 +41,10 @@ use crate::{
 
 // #TODO consider Visitor pattern instead of enum?
 
+// #todo consider &mut Context
 // #insight the `+ Send + Sync + 'static` suffix allows Expr to be Sync.
 /// A function that accepts a list of Exprs and returns an Expr.
-pub type ExprFn = dyn Fn(&[Expr], &Env) -> Result<Expr, Error> + Send + Sync + 'static;
+pub type ExprFn = dyn Fn(&[Expr], &Context) -> Result<Expr, Error> + Send + Sync + 'static;
 
 // #TODO use normal structs instead of tuple-structs?
 
@@ -328,7 +334,7 @@ impl Expr {
         self.annotation("type").unwrap_or(&Expr::One)
     }
 
-    pub fn dyn_type(&self, env: &Env) -> Expr {
+    pub fn dyn_type(&self, context: &Context) -> Expr {
         if let Some(typ) = self.annotation("type") {
             return typ.clone();
         }
@@ -337,8 +343,8 @@ impl Expr {
             Expr::Int(_) => Expr::symbol("Int"),
             Expr::Float(_) => Expr::symbol("Float"),
             Expr::Symbol(name) => {
-                if let Some(value) = env.get(name) {
-                    value.dyn_type(env)
+                if let Some(value) = context.scope.get(name) {
+                    value.dyn_type(context)
                 } else {
                     Expr::symbol("Unknown")
                 }

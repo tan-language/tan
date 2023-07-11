@@ -1,11 +1,11 @@
 use crate::{
+    context::Context,
     error::Error,
-    eval::env::Env,
     expr::{format_value, Expr},
 };
 
 // #TODO support separator param.
-pub fn array_join(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
+pub fn array_join(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [array, ..] = args else {
         return Err(Error::invalid_arguments("requires `array` argument", None));
     };

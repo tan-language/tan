@@ -1,7 +1,7 @@
-use crate::{error::Error, eval::env::Env, expr::Expr};
+use crate::{context::Context, error::Error, expr::Expr};
 
 /// Terminates the current process with the specified exit code.
-pub fn exit(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
+pub fn exit(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     if let Some(code) = args.first() {
         let Some(code) = code.as_int() else {
             return Err(Error::invalid_arguments("expected Int argument", code.range()));

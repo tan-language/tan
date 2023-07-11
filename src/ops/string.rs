@@ -1,11 +1,11 @@
 use crate::{
+    context::Context,
     error::Error,
-    eval::env::Env,
     expr::{format_value, Expr},
 };
 
 /// Returns a char iterable for the chars in the string.
-pub fn string_chars(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
+pub fn string_chars(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [this] = args else {
         return Err(Error::invalid_arguments("`chars` requires `this` argument", None));
     };
@@ -23,7 +23,7 @@ pub fn string_chars(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
     Ok(Expr::Array(exprs))
 }
 
-pub fn string_constructor_from_chars(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
+pub fn string_constructor_from_chars(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [chars] = args else {
         return Err(Error::invalid_arguments("requires `chars` argument", None));
     };
@@ -49,7 +49,7 @@ pub fn string_constructor_from_chars(args: &[Expr], _env: &Env) -> Result<Expr, 
 
 // #TODO overload for string and char!
 
-pub fn char_uppercased(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
+pub fn char_uppercased(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [this] = args else {
         return Err(Error::invalid_arguments("`uppercased` requires `this` argument", None));
     };
@@ -68,7 +68,7 @@ pub fn char_uppercased(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
 // #TODO 'join' and 'format' versions?
 
 // #TODO find another name, this is too common: `fmt`? `stringf`?
-pub fn format(args: &[Expr], _env: &Env) -> Result<Expr, Error> {
+pub fn format(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let output = args.iter().fold(String::new(), |mut str, x| {
         str.push_str(&format_value(x));
         str

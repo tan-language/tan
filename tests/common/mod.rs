@@ -2,8 +2,8 @@
 
 use tan::{
     api::{eval_string, parse_string, resolve_string},
+    context::Context,
     error::Error,
-    eval::env::Env,
     expr::Expr,
     lexer::{token::Token, Lexer},
 };
@@ -32,14 +32,14 @@ pub fn parse_file(filename: &str) -> Result<Expr, Vec<Error>> {
 #[allow(dead_code)]
 pub fn resolve_file(filename: &str) -> Result<Vec<Expr>, Vec<Error>> {
     let input = &read_file(filename);
-    let mut env = Env::prelude();
-    resolve_string(input, &mut env)
+    let mut context = Context::new();
+    resolve_string(input, &mut context)
 }
 
 #[allow(dead_code)]
 pub fn eval_file(filename: &str) -> Result<Expr, Vec<Error>> {
     // #TODO use eval_module here!!
     let input = &read_file(filename);
-    let mut env = Env::prelude();
-    eval_string(input, &mut env)
+    let mut context = Context::new();
+    eval_string(input, &mut context)
 }

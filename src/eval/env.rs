@@ -2,8 +2,6 @@ use std::collections::HashMap;
 
 use crate::expr::Expr;
 
-use super::prelude::setup_prelude;
-
 // #TODO separate global_scope.
 // #TODO global <> local scope.
 // #TODO {insert/update}_{global/local}
@@ -51,7 +49,9 @@ impl Env {
 
     // #TODO definitely move externally, we can have multiple preludes, even versioned prelude.
     pub fn prelude() -> Self {
-        setup_prelude(Env::default())
+        // #todo temp!
+        // setup_prelude(Env::default())
+        Env::default()
     }
 
     pub fn push(&mut self, scope: Scope) {

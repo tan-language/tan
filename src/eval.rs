@@ -2,16 +2,18 @@ pub mod env;
 pub mod prelude;
 pub mod util;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::Rc};
 
 use crate::{
+    context::Context,
     error::Error,
     expr::{annotate, format_value, Expr},
     resolver::compute_dyn_signature,
+    scope::Scope,
     util::is_reserved_symbol,
 };
 
-use self::{env::Env, util::eval_module};
+use self::util::eval_module;
 
 // #Insight
 // _Not_ a pure evaluator, performs side-effects.
@@ -29,9 +31,9 @@ use self::{env::Env, util::eval_module};
 // #TODO try to remove non-needed .into()s
 
 // #TODO give more 'general' name.
-fn eval_args(args: &[Expr], env: &mut Env) -> Result<Vec<Expr>, Error> {
+fn eval_args(args: &[Expr], context: &mut Context) -> Result<Vec<Expr>, Error> {
     args.iter()
-        .map(|x| eval(x, env))
+        .map(|x| eval(x, context))
         .collect::<Result<Vec<_>, _>>()
 }
 
@@ -39,7 +41,7 @@ fn eval_args(args: &[Expr], env: &mut Env) -> Result<Vec<Expr>, Error> {
 
 /// Evaluates via expression rewriting. The expression `expr` evaluates to
 /// a fixed point. In essence this is a 'tree-walk' interpreter.
-pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
+pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
     match expr.unpack() {
         // #TODO are you sure?
         // Expr::Annotated(..) => eval(expr.unpack(), env),
@@ -56,29 +58,36 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
             let value = if let Some(Expr::Symbol(method)) = expr.annotation("method") {
                 // If the symbol is annotated with a `method`, it's in 'operator' position.
                 // `method` is just one of the variants of a multi-method-function.
-                if let Some(value) = env.get(method) {
+                if let Some(value) = context.scope.get(method) {
                     value
                 } else {
                     // #TODO ultra-hack, if the method is not found, try to lookup the function symbol, fall-through.
                     // #TODO should do proper type analysis here.
 
-                    env.get(symbol).ok_or::<Error>(Error::undefined_function(
-                        symbol,
-                        method,
-                        &format!("undefined function `{symbol}` with signature `{method}"),
-                        expr.range(),
-                    ))?
+                    context
+                        .scope
+                        .get(symbol)
+                        .ok_or::<Error>(Error::undefined_function(
+                            symbol,
+                            method,
+                            &format!("undefined function `{symbol}` with signature `{method}"),
+                            expr.range(),
+                        ))?
                 }
             } else {
-                env.get(symbol).ok_or::<Error>(Error::undefined_symbol(
-                    &symbol,
-                    &format!("symbol not defined: `{symbol}`"),
-                    expr.range(),
-                ))?
+                context
+                    .scope
+                    .get(symbol)
+                    .ok_or::<Error>(Error::undefined_symbol(
+                        &symbol,
+                        &format!("symbol not defined: `{symbol}`"),
+                        expr.range(),
+                    ))?
             };
 
             // #TODO hm, can we somehow work with references?
-            Ok(value.clone())
+            // #hint this could help: https://doc.rust-lang.org/std/rc/struct.Rc.html#method.unwrap_or_clone
+            Ok((*value).clone())
         }
         Expr::KeySymbol(..) => {
             // #TODO handle 'PathSymbol'
@@ -94,16 +103,16 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
         }
         // #TODO if is unquotable!!
         Expr::If(predicate, true_clause, false_clause) => {
-            let predicate = eval(predicate, env)?;
+            let predicate = eval(predicate, context)?;
 
             let Some(predicate) = predicate.as_bool() else {
                 return Err(Error::invalid_arguments("the if predicate is not a boolean value", predicate.range()));
             };
 
             if predicate {
-                eval(true_clause, env)
+                eval(true_clause, context)
             } else if let Some(false_clause) = false_clause {
-                eval(false_clause, env)
+                eval(false_clause, context)
             } else {
                 // #TODO what should we return if there is no false-clause? Zero/Never?
                 Ok(Expr::One.into())
@@ -134,55 +143,60 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
             let head = if let Some(name) = head.as_symbol() {
                 if !is_reserved_symbol(name) {
                     // #TODO super arghhhh!!!!
-                    let args = eval_args(tail, env)?;
+                    let args = eval_args(tail, context)?;
 
-                    if let Some(value) = env.get(name) {
+                    if let Some(value) = context.scope.get(name) {
                         if let Expr::Func(params, ..) = value.unpack() {
                             // #TODO ultra-hack to kill shared ref to `env`.
                             let params = params.clone();
 
-                            env.push_new_scope();
+                            let prev_scope = context.scope.clone();
+                            context.scope = Rc::new(Scope::new(prev_scope.clone()));
+
+                            // env.push_new_scope();
 
                             for (param, arg) in params.iter().zip(&args) {
                                 let Some(param) = param.as_symbol() else {
                                         return Err(Error::invalid_arguments("parameter is not a symbol", param.range()));
                                     };
 
-                                env.insert(param, arg.clone());
+                                context.scope.insert(param, arg.clone());
                             }
 
-                            let signature = compute_dyn_signature(&args, env);
+                            let signature = compute_dyn_signature(&args, context);
                             let head = annotate(
                                 head.clone(),
                                 "method",
                                 Expr::Symbol(format!("{name}$${signature}")),
                             );
-                            let head = eval(&head, env)?;
+                            let head = eval(&head, context)?;
 
-                            env.pop();
+                            // env.pop();
+
+                            context.scope = prev_scope;
 
                             head
                         } else if let Expr::ForeignFunc(_) = value.unpack() {
-                            let signature = compute_dyn_signature(&args, env);
+                            let signature = compute_dyn_signature(&args, &context);
                             let head = annotate(
                                 head.clone(),
                                 "method",
                                 Expr::Symbol(format!("{name}$${signature}")),
                             );
-                            let head = eval(&head, env)?;
+                            let head = eval(&head, context)?;
 
                             head
                         } else {
-                            eval(head, env)?
+                            eval(head, context)?
                         }
                     } else {
-                        eval(head, env)?
+                        eval(head, context)?
                     }
                 } else {
-                    eval(head, env)?
+                    eval(head, context)?
                 }
             } else {
-                eval(head, env)?
+                eval(head, context)?
             };
 
             // #TODO move special forms to prelude, as Expr::Macro or Expr::Special
@@ -190,21 +204,24 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
             match head.unpack() {
                 Expr::Func(params, body) => {
                     // Evaluate the arguments before calling the function.
-                    let args = eval_args(tail, env)?;
+                    let args = eval_args(tail, context)?;
 
                     // #TODO ultra-hack to kill shared ref to `env`.
                     let params = params.clone();
 
                     // Dynamic scoping, #TODO convert to lexical.
 
-                    env.push_new_scope();
+                    // env.push_new_scope();
+
+                    let prev_scope = context.scope.clone();
+                    context.scope = Rc::new(Scope::new(prev_scope.clone()));
 
                     for (param, arg) in params.iter().zip(args) {
                         let Some(param) = param.as_symbol() else {
                                 return Err(Error::invalid_arguments("parameter is not a symbol", param.range()));
                             };
 
-                        env.insert(param, arg);
+                        context.scope.insert(param, arg);
                     }
 
                     // #TODO this code is the same as in the (do ..) block, extract.
@@ -213,10 +230,12 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                     let mut value = Expr::One;
 
                     for expr in body {
-                        value = eval(expr, env)?;
+                        value = eval(expr, context)?;
                     }
 
-                    env.pop();
+                    // env.pop();
+
+                    context.scope = prev_scope;
 
                     Ok(value)
                 }
@@ -226,9 +245,9 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                     // #TODO use RefCell / interior mutability instead, to allow for changing the environment (with Mutation Effect)
 
                     // Evaluate the arguments before calling the function.
-                    let args = eval_args(tail, env)?;
+                    let args = eval_args(tail, context)?;
 
-                    let result = foreign_function(&args, env);
+                    let result = foreign_function(&args, context);
 
                     // If the error has no range, try to apply the range of the invocation.
                     if let Err(mut error) = result {
@@ -245,7 +264,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                 }
                 Expr::Array(arr) => {
                     // Evaluate the arguments before calling the function.
-                    let args = eval_args(tail, env)?;
+                    let args = eval_args(tail, context)?;
 
                     // #TODO optimize this!
                     // #TODO error checking, one arg, etc.
@@ -264,7 +283,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                 }
                 Expr::Dict(dict) => {
                     // Evaluate the arguments before calling the function.
-                    let args = eval_args(tail, env)?;
+                    let args = eval_args(tail, context)?;
 
                     // #TODO optimize this!
                     // #TODO error checking, one arg, stringable, etc.
@@ -292,13 +311,18 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                             // #TODO do should be 'monadic', propagate Eff (effect) wrapper.
                             let mut value = Expr::One.into();
 
-                            env.push_new_scope();
+                            // env.push_new_scope();
+
+                            let prev_scope = context.scope.clone();
+                            context.scope = Rc::new(Scope::new(prev_scope.clone()));
 
                             for expr in tail {
-                                value = eval(expr, env)?;
+                                value = eval(expr, context)?;
                             }
 
-                            env.pop();
+                            // env.pop();
+
+                            context.scope = prev_scope;
 
                             Ok(value)
                         }
@@ -329,9 +353,9 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                             };
 
                             // #TODO consider naming this `form`?
-                            let expr = eval(expr, env)?;
+                            let expr = eval(expr, context)?;
 
-                            eval(&expr, env)
+                            eval(&expr, context)
                         }
                         // #TODO can move to static/comptime phase.
                         // #TODO doesn't quote all exprs, e.g. the if expression.
@@ -355,7 +379,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                             let mut value = Expr::One.into();
 
                             loop {
-                                let predicate = eval(predicate, env)?;
+                                let predicate = eval(predicate, context)?;
 
                                 let Some(predicate) = predicate.as_bool() else {
                                     return Err(Error::invalid_arguments("the for predicate is not a boolean value", predicate.range()));
@@ -365,7 +389,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                                     break;
                                 }
 
-                                value = eval(body, env)?;
+                                value = eval(body, context)?;
                             }
 
                             Ok(value)
@@ -382,16 +406,16 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
 
                             let false_clause = tail.get(2);
 
-                            let predicate = eval(predicate, env)?;
+                            let predicate = eval(predicate, context)?;
 
                             let Some(predicate) = predicate.as_bool() else {
                                 return Err(Error::invalid_arguments("the if predicate is not a boolean value", predicate.range()));
                             };
 
                             if predicate {
-                                eval(true_clause, env)
+                                eval(true_clause, context)
                             } else if let Some(false_clause) = false_clause {
-                                eval(false_clause, env)
+                                eval(false_clause, context)
                             } else {
                                 // #TODO what should we return if there is no false-clause? Zero/Never?
                                 Ok(Expr::One.into())
@@ -404,7 +428,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                                 return Err(Error::invalid_arguments("malformed `for-each`", expr.range()));
                             };
 
-                            let seq = eval(seq, env)?;
+                            let seq = eval(seq, context)?;
 
                             let Some(arr) = seq.as_array() else {
                                 return Err(Error::invalid_arguments("`for-each` requires a `Seq` as the first argument", seq.range()));
@@ -414,15 +438,19 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                                 return Err(Error::invalid_arguments("`for-each` requires a symbol as the second argument", var.range()));
                             };
 
-                            env.push_new_scope();
+                            // env.push_new_scope();
+
+                            let prev_scope = context.scope.clone();
+                            context.scope = Rc::new(Scope::new(prev_scope.clone()));
 
                             for x in arr {
                                 // #TODO array should have Ann<Expr> use Ann<Expr> everywhere, avoid the clones!
-                                env.insert(sym, x.clone());
-                                eval(body, env)?;
+                                context.scope.insert(sym, x.clone());
+                                eval(body, context)?;
                             }
 
-                            env.pop();
+                            // env.pop();
+                            context.scope = prev_scope;
 
                             // #TODO intentionally don't return a value, reconsider this?
                             Ok(Expr::One.into())
@@ -435,7 +463,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                                 return Err(Error::invalid_arguments("malformed `map`", expr.range()));
                             };
 
-                            let seq = eval(seq, env)?;
+                            let seq = eval(seq, context)?;
 
                             let Some(arr) = seq.as_array() else {
                                 return Err(Error::invalid_arguments("`map` requires a `Seq` as the first argument", seq.range()));
@@ -445,18 +473,22 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                                 return Err(Error::invalid_arguments("`map` requires a symbol as the second argument", var.range()));
                             };
 
-                            env.push_new_scope();
+                            // env.push_new_scope();
+
+                            let prev_scope = context.scope.clone();
+                            context.scope = Rc::new(Scope::new(prev_scope.clone()));
 
                             let mut results: Vec<Expr> = Vec::new();
 
                             for x in arr {
                                 // #TODO array should have Ann<Expr> use Ann<Expr> everywhere, avoid the clones!
-                                env.insert(sym, x.clone());
-                                let result = eval(body, env)?;
+                                context.scope.insert(sym, x.clone());
+                                let result = eval(body, context)?;
                                 results.push(result.unpack().clone());
                             }
 
-                            env.pop();
+                            // env.pop();
+                            context.scope = prev_scope.clone();
 
                             // #TODO intentionally don't return a value, reconsider this?
                             Ok(Expr::Array(results).into())
@@ -473,7 +505,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                             };
 
                             // #TODO make sure paths are relative to the current file.
-                            let result = eval_module(module_path, env);
+                            let result = eval_module(module_path, context);
 
                             if let Err(errors) = result {
                                 // #TODO precise formating is _required_ here!
@@ -512,10 +544,10 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                                     ));
                                 }
 
-                                let value = eval(value, env)?;
+                                let value = eval(value, context)?;
 
                                 // #TODO notify about overrides? use `set`?
-                                env.insert(s, value);
+                                context.scope.insert(s, value);
                             }
 
                             // #TODO return last value!
@@ -545,7 +577,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
                             Ok(Expr::Char(c).into())
                         }
                         "List" => {
-                            let args = eval_args(tail, env)?;
+                            let args = eval_args(tail, context)?;
                             Ok(Expr::List(args).into())
                         }
                         "Func" => {
@@ -608,7 +640,7 @@ pub fn eval(expr: &Expr, env: &mut Env) -> Result<Expr, Error> {
             // #TODO can this get pre-evaluated statically in some cases?
             let mut evaled_items = Vec::new();
             for item in items {
-                evaled_items.push(eval(item, env)?);
+                evaled_items.push(eval(item, context)?);
             }
             Ok(Expr::Array(evaled_items))
         }
