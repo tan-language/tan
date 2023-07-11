@@ -1,7 +1,7 @@
 pub mod expr_iter;
 pub mod expr_transform;
 
-use std::{collections::HashMap, fmt, sync::Arc};
+use std::{collections::HashMap, fmt, rc::Rc, sync::Arc};
 
 use crate::{
     context::Context,
@@ -9,7 +9,10 @@ use crate::{
     lexer::comment::CommentKind,
     module::Module,
     range::{Position, Range},
+    scope::Scope,
 };
+
+// #todo introduce Expr::Ref() with an Rc reference to avoid excessive cloning!
 
 // #insight
 // Annotations are only for named bindings, static-time pseudo-annotations for
@@ -30,6 +33,8 @@ use crate::{
 
 // #Insight
 // No need for a Zero/Never/Nothing Expr variant?
+
+// #todo (do ...) blocks should also have lexical scope.
 
 // #TODO what would be the 'default'?
 // #TODO consider parsing to 'simple' Expr, only List and Symbols
@@ -74,8 +79,8 @@ pub enum Expr {
     Dict(HashMap<String, Expr>),
     // Range(...),
     // #todo, the Func should probably store the Module environment.
-    Func(Vec<Expr>, Vec<Expr>), // #TODO maybe should have explicit do block?
-    Macro(Vec<Expr>, Vec<Expr>), // #TODO maybe should have explicit do block?
+    Func(Vec<Expr>, Vec<Expr>, Rc<Scope>), // #TODO maybe should have explicit do block?
+    Macro(Vec<Expr>, Vec<Expr>),           // #TODO maybe should have explicit do block?
     // #todo, the ForeignFunc should probably store the Module environment.
     ForeignFunc(Arc<ExprFn>), // #TODO for some reason, Box is not working here!
     // --- High-level ---

@@ -202,7 +202,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             // #TODO move special forms to prelude, as Expr::Macro or Expr::Special
 
             match head.unpack() {
-                Expr::Func(params, body) => {
+                Expr::Func(params, body, func_scope) => {
                     // Evaluate the arguments before calling the function.
                     let args = eval_args(tail, context)?;
 
@@ -214,7 +214,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     // env.push_new_scope();
 
                     let prev_scope = context.scope.clone();
-                    context.scope = Rc::new(Scope::new(prev_scope.clone()));
+                    context.scope = Rc::new(Scope::new(func_scope.clone()));
 
                     for (param, arg) in params.iter().zip(args) {
                         let Some(param) = param.as_symbol() else {
@@ -595,8 +595,14 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 return Err(Error::invalid_arguments("malformed func parameters definition", params.range()));
                             };
 
+                            // #insight captures the static (lexical scope)
+
                             // #TODO optimize!
-                            Ok(Expr::Func(params.clone(), body.into()))
+                            Ok(Expr::Func(
+                                params.clone(),
+                                body.into(),
+                                context.scope.clone(),
+                            ))
                         }
                         // #TODO macros should be handled at a separate, comptime, macroexpand pass.
                         // #TODO actually two passes, macro_def, macro_expand

@@ -365,20 +365,20 @@ fn eval_handles_nested_resolve() {
 }
 
 // #todo make closures work, we need true lexical-scoping.
-// #[test]
-// fn eval_handles_closures() {
-//     // #todo rename the filename
-//     // #todo no need to use a *.value.tan file for simple results.
-//     let result = eval_file("pseudo-curry.tan");
+#[test]
+fn eval_handles_closures() {
+    // #todo rename the filename
+    // #todo no need to use a *.value.tan file for simple results.
+    let result = eval_file("pseudo-curry.tan");
 
-//     dbg!(&result);
-//     assert!(result.is_ok());
+    dbg!(&result);
+    assert!(result.is_ok());
 
-//     let value = format_value(result.unwrap());
-//     let expected_value = read_file("pseudo-curry.value.tan");
+    let value = format_value(result.unwrap());
+    let expected_value = read_file("pseudo-curry.value.tan");
 
-//     assert_eq!(value, expected_value);
-// }
+    assert_eq!(value, expected_value);
+}
 
 #[test]
 fn module_cannot_access_private_members_of_other_modules() {
