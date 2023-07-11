@@ -1,5 +1,7 @@
 use tan::{api::eval_string, context::Context};
 
+// #todo use api::eval_module here.
+
 pub fn main() {
     let input_path = "tests/fixtures/fibonacci.tan";
 
