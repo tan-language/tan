@@ -4,6 +4,8 @@ use crate::{eval::prelude::setup_prelude, expr::Expr};
 
 // #todo should we name this `Env`?
 // #todo consider removing `Into`s and `AsRef`s
+// #todo extract the stack walking?
+// #todo no global, abuse a module for 'global', like CommonJS.
 
 // #insight
 // To implement lexical scoping we need multiple shared references to
@@ -28,7 +30,7 @@ use crate::{eval::prelude::setup_prelude, expr::Expr};
 // context -> dynamic
 // scope/environment -> static? what about closure's scope? could merge scope + context?
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Scope {
     // #todo add global/session ?
     // #todo support read-only bindings?
@@ -47,6 +49,7 @@ impl Scope {
         })
     }
 
+    // #todo consider renaming to child_of?
     pub fn new(parent: Rc<Scope>) -> Self {
         Self {
             parent: Some(parent),
