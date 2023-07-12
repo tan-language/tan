@@ -526,6 +526,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                     continue;
                                 }
 
+                                // #todo ONLY export public bindings
+
                                 // #todo assign as top-level bindings!
                                 context.scope.insert(name, value.clone());
                             }
