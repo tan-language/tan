@@ -43,7 +43,7 @@ pub fn canonicalize_module_path(path: impl AsRef<Path>, context: &Context) -> St
 
     // #TODO what is a good coding convention for 'system' variables?
     // #TODO support read-only 'system' variables.
-    if let Some(base_path+) = context.scope.get(CURRENT_MODULE_PATH) {
+    if let Some(base_path) = context.scope.get(CURRENT_MODULE_PATH) {
         let Some(base_path) = base_path.as_string() else {
             // #TODO!
             panic!("Invalid current-module-path");
