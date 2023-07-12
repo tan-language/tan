@@ -14,7 +14,7 @@ use crate::{expr::Expr, module::Module, scope::Scope};
 pub struct Context {
     // #todo what else should we add here?
     // #todo consider the name `module_map`
-    pub module_registry: HashMap<String, Module>,
+    pub module_registry: HashMap<String, Rc<Module>>,
     pub specials: HashMap<String, Rc<Expr>>, // not used yet
     pub scope: Rc<Scope>,
 }

@@ -10,7 +10,6 @@ use crate::{
     error::Error,
     expr::Expr,
     module::Module,
-    scope::Scope,
     util::standard_names::CURRENT_MODULE_PATH,
 };
 
@@ -124,25 +123,28 @@ pub fn compute_module_file_paths(path: impl AsRef<Path>) -> std::io::Result<Vec<
 // #TODO create a test to verify that module bindings are independent.
 
 pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr, Vec<Error>> {
-    // #TODO a new environment for the module should be created here!!!
-    // #TODO cache the modules, and avoid second eval.
-    // #TODO we need a global env for the cache, the global env should not be accessible from tan code.
     // #todo support import_map style rewriting
     // #TODO more general solution needed.
 
-    // #todo check in the cache first!
+    // #todo compute a module_name
 
-    let path = canonicalize_module_path(&path, context);
+    let module_path = canonicalize_module_path(&path, context);
+
+    if let Some(module) = context.module_registry.get(&module_path) {
+        return Ok(Expr::Module(module.clone()));
+    }
+
+    let module = Module::new();
 
     let prev_scope = context.scope.clone();
-    context.scope = Rc::new(Scope::prelude());
+    context.scope = module.scope.clone();
 
-    if has_tan_extension(&path) {
+    if has_tan_extension(&module_path) {
         // #todo use context.insert_special!
         context.scope.insert(
             CURRENT_MODULE_PATH,
             Expr::string(
-                PathBuf::from(&path)
+                PathBuf::from(&module_path)
                     .parent()
                     .unwrap()
                     .to_string_lossy()
@@ -153,10 +155,10 @@ pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr
         // #insight only update the current-module-path on 'proper' ('dir') modules.
         context
             .scope
-            .insert(CURRENT_MODULE_PATH, Expr::string(&path));
+            .insert(CURRENT_MODULE_PATH, Expr::string(&module_path));
     }
 
-    let file_paths = compute_module_file_paths(path);
+    let file_paths = compute_module_file_paths(&module_path);
 
     let Ok(file_paths) = file_paths else {
         return Err(vec![file_paths.unwrap_err().into()]);
@@ -196,13 +198,10 @@ pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr
         }
     }
 
-    let module = Module {
-        scope: context.scope.clone(),
-    };
-
     context.scope = prev_scope;
 
-    // #todo CACHE the module
+    let module = Rc::new(module);
+    context.module_registry.insert(module_path, module.clone());
 
     Ok(Expr::Module(module))
 }

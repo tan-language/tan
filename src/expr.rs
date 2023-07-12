@@ -94,7 +94,7 @@ pub enum Expr {
     // #todo maybe use annotation in Expr for public/exported? no Vec<String> for exported?
     // #todo convert free-expression into pseudo-function?
     // Module(HashMap<String, Expr>, Vec<String>, Vec<Expr>), // bindings, public/exported, free-expressions.
-    Module(Module),
+    Module(Rc<Module>),
 }
 
 // #TODO what is the Expr default? One (Unit/Any) or Zero (Noting/Never)

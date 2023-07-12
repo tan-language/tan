@@ -1,4 +1,7 @@
 (use "./submodule")
+(use "./submodule")
+(use "./submodule")
+(use "./another")
 (use "./another")
 
 (afunc "hello")
