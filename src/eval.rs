@@ -513,7 +513,24 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 return Err(Error::failed_use(&module_path, errors));
                             };
 
-                            // #TODO what could we return here?
+                            let Ok(Expr::Module(module)) = result else {
+                                // #todo could use a panic here, this should never happen.
+                                return Err(Error::failed_use(&module_path, vec![]));
+                            };
+
+                            // #todo temp, needs cleanup!
+                            let bindings = module.scope.bindings.borrow().clone();
+                            for (name, value) in bindings {
+                                // #todo temp fix to not override the special var
+                                if name.starts_with("*") {
+                                    continue;
+                                }
+
+                                // #todo assign as top-level bindings!
+                                context.scope.insert(name, value.clone());
+                            }
+
+                            // #TODO what could we return here? the Expr::Module?
                             Ok(Expr::One.into())
                         }
                         "let" => {

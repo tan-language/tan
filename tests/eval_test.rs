@@ -388,8 +388,6 @@ fn module_cannot_access_private_members_of_other_modules() {
         .insert("*current-module-path*", Expr::string("tests/fixtures"));
     let result = eval_module(format!("main.tan"), &mut context);
 
-    // #todo should return the error!
-
-    dbg!(&result);
-    // assert!(result.is_ok());
+    // dbg!(&result);
+    assert!(result.is_err());
 }
