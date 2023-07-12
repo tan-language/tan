@@ -1,6 +1,7 @@
 use std::{
     fs,
     path::{Path, PathBuf},
+    rc::Rc,
 };
 
 use crate::{
@@ -8,6 +9,8 @@ use crate::{
     context::Context,
     error::Error,
     expr::Expr,
+    module::Module,
+    scope::Scope,
     util::standard_names::CURRENT_MODULE_PATH,
 };
 
@@ -30,7 +33,9 @@ use super::eval;
 // (use "./sub/module")
 // (use this.sub.module)
 //
-// (use "@std/math" (pi tau))
+// (use "@std/math" :only (pi tau))
+// (use "@std/math" :exclude (pi))
+// (use "@std/math" :as "math")
 // (use std.math (pi tau))
 
 pub fn canonicalize_module_path(path: impl AsRef<Path>, context: &Context) -> String {
@@ -38,7 +43,7 @@ pub fn canonicalize_module_path(path: impl AsRef<Path>, context: &Context) -> St
 
     // #TODO what is a good coding convention for 'system' variables?
     // #TODO support read-only 'system' variables.
-    if let Some(base_path) = context.scope.get(CURRENT_MODULE_PATH) {
+    if let Some(base_path+) = context.scope.get(CURRENT_MODULE_PATH) {
         let Some(base_path) = base_path.as_string() else {
             // #TODO!
             panic!("Invalid current-module-path");
@@ -122,26 +127,15 @@ pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr
     // #TODO a new environment for the module should be created here!!!
     // #TODO cache the modules, and avoid second eval.
     // #TODO we need a global env for the cache, the global env should not be accessible from tan code.
-
+    // #todo support import_map style rewriting
     // #TODO more general solution needed.
+
+    // #todo check in the cache first!
 
     let path = canonicalize_module_path(&path, context);
 
-    // println!("==== {:?}", env.get(CURRENT_MODULE_PATH_NA));
-    // println!("------>>>--- {}", path);
-
-    // let mut env = Env::prelude();
-    // let env = &mut env;
-
-    // #TODO this is not really working, we need recursive, 'folded' environments, but it will do for the moment.
-
-    let previous_module_path = {
-        if let Some(pmp) = context.scope.get(CURRENT_MODULE_PATH) {
-            Some(pmp.clone())
-        } else {
-            None
-        }
-    };
+    let prev_scope = context.scope.clone();
+    context.scope = Rc::new(Scope::prelude());
 
     if has_tan_extension(&path) {
         // #todo use context.insert_special!
@@ -202,14 +196,13 @@ pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr
         }
     }
 
-    if let Some(previous_module_path) = previous_module_path {
-        context
-            .scope
-            .insert(CURRENT_MODULE_PATH, previous_module_path);
-    }
+    let module = Module {
+        scope: context.scope.clone(),
+    };
 
-    // #todo should return an Expr::Module.
+    context.scope = prev_scope;
 
-    // #TODO what should we return here? the last value.
-    Ok(Expr::One.into())
+    // #todo CACHE the module
+
+    Ok(Expr::Module(module))
 }

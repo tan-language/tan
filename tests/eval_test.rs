@@ -388,8 +388,8 @@ fn module_cannot_access_private_members_of_other_modules() {
         .insert("*current-module-path*", Expr::string("tests/fixtures"));
     let result = eval_module(format!("main.tan"), &mut context);
 
-    // #todo should return the error!
+    assert!(result.is_err());
 
-    dbg!(&result);
-    // assert!(result.is_ok());
+    let err = result.unwrap_err();
+    assert!(matches!(&err[0].kind, ErrorKind::UndefinedSymbol(sym) if sym == "afunc"));
 }
