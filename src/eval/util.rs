@@ -33,7 +33,9 @@ use super::eval;
 // (use "./sub/module")
 // (use this.sub.module)
 //
-// (use "@std/math" (pi tau))
+// (use "@std/math" :only (pi tau))
+// (use "@std/math" :exclude (pi))
+// (use "@std/math" :as "math")
 // (use std.math (pi tau))
 
 pub fn canonicalize_module_path(path: impl AsRef<Path>, context: &Context) -> String {
@@ -41,7 +43,7 @@ pub fn canonicalize_module_path(path: impl AsRef<Path>, context: &Context) -> St
 
     // #TODO what is a good coding convention for 'system' variables?
     // #TODO support read-only 'system' variables.
-    if let Some(base_path) = context.scope.get(CURRENT_MODULE_PATH) {
+    if let Some(base_path+) = context.scope.get(CURRENT_MODULE_PATH) {
         let Some(base_path) = base_path.as_string() else {
             // #TODO!
             panic!("Invalid current-module-path");
@@ -128,6 +130,8 @@ pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr
     // #todo support import_map style rewriting
     // #TODO more general solution needed.
 
+    // #todo check in the cache first!
+
     let path = canonicalize_module_path(&path, context);
 
     let prev_scope = context.scope.clone();
@@ -198,7 +202,7 @@ pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr
 
     context.scope = prev_scope;
 
-    // #todo should return an Expr::Module.
+    // #todo CACHE the module
 
     Ok(Expr::Module(module))
 }
