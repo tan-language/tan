@@ -3,16 +3,14 @@ use std::rc::Rc;
 use crate::scope::Scope;
 
 // #idea ModuleLoader
+// #idea consider hashing to detect the same modules!
 
 #[derive(Debug, Clone)]
 pub struct Module {
     pub scope: Rc<Scope>,
 }
 
-// #insight
-// A module defines an isolated scope.
-
-/// A module is an isolated scope and defines a namespace.
+/// A module defines an isolated scope and an associated namespace.
 impl Module {
     pub fn new() -> Self {
         Self {

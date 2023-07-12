@@ -5,7 +5,7 @@ use std::{
 };
 
 use crate::{
-    api::{has_tan_extension, resolve_string},
+    api::{has_tan_extension, resolve_string, strip_tan_extension},
     context::Context,
     error::Error,
     expr::Expr,
@@ -120,17 +120,15 @@ pub fn compute_module_file_paths(path: impl AsRef<Path>) -> std::io::Result<Vec<
 
 // #insight It's also used in ..use
 
-// #TODO create a test to verify that module bindings are independent.
-
 pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr, Vec<Error>> {
     // #todo support import_map style rewriting
     // #TODO more general solution needed.
 
-    // #todo compute a module_name
-
     let module_path = canonicalize_module_path(&path, context);
 
-    if let Some(module) = context.module_registry.get(&module_path) {
+    let module_name = strip_tan_extension(&module_path);
+
+    if let Some(module) = context.module_registry.get(&module_name) {
         return Ok(Expr::Module(module.clone()));
     }
 
@@ -201,7 +199,7 @@ pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr
     context.scope = prev_scope;
 
     let module = Rc::new(module);
-    context.module_registry.insert(module_path, module.clone());
+    context.module_registry.insert(module_name, module.clone());
 
     Ok(Expr::Module(module))
 }
