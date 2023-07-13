@@ -42,7 +42,10 @@ use super::eval;
 
 // #todo handle module_urls with https://, https://, ipfs://, etc, auto-download, like Deno.
 
-pub fn canonicalize_module_path(path: impl AsRef<Path>, context: &Context) -> String {
+pub fn canonicalize_module_path(
+    path: impl AsRef<Path>,
+    context: &Context,
+) -> std::io::Result<String> {
     let mut path = path.as_ref().to_string_lossy().into_owned();
 
     // #TODO what is a good coding convention for 'system' variables?
@@ -64,13 +67,15 @@ pub fn canonicalize_module_path(path: impl AsRef<Path>, context: &Context) -> St
         }
     }
 
-    path.clone()
+    // #TODO move the canonicalize to the canonicalize_module_path function?
+    let path = PathBuf::from(path).canonicalize()?;
+
+    Ok(path.to_string_lossy().to_string())
 }
 
 // #TODO add unit test.
-pub fn compute_module_file_paths(path: impl AsRef<Path>) -> std::io::Result<Vec<String>> {
-    // #TODO move the canonicalize to the canonicalize_module_path function?
-    let module_path = path.as_ref().canonicalize()?;
+pub fn compute_module_file_paths(module_path: impl AsRef<Path>) -> std::io::Result<Vec<String>> {
+    let module_path = module_path.as_ref();
 
     let mut module_file_paths: Vec<String> = Vec::new();
     // let mut buf: PathBuf;
@@ -129,9 +134,12 @@ pub fn compute_module_file_paths(path: impl AsRef<Path>) -> std::io::Result<Vec<
 
 pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr, Vec<Error>> {
     // #todo support import_map style rewriting
-    // #TODO more general solution needed.
 
-    let module_path = canonicalize_module_path(&path, context);
+    let result = canonicalize_module_path(&path, context);
+
+    let Ok(module_path) = result else {
+        return Err(vec![result.unwrap_err().into()]);
+    };
 
     let module_name = strip_tan_extension(&module_path);
 
