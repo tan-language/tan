@@ -17,6 +17,9 @@ use super::eval;
 
 // #todo split read_module, eval(_module)
 
+// #todo not sure that dir as module is a good idea.
+// #todo automatically add last path component as prefix, like Go.
+
 // // #TODO map module name to path
 // // #TODO resolve crate.x.y, or this.x.y
 // pub fn module_path_from_name(name: &str) -> String {
@@ -37,6 +40,8 @@ use super::eval;
 // (use "@std/math" :as "math")
 // (use std.math (pi tau))
 
+// #todo handle module_urls with https://, https://, ipfs://, etc, auto-download, like Deno.
+
 pub fn canonicalize_module_path(path: impl AsRef<Path>, context: &Context) -> String {
     let mut path = path.as_ref().to_string_lossy().into_owned();
 
@@ -51,7 +56,9 @@ pub fn canonicalize_module_path(path: impl AsRef<Path>, context: &Context) -> St
         // Canonicalize the path using the current-module-path as the base path.
         if path.starts_with("./") {
             path = format!("{base_path}{}", path.strip_prefix(".").unwrap());
-        } else if !path.starts_with("/") {
+        } else if path.starts_with("/") {
+            path = format!("{}{path}", context.root_path);
+        } else {
             // #TODO consider not supporting this, always require the "./"
             path = format!("{base_path}/{}", path);
         }
