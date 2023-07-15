@@ -157,7 +157,16 @@ pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr
         return Ok(Expr::Module(module.clone()));
     }
 
-    let module = Module::new();
+    // #insight module step is used as prefix
+    let module_stem = {
+        if let Some(stem) = path.as_ref().file_stem() {
+            stem.to_string_lossy().to_string()
+        } else {
+            "top-level".to_string() // #todo think about a good name, maybe repl?
+        }
+    };
+
+    let module = Module::new(module_stem);
 
     let prev_scope = context.scope.clone();
     context.scope = module.scope.clone();

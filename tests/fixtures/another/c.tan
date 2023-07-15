@@ -1,4 +1,4 @@
 (let cfunc (Func (s)
-    (afunc "hello") ; #todo should _not_ have access here!
+    (submodule/afunc "hello") ; #todo should _not_ have access here!
     (writeln "C: " s)
 ))

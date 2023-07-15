@@ -493,6 +493,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             Ok(Expr::Array(results).into())
                         }
                         "use" => {
+                            // #todo move this to resolve? use should be stripped at dyn-time
+
                             // Import a directory as a module.
 
                             let Some(term) = tail.get(0) else {
@@ -518,6 +520,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 return Err(Error::failed_use(&module_path, vec![]));
                             };
 
+                            // Import public names from module scope into the current scope.
+
+                            // #todo support (use "/path/to/module" *) or (use "/path/to/module" :embed)
+
                             // #todo temp, needs cleanup!
                             let bindings = module.scope.bindings.borrow().clone();
                             for (name, value) in bindings {
@@ -527,6 +533,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 }
 
                                 // #todo ONLY export public bindings
+
+                                let name = format!("{}/{}", module.stem, name);
 
                                 // #todo assign as top-level bindings!
                                 context.scope.insert(name, value.clone());

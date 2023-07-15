@@ -1,6 +1,6 @@
 (use "./submodule")
 (use "./another")
 
-(afunc "hello")
-(bfunc "world")
-(cfunc "ditto")
+(submodule/afunc "hello")
+(submodule/bfunc "world")
+(another/cfunc "ditto")
