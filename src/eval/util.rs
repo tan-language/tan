@@ -124,6 +124,16 @@ pub fn compute_module_file_paths(module_path: impl AsRef<Path>) -> std::io::Resu
         ));
     }
 
+    if module_file_paths.is_empty() {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            format!(
+                "no tan files found in directory `{}`",
+                module_path.display().to_string()
+            ),
+        ));
+    }
+
     Ok(module_file_paths)
 }
 
