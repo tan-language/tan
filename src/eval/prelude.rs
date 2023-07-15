@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+// #TODO implement as prelude module! put it as parent scope for modules! add unit-test.
+
 use crate::{
     expr::{annotate_type, Expr},
     ops::{
@@ -8,12 +10,12 @@ use crate::{
             sub_float, sub_int,
         },
         eq::{eq, gt, lt},
-        io::{file_read_as_string, file_write_string, write, writeln},
         process::exit,
         seq::array_join,
         string::{char_uppercased, format, string_chars, string_constructor_from_chars},
     },
     scope::Scope,
+    stdlib::io::{write, writeln},
 };
 
 // #TODO use typeclasses (== traits) for overloading
@@ -98,31 +100,13 @@ pub fn setup_prelude(scope: Scope) -> Scope {
 
     // io
 
+    // #todo grab those from /std/io module
+
     scope.insert("write", Expr::ForeignFunc(Arc::new(write)));
     scope.insert("write$$String", Expr::ForeignFunc(Arc::new(write)));
 
     scope.insert("writeln", Expr::ForeignFunc(Arc::new(writeln)));
     scope.insert("writeln$$String", Expr::ForeignFunc(Arc::new(writeln)));
-
-    scope.insert(
-        "File:read-string",
-        Expr::ForeignFunc(Arc::new(file_read_as_string)),
-    );
-    scope.insert(
-        "File:read-string$$String",
-        Expr::ForeignFunc(Arc::new(file_read_as_string)),
-    );
-
-    // #TODO consider just `write`.
-    scope.insert(
-        // #TODO alternatives: "std:fs:write_string", "std:url:write_string", "str.url.write-string"
-        "File:write-string",
-        Expr::ForeignFunc(Arc::new(file_write_string)),
-    );
-    scope.insert(
-        "File:write-string$$String",
-        Expr::ForeignFunc(Arc::new(file_write_string)),
-    );
 
     // process
 

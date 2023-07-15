@@ -1,6 +1,5 @@
 pub mod arithmetic;
 pub mod eq;
-pub mod io;
 pub mod lang;
 pub mod process;
 pub mod seq;

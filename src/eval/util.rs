@@ -153,9 +153,13 @@ pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr
 
     let module_name = strip_tan_extension(&module_path);
 
+    // Lookup into the module_registry first.
+
     if let Some(module) = context.module_registry.get(&module_name) {
         return Ok(Expr::Module(module.clone()));
     }
+
+    // The module is not registered, try to load it.
 
     // #insight module step is used as prefix
     let module_stem = {

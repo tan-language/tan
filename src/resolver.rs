@@ -1,10 +1,12 @@
 use crate::{
     context::Context,
     error::Error,
-    eval::eval,
+    eval::{eval, util::eval_module},
     expr::{annotate, annotate_type, Expr},
     util::is_reserved_symbol,
 };
+
+// #todo resolver should handle 'use'!!! and _strip_ use expressions.
 
 // #TODO rename file to `sema`?
 // #TODO split into multiple passes?
@@ -182,6 +184,68 @@ impl Resolver {
                             Expr::List(resolved_let_list),
                             head.annotations(),
                         );
+                    } else if sym == "use" {
+                        // #todo temp hack!!!
+
+                        // #todo properly handle this here, strip the use expression, remove from eval
+                        // #todo move this to resolve? use should be stripped at dyn-time
+                        // #todo also support path as symbol.
+
+                        // Import a directory as a module.
+
+                        let Some(term) = tail.get(0) else {
+                            self.errors.push(Error::invalid_arguments("malformed use expression", expr.range()));
+                            // #todo what to return here?
+                            return Expr::One;
+                        };
+
+                        let Some(module_path) = term.as_string() else {
+                            self.errors.push(Error::invalid_arguments("malformed use expression", expr.range()));
+                            // #todo what to return here?
+                            return Expr::One;
+                        };
+
+                        // #TODO make sure paths are relative to the current file.
+                        let result = eval_module(module_path, context);
+
+                        if let Err(errors) = result {
+                            // #TODO precise formating is _required_ here!
+                            // eprintln!("{}", format_errors(&errors));
+                            // dbg!(errors);
+                            self.errors.push(Error::failed_use(&module_path, errors));
+                            // #todo what to return here?
+                            return Expr::One;
+                        };
+
+                        let Ok(Expr::Module(module)) = result else {
+                            // #todo could use a panic here, this should never happen.
+                            self.errors.push(Error::failed_use(&module_path, vec![]));
+                            // #todo what to return here?
+                            return Expr::One;
+                        };
+
+                        // Import public names from module scope into the current scope.
+
+                        // #todo support (use "/path/to/module" *) or (use "/path/to/module" :embed)
+
+                        // #todo temp, needs cleanup!
+                        let bindings = module.scope.bindings.borrow().clone();
+                        for (name, value) in bindings {
+                            // #todo temp fix to not override the special var
+                            if name.starts_with("*") {
+                                continue;
+                            }
+
+                            // #todo ONLY export public bindings
+
+                            let name = format!("{}/{}", module.stem, name);
+
+                            // #todo assign as top-level bindings!
+                            context.scope.insert(name, value.clone());
+                        }
+
+                        // #TODO what could we return here? the Expr::Module?
+                        Expr::One.into()
                     } else if sym == "Func" {
                         // let mut resolved_tail = Vec::new();
                         // for term in tail {
