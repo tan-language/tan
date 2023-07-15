@@ -391,5 +391,5 @@ fn module_cannot_access_private_members_of_other_modules() {
     assert!(result.is_err());
 
     let err = result.unwrap_err();
-    assert!(matches!(&err[0].kind, ErrorKind::UndefinedSymbol(sym) if sym == "afunc"));
+    assert!(matches!(&err[0].kind, ErrorKind::UndefinedSymbol(sym) if sym == "submodule/afunc"));
 }
