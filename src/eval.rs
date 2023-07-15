@@ -494,6 +494,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         }
                         "use" => {
                             // #todo move this to resolve? use should be stripped at dyn-time
+                            // #todo also support path as symbol.
 
                             // Import a directory as a module.
 
