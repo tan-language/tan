@@ -36,5 +36,7 @@ impl Context {
             specials: HashMap::new(),
             scope: Rc::new(Scope::prelude()),
         }
+
+        // #todo should setup_std here?
     }
 }
