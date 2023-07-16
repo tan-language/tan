@@ -12,8 +12,6 @@ use crate::{
     util::is_reserved_symbol,
 };
 
-use self::util::eval_module;
-
 // #Insight
 // _Not_ a pure evaluator, performs side-effects.
 
@@ -493,55 +491,9 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             Ok(Expr::Array(results).into())
                         }
                         "use" => {
-                            // #todo move this to resolve? use should be stripped at dyn-time
-                            // #todo also support path as symbol.
+                            // #todo also introduce a dynamic version of `use`.
 
-                            // Import a directory as a module.
-
-                            let Some(term) = tail.get(0) else {
-                                return Err(Error::invalid_arguments("malformed use expression", expr.range()));
-                            };
-
-                            let Some(module_path) = term.as_string() else {
-                                return Err(Error::invalid_arguments("malformed use expression", expr.range()));
-                            };
-
-                            // #TODO make sure paths are relative to the current file.
-                            let result = eval_module(module_path, context);
-
-                            if let Err(errors) = result {
-                                // #TODO precise formating is _required_ here!
-                                // eprintln!("{}", format_errors(&errors));
-                                // dbg!(errors);
-                                return Err(Error::failed_use(&module_path, errors));
-                            };
-
-                            let Ok(Expr::Module(module)) = result else {
-                                // #todo could use a panic here, this should never happen.
-                                return Err(Error::failed_use(&module_path, vec![]));
-                            };
-
-                            // Import public names from module scope into the current scope.
-
-                            // #todo support (use "/path/to/module" *) or (use "/path/to/module" :embed)
-
-                            // #todo temp, needs cleanup!
-                            let bindings = module.scope.bindings.borrow().clone();
-                            for (name, value) in bindings {
-                                // #todo temp fix to not override the special var
-                                if name.starts_with("*") {
-                                    continue;
-                                }
-
-                                // #todo ONLY export public bindings
-
-                                let name = format!("{}/{}", module.stem, name);
-
-                                // #todo assign as top-level bindings!
-                                context.scope.insert(name, value.clone());
-                            }
-
-                            // #TODO what could we return here? the Expr::Module?
+                            // #todo do nothing? or lookup and return the module?
                             Ok(Expr::One.into())
                         }
                         "let" => {
