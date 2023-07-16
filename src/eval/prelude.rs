@@ -10,7 +10,6 @@ use crate::{
             sub_float, sub_int,
         },
         eq::{eq, gt, lt},
-        process::exit,
         seq::array_join,
         string::{char_uppercased, format, string_chars, string_constructor_from_chars},
     },
@@ -107,11 +106,6 @@ pub fn setup_prelude(scope: Scope) -> Scope {
 
     scope.insert("writeln", Expr::ForeignFunc(Arc::new(writeln)));
     scope.insert("writeln$$String", Expr::ForeignFunc(Arc::new(writeln)));
-
-    // process
-
-    scope.insert("exit", Expr::ForeignFunc(Arc::new(exit)));
-    scope.insert("exit$$", Expr::ForeignFunc(Arc::new(exit)));
 
     // seq
 
