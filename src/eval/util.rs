@@ -42,6 +42,7 @@ use super::eval;
 
 // #todo handle module_urls with https://, https://, ipfs://, etc, auto-download, like Deno.
 
+// #todo find another name, there is confusion with path_buf::canonicalize.
 pub fn canonicalize_module_path(
     path: impl AsRef<Path>,
     context: &Context,
@@ -50,27 +51,36 @@ pub fn canonicalize_module_path(
 
     // #TODO what is a good coding convention for 'system' variables?
     // #TODO support read-only 'system' variables.
-    if let Some(base_path) = context.scope.get(CURRENT_MODULE_PATH) {
-        let Some(base_path) = base_path.as_string() else {
-            // #TODO!
-            panic!("Invalid current-module-path");
-        };
 
-        // Canonicalize the path using the current-module-path as the base path.
-        if path.starts_with("./") {
-            path = format!("{base_path}{}", path.strip_prefix(".").unwrap());
-        } else if path.starts_with("/") {
-            path = format!("{}{path}", context.root_path);
-        } else {
-            // #TODO consider not supporting this, always require the "./"
-            path = format!("{base_path}/{}", path);
+    if path.starts_with("/") {
+        path = format!("{}{path}", context.root_path);
+    } else {
+        if let Some(base_path) = context.scope.get(CURRENT_MODULE_PATH) {
+            println!("+++1");
+
+            let Some(base_path) = base_path.as_string() else {
+                // #TODO!
+                panic!("Invalid current-module-path");
+            };
+
+            // Canonicalize the path using the current-module-path as the base path.
+            if path.starts_with("./") {
+                path = format!("{base_path}{}", path.strip_prefix(".").unwrap());
+            } else {
+                // #TODO consider not supporting this, always require the "./"
+                path = format!("{base_path}/{}", path);
+            }
         }
     }
 
     // #TODO move the canonicalize to the canonicalize_module_path function?
-    let path = PathBuf::from(path).canonicalize()?;
+    let canonical_path = if let Ok(canonical_path) = PathBuf::from(&path).canonicalize() {
+        canonical_path.to_string_lossy().to_string()
+    } else {
+        path
+    };
 
-    Ok(path.to_string_lossy().to_string())
+    Ok(canonical_path)
 }
 
 // #TODO add unit test.

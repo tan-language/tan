@@ -212,14 +212,14 @@ impl Resolver {
                             // #TODO precise formating is _required_ here!
                             // eprintln!("{}", format_errors(&errors));
                             // dbg!(errors);
-                            self.errors.push(Error::failed_use(&module_path, errors));
-                            // #todo what to return here?
+                            self.errors.push(Error::failed_use(&module_path, errors)); // #todo add note with information here!
+                                                                                       // #todo what to return here?
                             return Expr::One;
                         };
 
                         let Ok(Expr::Module(module)) = result else {
                             // #todo could use a panic here, this should never happen.
-                            self.errors.push(Error::failed_use(&module_path, vec![]));
+                            self.errors.push(Error::failed_use(&module_path, vec![])); // #todo add note with information!
                             // #todo what to return here?
                             return Expr::One;
                         };

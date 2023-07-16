@@ -133,7 +133,7 @@ impl fmt::Debug for Expr {
             Expr::If(_, _, _) => "if".to_owned(),
             // #insight intentionally pass through the formatting.
             Expr::Annotated(expr, ann) => format!("ANN({expr:?}, {ann:?})"),
-            Expr::Module(..) => "#<module>".to_owned(),
+            Expr::Module(module) => format!("Module({})", module.stem),
         };
 
         write!(f, "{text}")
@@ -191,7 +191,7 @@ impl fmt::Display for Expr {
                 Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
                 // #insight intentionally pass through the formatting.
                 Expr::Annotated(expr, _) => format!("{expr}"),
-                Expr::Module(..) => "#<module>".to_owned(), // #todo how can we improve?
+                Expr::Module(module) => format!("Module({})", module.stem),
             })
             .as_str(),
         )

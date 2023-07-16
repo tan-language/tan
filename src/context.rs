@@ -9,6 +9,7 @@ use crate::{expr::Expr, module::Module, scope::Scope};
 // #todo consider renaming to Env again?
 // #todo keep `specials` or `special-vars`, e.g. *current-module*.
 // #todo rethink what Context is
+// #todo initialize *current-module-path*? e.g. to '.'
 
 const ROOT_PATH_ENV_VAR: &str = "TAN_ROOT";
 
