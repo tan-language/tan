@@ -30,7 +30,7 @@ mod tests {
     use super::Module;
 
     #[test]
-    fn new_modules_dont_import_prelude() {
+    fn new_modules_dont_duplicate_prelude() {
         let module = Module::new("test");
         assert_eq!(module.scope.bindings.borrow().len(), 0);
     }
