@@ -56,8 +56,6 @@ pub fn canonicalize_module_path(
         path = format!("{}{path}", context.root_path);
     } else {
         if let Some(base_path) = context.scope.get(CURRENT_MODULE_PATH) {
-            println!("+++1");
-
             let Some(base_path) = base_path.as_string() else {
                 // #TODO!
                 panic!("Invalid current-module-path");
