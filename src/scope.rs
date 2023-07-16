@@ -1,6 +1,6 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use crate::{eval::prelude::setup_prelude, expr::Expr};
+use crate::expr::Expr;
 
 // #todo should we name this `Env`?
 // #todo consider removing `Into`s and `AsRef`s
@@ -41,14 +41,6 @@ pub struct Scope {
 }
 
 impl Scope {
-    // #todo consider different name.
-    pub fn prelude() -> Self {
-        setup_prelude(Self {
-            parent: None,
-            bindings: RefCell::new(HashMap::new()),
-        })
-    }
-
     // #todo consider renaming to child_of?
     pub fn new(parent: Rc<Scope>) -> Self {
         Self {

@@ -180,7 +180,7 @@ pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr
         }
     };
 
-    let module = Module::new(module_stem);
+    let module = Module::new(module_stem, context.top_scope.clone());
 
     let prev_scope = context.scope.clone();
     context.scope = module.scope.clone();

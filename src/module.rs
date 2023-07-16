@@ -15,12 +15,21 @@ pub struct Module {
 
 // #todo impl Default
 
+impl Default for Module {
+    fn default() -> Self {
+        Self {
+            stem: "default".to_string(),
+            scope: Rc::new(Scope::default()),
+        }
+    }
+}
+
 /// A module defines an isolated scope and an associated namespace.
 impl Module {
-    pub fn new(stem: impl Into<String>) -> Self {
+    pub fn new(stem: impl Into<String>, parent_scope: Rc<Scope>) -> Self {
         Self {
             stem: stem.into(),
-            scope: Rc::new(Scope::prelude()),
+            scope: Rc::new(Scope::new(parent_scope)),
         }
     }
 }
@@ -29,9 +38,9 @@ impl Module {
 mod tests {
     use super::Module;
 
-    // #[test]
+    #[test]
     fn new_modules_dont_duplicate_prelude() {
-        let module = Module::new("test");
+        let module = Module::default();
         assert_eq!(module.scope.bindings.borrow().len(), 0);
     }
 }

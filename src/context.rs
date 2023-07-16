@@ -2,7 +2,7 @@
 
 use std::{collections::HashMap, rc::Rc};
 
-use crate::{expr::Expr, module::Module, scope::Scope};
+use crate::{expr::Expr, module::Module, scope::Scope, stdlib::setup_std};
 
 // #insight Context is the instance of a Tan 'machine'.
 
@@ -22,6 +22,7 @@ pub struct Context {
     pub module_registry: HashMap<String, Rc<Module>>,
     pub specials: HashMap<String, Rc<Expr>>, // not used yet
     pub scope: Rc<Scope>,
+    pub top_scope: Rc<Scope>, // #todo find better name, e.g. prelude_scope?
 }
 
 impl Context {
@@ -31,13 +32,34 @@ impl Context {
         // #todo expose as special tan variable? at least in 'dev' profile?
         let root_path = std::env::var(ROOT_PATH_ENV_VAR).unwrap();
 
-        Self {
+        let mut context = Self {
             root_path,
             module_registry: HashMap::new(),
             specials: HashMap::new(),
-            scope: Rc::new(Scope::prelude()),
+            scope: Rc::new(Scope::default()),
+            top_scope: Rc::new(Scope::default()),
+        };
+
+        // #todo should setup_std externally!
+        // #todo refactor the remaining!
+
+        setup_std(&mut context);
+
+        // Setup prelude as the ultimate scope.
+
+        let prelude_path = format!("{}/std/prelude", context.root_path);
+        let prelude = context.module_registry.get(&prelude_path).unwrap();
+
+        // #todo reuse `use` code here or extract helper!
+        let bindings = prelude.scope.bindings.borrow().clone();
+        for (name, value) in bindings {
+            context.top_scope.insert(name, value.clone());
         }
 
-        // #todo should setup_std here?
+        // #todo nasty, temp hack, makes older api functions work, CLEANUP!
+
+        context.scope = Rc::new(Scope::new(context.top_scope.clone()));
+
+        context
     }
 }
