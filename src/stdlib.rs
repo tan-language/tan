@@ -1,5 +1,7 @@
 pub mod fs;
 pub mod io;
+pub mod prelude;
+pub mod process;
 
 use std::{rc::Rc, sync::Arc};
 
@@ -10,9 +12,12 @@ use crate::{
     stdlib::fs::{file_read_as_string, file_write_string},
 };
 
+use self::process::exit;
+
 // #todo consider removing the `std` prefix from module paths, like haskell.
 // #todo find a better prefix than setup_
 // #todo use Rc/Arc consistently
+// #todo some helpers are needed here, to streamline the code.
 
 pub fn setup_std_fs(context: &mut Context) {
     let module = Module::new("fs");
@@ -48,6 +53,23 @@ pub fn setup_std_fs(context: &mut Context) {
     context.module_registry.insert(module_path, Rc::new(module));
 }
 
+pub fn setup_std_process(context: &mut Context) {
+    let module = Module::new("process");
+
+    // #todo aaargh!!! module has all copied of prelude
+
+    let scope = &module.scope;
+
+    scope.insert("exit", Expr::ForeignFunc(Arc::new(exit)));
+    scope.insert("exit$$", Expr::ForeignFunc(Arc::new(exit)));
+
+    // #todo this is a hack.
+    let module_path = format!("{}/std/process", context.root_path);
+    // #todo introduce a helper for this.
+    context.module_registry.insert(module_path, Rc::new(module));
+}
+
 pub fn setup_std(context: &mut Context) {
     setup_std_fs(context);
+    setup_std_process(context);
 }
