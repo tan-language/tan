@@ -18,7 +18,6 @@ use super::eval;
 // #todo split read_module, eval(_module)
 
 // #todo not sure that dir as module is a good idea.
-// #todo automatically add last path component as prefix, like Go.
 
 // // #TODO map module name to path
 // // #TODO resolve crate.x.y, or this.x.y
@@ -149,7 +148,9 @@ pub fn compute_module_file_paths(module_path: impl AsRef<Path>) -> std::io::Resu
 // #TODO also consider 'rusty' notation: `(use this.sub-module)`
 
 // #insight It's also used in ..use
+// #todo split into multiple functions.
 
+/// Evaluates a language module.
 pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr, Vec<Error>> {
     // #todo support import_map style rewriting
 
@@ -249,9 +250,3 @@ pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr
 
     Ok(Expr::Module(module))
 }
-
-// #[cfg(test)]
-// mod tests {
-//     #[test]
-//     fn to_be_defined() {}
-// }

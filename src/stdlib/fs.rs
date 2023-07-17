@@ -1,6 +1,9 @@
 use std::fs;
+use std::{rc::Rc, sync::Arc};
 
 use crate::{context::Context, error::Error, expr::Expr};
+
+use crate::module::Module;
 
 // #TODO do FFI functions really need an env?
 // #TODO differentiate pure functions that do not change the env!
@@ -41,4 +44,39 @@ pub fn file_write_string(args: &[Expr], _context: &Context) -> Result<Expr, Erro
     fs::write(path, content)?;
 
     Ok(Expr::One)
+}
+
+// #todo use Rc/Arc consistently
+// #todo some helpers are needed here, to streamline the code.
+
+pub fn setup_std_fs(context: &mut Context) {
+    let module = Module::new("fs", context.top_scope.clone());
+
+    let scope = &module.scope;
+
+    scope.insert(
+        "read-file-to-string",
+        Expr::ForeignFunc(Arc::new(file_read_as_string)),
+    );
+    scope.insert(
+        "read-file-to-string$$String",
+        Expr::ForeignFunc(Arc::new(file_read_as_string)),
+    );
+
+    // #TODO consider just `write`.
+    scope.insert(
+        // #TODO alternatives: "std:fs:write_string", "std:url:write_string", "str.url.write-string"
+        "write-string-to-file",
+        Expr::ForeignFunc(Arc::new(file_write_string)),
+    );
+
+    scope.insert(
+        "write-string-to-file$$String",
+        Expr::ForeignFunc(Arc::new(file_write_string)),
+    );
+
+    // #todo this is a hack.
+    let module_path = format!("{}/std/fs", context.root_path);
+    // #todo introduce a helper for this.
+    context.module_registry.insert(module_path, Rc::new(module));
 }
