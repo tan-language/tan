@@ -71,6 +71,7 @@ pub enum ErrorKind {
 
     // Runtime errors
     Io(std::io::Error),
+    General(String), // #todo find a better name!
 }
 
 impl fmt::Display for ErrorKind {
@@ -93,6 +94,7 @@ impl fmt::Display for ErrorKind {
             ErrorKind::FailedUse(url, _) => format!("failed use `{url}`"),
             ErrorKind::InvalidArguments => "invalid arguments".to_owned(),
             ErrorKind::NotInvocable => "not invocable".to_owned(),
+            ErrorKind::General(text) => text.clone(),
         };
 
         write!(f, "{err}")
@@ -201,6 +203,12 @@ impl Error {
         let error = Self::new(ErrorKind::FailedUse(url.to_owned(), errors));
         // #TODO url is _not_ the error.file_path, we need the caller module path.
         // error.file_path = url.to_owned();
+        error
+    }
+
+    // placeholder error!
+    pub fn general(text: &str) -> Self {
+        let error = Self::new(ErrorKind::General(text.to_owned()));
         error
     }
 

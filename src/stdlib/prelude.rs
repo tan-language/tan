@@ -14,7 +14,7 @@ use crate::{
     },
 };
 
-use super::io::{write, writeln};
+use super::io::{read_string, write, writeln};
 
 pub fn setup_std_prelude(context: &mut Context) {
     let module = Module::new("prelude", context.top_scope.clone());
@@ -94,6 +94,9 @@ pub fn setup_std_prelude(context: &mut Context) {
     // io
 
     // #todo grab those from /std/io module
+
+    scope.insert("read", Expr::ForeignFunc(Arc::new(read_string)));
+    scope.insert("read$$String", Expr::ForeignFunc(Arc::new(read_string)));
 
     scope.insert("write", Expr::ForeignFunc(Arc::new(write)));
     scope.insert("write$$String", Expr::ForeignFunc(Arc::new(write)));

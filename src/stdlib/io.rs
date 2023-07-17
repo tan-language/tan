@@ -1,8 +1,36 @@
 use crate::{
+    api::eval_string,
     context::Context,
     error::Error,
     expr::{format_value, Expr},
 };
+
+// #todo should take a &mut Context
+pub fn read_string(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    // #todo support all `Stringable`s
+
+    // #todo argh, temp ultra-hack.
+    let mut context = Context::new();
+
+    if let Some(input) = args.first() {
+        let Some(input) = input.as_string() else {
+            return Err(Error::invalid_arguments("expected String argument", input.range()));
+        };
+
+        // #todo think carefully which eval function to use.
+        let result = eval_string(input, &mut context);
+
+        if let Ok(expr) = result {
+            Ok(expr)
+        } else {
+            // #todo something more clever needed here!
+            // #todo use an aggregate Error, something like Error::failed_use()
+            Err(Error::general("cannot read string, eval failed"))
+        }
+    } else {
+        Err(Error::invalid_arguments("expected one argument", None))
+    }
+}
 
 // #TODO do FFI functions really need an env?
 // #TODO differentiate pure functions that do not change the env!
