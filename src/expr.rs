@@ -46,7 +46,9 @@ use crate::{
 
 // #TODO consider Visitor pattern instead of enum?
 
-// #todo consider &mut Context
+// #todo consider &mut Context <--
+// #todo consider &mut and & Context, different types!
+// #todo find a better name for the type-alias
 // #insight the `+ Send + Sync + 'static` suffix allows Expr to be Sync.
 /// A function that accepts a list of Exprs and returns an Expr.
 pub type ExprFn = dyn Fn(&[Expr], &Context) -> Result<Expr, Error> + Send + Sync + 'static;
