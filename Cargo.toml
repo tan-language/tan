@@ -10,3 +10,4 @@ edition = "2021"
 
 [dependencies]
 tracing = "0.1"
+rand = "0.8"
