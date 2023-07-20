@@ -1,5 +1,7 @@
 // #insight random is _not_ part of math!
 
+// #todo move out of standard library into the common library.
+
 // #todo random_int, random_float
 // #todo should take a range trait.
 // #todo support random-number-generator 'object', with more specialization

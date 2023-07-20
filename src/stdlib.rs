@@ -11,6 +11,8 @@ use self::{
     fs::setup_std_fs, prelude::setup_std_prelude, process::setup_std_process, rng::setup_std_rand,
 };
 
+// #todo add unit test for the foreign-functions.
+
 // #todo consider removing the `std` prefix from module paths, like haskell.
 // #todo find a better prefix than setup_
 // #todo use Rc/Arc consistently
