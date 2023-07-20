@@ -1,20 +1,18 @@
 use std::{rc::Rc, sync::Arc};
 
+use crate::expr::annotate_type;
 use crate::{context::Context, expr::Expr, module::Module};
-use crate::{
-    expr::annotate_type,
-    ops::{
-        arithmetic::{
-            add_float, add_int, cos_float, div_float, mul_float, mul_int, powi_float, sin_float,
-            sub_float, sub_int,
-        },
-        eq::{eq, gt, lt},
-        seq::array_join,
-        string::{char_uppercased, format, string_chars, string_constructor_from_chars},
-    },
-};
 
 use super::io::{read_string, write, writeln};
+use super::{
+    arithmetic::{
+        add_float, add_int, cos_float, div_float, mul_float, mul_int, powi_float, sin_float,
+        sub_float, sub_int,
+    },
+    eq::{eq, gt, lt},
+    seq::array_join,
+    string::{char_uppercased, format, string_chars, string_constructor_from_chars},
+};
 
 pub fn setup_std_prelude(context: &mut Context) {
     let module = Module::new("prelude", context.top_scope.clone());

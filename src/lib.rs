@@ -6,7 +6,6 @@ pub mod expr;
 pub mod lexer;
 pub mod macro_expand;
 pub mod module;
-pub mod ops;
 pub mod optimize;
 pub mod parser;
 pub mod prune;
