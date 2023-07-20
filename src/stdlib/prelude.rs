@@ -4,6 +4,7 @@ use crate::expr::annotate_type;
 use crate::{context::Context, expr::Expr, module::Module};
 
 use super::io::{read_string, write, writeln};
+use super::seq::array_count;
 use super::{
     arithmetic::{
         add_float, add_int, cos_float, div_float, mul_float, mul_int, powi_float, sin_float,
@@ -105,6 +106,7 @@ pub fn setup_std_prelude(context: &mut Context) {
     // seq
 
     scope.insert("join", Expr::ForeignFunc(Arc::new(array_join)));
+    scope.insert("count", Expr::ForeignFunc(Arc::new(array_count)));
 
     // string
 
