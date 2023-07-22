@@ -393,3 +393,16 @@ fn module_cannot_access_private_members_of_other_modules() {
     let err = result.unwrap_err();
     assert!(matches!(&err[0].kind, ErrorKind::UndefinedSymbol(sym) if sym == "submodule/afunc"));
 }
+
+#[test]
+fn eval_function_returns_dict() {
+    let result = eval_file("func-dict.tan");
+
+    let Ok(Expr::Dict(dict)) = result else {
+        panic!();
+    };
+
+    let body = dict.get("body");
+
+    assert!(matches!(body, Some(Expr::String(s)) if s == "quote: a quote"));
+}

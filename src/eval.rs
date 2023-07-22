@@ -628,6 +628,17 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             }
             Ok(Expr::Array(evaled_items))
         }
+        Expr::Dict(dict) => {
+            // #insight evaluates the values.
+            // #insight [...] => (Dict ...) => it's like a function.
+            // #todo nasty code, improve.
+            // #TODO can this get pre-evaluated statically in some cases?
+            let mut evaled_dict = HashMap::new();
+            for (k, v) in dict {
+                evaled_dict.insert(k.clone(), eval(v, context)?);
+            }
+            Ok(Expr::Dict(evaled_dict))
+        }
         _ => {
             // #TODO hm, maybe need to report an error here? or even select the desired behavior? -> NO ERROR
             // #TODO can we avoid the clone?

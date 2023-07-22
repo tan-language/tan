@@ -181,9 +181,10 @@ impl fmt::Display for Expr {
                 }
                 Expr::Dict(dict) => {
                     // #TODO Dict should support arbitrary exprs (or at lease `(Into String)` exprs)
+                    // #todo currently we convert keys to symbol, make this more subtle.
                     let exprs = dict
                         .iter()
-                        .map(|(k, v)| format!("\"{k}\" {v}"))
+                        .map(|(k, v)| format!(":{k} {v}"))
                         .collect::<Vec<String>>()
                         .join(" ");
                     format!("{{{exprs}}}")
