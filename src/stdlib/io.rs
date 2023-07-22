@@ -25,6 +25,7 @@ pub fn read_string(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
         } else {
             // #todo something more clever needed here!
             // #todo use an aggregate Error, something like Error::failed_use()
+            dbg!(&result);
             Err(Error::general("cannot read string, eval failed"))
         }
     } else {
