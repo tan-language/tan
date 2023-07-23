@@ -393,6 +393,7 @@ pub fn annotate_range(expr: Expr, range: Range) -> Expr {
     annotate(expr, "range", range_to_expr(&range))
 }
 
+// #todo move elsewhere, e.g. api.
 // #TODO think where this function is used. (it is used for Dict keys, hmm...)
 // #TODO this is a confusing name!
 /// Formats the expression as a value
