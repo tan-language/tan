@@ -17,48 +17,48 @@ use crate::{
 // #Insight
 // I don't like the name `interpreter`.
 
-// #TODO move excessive error-checking/linting to the resolve/typecheck pass.
-// #TODO encode effects in the type-system.
-// #TODO alternative names: Processor, Runner, Interpreter
-// #TODO split eval_special, eval_func -> not needed if we put everything uniformly in prelude.
-// #TODO Stack-trace is needed!
-// #TODO https://clojure.org/reference/evaluation
+// #todo move excessive error-checking/linting to the resolve/typecheck pass.
+// #todo encode effects in the type-system.
+// #todo alternative names: Processor, Runner, Interpreter
+// #todo split eval_special, eval_func -> not needed if we put everything uniformly in prelude.
+// #todo Stack-trace is needed!
+// #todo https://clojure.org/reference/evaluation
 
-// #TODO try to remove non-needed .into()s
+// #todo try to remove non-needed .into()s
 
-// #TODO give more 'general' name.
+// #todo give more 'general' name.
 fn eval_args(args: &[Expr], context: &mut Context) -> Result<Vec<Expr>, Error> {
     args.iter()
         .map(|x| eval(x, context))
         .collect::<Result<Vec<_>, _>>()
 }
 
-// #TODO needs better conversion to Expr::Annotated
+// #todo needs better conversion to Expr::Annotated
 
 /// Evaluates via expression rewriting. The expression `expr` evaluates to
 /// a fixed point. In essence this is a 'tree-walk' interpreter.
 pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
     match expr.unpack() {
-        // #TODO are you sure?
+        // #todo are you sure?
         // Expr::Annotated(..) => eval(expr.unpack(), env),
         Expr::Symbol(symbol) => {
-            // #TODO differentiate between evaluating symbol in 'op' position.
+            // #todo differentiate between evaluating symbol in 'op' position.
 
             if is_reserved_symbol(symbol) {
                 return Ok(expr.clone());
             }
 
-            // #TODO handle 'PathSymbol'
+            // #todo handle 'PathSymbol'
 
-            // #TODO maybe resolve or optimize should already have placed the method in the AST?
+            // #todo maybe resolve or optimize should already have placed the method in the AST?
             let value = if let Some(Expr::Symbol(method)) = expr.annotation("method") {
                 // If the symbol is annotated with a `method`, it's in 'operator' position.
                 // `method` is just one of the variants of a multi-method-function.
                 if let Some(value) = context.scope.get(method) {
                     value
                 } else {
-                    // #TODO ultra-hack, if the method is not found, try to lookup the function symbol, fall-through.
-                    // #TODO should do proper type analysis here.
+                    // #todo ultra-hack, if the method is not found, try to lookup the function symbol, fall-through.
+                    // #todo should do proper type analysis here.
 
                     context
                         .scope
@@ -81,23 +81,23 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     ))?
             };
 
-            // #TODO hm, can we somehow work with references?
+            // #todo hm, can we somehow work with references?
             // #hint this could help: https://doc.rust-lang.org/std/rc/struct.Rc.html#method.unwrap_or_clone
             Ok((*value).clone())
         }
         Expr::KeySymbol(..) => {
-            // #TODO handle 'PathSymbol'
+            // #todo handle 'PathSymbol'
 
-            // #TODO lint '::' etc.
-            // #TODO check that if there is a leading ':' there is only one ':', make this a lint warning!
-            // #TODO consider renaming KeywordSymbol to KeySymbol.
+            // #todo lint '::' etc.
+            // #todo check that if there is a leading ':' there is only one ':', make this a lint warning!
+            // #todo consider renaming KeywordSymbol to KeySymbol.
 
             // A `Symbol` that starts with `:` is a so-called `KeywordSymbol`. Keyword
             // symbols evaluate to themselves, and are convenient to use as Map keys,
             // named (keyed) function parameter, enum variants, etc.
             Ok(expr.clone())
         }
-        // #TODO if is unquotable!!
+        // #todo if is unquotable!!
         Expr::If(predicate, true_clause, false_clause) => {
             let predicate = eval(predicate, context)?;
 
@@ -110,13 +110,13 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             } else if let Some(false_clause) = false_clause {
                 eval(false_clause, context)
             } else {
-                // #TODO what should we return if there is no false-clause? Zero/Never?
+                // #todo what should we return if there is no false-clause? Zero/Never?
                 Ok(Expr::One.into())
             }
         }
         Expr::List(list) => {
-            // #TODO no need for dynamic invocable, can use (apply f ...) / (invoke f ...) instead.
-            // #TODO replace head/tail with first/rest
+            // #todo no need for dynamic invocable, can use (apply f ...) / (invoke f ...) instead.
+            // #todo replace head/tail with first/rest
 
             if list.is_empty() {
                 // () == One (Unit)
@@ -131,19 +131,19 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             let head = list.first().unwrap();
             let tail = &list[1..];
 
-            // #TODO could check special forms before the eval
+            // #todo could check special forms before the eval
 
-            // #TODO this is an ULTRA-HACK! SUPER NASTY/UGLY CODE, refactor!
+            // #todo this is an ULTRA-HACK! SUPER NASTY/UGLY CODE, refactor!
 
             // Evaluate the head, try to find dynamic signature
             let head = if let Some(name) = head.as_symbol() {
                 if !is_reserved_symbol(name) {
-                    // #TODO super arghhhh!!!!
+                    // #todo super nasty hack!!!!
                     let args = eval_args(tail, context)?;
 
                     if let Some(value) = context.scope.get(name) {
                         if let Expr::Func(params, ..) = value.unpack() {
-                            // #TODO ultra-hack to kill shared ref to `env`.
+                            // #todo ultra-hack to kill shared ref to `env`.
                             let params = params.clone();
 
                             let prev_scope = context.scope.clone();
@@ -195,17 +195,17 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                 eval(head, context)?
             };
 
-            // #TODO move special forms to prelude, as Expr::Macro or Expr::Special
+            // #todo move special forms to prelude, as Expr::Macro or Expr::Special
 
             match head.unpack() {
                 Expr::Func(params, body, func_scope) => {
                     // Evaluate the arguments before calling the function.
                     let args = eval_args(tail, context)?;
 
-                    // #TODO ultra-hack to kill shared ref to `env`.
+                    // #todo ultra-hack to kill shared ref to `env`.
                     let params = params.clone();
 
-                    // Dynamic scoping, #TODO convert to lexical.
+                    // Dynamic scoping, #todo convert to lexical.
 
                     // env.push_new_scope();
 
@@ -220,9 +220,9 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         context.scope.insert(param, arg);
                     }
 
-                    // #TODO this code is the same as in the (do ..) block, extract.
+                    // #todo this code is the same as in the (do ..) block, extract.
 
-                    // #TODO do should be 'monadic', propagate Eff (effect) wrapper.
+                    // #todo do should be 'monadic', propagate Eff (effect) wrapper.
                     let mut value = Expr::One;
 
                     for expr in body {
@@ -236,9 +236,9 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     Ok(value)
                 }
                 Expr::ForeignFunc(foreign_function) => {
-                    // #TODO do NOT pre-evaluate args for ForeignFunc, allow to implement 'macros'.
+                    // #todo do NOT pre-evaluate args for ForeignFunc, allow to implement 'macros'.
                     // Foreign Functions do NOT change the environment, hmm...
-                    // #TODO use RefCell / interior mutability instead, to allow for changing the environment (with Mutation Effect)
+                    // #todo use RefCell / interior mutability instead, to allow for changing the environment (with Mutation Effect)
 
                     // Evaluate the arguments before calling the function.
                     let args = eval_args(tail, context)?;
@@ -262,10 +262,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     // Evaluate the arguments before calling the function.
                     let args = eval_args(tail, context)?;
 
-                    // #TODO optimize this!
-                    // #TODO error checking, one arg, etc.
+                    // #todo optimize this!
+                    // #todo error checking, one arg, etc.
                     let index = &args[0];
-                    // #TODO we need UInt, USize, Nat type
+                    // #todo we need UInt, USize, Nat type
                     let Some(index) = index.as_int() else {
                         return Err(Error::invalid_arguments("invalid array index, expecting Int", index.range()));
                     };
@@ -273,7 +273,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     if let Some(value) = arr.get(index) {
                         Ok(value.clone().into())
                     } else {
-                        // #TODO introduce Maybe { Some, None }
+                        // #todo introduce Maybe { Some, None }
                         Ok(Expr::One.into())
                     }
                 }
@@ -281,30 +281,30 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     // Evaluate the arguments before calling the function.
                     let args = eval_args(tail, context)?;
 
-                    // #TODO optimize this!
-                    // #TODO error checking, one arg, stringable, etc.
+                    // #todo optimize this!
+                    // #todo error checking, one arg, stringable, etc.
 
                     // #insight no need to unpack, format_value sees-through.
                     let key = format_value(&args[0]);
                     if let Some(value) = dict.get(&key) {
                         Ok(value.clone().into())
                     } else {
-                        // #TODO introduce Maybe { Some, None }
+                        // #todo introduce Maybe { Some, None }
                         Ok(Expr::One.into())
                     }
                 }
-                // #TODO add handling of 'high-level', compound expressions here.
-                // #TODO Expr::If
-                // #TODO Expr::Let
-                // #TODO Expr::Do
-                // #TODO Expr::..
+                // #todo add handling of 'high-level', compound expressions here.
+                // #todo Expr::If
+                // #todo Expr::Let
+                // #todo Expr::Do
+                // #todo Expr::..
                 Expr::Symbol(s) => {
                     match s.as_str() {
                         // special term
-                        // #TODO the low-level handling of special forms should use the above high-level cases.
-                        // #TODO use the `optimize`/`raise` function, here to prepare high-level expression for evaluation, to avoid duplication.
+                        // #todo the low-level handling of special forms should use the above high-level cases.
+                        // #todo use the `optimize`/`raise` function, here to prepare high-level expression for evaluation, to avoid duplication.
                         "do" => {
-                            // #TODO do should be 'monadic', propagate Eff (effect) wrapper.
+                            // #todo do should be 'monadic', propagate Eff (effect) wrapper.
                             let mut value = Expr::One.into();
 
                             // env.push_new_scope();
@@ -324,7 +324,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         }
                         "ann" => {
                             // #Insight implemented as special-form because it applies to Ann<Expr>.
-                            // #TODO try to implement as ForeignFn
+                            // #todo try to implement as ForeignFn
 
                             if tail.len() != 1 {
                                 return Err(Error::invalid_arguments(
@@ -333,7 +333,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 ));
                             }
 
-                            // #TODO support multiple arguments.
+                            // #todo support multiple arguments.
 
                             let expr = tail.first().unwrap();
 
@@ -348,19 +348,19 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 return Err(Error::invalid_arguments("missing expression to be evaluated", expr.range()));
                             };
 
-                            // #TODO consider naming this `form`?
+                            // #todo consider naming this `form`?
                             let expr = eval(expr, context)?;
 
                             eval(&expr, context)
                         }
-                        // #TODO can move to static/comptime phase.
-                        // #TODO doesn't quote all exprs, e.g. the if expression.
+                        // #todo can move to static/comptime phase.
+                        // #todo doesn't quote all exprs, e.g. the if expression.
                         "quot" => {
                             let [value] = tail else {
                                 return Err(Error::invalid_arguments("missing quote target", expr.range()));
                             };
 
-                            // #TODO hm, that clone, maybe `Rc` can fix this?
+                            // #todo hm, that clone, maybe `Rc` can fix this?
                             Ok(value.unpack().clone())
                         }
                         "for" => {
@@ -368,7 +368,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // `for` is a generalization of `if`.
                             // `for` is also related with `do`.
                             let [predicate, body] = tail else {
-                                // #TODO proper error!
+                                // #todo proper error!
                                 return Err(Error::invalid_arguments("missing for arguments", expr.range()));
                             };
 
@@ -391,7 +391,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             Ok(value)
                         }
                         "if" => {
-                            // #TODO this is a temp hack!
+                            // #todo this is a temp hack!
                             let Some(predicate) = tail.get(0) else {
                                 return Err(Error::invalid_arguments("malformed if predicate", expr.range()));
                             };
@@ -413,13 +413,13 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             } else if let Some(false_clause) = false_clause {
                                 eval(false_clause, context)
                             } else {
-                                // #TODO what should we return if there is no false-clause? Zero/Never?
+                                // #todo what should we return if there is no false-clause? Zero/Never?
                                 Ok(Expr::One.into())
                             }
                         }
-                        // #TODO for-each or overload for?
+                        // #todo for-each or overload for?
                         "for-each" => {
-                            // #TODO this is a temp hack!
+                            // #todo this is a temp hack!
                             let [seq, var, body] = tail else {
                                 return Err(Error::invalid_arguments("malformed `for-each`", expr.range()));
                             };
@@ -440,7 +440,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             context.scope = Rc::new(Scope::new(prev_scope.clone()));
 
                             for x in arr {
-                                // #TODO array should have Ann<Expr> use Ann<Expr> everywhere, avoid the clones!
+                                // #todo array should have Ann<Expr> use Ann<Expr> everywhere, avoid the clones!
                                 context.scope.insert(sym, x.clone());
                                 eval(body, context)?;
                             }
@@ -448,13 +448,13 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // env.pop();
                             context.scope = prev_scope;
 
-                            // #TODO intentionally don't return a value, reconsider this?
+                            // #todo intentionally don't return a value, reconsider this?
                             Ok(Expr::One.into())
                         }
-                        // #TODO extract
-                        // #TODO functions implemented here have dynamic dispatch!
+                        // #todo extract
+                        // #todo functions implemented here have dynamic dispatch!
                         "map" => {
-                            // #TODO this is a temp hack!
+                            // #todo this is a temp hack!
                             let [seq, var, body] = tail else {
                                 return Err(Error::invalid_arguments("malformed `map`", expr.range()));
                             };
@@ -477,7 +477,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             let mut results: Vec<Expr> = Vec::new();
 
                             for x in arr {
-                                // #TODO array should have Ann<Expr> use Ann<Expr> everywhere, avoid the clones!
+                                // #todo array should have Ann<Expr> use Ann<Expr> everywhere, avoid the clones!
                                 context.scope.insert(sym, x.clone());
                                 let result = eval(body, context)?;
                                 results.push(result.unpack().clone());
@@ -486,7 +486,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // env.pop();
                             context.scope = prev_scope.clone();
 
-                            // #TODO intentionally don't return a value, reconsider this?
+                            // #todo intentionally don't return a value, reconsider this?
                             Ok(Expr::Array(results).into())
                         }
                         "use" => {
@@ -496,8 +496,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             Ok(Expr::One.into())
                         }
                         "let" => {
-                            // #TODO this is already parsed statically by resolver, no need to duplicate the tests here?
-                            // #TODO also report some of these errors statically, maybe in a sema phase?
+                            // #todo this is already parsed statically by resolver, no need to duplicate the tests here?
+                            // #todo also report some of these errors statically, maybe in a sema phase?
                             let mut args = tail.iter();
 
                             loop {
@@ -506,7 +506,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 };
 
                                 let Some(value) = args.next() else {
-                                    // #TODO error?
+                                    // #todo error?
                                     break;
                                 };
 
@@ -514,7 +514,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                     return Err(Error::invalid_arguments(&format!("`{name}` is not a Symbol"), name.range()));
                                 };
 
-                                // #TODO do we really want this? Maybe convert to a lint?
+                                // #todo do we really want this? Maybe convert to a lint?
                                 if is_reserved_symbol(s) {
                                     return Err(Error::invalid_arguments(
                                         &format!("let cannot shadow the reserved symbol `{s}`"),
@@ -524,15 +524,15 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                                 let value = eval(value, context)?;
 
-                                // #TODO notify about overrides? use `set`?
+                                // #todo notify about overrides? use `set`?
                                 context.scope.insert(s, value);
                             }
 
-                            // #TODO return last value!
+                            // #todo return last value!
                             Ok(Expr::One.into())
                         }
                         "Char" => {
-                            // #TODO report more than 1 arguments.
+                            // #todo report more than 1 arguments.
 
                             let Some(arg) = tail.get(0) else {
                                 return Err(Error::invalid_arguments("malformed Char constructor, missing argument", expr.range()));
@@ -543,7 +543,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             };
 
                             if c.len() != 1 {
-                                // #TODO better error message.
+                                // #todo better error message.
                                 return Err(Error::invalid_arguments(
                                     "the Char constructor requires a single-char string",
                                     expr.range(),
@@ -560,7 +560,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         }
                         "Func" => {
                             let Some(params) = tail.first() else {
-                                // #TODO seems the range is not reported correctly here!!!
+                                // #todo seems the range is not reported correctly here!!!
                                 return Err(Error::invalid_arguments(
                                     "malformed func definition, missing function parameters",
                                     expr.range(),
@@ -575,19 +575,19 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             // #insight captures the static (lexical scope)
 
-                            // #TODO optimize!
+                            // #todo optimize!
                             Ok(Expr::Func(
                                 params.clone(),
                                 body.into(),
                                 context.scope.clone(),
                             ))
                         }
-                        // #TODO macros should be handled at a separate, comptime, macroexpand pass.
-                        // #TODO actually two passes, macro_def, macro_expand
-                        // #TODO probably macro handling should be removed from eval, there are no runtime/dynamic macro definitions!!
+                        // #todo macros should be handled at a separate, comptime, macroexpand pass.
+                        // #todo actually two passes, macro_def, macro_expand
+                        // #todo probably macro handling should be removed from eval, there are no runtime/dynamic macro definitions!!
                         "Macro" => {
                             let Some(params) = tail.first() else {
-                                // #TODO seems the range is not reported correctly here!!!
+                                // #todo seems the range is not reported correctly here!!!
                                 return Err(Error::invalid_arguments(
                                     "malformed macro definition, missing function parameters",
                                     expr.range(),
@@ -600,7 +600,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 return Err(Error::invalid_arguments("malformed macro parameters definition", params.range()));
                             };
 
-                            // #TODO optimize!
+                            // #todo optimize!
                             Ok(Expr::Macro(params.clone(), body.into()))
                         }
                         _ => {
@@ -621,7 +621,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
         }
         Expr::Array(items) => {
             // #insight [...] => (Array ...) => it's like a function.
-            // #TODO can this get pre-evaluated statically in some cases?
+            // #todo can this get pre-evaluated statically in some cases?
             let mut evaled_items = Vec::new();
             for item in items {
                 evaled_items.push(eval(item, context)?);
@@ -632,7 +632,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             // #insight evaluates the values.
             // #insight [...] => (Dict ...) => it's like a function.
             // #todo nasty code, improve.
-            // #TODO can this get pre-evaluated statically in some cases?
+            // #todo can this get pre-evaluated statically in some cases?
             let mut evaled_dict = HashMap::new();
             for (k, v) in dict {
                 evaled_dict.insert(k.clone(), eval(v, context)?);
@@ -640,8 +640,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             Ok(Expr::Dict(evaled_dict))
         }
         _ => {
-            // #TODO hm, maybe need to report an error here? or even select the desired behavior? -> NO ERROR
-            // #TODO can we avoid the clone?
+            // #todo hm, maybe need to report an error here? or even select the desired behavior? -> NO ERROR
+            // #todo can we avoid the clone?
             // Unhandled expression variants evaluate to themselves.
             Ok(expr.clone())
         }

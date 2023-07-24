@@ -3,21 +3,21 @@ use crate::{context::Context, error::Error, expr::Expr};
 // #Insight
 // Named `arithmetic` as those operators can apply to non-numbers, e.g. Time, Date
 
-// #TODO use AsRef, to avoid Annotated!
-// #TODO use macros to generate specializations for generic versions.
-// #TODO deduct from type if the function can affect the env or have any other side-effects.
+// #todo use AsRef, to avoid Annotated!
+// #todo use macros to generate specializations for generic versions.
+// #todo deduct from type if the function can affect the env or have any other side-effects.
 
-// #TODO ranges for arguments is too detailed, most probably we do not have the ranges!
-// #TODO support invalid_arguments without range.
+// #todo ranges for arguments is too detailed, most probably we do not have the ranges!
+// #todo support invalid_arguments without range.
 
-// #TODO autogen with a macro!
+// #todo autogen with a macro!
 pub fn add_int(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let mut xs = Vec::new();
 
     for arg in args {
         let Some(n) = arg.as_int() else {
-            // #TODO we could return the argument position here and enrich the error upstream.
-            // #TODO hmm, the error is too precise here, do we really need the annotations?
+            // #todo we could return the argument position here and enrich the error upstream.
+            // #todo hmm, the error is too precise here, do we really need the annotations?
             return Err(Error::invalid_arguments(&format!("{arg} is not an Int"), arg.range()));
         };
         xs.push(n);
@@ -46,11 +46,11 @@ pub fn add_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(Expr::Float(sum))
 }
 
-// #TODO keep separate, optimized version with just 2 arguments!
-// #TODO should support varargs.
-// #TODO should return the error without range and range should be added by caller.
+// #todo keep separate, optimized version with just 2 arguments!
+// #todo should support varargs.
+// #todo should return the error without range and range should be added by caller.
 pub fn sub_int(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
-    // #TODO support multiple arguments.
+    // #todo support multiple arguments.
     let [a, b] = args else {
         return Err(Error::invalid_arguments("- requires at least two arguments", None));
     };
@@ -67,7 +67,7 @@ pub fn sub_int(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 }
 
 pub fn sub_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
-    // #TODO support multiple arguments.
+    // #todo support multiple arguments.
     let [a, b] = args else {
         return Err(Error::invalid_arguments("- requires at least two arguments", None));
     };
@@ -84,7 +84,7 @@ pub fn sub_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 }
 
 pub fn mul_int(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
-    // #TODO optimize!
+    // #todo optimize!
     let mut product = 1;
 
     for arg in args {
@@ -98,7 +98,7 @@ pub fn mul_int(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 }
 
 pub fn mul_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
-    // #TODO optimize!
+    // #todo optimize!
     let mut product = 1.0;
 
     for arg in args {
@@ -111,13 +111,13 @@ pub fn mul_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(Expr::Float(product))
 }
 
-// #TODO support int/float.
+// #todo support int/float.
 pub fn div_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
-    // #TODO optimize!
+    // #todo optimize!
     let mut quotient = f64::NAN;
 
-    // #TODO check for divide by zero! even statically check!
-    // #TODO actually, divide by zero should return Infinity, not panic!!
+    // #todo check for divide by zero! even statically check!
+    // #todo actually, divide by zero should return Infinity, not panic!!
 
     for arg in args {
         let Some(n) = arg.as_float() else {
@@ -158,13 +158,13 @@ pub fn cos_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(Expr::Float(n.cos()))
 }
 
-// #TODO support varargs?
+// #todo support varargs?
 pub fn powi_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [n, e] = args else {
         return Err(Error::invalid_arguments("- requires at least two arguments", None));
     };
 
-    // #TODO version of as_float that automatically throws an Error?
+    // #todo version of as_float that automatically throws an Error?
     let Some(n) = n.as_float() else {
         return Err(Error::invalid_arguments(&format!("{n} is not a Float"), n.range()));
     };

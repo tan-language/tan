@@ -17,8 +17,8 @@ pub fn exit(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     }
 }
 
-// #TODO args
-// #TODO env
+// #todo args
+// #todo env
 
 // #todo consider removing the `std` prefix from module paths, like haskell.
 // #todo find a better prefix than setup_

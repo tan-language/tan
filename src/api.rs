@@ -1,4 +1,4 @@
-// #TODO find a better name, e.g. `lang`, `sys`, `runtime`, tbh api is a good name though.
+// #todo find a better name, e.g. `lang`, `sys`, `runtime`, tbh api is a good name though.
 
 use std::path::Path;
 
@@ -48,8 +48,8 @@ pub fn lex_string(input: impl AsRef<str>) -> Result<Vec<Token>, Vec<Error>> {
     lexer.lex()
 }
 
-// #TODO temp solution for compatibility.
-// #TODO remove this!
+// #todo temp solution for compatibility.
+// #todo remove this!
 /// Parses a Tan expression encoded as a text string, returns first expression.
 pub fn parse_string(input: impl AsRef<str>) -> Result<Expr, Vec<Error>> {
     let input = input.as_ref();
@@ -60,7 +60,7 @@ pub fn parse_string(input: impl AsRef<str>) -> Result<Expr, Vec<Error>> {
     let mut parser = Parser::new(&tokens);
     let mut expr = parser.parse()?;
 
-    // #TODO temp solution
+    // #todo temp solution
     let expr = expr.swap_remove(0);
 
     Ok(expr)
@@ -79,7 +79,7 @@ pub fn parse_string_all(input: impl AsRef<str>) -> Result<Vec<Expr>, Vec<Error>>
     Ok(exprs)
 }
 
-// #TODO what is a good name?
+// #todo what is a good name?
 /// Reads and resolves a Tan expression encoded as a text string.
 /// Updates the environment with definitions.
 pub fn resolve_string(
@@ -122,15 +122,15 @@ pub fn resolve_string(
 
         // Expand macros.
 
-        // #TODO pass a dummy scope here? no need to polute the dyn-time environment with macro stuff.
+        // #todo pass a dummy scope here? no need to polute the dyn-time environment with macro stuff.
         let expr = macro_expand(expr, context);
 
-        // #TODO temp hack until macro_expand returns multiple errors.
+        // #todo temp hack until macro_expand returns multiple errors.
         let Ok(expr) = expr else {
             return Err(vec![expr.unwrap_err()]);
         };
 
-        // #TODO maybe a second `prune` pass is needed?
+        // #todo maybe a second `prune` pass is needed?
 
         let Some(expr) = expr else {
             // The expression is pruned (elided)
@@ -140,12 +140,12 @@ pub fn resolve_string(
 
         // Optimization pass
 
-        // #TODO should run after resolve?
+        // #todo should run after resolve?
         let expr = optimize(expr);
 
         // Resolve pass (typechecking, definitions, etc)
 
-        // #TODO should we push a new env?
+        // #todo should we push a new env?
         let mut resolver = Resolver::new();
         let expr = resolver.resolve(expr, context)?;
 
@@ -155,7 +155,7 @@ pub fn resolve_string(
     Ok(resolved_exprs)
 }
 
-// #TODO this implements in essence a do block. Maybe no value should be returned?
+// #todo this implements in essence a do block. Maybe no value should be returned?
 /// Evaluates a Tan expression encoded as a text string.
 pub fn eval_string(input: impl AsRef<str>, context: &mut Context) -> Result<Expr, Vec<Error>> {
     let exprs = resolve_string(input, context)?;

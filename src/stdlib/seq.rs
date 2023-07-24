@@ -6,7 +6,7 @@ use crate::{
 
 // #todo implement generically for all iterables/countables, etc.
 
-// #TODO support separator param.
+// #todo support separator param.
 pub fn array_join(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [array, ..] = args else {
         return Err(Error::invalid_arguments("requires `array` argument", None));

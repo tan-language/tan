@@ -19,13 +19,13 @@ use super::eval;
 
 // #todo not sure that dir as module is a good idea.
 
-// // #TODO map module name to path
-// // #TODO resolve crate.x.y, or this.x.y
+// // #todo map module name to path
+// // #todo resolve crate.x.y, or this.x.y
 // pub fn module_path_from_name(name: &str) -> String {
 //     todo!()
 // }
 
-// #TODO
+// #todo
 // Alternative module-path syntax:
 //
 // (use "@gmosx/playground/ray")
@@ -48,15 +48,15 @@ pub fn canonicalize_module_path(
 ) -> std::io::Result<String> {
     let mut path = path.as_ref().to_string_lossy().into_owned();
 
-    // #TODO what is a good coding convention for 'system' variables?
-    // #TODO support read-only 'system' variables.
+    // #todo what is a good coding convention for 'system' variables?
+    // #todo support read-only 'system' variables.
 
     if path.starts_with("/") {
         path = format!("{}{path}", context.root_path);
     } else {
         if let Some(base_path) = context.scope.get(CURRENT_MODULE_PATH) {
             let Some(base_path) = base_path.as_string() else {
-                // #TODO!
+                // #todo!
                 panic!("Invalid current-module-path");
             };
 
@@ -64,13 +64,13 @@ pub fn canonicalize_module_path(
             if path.starts_with("./") {
                 path = format!("{base_path}{}", path.strip_prefix(".").unwrap());
             } else {
-                // #TODO consider not supporting this, always require the "./"
+                // #todo consider not supporting this, always require the "./"
                 path = format!("{base_path}/{}", path);
             }
         }
     }
 
-    // #TODO move the canonicalize to the canonicalize_module_path function?
+    // #todo move the canonicalize to the canonicalize_module_path function?
     let canonical_path = if let Ok(canonical_path) = PathBuf::from(&path).canonicalize() {
         canonical_path.to_string_lossy().to_string()
     } else {
@@ -80,7 +80,7 @@ pub fn canonicalize_module_path(
     Ok(canonical_path)
 }
 
-// #TODO add unit test.
+// #todo add unit test.
 pub fn compute_module_file_paths(module_path: impl AsRef<Path>) -> std::io::Result<Vec<String>> {
     let module_path = module_path.as_ref();
 
@@ -88,7 +88,7 @@ pub fn compute_module_file_paths(module_path: impl AsRef<Path>) -> std::io::Resu
     // let mut buf: PathBuf;
 
     // if !module_path.exists() {
-    //     // #TODO we don't want the auto-add extensions.
+    //     // #todo we don't want the auto-add extensions.
     //     // Automatically try adding the tan extensions.
 
     //     buf = module_path.to_path_buf();
@@ -145,7 +145,7 @@ pub fn compute_module_file_paths(module_path: impl AsRef<Path>) -> std::io::Resu
 }
 
 // #todo probably need to move at least the 'read' code somewhere else.
-// #TODO also consider 'rusty' notation: `(use this.sub-module)`
+// #todo also consider 'rusty' notation: `(use this.sub-module)`
 
 // #insight It's also used in ..use
 // #todo split into multiple functions.
@@ -209,10 +209,10 @@ pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr
         return Err(vec![file_paths.unwrap_err().into()]);
     };
 
-    // #TODO return Expr::Module, add module metadata: name, path, exports, etc.
+    // #todo return Expr::Module, add module metadata: name, path, exports, etc.
 
     for file_path in &file_paths {
-        // #TODO keep all inputs in magic variable in env, associate url/key with error.
+        // #todo keep all inputs in magic variable in env, associate url/key with error.
 
         let input = std::fs::read_to_string(&file_path);
         let Ok(input) = input else {
@@ -228,16 +228,16 @@ pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr
                 error.file_path = file_path.clone();
             }
 
-            // #TODO better error handling here!
-            // #TODO maybe continue parsing/resolving to find more errors?
+            // #todo better error handling here!
+            // #todo maybe continue parsing/resolving to find more errors?
             return Err(errors);
         };
 
         for expr in exprs {
             if let Err(mut error) = eval(&expr, context) {
-                // #TODO add a unit test to check that the file_path is added here!
+                // #todo add a unit test to check that the file_path is added here!
                 error.file_path = file_path.clone();
-                // #TODO better error here!
+                // #todo better error here!
                 return Err(vec![error]);
             }
         }

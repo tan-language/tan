@@ -5,12 +5,12 @@ use crate::{context::Context, error::Error, expr::Expr};
 
 use crate::module::Module;
 
-// #TODO do FFI functions really need an env?
-// #TODO differentiate pure functions that do not change the env!
+// #todo do FFI functions really need an env?
+// #todo differentiate pure functions that do not change the env!
 
 // File < Resource
-// #TODO extract file-system-related functionality to `fs` or even the more general `rs` == resource space.
-// #TODO consider mapping `:` to `__` and use #[allow(snake_case)]
+// #todo extract file-system-related functionality to `fs` or even the more general `rs` == resource space.
+// #todo consider mapping `:` to `__` and use #[allow(snake_case)]
 
 /// Reads the contents of a text file as a string.
 pub fn file_read_as_string(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
@@ -27,7 +27,7 @@ pub fn file_read_as_string(args: &[Expr], _context: &Context) -> Result<Expr, Er
     Ok(Expr::String(contents))
 }
 
-// #TODO decide on the parameters order.
+// #todo decide on the parameters order.
 pub fn file_write_string(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [path, content] = args else {
         return Err(Error::invalid_arguments("`read_as_string` requires `path` and `content` arguments", None));
@@ -63,9 +63,9 @@ pub fn setup_std_fs(context: &mut Context) {
         Expr::ForeignFunc(Arc::new(file_read_as_string)),
     );
 
-    // #TODO consider just `write`.
+    // #todo consider just `write`.
     scope.insert(
-        // #TODO alternatives: "std:fs:write_string", "std:url:write_string", "str.url.write-string"
+        // #todo alternatives: "std:fs:write_string", "std:url:write_string", "str.url.write-string"
         "write-string-to-file",
         Expr::ForeignFunc(Arc::new(file_write_string)),
     );

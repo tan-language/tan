@@ -20,17 +20,17 @@ use self::{
 
 // #todo consider extracting builtins.
 
-// #TODO helper function or macro for arithmetic operations!
-// #TODO also eval 'if', 'do', 'for' and other keywords here!
-// #TODO use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
-// #TODO support overloading,
-// #TODO make equality a method of Expr?
-// #TODO support non-Int types
-// #TODO support multiple arguments.
-// #TODO helper function or macro for arithmetic operations!
+// #todo helper function or macro for arithmetic operations!
+// #todo also eval 'if', 'do', 'for' and other keywords here!
+// #todo use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
+// #todo support overloading,
+// #todo make equality a method of Expr?
+// #todo support non-Int types
+// #todo support multiple arguments.
+// #todo helper function or macro for arithmetic operations!
 
-// #TODO primitives, builtins
-// #TODO cannot be implemented with Expr::ForeignFunc as the args are pre-evaluated.
+// #todo primitives, builtins
+// #todo cannot be implemented with Expr::ForeignFunc as the args are pre-evaluated.
 
 // #Insight special-form != primitive ? special form requires special case in the interpreter?
 

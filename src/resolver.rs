@@ -8,14 +8,14 @@ use crate::{
 
 // #todo resolver should handle 'use'!!! and _strip_ use expressions.
 
-// #TODO rename file to `sema`?
-// #TODO split into multiple passes?
-// #TODO it currently includes the optimize pass, split!
+// #todo rename file to `sema`?
+// #todo split into multiple passes?
+// #todo it currently includes the optimize pass, split!
 
 // #Insight resolve_type and resolve_invocable should be combined, cannot be separate passes.
 
-// #TODO signature should also encode the return type!!
-// #TODO how to handle VARARG functions ?!?!
+// #todo signature should also encode the return type!!
+// #todo how to handle VARARG functions ?!?!
 pub fn compute_signature(args: &[Expr]) -> String {
     let mut signature = Vec::new();
 
@@ -40,7 +40,7 @@ pub fn compute_dyn_signature(args: &[Expr], context: &Context) -> String {
     signature
 }
 
-// #TODO explain what the Resolver is doing.
+// #todo explain what the Resolver is doing.
 pub struct Resolver {
     errors: Vec<Error>,
 }
@@ -50,21 +50,21 @@ impl Resolver {
         Self { errors: Vec::new() }
     }
 
-    // #TODO no need to resolve basic types!
+    // #todo no need to resolve basic types!
 
-    // #TODO maybe return multiple errors?
-    // #TODO should pass &Expr/Rc<Expr>
+    // #todo maybe return multiple errors?
+    // #todo should pass &Expr/Rc<Expr>
     pub fn resolve_expr(&mut self, expr: Expr, context: &mut Context) -> Expr {
         // eprintln!("<<< {} >>>", expr);
-        // #TODO update the original annotations!
-        // #TODO need to handle _all_ Expr variants.
+        // #todo update the original annotations!
+        // #todo need to handle _all_ Expr variants.
         match expr {
             Expr::Annotated(_, ref ann) => {
                 // #insight
                 // We have to resolve even if the expr has a type annotation, it
                 // might be missing a 'method' or other annotation.
 
-                // #TODO refactor and/or extract this functionality.
+                // #todo refactor and/or extract this functionality.
                 let mut resolved_expr = self.resolve_expr(expr.unpack().clone(), context);
                 if let Expr::Annotated(_, ref mut resolved_ann) = resolved_expr {
                     for (key, value) in ann {
@@ -76,7 +76,7 @@ impl Resolver {
             Expr::Int(_) => annotate_type(expr, "Int"),
             Expr::Float(_) => annotate_type(expr, "Float"),
             Expr::String(_) => annotate_type(expr, "String"),
-            // #TODO hmm... ultra-hack.
+            // #todo hmm... ultra-hack.
             Expr::Array(_) => annotate_type(expr, "Array"),
             Expr::KeySymbol(_) => annotate_type(expr, "KeySymbol"),
             Expr::Symbol(ref sym) => {
@@ -84,14 +84,14 @@ impl Resolver {
                     return annotate_type(expr, "Symbol");
                 }
 
-                // #TODO handle 'PathSymbol'
-                // #TODO handle a Dict invocable (and other invocables).
-                // #TODO please note that multiple-dispatch is supposed to be dynamic!
+                // #todo handle 'PathSymbol'
+                // #todo handle a Dict invocable (and other invocables).
+                // #todo please note that multiple-dispatch is supposed to be dynamic!
 
                 let result = if let Some(Expr::Symbol(method)) = expr.annotation("method") {
                     context.scope.get(method)
                 } else {
-                    // #TODO ultra-hack just fall-back to 'function' name if method does not exist.
+                    // #todo ultra-hack just fall-back to 'function' name if method does not exist.
                     context.scope.get(sym)
                 };
 
@@ -116,17 +116,17 @@ impl Resolver {
                 let head = list.first().unwrap();
                 let tail = &list[1..];
 
-                // #TODO there should be no mangling, just an annotation!
-                // #TODO also perform error checking here, e.g. if the head is invocable.
-                // #TODO Expr.is_invocable, Expr.get_invocable_name, Expr.get_type
-                // #TODO handle non-symbol cases!
-                // #TODO signature should be the type, e.g. +::(Func Int Int Int) instead of +$$Int$$Int
-                // #TODO should handle Func!!
-                // #TODO convert to match, extract the iteration.
+                // #todo there should be no mangling, just an annotation!
+                // #todo also perform error checking here, e.g. if the head is invocable.
+                // #todo Expr.is_invocable, Expr.get_invocable_name, Expr.get_type
+                // #todo handle non-symbol cases!
+                // #todo signature should be the type, e.g. +::(Func Int Int Int) instead of +$$Int$$Int
+                // #todo should handle Func!!
+                // #todo convert to match, extract the iteration.
                 if let Some(sym) = head.as_symbol() {
-                    // #TODO special handling of def
+                    // #todo special handling of def
                     if sym == "let" {
-                        // #TODO also report some of these errors statically, maybe in a sema phase?
+                        // #todo also report some of these errors statically, maybe in a sema phase?
                         let mut args = tail.iter();
 
                         let mut resolved_let_list = vec![head.clone()];
@@ -137,7 +137,7 @@ impl Resolver {
                             };
 
                             let Some(value) = args.next() else {
-                                // #TODO error?
+                                // #todo error?
                                 break;
                             };
 
@@ -164,16 +164,16 @@ impl Resolver {
                             resolved_let_list.push(sym.clone());
                             resolved_let_list.push(value.clone());
 
-                            // #TODO notify about overrides? use `set`?
-                            // #TODO for some reason, this causes infinite loop
-                            // #TODO why is this needed in the first place?
+                            // #todo notify about overrides? use `set`?
+                            // #todo for some reason, this causes infinite loop
+                            // #todo why is this needed in the first place?
 
                             // Try to apply definitions.
 
                             let result = eval(&value, context);
 
                             if result.is_ok() {
-                                // #TODO notify about overrides? use `set`?
+                                // #todo notify about overrides? use `set`?
                                 context.scope.insert(s, result.unwrap());
                             } else {
                                 self.errors.push(result.unwrap_err());
@@ -205,11 +205,11 @@ impl Resolver {
                             return Expr::One;
                         };
 
-                        // #TODO make sure paths are relative to the current file.
+                        // #todo make sure paths are relative to the current file.
                         let result = eval_module(module_path, context);
 
                         if let Err(errors) = result {
-                            // #TODO precise formating is _required_ here!
+                            // #todo precise formating is _required_ here!
                             // eprintln!("{}", format_errors(&errors));
                             // dbg!(errors);
                             self.errors.push(Error::failed_use(&module_path, errors)); // #todo add note with information here!
@@ -244,7 +244,7 @@ impl Resolver {
                             context.scope.insert(name, value.clone());
                         }
 
-                        // #TODO what could we return here? the Expr::Module?
+                        // #todo what could we return here? the Expr::Module?
                         Expr::One.into()
                     } else if sym == "Func" {
                         // let mut resolved_tail = Vec::new();
@@ -254,9 +254,9 @@ impl Resolver {
 
                         // let head = if let Expr::Symbol(ref sym) = head.unpack() {
                         //     if !is_reserved_symbol(sym) {
-                        //         // #TODO should recursively resolve first!
-                        //         // #TODO signature should also encode the return type!!
-                        //         // #TODO how to handle VARARG functions ?!?!
+                        //         // #todo should recursively resolve first!
+                        //         // #todo signature should also encode the return type!!
+                        //         // #todo how to handle VARARG functions ?!?!
 
                         //         let mut signature = Vec::new();
 
@@ -286,8 +286,8 @@ impl Resolver {
 
                         // return Expr::maybe_annotated(Expr::List(list), head.annotations());
 
-                        // #TODO do something ;-)
-                        // #TODO this is a temp hack, we don't resolve inside a function, argh!
+                        // #todo do something ;-)
+                        // #todo this is a temp hack, we don't resolve inside a function, argh!
 
                         // println!("*************************** ARGH");
 
@@ -299,11 +299,11 @@ impl Resolver {
                         // // Evaluate the arguments before calling the function.
                         // let args = eval_args(tail, env)?;
 
-                        // // #TODO ultra-hack to kill shared ref to `env`.
+                        // // #todo ultra-hack to kill shared ref to `env`.
                         // let params = params.clone();
                         // let body = body.clone();
 
-                        // // Dynamic scoping, #TODO convert to lexical.
+                        // // Dynamic scoping, #todo convert to lexical.
 
                         // env.push_new_scope();
 
@@ -330,9 +330,9 @@ impl Resolver {
 
                         let head = if let Some(sym) = head.as_symbol() {
                             if !is_reserved_symbol(sym) {
-                                // #TODO should recursively resolve first!
-                                // #TODO signature should also encode the return type!!
-                                // #TODO how to handle VARARG functions ?!?!
+                                // #todo should recursively resolve first!
+                                // #todo signature should also encode the return type!!
+                                // #todo how to handle VARARG functions ?!?!
 
                                 let signature = compute_signature(&resolved_tail);
 
@@ -357,7 +357,7 @@ impl Resolver {
                         return Expr::maybe_annotated(Expr::List(list), head.annotations());
                     }
                 } else {
-                    // #TODO handle map lookup case.
+                    // #todo handle map lookup case.
                     expr
                 }
             }
@@ -365,14 +365,14 @@ impl Resolver {
         }
     }
 
-    // #TODO better explain what this function does.
-    // #TODO what exactly is this env? how is this mutated?
+    // #todo better explain what this function does.
+    // #todo what exactly is this env? how is this mutated?
     // Resolve pass (typechecking, definitions, etc)
     pub fn resolve(&mut self, expr: Expr, context: &mut Context) -> Result<Expr, Vec<Error>> {
         let expr = self.resolve_expr(expr, context);
 
         if self.errors.is_empty() {
-            // #TODO
+            // #todo
             Ok(expr)
         } else {
             let errors = std::mem::take(&mut self.errors);
@@ -387,7 +387,7 @@ impl Default for Resolver {
     }
 }
 
-// #TODO move to resolver_test.rs
+// #todo move to resolver_test.rs
 
 #[cfg(test)]
 mod tests {

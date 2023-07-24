@@ -68,7 +68,7 @@ fn parse_reports_unexpected_tokens() {
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
 
-    // #TODO introduce assert_range helper!
+    // #todo introduce assert_range helper!
 
     let range = err.range().unwrap();
 
@@ -246,7 +246,7 @@ fn parse_parses_dicts() {
     assert!(matches!(exprs.len(), 5));
 }
 
-// #TODO move to eval_test?
+// #todo move to eval_test?
 // #[test]
 // fn parse_parses_dicts() {
 //     let input = r##"(let m {"name" "george" "value" 1})"##;
@@ -339,7 +339,7 @@ fn parse_reports_number_errors() {
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
 
-    // #TODO bring this back!!
+    // #todo bring this back!!
     // if let Ranged(Error::MalformedInt(pie), range) = err {
     //     assert_eq!(pie.kind(), &IntErrorKind::InvalidDigit);
     //     assert_eq!(range.start, 5);

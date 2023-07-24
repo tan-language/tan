@@ -9,7 +9,7 @@ use crate::expr::{format_value, Expr};
 // expressions like Expr::Array, Expr::Dict, etc. It also strips unnecessary
 // annotations.
 
-// #TODO what does optimize do? I think it just removes some annotations.
+// #todo what does optimize do? I think it just removes some annotations.
 
 pub fn optimize_fn(expr: Expr) -> Expr {
     match expr.unpack() {
@@ -59,7 +59,7 @@ mod tests {
         assert!(s.contains("Array([Int(1), Int(2), Int(3), Int(4)])"));
     }
 
-    // #TODO the test is flaky for some reason, temporarily disabled, investigate.
+    // #todo the test is flaky for some reason, temporarily disabled, investigate.
     // #[test]
     // fn optimize_rewrites_dict_expressions() {
     //     let input = r#"(let a {:name "George" :age 25})"#;

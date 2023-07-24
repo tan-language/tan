@@ -1,8 +1,8 @@
 use super::Expr;
 
 impl Expr {
-    // #TODO this is some kind of map-reduce, try to use some kind of interator.
-    // #TODO alternatively, this implements some kind of visitor pattern.
+    // #todo this is some kind of map-reduce, try to use some kind of interator.
+    // #todo alternatively, this implements some kind of visitor pattern.
 
     /// Transforms the expression by recursively applying the `f` mapping
     /// function.
@@ -12,7 +12,7 @@ impl Expr {
     {
         match self.extract() {
             (Expr::List(terms), ann) => {
-                // #TODO investigate this clone!!!!
+                // #todo investigate this clone!!!!
                 let terms = terms.into_iter().map(|t| t.clone().transform(f)).collect();
                 let list = Expr::maybe_annotated(Expr::List(terms), ann);
                 f(list)
@@ -29,7 +29,7 @@ impl Expr {
     {
         match self.extract() {
             (Expr::List(terms), ann) => {
-                // #TODO investigate this clone!!!!
+                // #todo investigate this clone!!!!
                 let terms = terms
                     .into_iter()
                     .filter_map(|t| t.clone().filter_transform(f))

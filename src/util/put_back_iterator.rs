@@ -21,7 +21,7 @@ impl<'a, T> Iterator for PutBackIterator<'a, T> {
     }
 }
 
-// #TODO explain what this does.
+// #todo explain what this does.
 impl<'a, T> PutBackIterator<'a, T> {
     pub fn new(items: &'a [T]) -> Self {
         Self {
@@ -30,10 +30,10 @@ impl<'a, T> PutBackIterator<'a, T> {
         }
     }
 
-    // #TODO find a better name.
+    // #todo find a better name.
     pub fn put_back(&mut self, item: &'a T) {
         self.buffer.push(item);
     }
 }
 
-// #TODO add unit tests.
+// #todo add unit tests.

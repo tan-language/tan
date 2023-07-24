@@ -11,22 +11,22 @@ use crate::{
 
 // #Insight it mutates the env which is used in eval also!
 
-// #TODO `elision`, `elide` sounds better than `prune`?
-// #TODO rename to `prune_expand`?
-// #TODO split prune and expand into separate passes?
-// #TODO consider renaming the expr parameter to ast?
-// #TODO macro_expand (and all comptime/static passes should return Vec<Ranged<Error>>>)
-// #TODO support multiple errors, like in resolve.
+// #todo `elision`, `elide` sounds better than `prune`?
+// #todo rename to `prune_expand`?
+// #todo split prune and expand into separate passes?
+// #todo consider renaming the expr parameter to ast?
+// #todo macro_expand (and all comptime/static passes should return Vec<Ranged<Error>>>)
+// #todo support multiple errors, like in resolve.
 
-// #TODO return Vec<Error> like all other methods?
+// #todo return Vec<Error> like all other methods?
 
-// #TODO move pruning to optimize to run AFTER macro-expansion, macros could produce prunable exprs?
-// #TODO add macro-expansion tests!!!
+// #todo move pruning to optimize to run AFTER macro-expansion, macros could produce prunable exprs?
+// #todo add macro-expansion tests!!!
 
 // #insight
 // If the input expr is just a macro definition, it can be elided!
 
-// #TODO maybe separate macro_def from macro_expand?
+// #todo maybe separate macro_def from macro_expand?
 
 /// Expands macro invocations, at compile time.
 pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, Error> {
@@ -50,12 +50,12 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
 
                     let args = tail;
 
-                    // #TODO wtf is this ultra-hack?
-                    // #TODO ultra-hack to kill shared ref to `env`.
+                    // #todo wtf is this ultra-hack?
+                    // #todo ultra-hack to kill shared ref to `env`.
                     // let params = params.clone();
                     // let body = body.clone();
 
-                    // #TODO what kind of scoping is this?
+                    // #todo what kind of scoping is this?
 
                     // env.push_new_scope();
 
@@ -69,9 +69,9 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
 
                         context.scope.insert(param, arg.clone());
                     }
-                    // #TODO this code is the same as in the (do ..) block, extract.
+                    // #todo this code is the same as in the (do ..) block, extract.
 
-                    // #TODO do should be 'monadic', propagate Eff (effect) wrapper.
+                    // #todo do should be 'monadic', propagate Eff (effect) wrapper.
                     let mut value = Expr::One;
 
                     for expr in body {
@@ -84,13 +84,13 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                     Ok(Some(value))
                 }
                 Expr::Symbol(sym) => {
-                    // #TODO oof the checks here happen also in resolver and eval, fix!
-                    // #TODO actually we should use `def` for this purpose, instead of `let`.
+                    // #todo oof the checks here happen also in resolver and eval, fix!
+                    // #todo actually we should use `def` for this purpose, instead of `let`.
                     if sym == "let" {
                         let mut args = tail.iter();
 
-                        // #TODO should be def, no loop. <-- IMPORTANT!!
-                        // #TODO make more similar to the corresponding eval code.
+                        // #todo should be def, no loop. <-- IMPORTANT!!
+                        // #todo make more similar to the corresponding eval code.
 
                         let mut result_exprs = vec![Expr::Symbol("let".to_owned())];
 
@@ -117,19 +117,19 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
 
                             let binding_value = macro_expand(binding_value.clone(), context)?;
 
-                            // #TODO notify about overrides? use `set`?
-                            // #TODO consider if we should allow redefinitions.
+                            // #todo notify about overrides? use `set`?
+                            // #todo consider if we should allow redefinitions.
 
                             let Some(binding_value) = binding_value else {
                                 return Err(Error::invalid_arguments("Invalid arguments", None));
                             };
 
                             if let Expr::Macro(..) = binding_value.unpack() {
-                                // #TODO put all the definitions in one pass.
+                                // #todo put all the definitions in one pass.
                                 // Only define macros in this pass.
                                 context.scope.insert(s, binding_value);
 
-                                // #TODO verify with unit-test.
+                                // #todo verify with unit-test.
                                 // Macro definition is pruned.
                                 // return Ok(None);
                             } else {
@@ -144,8 +144,8 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                                 return Err(Error::invalid_arguments("missing quote target", expr.range()));
                             };
 
-                        // #TODO super nasty, quotes should be resolved statically (at compile time)
-                        // #TODO hm, that clone, maybe `Rc` can fix this?
+                        // #todo super nasty, quotes should be resolved statically (at compile time)
+                        // #todo hm, that clone, maybe `Rc` can fix this?
                         Ok(Some(
                             Expr::List(vec![
                                 Expr::Symbol("quot".to_owned()).into(),
@@ -154,10 +154,10 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                             .into(),
                         ))
                     } else if sym == "Macro" {
-                        // #TODO this is duplicated in eval, think about this!!! probably should remove from eval.
+                        // #todo this is duplicated in eval, think about this!!! probably should remove from eval.
 
                         let Some(params) = tail.first() else {
-                            // #TODO seems the range is not reported correctly here!!!
+                            // #todo seems the range is not reported correctly here!!!
                             return Err(Error::invalid_arguments(
                                 "malformed macro definition, missing function parameters",
                                 expr.range(),
@@ -170,7 +170,7 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                             return Err(Error::invalid_arguments("malformed macro parameters definition", params.range()));
                         };
 
-                        // #TODO optimize!
+                        // #todo optimize!
                         Ok(Some(Expr::Macro(params.clone(), body.into())))
                     } else {
                         // Other kind of list with symbol head, macro-expand tail.
@@ -200,7 +200,7 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
 
                     Ok(Some(annotate_range(
                         Expr::List(terms),
-                        // #TODO hmmmm this unwrap!!!
+                        // #todo hmmmm this unwrap!!!
                         expr.range().unwrap(),
                     )))
                 }

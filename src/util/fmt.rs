@@ -1,4 +1,4 @@
-// #TODO what about other float types?
+// #todo what about other float types?
 /// Formats a float number, ensures it always has a decimal separator.
 pub fn format_float(n: f64) -> String {
     let s = n.to_string();
@@ -10,4 +10,4 @@ pub fn format_float(n: f64) -> String {
     }
 }
 
-// #TODO move format_error_pretty here?
+// #todo move format_error_pretty here?

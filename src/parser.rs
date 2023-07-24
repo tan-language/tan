@@ -9,10 +9,10 @@ use crate::{
     util::{put_back_iterator::PutBackIterator, Break},
 };
 
-// #TODO no need to keep iterator as state in parser!
-// #TODO can the parser be just a function? -> yes, if we use a custom iterator to keep the parsing state.
-// #TODO think some more how annotations should be handled.
-// #TODO annotations are not correctly attributed to lists
+// #todo no need to keep iterator as state in parser!
+// #todo can the parser be just a function? -> yes, if we use a custom iterator to keep the parsing state.
+// #todo think some more how annotations should be handled.
+// #todo annotations are not correctly attributed to lists
 
 // #Insight
 // The syntax of the language is explicitly designed to _not_ require a lookahead buffer.
@@ -20,7 +20,7 @@ use crate::{
 // #Insight
 // We move the tokens into the parser to simplify the code. The tokens are useless outside the parser.
 
-// #TODO can we remove the generics shenanigans form Parser?
+// #todo can we remove the generics shenanigans form Parser?
 
 /// The Parser performs the syntactic analysis stage of the compilation pipeline.
 /// The input token stream is reduced into and Abstract Syntax Tree (AST).
@@ -98,7 +98,7 @@ impl<'a> Parser<'a> {
                 return expr;
             }
 
-            // #TODO temp, support multiple expressions in annotation?
+            // #todo temp, support multiple expressions in annotation?
             let ann_expr = ann_expr.unwrap().swap_remove(0);
 
             let ann_expr = ann_expr.unpack();
@@ -130,7 +130,7 @@ impl<'a> Parser<'a> {
                     }
                 }
                 Expr::List(list) => {
-                    // #TODO support more than symbols, e.g. KeySymbols or Strings.
+                    // #todo support more than symbols, e.g. KeySymbols or Strings.
                     if let Some(Expr::Symbol(sym)) = list.first().map(|x| x.unpack()) {
                         expr = annotate(expr, sym.clone(), ann_expr.clone());
                     } else {
@@ -193,15 +193,15 @@ impl<'a> Parser<'a> {
                     let sym = lexeme.strip_prefix(':').unwrap().to_string();
                     Some(Expr::KeySymbol(sym))
                 } else if lexeme == "true" {
-                    // #TODO consider using (True) for true 'literal'.
-                    // #TODO e.g. (let flag (True))
-                    // #TODO Bool = True + False = True | False = ~False | False
+                    // #todo consider using (True) for true 'literal'.
+                    // #todo e.g. (let flag (True))
+                    // #todo Bool = True + False = True | False = ~False | False
                     Some(Expr::Bool(true))
                 } else if lexeme == "false" {
-                    // #TODO consider using False for false 'literal'.
-                    // #TODO consider having only true (and use something like nil for false)
-                    // #TODO consider using nil for false and everything else for true
-                    // #TODO consider using nothing/never for false and everything else for true.
+                    // #todo consider using False for false 'literal'.
+                    // #todo consider having only true (and use something like nil for false)
+                    // #todo consider using nil for false and everything else for true
+                    // #todo consider using nothing/never for false and everything else for true.
                     Some(Expr::Bool(false))
                 } else {
                     Some(Expr::Symbol(lexeme.clone()))
@@ -210,11 +210,11 @@ impl<'a> Parser<'a> {
             TokenKind::Number(lexeme) => {
                 let mut lexeme = lexeme.clone();
 
-                // #TODO more detailed Number error!
-                // #TODO error handling not enough, we need to add context, check error_stack
+                // #todo more detailed Number error!
+                // #todo error handling not enough, we need to add context, check error_stack
                 if lexeme.contains('.') {
-                    // #TODO support radix for non-integers?
-                    // #TODO find a better name for 'non-integer'.
+                    // #todo support radix for non-integers?
+                    // #todo find a better name for 'non-integer'.
                     match lexeme.parse::<f64>() {
                         Ok(n) => Some(Expr::Float(n)),
                         Err(pf_error) => {
@@ -225,7 +225,7 @@ impl<'a> Parser<'a> {
                         }
                     }
                 } else {
-                    // #TODO support arbitrary radix https://github.com/golang/go/issues/28256
+                    // #todo support arbitrary radix https://github.com/golang/go/issues/28256
                     let mut radix = 10;
 
                     if lexeme.starts_with("0x") {
@@ -252,7 +252,7 @@ impl<'a> Parser<'a> {
                 }
             }
             TokenKind::Annotation(_) => {
-                // #TODO support multiple annotations, e.g. `#[(min 1) (max 2)]`
+                // #todo support multiple annotations, e.g. `#[(min 1) (max 2)]`
 
                 if self.buffered_annotations.is_none() {
                     self.buffered_annotations = Some(Vec::new());
@@ -288,8 +288,8 @@ impl<'a> Parser<'a> {
                     return Ok(None);
                 };
 
-                // #TODO the actual quoting should be handled here?
-                // #TODO what about interpolation?
+                // #todo the actual quoting should be handled here?
+                // #todo what about interpolation?
 
                 Some(Expr::List(vec![Expr::symbol("quot").into(), target]))
             }
@@ -297,17 +297,17 @@ impl<'a> Parser<'a> {
                 let terms = self.parse_many(TokenKind::RightParen, start_position)?;
 
                 if terms.is_empty() {
-                    // #TODO do we _really_ want this or just return a list?
+                    // #todo do we _really_ want this or just return a list?
                     // `()` == One/Unit/Top
                     Some(Expr::One)
                 } else {
                     Some(Expr::List(terms))
 
-                    // #TODO optimize some special forms but in another comptime pass.
+                    // #todo optimize some special forms but in another comptime pass.
 
                     // let head = list_exprs[0].clone();
                     // match head {
-                    //     // #TODO optimize more special forms.
+                    //     // #todo optimize more special forms.
 
                     //     // #Insight
                     //     // Parsing built-ins as Exprs optimizes runtime evaluation, with more efficient
@@ -315,11 +315,11 @@ impl<'a> Parser<'a> {
 
                     //     // `if` expression
                     //     Ann(Expr::Symbol(s), ..) if s == "if" => {
-                    //         // #TODO detailed checking and error-reporting
+                    //         // #todo detailed checking and error-reporting
                     //         Some(Expr::If(
                     //             Box::new(list_exprs[1].clone()),
                     //             Box::new(list_exprs[2].clone()),
-                    //             // #TODO optional parsing!
+                    //             // #todo optional parsing!
                     //             Some(Box::new(list_exprs[3].clone())),
                     //         ))
                     //     }
@@ -338,9 +338,9 @@ impl<'a> Parser<'a> {
 
                 let mut items = vec![annotate_range(Expr::symbol("Array"), range)];
 
-                // #TODO add error checking!
-                // #TODO optimize.
-                // #TODO evaluate the list_exprs
+                // #todo add error checking!
+                // #todo optimize.
+                // #todo evaluate the list_exprs
 
                 for expr in exprs {
                     items.push(expr);
@@ -355,8 +355,8 @@ impl<'a> Parser<'a> {
                 // Don't optimize to `Expr::Dict` here, leave the parser expr
                 // 'normalized as it is beneficial for some kinds of analysis.
 
-                // #TODO add error checking!
-                // #TODO optimize.
+                // #todo add error checking!
+                // #todo optimize.
 
                 let exprs = self.parse_many(TokenKind::RightBrace, start_position)?;
 
@@ -369,7 +369,7 @@ impl<'a> Parser<'a> {
                 Some(Expr::List(items))
             }
             TokenKind::RightParen | TokenKind::RightBracket | TokenKind::RightBrace => {
-                // #TODO custom error for this?
+                // #todo custom error for this?
                 let mut error = Error::new(ErrorKind::UnexpectedToken);
                 error.push_note(
                     &format!("Not expecting token `{}`", token.lexeme()),
@@ -390,7 +390,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    // #TODO rename to `parse_until`?
+    // #todo rename to `parse_until`?
     pub fn parse_many(
         &mut self,
         delimiter: TokenKind,

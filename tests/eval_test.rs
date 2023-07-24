@@ -11,7 +11,7 @@ use tan::{
 
 use crate::common::{eval_file, read_file};
 
-// #TODO add more tests, especially for error-reporting.
+// #todo add more tests, especially for error-reporting.
 
 #[test]
 fn eval_processes_arithmetic_expressions() {
@@ -72,7 +72,7 @@ fn eval_processes_let() {
     let result = eval_string("(do (let a (+ 1 2 3)) a)", &mut context);
     dbg!(&result);
 
-    // #TODO add asserts!
+    // #todo add asserts!
 }
 
 #[test]
@@ -120,7 +120,7 @@ fn eval_reports_let_errors() {
     assert_eq!(range.end.index, 11);
 }
 
-// #TODO extract full testing from file.
+// #todo extract full testing from file.
 
 #[test]
 fn eval_processes_quoted_expressions() {
@@ -187,7 +187,7 @@ fn quot_handles_lists() {
 
     assert_eq!(value, expected_value);
 
-    // #TODO argh! cannot quote if expressions (and more)
+    // #todo argh! cannot quote if expressions (and more)
     let mut context = Context::new();
     let result = eval_string("'(if \"a\" b 1)", &mut context);
     assert!(result.is_ok());

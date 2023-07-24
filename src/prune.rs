@@ -8,13 +8,13 @@ use crate::expr::Expr;
 pub fn prune_fn(expr: Expr) -> Option<Expr> {
     match expr.unpack() {
         Expr::Comment(..) => {
-            // #TODO move prune elsewhere.
+            // #todo move prune elsewhere.
             // Prune Comment expressions.
             None
         }
         Expr::TextSeparator => {
-            // #TODO remove TextSeparator anws.
-            // #TODO move prune elsewhere.
+            // #todo remove TextSeparator anws.
+            // #todo move prune elsewhere.
             // Prune TextSeparator expressions.
             None
         }

@@ -5,10 +5,7 @@
             :family_name "Moschovitis"
             :score 98
             :birth_date #Date "2000-01-01"
-            :labels [
-                "admin"
-                "owner"
-            ]
+            :labels ["admin" "owner"]
         }
         {
             :given_name "Eleni"
@@ -18,7 +15,7 @@
         }
     ])
 
-    ; #TODO (let label users:0:labels:1)
+    ; #todo (let label users:0:labels:1)
     ; let label = users[0]["labels"][1];
     (let label (((users 0) :labels) 1))
 

@@ -15,13 +15,13 @@ use self::{
 
 // https://en.wikipedia.org/wiki/Lexical_analysis
 
-// #TODO lex_all, lex_single
-// #TODO introduce SemanticToken, with extra semantic information, _after_ parsing.
-// #TODO use annotations before number literals to set the type?
-// #TODO use (doc_comment ...) for doc-comments.
-// #TODO no need to keep iterator as state in Lexer!
-// #TODO accept IntoIterator
-// #TODO try to use `let mut reader = BufReader::new(source.as_bytes());` like an older version
+// #todo lex_all, lex_single
+// #todo introduce SemanticToken, with extra semantic information, _after_ parsing.
+// #todo use annotations before number literals to set the type?
+// #todo use (doc_comment ...) for doc-comments.
+// #todo no need to keep iterator as state in Lexer!
+// #todo accept IntoIterator
+// #todo try to use `let mut reader = BufReader::new(source.as_bytes());` like an older version
 
 /// Returns true if ch is considered whitespace.
 /// The `,` character is considered whitespace, in the Lisp tradition.
@@ -37,7 +37,7 @@ fn is_eol(ch: char) -> bool {
     ch == '\n'
 }
 
-// #TODO stateful lexer vs buffer
+// #todo stateful lexer vs buffer
 
 // #Insight
 // Rust's `Peekable` iterator is not used, as multiple-lookahead is
@@ -84,8 +84,8 @@ impl<'a> Lexer<'a> {
         self.chars.clone().collect()
     }
 
-    // #TODO unit test
-    // #TODO refactor
+    // #todo unit test
+    // #todo refactor
     fn next_char(&mut self) -> Option<char> {
         if let Some(ch) = self.lookahead.pop() {
             self.current_position.index += 1;
@@ -108,16 +108,16 @@ impl<'a> Lexer<'a> {
         self.current_position.col -= 1;
     }
 
-    // #TODO try to remove this!
+    // #todo try to remove this!
     fn current_range(&self) -> Range {
         self.start_position..self.current_position
     }
 
-    // #TODO implement scanners with macro or a common function.
-    // #TODO two functions scan_lexeme, scan_delimited.
+    // #todo implement scanners with macro or a common function.
+    // #todo two functions scan_lexeme, scan_delimited.
 
-    // #TODO add unit tests
-    // #TODO try to reuse more!
+    // #todo add unit tests
+    // #todo try to reuse more!
     fn scan_lexeme(&mut self) -> String {
         let mut text = String::new();
 
@@ -126,7 +126,7 @@ impl<'a> Lexer<'a> {
                 break;
             };
 
-            // #TODO maybe whitespace does not need put_back, but need to adjust range.
+            // #todo maybe whitespace does not need put_back, but need to adjust range.
             if is_whitespace(ch) || is_delimiter(ch) || is_eol(ch) {
                 self.put_back_char(ch);
                 break;
@@ -156,7 +156,7 @@ impl<'a> Lexer<'a> {
             }
 
             if is_eol(ch) {
-                // #TODO extract position method!
+                // #todo extract position method!
                 self.current_position.line += 1;
                 self.current_position.col = 0;
                 lines_count += 1;
@@ -188,7 +188,7 @@ impl<'a> Lexer<'a> {
         line
     }
 
-    // #TODO support 'raw' strings, e.g. (write #raw "this is \ cool")
+    // #todo support 'raw' strings, e.g. (write #raw "this is \ cool")
     /// Scans a string lexeme.
     fn scan_string(&mut self) -> Option<String> {
         let mut string = String::new();
@@ -198,24 +198,24 @@ impl<'a> Lexer<'a> {
         loop {
             let Some(ch) = self.next_char() else {
                 let mut error = Error::new(ErrorKind::UnterminatedString);
-                error.push_note("string is missing the closing `\"` character", Some(self.current_range())); // #TODO refine the text.
+                error.push_note("string is missing the closing `\"` character", Some(self.current_range())); // #todo refine the text.
                 self.errors.push(error);
                 return None;
             };
 
-            // #TODO support escaping more than one char
+            // #todo support escaping more than one char
             if ch == '\\' {
                 is_escaping = true;
                 continue;
             }
 
             if is_escaping {
-                // #TODO add additional escape sequences.
+                // #todo add additional escape sequences.
                 match ch {
                     '\\' | '"' => string.push(ch),
                     'n' => string.push('\n'),
                     't' => string.push('\t'),
-                    _ => string.push_str(&format!("\\{ch}")), //#TODO what to do here?
+                    _ => string.push_str(&format!("\\{ch}")), //#todo what to do here?
                 }
 
                 is_escaping = false;
@@ -232,10 +232,10 @@ impl<'a> Lexer<'a> {
         Some(string)
     }
 
-    // #TODO needs cleanup.
-    // #TODO does not support leading tabs.
-    // #TODO find better name, `scan_indented_string`.
-    // #TODO support 'raw' strings, e.g. (write #raw "this is \ cool")
+    // #todo needs cleanup.
+    // #todo does not support leading tabs.
+    // #todo find better name, `scan_indented_string`.
+    // #todo support 'raw' strings, e.g. (write #raw "this is \ cool")
     /// Scans a multi-string 'layout'.
     fn scan_text(&mut self, indent: u64) -> Option<String> {
         let mut string = String::new();
@@ -245,7 +245,7 @@ impl<'a> Lexer<'a> {
         loop {
             let Some(ch) = self.next_char() else {
                 let mut error = Error::new(ErrorKind::UnterminatedString);
-                error.push_note("Text string is not closed", Some(self.current_range())); // #TODO refine the text.
+                error.push_note("Text string is not closed", Some(self.current_range())); // #todo refine the text.
                 self.errors.push(error);
                 return None;
             };
@@ -262,7 +262,7 @@ impl<'a> Lexer<'a> {
                 for _ in 0..indent {
                     let Some(ch1) = self.next_char() else {
                         let mut error = Error::new(ErrorKind::UnterminatedString);
-                        error.push_note("Text string is not closed", Some(self.current_range())); // #TODO refine the text.
+                        error.push_note("Text string is not closed", Some(self.current_range())); // #todo refine the text.
                         self.errors.push(error);
                         return None;
                     };
@@ -278,7 +278,7 @@ impl<'a> Lexer<'a> {
                     }
                 }
             } else {
-                // #TODO support single or double `"`.
+                // #todo support single or double `"`.
             }
 
             string.push(ch);
@@ -292,7 +292,7 @@ impl<'a> Lexer<'a> {
 
         let mut nesting = 0;
 
-        // #TODO only allow one level of nesting?
+        // #todo only allow one level of nesting?
 
         loop {
             let Some(ch) = self.next_char() else {
@@ -315,7 +315,7 @@ impl<'a> Lexer<'a> {
             Some(ann)
         } else {
             let mut error = Error::new(ErrorKind::UnterminatedAnnotation);
-            error.push_note("Annotation is not closed", Some(self.current_range())); // #TODO refine the text.
+            error.push_note("Annotation is not closed", Some(self.current_range())); // #todo refine the text.
             self.errors.push(error);
 
             None
@@ -330,7 +330,7 @@ impl<'a> Lexer<'a> {
         lexeme.replace('_', "")
     }
 
-    // #TODO consider passing into array of chars or something more general.
+    // #todo consider passing into array of chars or something more general.
     pub fn lex(&mut self) -> Result<Vec<Token>, Vec<Error>> {
         let mut tokens: Vec<Token> = Vec::new();
 
@@ -350,14 +350,14 @@ impl<'a> Lexer<'a> {
                 ')' => {
                     tokens.push(Token::new(TokenKind::RightParen, self.current_range()));
                 }
-                // #TODO maybe should just rewrite [..] -> (Array ..)
+                // #todo maybe should just rewrite [..] -> (Array ..)
                 '[' => {
                     tokens.push(Token::new(TokenKind::LeftBracket, self.current_range()));
                 }
                 ']' => {
                     tokens.push(Token::new(TokenKind::RightBracket, self.current_range()));
                 }
-                // #TODO maybe should just rewrite {..} -> (Dict ..)
+                // #todo maybe should just rewrite {..} -> (Dict ..)
                 '{' => {
                     tokens.push(Token::new(TokenKind::LeftBrace, self.current_range()));
                 }
@@ -372,7 +372,7 @@ impl<'a> Lexer<'a> {
                     self.put_back_char(ch);
                     let lexeme = self.scan_line();
 
-                    // #TODO temp solution.
+                    // #todo temp solution.
                     let comment_kind = if self.current_position.line == previous_token_line {
                         CommentKind::Inline
                     } else {
@@ -387,7 +387,7 @@ impl<'a> Lexer<'a> {
                 '"' => {
                     let Some(ch1) = self.next_char() else {
                         let mut error = Error::new(ErrorKind::UnterminatedString);
-                        error.push_note("String is not closed", Some(self.current_range())); // #TODO refine the text.
+                        error.push_note("String is not closed", Some(self.current_range())); // #todo refine the text.
                         self.errors.push(error);
                         break 'outer;
                     };
@@ -402,7 +402,7 @@ impl<'a> Lexer<'a> {
                                 loop {
                                     let Some(ch3) = self.next_char() else {
                                         let mut error = Error::new(ErrorKind::UnterminatedString);
-                                        error.push_note("Text string is not closed", Some(self.current_range())); // #TODO refine the text.
+                                        error.push_note("Text string is not closed", Some(self.current_range())); // #todo refine the text.
                                         self.errors.push(error);
                                         break 'outer;
                                     };
@@ -439,7 +439,7 @@ impl<'a> Lexer<'a> {
                 '-' => {
                     let Some(ch1) = self.next_char() else {
                         let mut error = Error::new(ErrorKind::UnexpectedEnd);
-                        error.push_note("Text string is not closed", Some(self.current_range())); // #TODO refine the text.
+                        error.push_note("Text string is not closed", Some(self.current_range())); // #todo refine the text.
                         self.errors.push(error);
                         break 'outer;
                     };
@@ -449,7 +449,7 @@ impl<'a> Lexer<'a> {
 
                     // #insight `--` line comments no longer supported.
                     // if ch1 == '-' {
-                    //     // #TODO if we switch to kebab-case, `--` comments may cause issues.
+                    //     // #todo if we switch to kebab-case, `--` comments may cause issues.
                     //     // `--` line comment
                     //     let line = self.scan_line();
                     //     tokens.push(Ranged(Token::Comment(line), self.range()));
@@ -459,7 +459,7 @@ impl<'a> Lexer<'a> {
                         let lexeme = self.scan_number();
                         tokens.push(Token::number(lexeme, self.current_range()));
                     } else {
-                        // #TODO lint warning for this!
+                        // #todo lint warning for this!
                         // Symbol starting with `-`.
                         let lexeme = self.scan_lexeme();
                         tokens.push(Token::symbol(lexeme, self.current_range()));
@@ -471,7 +471,7 @@ impl<'a> Lexer<'a> {
                             if ch1 == '!' {
                                 // Shebang line detected, skip.
                                 let _ = self.scan_line();
-                                // #TODO should we keep the shebang as a module annotation?
+                                // #todo should we keep the shebang as a module annotation?
                                 continue;
                             } else {
                                 self.put_back_char(ch1);
@@ -514,7 +514,7 @@ impl<'a> Lexer<'a> {
         }
 
         if self.errors.is_empty() {
-            // #TODO
+            // #todo
             Ok(tokens)
         } else {
             let errors = std::mem::take(&mut self.errors);

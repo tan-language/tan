@@ -21,9 +21,9 @@ use crate::{
 
 // #insight use structs for enum values, is more ..structured, readable and can have methods.
 
-// #TODO separate variant for list and apply/call (can this be defined statically?)
-// #TODO List, MaybeList, Call
-// #TODO Expr::Range()
+// #todo separate variant for list and apply/call (can this be defined statically?)
+// #todo List, MaybeList, Call
+// #todo Expr::Range()
 
 // #Insight
 // AST = Expr = Value = Object
@@ -36,15 +36,15 @@ use crate::{
 
 // #todo (do ...) blocks should also have lexical scope.
 
-// #TODO what would be the 'default'?
-// #TODO consider parsing to 'simple' Expr, only List and Symbols
-// #TODO optimize 'simple' Expr to 'execution' Expr
-// #TODO introduce ForeignValue?
-// #TODO ExprFn should get a single Expr? -> nah, it's foreign.
+// #todo what would be the 'default'?
+// #todo consider parsing to 'simple' Expr, only List and Symbols
+// #todo optimize 'simple' Expr to 'execution' Expr
+// #todo introduce ForeignValue?
+// #todo ExprFn should get a single Expr? -> nah, it's foreign.
 
-// #TODO not all Expr variants really need Ann, maybe the annotation should be internal to Expr?
+// #todo not all Expr variants really need Ann, maybe the annotation should be internal to Expr?
 
-// #TODO consider Visitor pattern instead of enum?
+// #todo consider Visitor pattern instead of enum?
 
 // #todo consider &mut Context <--
 // #todo consider &mut and & Context, different types!
@@ -53,7 +53,7 @@ use crate::{
 /// A function that accepts a list of Exprs and returns an Expr.
 pub type ExprFn = dyn Fn(&[Expr], &Context) -> Result<Expr, Error> + Send + Sync + 'static;
 
-// #TODO use normal structs instead of tuple-structs?
+// #todo use normal structs instead of tuple-structs?
 
 #[derive(Clone)]
 /// A symbolic expression. This is the 'universal' data type in the language,
@@ -62,35 +62,35 @@ pub type ExprFn = dyn Fn(&[Expr], &Context) -> Result<Expr, Error> + Send + Sync
 pub enum Expr {
     // --- Low-level ---
     One,                          // Unit == List(Vec::new())
-    Comment(String, CommentKind), // #TODO consider renaming to Remark (REM)
+    Comment(String, CommentKind), // #todo consider renaming to Remark (REM)
     TextSeparator,                // for the formatter.
-    Bool(bool),                   // #TODO remove?
+    Bool(bool),                   // #todo remove?
     Int(i64),
     Float(f64),
     Symbol(String),
     KeySymbol(String),
     Char(char),
     String(String),
-    // #TODO better name for 'generic' List, how about `Cons` or `ConsList` or `Cell`?
-    // #TODO add 'quoted' List -> Array!
-    // #TODO do we really need Vec here? Maybe Arc<[Expr]> is enough?
+    // #todo better name for 'generic' List, how about `Cons` or `ConsList` or `Cell`?
+    // #todo add 'quoted' List -> Array!
+    // #todo do we really need Vec here? Maybe Arc<[Expr]> is enough?
     List(Vec<Expr>),
     Array(Vec<Expr>),
-    // #TODO different name?
-    // #TODO support Expr as keys?
+    // #todo different name?
+    // #todo support Expr as keys?
     Dict(HashMap<String, Expr>),
     // Range(...),
     // #todo, the Func should probably store the Module environment.
-    Func(Vec<Expr>, Vec<Expr>, Rc<Scope>), // #TODO maybe should have explicit do block?
-    Macro(Vec<Expr>, Vec<Expr>),           // #TODO maybe should have explicit do block?
+    Func(Vec<Expr>, Vec<Expr>, Rc<Scope>), // #todo maybe should have explicit do block?
+    Macro(Vec<Expr>, Vec<Expr>),           // #todo maybe should have explicit do block?
     // #todo, the ForeignFunc should probably store the Module environment.
-    ForeignFunc(Arc<ExprFn>), // #TODO for some reason, Box is not working here!
+    ForeignFunc(Arc<ExprFn>), // #todo for some reason, Box is not working here!
     // --- High-level ---
-    // #TODO do should contain the expressions also, pre-parsed!
+    // #todo do should contain the expressions also, pre-parsed!
     Do,
-    // #TODO let should contain the expressions also, pre-parsed!
+    // #todo let should contain the expressions also, pre-parsed!
     Let,
-    // #TODO maybe this 'compound' if prohibits homoiconicity?
+    // #todo maybe this 'compound' if prohibits homoiconicity?
     If(Box<Expr>, Box<Expr>, Option<Box<Expr>>),
     Annotated(Box<Expr>, HashMap<String, Expr>),
     // #todo maybe use annotation in Expr for public/exported? no Vec<String> for exported?
@@ -99,7 +99,7 @@ pub enum Expr {
     Module(Rc<Module>),
 }
 
-// #TODO what is the Expr default? One (Unit/Any) or Zero (Noting/Never)
+// #todo what is the Expr default? One (Unit/Any) or Zero (Noting/Never)
 
 impl fmt::Debug for Expr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -131,7 +131,7 @@ impl fmt::Debug for Expr {
             Expr::Macro(..) => "#<macro>".to_owned(),
             Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
             Expr::Let => "let".to_owned(),
-            // #TODO properly format do, let, if, etc.
+            // #todo properly format do, let, if, etc.
             Expr::If(_, _, _) => "if".to_owned(),
             // #insight intentionally pass through the formatting.
             Expr::Annotated(expr, ann) => format!("ANN({expr:?}, {ann:?})"),
@@ -144,22 +144,22 @@ impl fmt::Debug for Expr {
 
 impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        // #TODO optimize this!
+        // #todo optimize this!
         f.write_str(
             (match self {
                 Expr::One => "()".to_owned(),
-                Expr::Comment(s, _) => format!(r#"(rem "{s}")"#), // #TODO what would be a good representation?
+                Expr::Comment(s, _) => format!(r#"(rem "{s}")"#), // #todo what would be a good representation?
                 Expr::TextSeparator => "<TS>".to_owned(),
                 Expr::Bool(b) => b.to_string(),
                 Expr::Int(n) => n.to_string(),
                 Expr::Float(n) => n.to_string(),
                 Expr::Symbol(s) => s.clone(),
                 Expr::KeySymbol(s) => format!(":{s}"),
-                Expr::Char(c) => format!(r#"(Char "{c}")"#), // #TODO no char literal?
+                Expr::Char(c) => format!(r#"(Char "{c}")"#), // #todo no char literal?
                 Expr::String(s) => format!("\"{s}\""),
                 Expr::Do => "do".to_owned(),
                 Expr::Let => "let".to_owned(),
-                // #TODO properly format if!
+                // #todo properly format if!
                 Expr::If(..) => "if".to_owned(),
                 Expr::List(terms) => {
                     format!(
@@ -180,7 +180,7 @@ impl fmt::Display for Expr {
                     format!("[{exprs}]")
                 }
                 Expr::Dict(dict) => {
-                    // #TODO Dict should support arbitrary exprs (or at lease `(Into String)` exprs)
+                    // #todo Dict should support arbitrary exprs (or at lease `(Into String)` exprs)
                     // #todo currently we convert keys to symbol, make this more subtle.
                     let exprs = dict
                         .iter()
@@ -226,7 +226,7 @@ impl Expr {
 
     pub fn maybe_annotated(expr: Expr, annotations: Option<&HashMap<String, Expr>>) -> Self {
         if let Some(annotations) = annotations {
-            // #TODO do something about this clone!!
+            // #todo do something about this clone!!
             Expr::Annotated(Box::new(expr), annotations.clone())
         } else {
             expr
@@ -242,7 +242,7 @@ impl Expr {
         }
     }
 
-    // #TODO name unpack? / project?
+    // #todo name unpack? / project?
     pub fn extract(&self) -> (&Expr, Option<&HashMap<String, Expr>>) {
         match self {
             Expr::Annotated(expr, ann) => (expr, Some(ann)),
@@ -250,10 +250,10 @@ impl Expr {
         }
     }
 
-    // #TODO name unwrap?
-    // #TODO unpack is very dangerous, we need to encode in the typesystem that the expr is unpacked.
-    // #TODO unwrap into tuple (expr, ann)
-    // #TODO find better name?
+    // #todo name unwrap?
+    // #todo unpack is very dangerous, we need to encode in the typesystem that the expr is unpacked.
+    // #todo unwrap into tuple (expr, ann)
+    // #todo find better name?
     #[inline]
     pub fn unpack(&self) -> &Self {
         match self {
@@ -263,14 +263,14 @@ impl Expr {
     }
 
     pub fn annotation(&self, name: impl Into<String>) -> Option<&Expr> {
-        // #TODO dangerous method, emit a warning if it's called on a non-annotated Expr !!!
+        // #todo dangerous method, emit a warning if it's called on a non-annotated Expr !!!
         match self {
             Expr::Annotated(_, ann) => ann.get(&name.into()),
             _ => None,
         }
     }
 
-    // #TODO consider #[inline]
+    // #todo consider #[inline]
     pub fn as_int(&self) -> Option<i64> {
         let Expr::Int(n) = self.unpack() else {
             return None;
@@ -306,7 +306,7 @@ impl Expr {
         Some(s)
     }
 
-    // #TODO add an extra function to extract all string-
+    // #todo add an extra function to extract all string-
 
     pub fn as_char(&self) -> Option<char> {
         let Expr::Char(c) = self.unpack() else {
@@ -381,7 +381,7 @@ pub fn annotate(mut expr: Expr, name: impl Into<String>, ann_expr: Expr) -> Expr
     }
 }
 
-// #TODO use special sigil for implicit/system annotations.
+// #todo use special sigil for implicit/system annotations.
 
 #[must_use]
 pub fn annotate_type(expr: Expr, type_name: impl Into<String>) -> Expr {
@@ -394,8 +394,8 @@ pub fn annotate_range(expr: Expr, range: Range) -> Expr {
 }
 
 // #todo move elsewhere, e.g. api.
-// #TODO think where this function is used. (it is used for Dict keys, hmm...)
-// #TODO this is a confusing name!
+// #todo think where this function is used. (it is used for Dict keys, hmm...)
+// #todo this is a confusing name!
 /// Formats the expression as a value
 pub fn format_value(expr: impl AsRef<Expr>) -> String {
     let expr = expr.as_ref();
@@ -409,10 +409,10 @@ pub fn format_value(expr: impl AsRef<Expr>) -> String {
 
 // ---
 
-// #TODO implement Defer into Expr!
+// #todo implement Defer into Expr!
 
-// #TODO convert to the Expr::Range variant.
-// #TODO convert position to Dict Expr.
+// #todo convert to the Expr::Range variant.
+// #todo convert position to Dict Expr.
 
 pub fn position_to_expr(position: &Position) -> Expr {
     let mut map: HashMap<String, Expr> = HashMap::new();
@@ -425,17 +425,17 @@ pub fn position_to_expr(position: &Position) -> Expr {
 pub fn expr_to_position(expr: &Expr) -> Position {
     if let Expr::Dict(dict) = expr {
         let Some(Expr::Int(index)) = dict.get("index") else {
-            // #TODO fix me!
+            // #todo fix me!
             return Position::default();
         };
 
         let Some(Expr::Int(line)) = dict.get("line") else {
-            // #TODO fix me!
+            // #todo fix me!
             return Position::default();
         };
 
         let Some(Expr::Int(col)) = dict.get("col") else {
-            // #TODO fix me!
+            // #todo fix me!
             return Position::default();
         };
 
@@ -446,7 +446,7 @@ pub fn expr_to_position(expr: &Expr) -> Position {
         };
     }
 
-    // #TODO fix me!
+    // #todo fix me!
     return Position::default();
 }
 
@@ -457,11 +457,11 @@ pub fn range_to_expr(range: &Range) -> Expr {
     Expr::Array(vec![start, end])
 }
 
-// #TODO nasty code.
+// #todo nasty code.
 pub fn expr_to_range(expr: &Expr) -> Range {
-    // #TODO error checking?
+    // #todo error checking?
     let Expr::Array(terms) = expr else {
-        // #TODO hmm...
+        // #todo hmm...
         return Range::default();
     };
 
@@ -471,7 +471,7 @@ pub fn expr_to_range(expr: &Expr) -> Range {
     }
 }
 
-// #TODO use `.into()` to convert Expr to Annotated<Expr>.
+// #todo use `.into()` to convert Expr to Annotated<Expr>.
 
 #[cfg(test)]
 mod tests {

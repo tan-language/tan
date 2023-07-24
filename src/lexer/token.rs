@@ -26,9 +26,9 @@ use super::comment::CommentKind;
 // #insight
 // No need to associate the kind with the lexeme, but we do it, for consistency with Error.
 
-// #TODO support #quot annotation?
+// #todo support #quot annotation?
 
-// #TODO do we ever need a non-ranged Token? should consider Token/TokenKind arrangement?
+// #todo do we ever need a non-ranged Token? should consider Token/TokenKind arrangement?
 
 /// A lexical Token gives semantic meaning to a Lexeme.
 #[derive(Debug, Clone, PartialEq)]
@@ -42,7 +42,7 @@ pub enum TokenKind {
     Quote,
     /// MultiLineWhitespace tokens are leveraged by the formatter to maintain
     /// 'paragraphs' of text.
-    MultiLineWhitespace, // #TODO use something more general, like `Pragma`.
+    MultiLineWhitespace, // #todo use something more general, like `Pragma`.
     // Char(char),
     String(String),
     Symbol(String),
@@ -53,8 +53,8 @@ pub enum TokenKind {
 
 impl fmt::Display for TokenKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        // #TODO optimize this!
-        // #TODO reconsider how tokens are displayed.
+        // #todo optimize this!
+        // #todo reconsider how tokens are displayed.
         f.write_str(match self {
             TokenKind::LeftParen => "(",
             TokenKind::RightParen => ")",
@@ -68,7 +68,7 @@ impl fmt::Display for TokenKind {
             TokenKind::Number(lexeme) => lexeme,
             TokenKind::Annotation(lexeme) => lexeme,
             TokenKind::Comment(lexeme, _) => lexeme,
-            TokenKind::MultiLineWhitespace => "MultiLineWhitespace", // #TODO what should we do here? #Idea convert to comment?
+            TokenKind::MultiLineWhitespace => "MultiLineWhitespace", // #todo what should we do here? #Idea convert to comment?
         })
     }
 }

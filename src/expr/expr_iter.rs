@@ -14,12 +14,12 @@ impl Expr {
 // #Insight
 // The iterator is implemented as a separate struct, for flexibility.
 
-// #TODO support in-order, pre-order, post-order
-// #TODO implement owned iterator
-// #TODO implement mutable iterator
-// #TODO https://aloso.github.io/2021/03/09/creating-an-iterator
+// #todo support in-order, pre-order, post-order
+// #todo implement owned iterator
+// #todo implement mutable iterator
+// #todo https://aloso.github.io/2021/03/09/creating-an-iterator
 
-// #TODO is this really DFS?
+// #todo is this really DFS?
 /// A depth-first Expr iterator.
 #[derive(Default)]
 pub struct ExprIter<'a> {
@@ -30,7 +30,7 @@ pub struct ExprIter<'a> {
 impl<'a> Iterator for ExprIter<'a> {
     type Item = &'a Expr;
 
-    // #TODO this does not traverse Array, Dict, etc.
+    // #todo this does not traverse Array, Dict, etc.
     fn next(&mut self) -> Option<Self::Item> {
         let Some(expr) = self.children.get(0) else {
             return match self.parent.take() {

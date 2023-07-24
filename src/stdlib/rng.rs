@@ -42,6 +42,7 @@ pub fn setup_std_rand(context: &mut Context) {
     scope.insert("random", Expr::ForeignFunc(Arc::new(random_int)));
 
     // #todo this is a hack.
+    // #todo what happens if there are multiple root_paths?
     let module_path = format!("{}/std/rng", context.root_path);
     // #todo introduce a helper for this.
     context.module_registry.insert(module_path, Rc::new(module));

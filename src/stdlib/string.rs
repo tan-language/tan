@@ -32,7 +32,7 @@ pub fn string_constructor_from_chars(args: &[Expr], _context: &Context) -> Resul
         return Err(Error::invalid_arguments("`chars` argument should be a (Array Char)", chars.range()));
     };
 
-    // #TODO verify Array item type!
+    // #todo verify Array item type!
 
     let mut chars: Vec<char> = Vec::new();
 
@@ -47,7 +47,7 @@ pub fn string_constructor_from_chars(args: &[Expr], _context: &Context) -> Resul
     Ok(Expr::String(string))
 }
 
-// #TODO overload for string and char!
+// #todo overload for string and char!
 
 pub fn char_uppercased(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [this] = args else {
@@ -58,16 +58,16 @@ pub fn char_uppercased(args: &[Expr], _context: &Context) -> Result<Expr, Error>
         return Err(Error::invalid_arguments("`this` argument should be a Char", this.range()));
     };
 
-    // #TODO omg...
+    // #todo omg...
     let uppercased = this.to_uppercase().next().unwrap();
 
     Ok(Expr::Char(uppercased))
 }
 
-// #TODO make this a String constructor?
-// #TODO 'join' and 'format' versions?
+// #todo make this a String constructor?
+// #todo 'join' and 'format' versions?
 
-// #TODO find another name, this is too common: `fmt`? `stringf`?
+// #todo find another name, this is too common: `fmt`? `stringf`?
 pub fn format(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let output = args.iter().fold(String::new(), |mut str, x| {
         str.push_str(&format_value(x));

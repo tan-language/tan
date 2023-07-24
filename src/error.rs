@@ -2,24 +2,24 @@ use std::fmt;
 
 use crate::range::Range;
 
-// #TODO use `CompositeError` or similar to bundle multiple errors, and maintain consistent interface while avoiding allocations?
+// #todo use `CompositeError` or similar to bundle multiple errors, and maintain consistent interface while avoiding allocations?
 
 // #insight The implementation is based on https://doc.rust-lang.org/std/io/struct.Error.html
 
 // #insight It's useful to have different note texts for the same ErrorKind.
 
-// #TODO UnexpectedEnd is similar to UnterminatedString/Annotation, could reuse the message?
+// #todo UnexpectedEnd is similar to UnterminatedString/Annotation, could reuse the message?
 
-// #TODO keep the error formatting fragments in some reusable form.
-// #TODO examples of good errors: https://jvns.ca/blog/2022/12/02/a-couple-of-rust-error-messages/
+// #todo keep the error formatting fragments in some reusable form.
+// #todo examples of good errors: https://jvns.ca/blog/2022/12/02/a-couple-of-rust-error-messages/
 
-// #TODO Split comptime/runtime errors?
+// #todo Split comptime/runtime errors?
 
-// #TODO lexer, parser, resolver, etc should be able to return multiple errors
-// #TODO maybe just use _one_ Error?
-// #TODO think about how to handle Ranged
-// #TODO maybe use Ann instead of Ranged?
-// #TODO maybe use Expr for the errors?
+// #todo lexer, parser, resolver, etc should be able to return multiple errors
+// #todo maybe just use _one_ Error?
+// #todo think about how to handle Ranged
+// #todo maybe use Ann instead of Ranged?
+// #todo maybe use Expr for the errors?
 
 // #Insight Eval always returns one error, actually no it can call read/parse/ that can return many errors!
 
@@ -42,7 +42,7 @@ use crate::range::Range;
 // 6 ~     let scores = binding.iter().map(|(a, b)| {
 //   |
 //
-// For more information about this error, try `rustc --explain E0716`.
+// For more information about this error, try `cc --explain E0716`.
 // error: could not compile `playground` (bin "playground") due to previous error
 
 #[derive(Debug)]
@@ -61,12 +61,12 @@ pub enum ErrorKind {
     MalformedAnnotation,
 
     // Semantic errors
-    UndefinedSymbol(String), // #TODO maybe pass the whole Symbol expression?
-    UndefinedFunction(String, String), // #TODO maybe pass the whole Symbol expression?
+    UndefinedSymbol(String), // #todo maybe pass the whole Symbol expression?
+    UndefinedFunction(String, String), // #todo maybe pass the whole Symbol expression?
     InvalidArguments,
-    NotInvocable, // #TODO maybe the non-invocable Annotated<Expr> should be the param?
-    // #TODO better name needed.
-    // #TODO is this a run-time error?
+    NotInvocable, // #todo maybe the non-invocable Annotated<Expr> should be the param?
+    // #todo better name needed.
+    // #todo is this a run-time error?
     FailedUse(String, Vec<Error>),
 
     // Runtime errors
@@ -106,7 +106,7 @@ impl ErrorKind {
     // We could use a derive macro to generate those, but being explicit is
     // more readable.
     pub fn code(&self) -> u32 {
-        // #TODO implement me!
+        // #todo implement me!
         0
     }
 }
@@ -114,7 +114,7 @@ impl ErrorKind {
 // #insight
 // `note` is a synonym for `annotation`.
 
-// #TODO add ErrorNoteKind?
+// #todo add ErrorNoteKind?
 #[derive(Debug)]
 pub struct ErrorNote {
     /// The text of the note
@@ -134,7 +134,7 @@ impl ErrorNote {
 
 // #insight We keep the file url (instead of the module url) for more precise error reporting.
 
-// #TODO find better pseudo-name.
+// #todo find better pseudo-name.
 const INPUT_PSEUDO_FILE_PATH: &str = "<input>";
 
 #[derive(Debug)]
@@ -152,7 +152,7 @@ impl std::error::Error for Error {}
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        // #TODO write more information!
+        // #todo write more information!
         write!(f, "{}", self.kind)
     }
 }
@@ -201,7 +201,7 @@ impl Error {
 
     pub fn failed_use(url: &str, errors: Vec<Error>) -> Self {
         let error = Self::new(ErrorKind::FailedUse(url.to_owned(), errors));
-        // #TODO url is _not_ the error.file_path, we need the caller module path.
+        // #todo url is _not_ the error.file_path, we need the caller module path.
         // error.file_path = url.to_owned();
         error
     }
@@ -248,7 +248,7 @@ impl Error {
 impl From<std::io::Error> for Error {
     fn from(value: std::io::Error) -> Self {
         let mut error = Error::new(ErrorKind::Io(value));
-        // #TODO more detailed notes.
+        // #todo more detailed notes.
         error.push_note("I/O error: {value}", None);
         error
     }

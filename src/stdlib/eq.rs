@@ -1,13 +1,13 @@
 use crate::{context::Context, error::Error, expr::Expr};
 
-// #TODO support all types!
+// #todo support all types!
 
 pub fn eq(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
-    // #TODO support overloading,
-    // #TODO make equality a method of Expr?
-    // #TODO support non-Int types
-    // #TODO support multiple arguments.
+    // #todo support overloading,
+    // #todo make equality a method of Expr?
+    // #todo support non-Int types
+    // #todo support multiple arguments.
     let [a, b] = args else {
         return Err(Error::invalid_arguments("`eq` requires at least two arguments", None));
     };
@@ -24,7 +24,7 @@ pub fn eq(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 }
 
 pub fn gt(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
-    // #TODO support multiple arguments.
+    // #todo support multiple arguments.
     let [a, b] = args else {
         return Err(Error::invalid_arguments("`>` requires at least two arguments", None));
     };
@@ -41,7 +41,7 @@ pub fn gt(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 }
 
 pub fn lt(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
-    // #TODO support multiple arguments.
+    // #todo support multiple arguments.
     let [a, b] = args else {
         return Err(Error::invalid_arguments("`<` requires at least two arguments", None));
     };

@@ -5,7 +5,7 @@
 
 ; desugared
 ;
-; #TODO no need for for-each, just use ...for
+; #todo no need for for-each, just use ...for
 ;
 ; (for (let x (next xs)) (do ...))
 ; (for-each xs x (do ...))

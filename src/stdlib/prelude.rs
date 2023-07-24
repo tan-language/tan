@@ -22,7 +22,7 @@ pub fn setup_std_prelude(context: &mut Context) {
 
     // num
 
-    // #TODO forget the mangling, implement with a dispatcher function, multi-function.
+    // #todo forget the mangling, implement with a dispatcher function, multi-function.
     scope.insert(
         "+",
         annotate_type(Expr::ForeignFunc(Arc::new(add_int)), "Int"),
@@ -33,8 +33,8 @@ pub fn setup_std_prelude(context: &mut Context) {
     );
     scope.insert(
         "+$$Float$$Float",
-        // #TODO add the proper type: (Func Float Float Float)
-        // #TODO even better: (Func (Many Float) Float)
+        // #todo add the proper type: (Func Float Float Float)
+        // #todo even better: (Func (Many Float) Float)
         annotate_type(Expr::ForeignFunc(Arc::new(add_float)), "Float"),
     );
     scope.insert("-", Expr::ForeignFunc(Arc::new(sub_int)));
@@ -53,20 +53,20 @@ pub fn setup_std_prelude(context: &mut Context) {
     );
     scope.insert(
         "*$$Float$$Float",
-        // #TODO add the proper type: (Func Float Float Float)
-        // #TODO even better: (Func (Many Float) Float)
+        // #todo add the proper type: (Func Float Float Float)
+        // #todo even better: (Func (Many Float) Float)
         annotate_type(Expr::ForeignFunc(Arc::new(mul_float)), "Float"),
     );
     scope.insert(
         "/",
         annotate_type(Expr::ForeignFunc(Arc::new(div_float)), "Float"),
     );
-    // #TODO ultra-hack
+    // #todo ultra-hack
     scope.insert(
         "/$$Float$$Float",
         annotate_type(Expr::ForeignFunc(Arc::new(div_float)), "Float"),
     );
-    // #TODO ultra-hack
+    // #todo ultra-hack
     scope.insert(
         "/$$Float$$Float$$Float",
         annotate_type(Expr::ForeignFunc(Arc::new(div_float)), "Float"),

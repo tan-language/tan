@@ -34,7 +34,7 @@ fn lex_returns_tokens() {
     assert_eq!(tokens[3].range().start.index, 4);
     assert_eq!(tokens[3].range().start.line, 0);
     assert_eq!(tokens[3].range().start.col, tokens[3].range().start.index);
-    // #TODO add more assertions.
+    // #todo add more assertions.
 }
 
 #[test]
@@ -186,7 +186,7 @@ fn lex_reports_unterminated_strings() {
 
     let range = err.range().unwrap();
 
-    // #TODO add tests for line, col.
+    // #todo add tests for line, col.
 
     assert_eq!(range.start.index, 7);
     assert_eq!(range.end.index, 14);

@@ -1,6 +1,6 @@
 use crate::{context::Context, error::Error, expr::Expr};
 
-// #TODO extract *_impl function.
+// #todo extract *_impl function.
 pub fn ann(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     if args.len() != 1 {
         return Err(Error::invalid_arguments(
@@ -9,14 +9,14 @@ pub fn ann(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
         ));
     }
 
-    // #TODO support multiple arguments.
+    // #todo support multiple arguments.
 
     let expr = args.first().unwrap();
 
     if let Some(ann) = expr.annotations() {
         Ok(Expr::Dict(ann.clone()))
     } else {
-        // #TODO what to return here?
+        // #todo what to return here?
         Ok(Expr::One.into())
     }
 }

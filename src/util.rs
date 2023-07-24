@@ -1,8 +1,8 @@
 // #Insight
 // What we call reserved_symbol is maybe similar to lisp's 'special form'?
 
-// #TODO consider using `name` instead of `symbol`?
-// #TODO better organize the util module.
+// #todo consider using `name` instead of `symbol`?
+// #todo better organize the util module.
 
 pub mod fmt;
 pub mod put_back_iterator;
@@ -10,7 +10,7 @@ pub mod standard_names;
 
 /// Returns true if `sym` is reserved.
 pub fn is_reserved_symbol(sym: &str) -> bool {
-    // #TODO think about `Func`.
+    // #todo think about `Func`.
     matches!(
         sym,
         "do" | "ann"
@@ -21,7 +21,7 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
             | "map"
             | "eval"
             | "quot"
-            | "use" // #TODO consider `using`
+            | "use" // #todo consider `using`
             | "Char"
             | "Func"
             | "Macro"
