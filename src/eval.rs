@@ -351,12 +351,23 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo hm, that clone, maybe `Rc` can fix this?
                             Ok(value.unpack().clone())
                         }
+                        // #todo implement for->list, for->map, for->fold, etc.
                         "for" => {
                             // #insight
                             // `while` is a generalization of `if`
                             // `for` is a generalization of `let`
                             // `for` is related with `do`
                             // `for` is monadic
+
+                            // (for (x 10) (writeln x))
+
+                            // #todo reuse code from let
+                            // #todo the resolver should handle this.
+
+                            // #todo this implements only the trivial case:
+                            // (for (x 10) (writeln x))
+
+                            // #todo temp, same as while.
 
                             let [predicate, body] = tail else {
                                 // #todo proper error!
@@ -370,6 +381,39 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                                 let Some(predicate) = predicate.as_bool() else {
                                     return Err(Error::invalid_arguments("the for predicate is not a boolean value", predicate.range()));
+                                };
+
+                                if !predicate {
+                                    break;
+                                }
+
+                                value = eval(body, context)?;
+                            }
+
+                            Ok(value)
+                        }
+                        "while" => {
+                            // #insight
+                            // `while` is a generalization of `if`
+                            // `for` is a generalization of `let`
+                            // `for` is related with `do`
+                            // `for` is monadic
+
+                            // #todo
+                            // try to merge `while` with `for` (maybe `for` is implemented on top of `while`?)
+
+                            let [predicate, body] = tail else {
+                                // #todo proper error!
+                                return Err(Error::invalid_arguments("missing for arguments", expr.range()));
+                            };
+
+                            let mut value = Expr::One.into();
+
+                            loop {
+                                let predicate = eval(predicate, context)?;
+
+                                let Some(predicate) = predicate.as_bool() else {
+                                    return Err(Error::invalid_arguments("the `while` predicate is not a boolean value", predicate.range()));
                                 };
 
                                 if !predicate {

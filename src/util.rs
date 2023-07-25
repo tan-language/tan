@@ -13,11 +13,13 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
     // #todo think about `Func`.
     matches!(
         sym,
-        "do" | "ann"
+        "do" | "ann" // #todo consider `meta`?
+            | "def"
             | "let"
             | "if"
             | "for"
-            | "for-each"
+            | "while"
+            | "for-each" // #todo extract as seq function
             | "map"
             | "eval"
             | "quot"
