@@ -149,8 +149,6 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             let prev_scope = context.scope.clone();
                             context.scope = Rc::new(Scope::new(prev_scope.clone()));
 
-                            // env.push_new_scope();
-
                             for (param, arg) in params.iter().zip(&args) {
                                 let Some(param) = param.as_symbol() else {
                                         return Err(Error::invalid_arguments("parameter is not a symbol", param.range()));
@@ -166,8 +164,6 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 Expr::Symbol(format!("{name}$${signature}")),
                             );
                             let head = eval(&head, context)?;
-
-                            // env.pop();
 
                             context.scope = prev_scope;
 
@@ -207,8 +203,6 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                     // Dynamic scoping, #todo convert to lexical.
 
-                    // env.push_new_scope();
-
                     let prev_scope = context.scope.clone();
                     context.scope = Rc::new(Scope::new(func_scope.clone()));
 
@@ -228,8 +222,6 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     for expr in body {
                         value = eval(expr, context)?;
                     }
-
-                    // env.pop();
 
                     context.scope = prev_scope;
 
@@ -307,16 +299,12 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo do should be 'monadic', propagate Eff (effect) wrapper.
                             let mut value = Expr::One.into();
 
-                            // env.push_new_scope();
-
                             let prev_scope = context.scope.clone();
                             context.scope = Rc::new(Scope::new(prev_scope.clone()));
 
                             for expr in tail {
                                 value = eval(expr, context)?;
                             }
-
-                            // env.pop();
 
                             context.scope = prev_scope;
 
@@ -364,9 +352,12 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             Ok(value.unpack().clone())
                         }
                         "for" => {
-                            // #Insight
-                            // `for` is a generalization of `if`.
-                            // `for` is also related with `do`.
+                            // #insight
+                            // `while` is a generalization of `if`
+                            // `for` is a generalization of `let`
+                            // `for` is related with `do`
+                            // `for` is monadic
+
                             let [predicate, body] = tail else {
                                 // #todo proper error!
                                 return Err(Error::invalid_arguments("missing for arguments", expr.range()));
@@ -434,8 +425,6 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 return Err(Error::invalid_arguments("`for-each` requires a symbol as the second argument", var.range()));
                             };
 
-                            // env.push_new_scope();
-
                             let prev_scope = context.scope.clone();
                             context.scope = Rc::new(Scope::new(prev_scope.clone()));
 
@@ -445,7 +434,6 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 eval(body, context)?;
                             }
 
-                            // env.pop();
                             context.scope = prev_scope;
 
                             // #todo intentionally don't return a value, reconsider this?
@@ -469,8 +457,6 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 return Err(Error::invalid_arguments("`map` requires a symbol as the second argument", var.range()));
                             };
 
-                            // env.push_new_scope();
-
                             let prev_scope = context.scope.clone();
                             context.scope = Rc::new(Scope::new(prev_scope.clone()));
 
@@ -483,7 +469,6 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 results.push(result.unpack().clone());
                             }
 
-                            // env.pop();
                             context.scope = prev_scope.clone();
 
                             // #todo intentionally don't return a value, reconsider this?

@@ -55,10 +55,6 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                     // let params = params.clone();
                     // let body = body.clone();
 
-                    // #todo what kind of scoping is this?
-
-                    // env.push_new_scope();
-
                     let prev_scope = context.scope.clone();
                     context.scope = Rc::new(Scope::new(prev_scope.clone()));
 
@@ -78,7 +74,6 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                         value = eval(expr, context)?;
                     }
 
-                    // env.pop();
                     context.scope = prev_scope;
 
                     Ok(Some(value))
