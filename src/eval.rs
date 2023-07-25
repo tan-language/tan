@@ -204,7 +204,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     // Dynamic scoping, #todo convert to lexical.
 
                     let prev_scope = context.scope.clone();
-                    context.scope = Rc::new(Scope::new(func_scope.clone()));
+                    context.scope = Rc::new(Scope::new(func_scope.clone())); // #insight notice we use func_scope here!
 
                     for (param, arg) in params.iter().zip(args) {
                         let Some(param) = param.as_symbol() else {
