@@ -134,8 +134,8 @@ impl fmt::Debug for Expr {
             // #todo properly format do, let, if, etc.
             Expr::If(_, _, _) => "if".to_owned(),
             // #insight intentionally pass through the formatting.
-            Expr::Annotated(expr, ann) => format!("ANN({expr:?}, {ann:?})"),
-            // Expr::Annotated(expr, _ann) => format!("{expr:?}"), // #skip annotations.
+            // Expr::Annotated(expr, ann) => format!("ANN({expr:?}, {ann:?})"),
+            Expr::Annotated(expr, _ann) => format!("Ann({expr:?})"), // #skip annotations.
             Expr::Module(module) => format!("Module({})", module.stem),
         };
 
