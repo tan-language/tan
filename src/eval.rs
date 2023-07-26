@@ -1,3 +1,4 @@
+pub mod iterator;
 pub mod util;
 
 use std::{collections::HashMap, rc::Rc};
@@ -299,6 +300,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo do should be 'monadic', propagate Eff (effect) wrapper.
                             let mut value = Expr::One.into();
 
+                            // #todo extract this.
+
                             let prev_scope = context.scope.clone();
                             context.scope = Rc::new(Scope::new(prev_scope.clone()));
 
@@ -367,30 +370,55 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo this implements only the trivial case:
                             // (for (x 10) (writeln x))
 
-                            // #todo temp, same as while.
+                            // #todo not really a predicate.
 
-                            let [predicate, body] = tail else {
+                            if tail.len() < 2 {
+                                // #todo add more structural checks.
                                 // #todo proper error!
-                                return Err(Error::invalid_arguments("missing for arguments", expr.range()));
-                            };
-
-                            let mut value = Expr::One.into();
-
-                            loop {
-                                let predicate = eval(predicate, context)?;
-
-                                let Some(predicate) = predicate.as_bool() else {
-                                    return Err(Error::invalid_arguments("the for predicate is not a boolean value", predicate.range()));
-                                };
-
-                                if !predicate {
-                                    break;
-                                }
-
-                                value = eval(body, context)?;
+                                return Err(Error::invalid_arguments(
+                                    "missing for arguments",
+                                    expr.range(),
+                                ));
                             }
 
-                            Ok(value)
+                            let binding = tail.first().unwrap();
+                            let body = &tail[1..];
+
+                            // #todo should check both for list and array.
+                            let Some(binding_parts) = binding.as_list() else {
+                                // #todo proper error!
+                                return Err(Error::invalid_arguments("invalid for binding", binding.range()));
+                            };
+
+                            let [var, value] = &binding_parts[..] else {
+                                return Err(Error::invalid_arguments("invalid for binding", binding.range()));
+                            };
+
+                            let Some(var) = var.as_symbol() else {
+                                // #todo proper error!
+                                return Err(Error::invalid_arguments("invalid for binding", var.range()));
+                            };
+
+                            let Some(value) = value.as_int() else {
+                                // #todo proper error!
+                                return Err(Error::invalid_arguments("invalid for binding", value.range()));
+                            };
+
+                            let prev_scope = context.scope.clone();
+                            context.scope = Rc::new(Scope::new(prev_scope.clone()));
+
+                            // #todo use the IntIterator.
+                            for i in 0..value {
+                                for expr in body {
+                                    context.scope.insert(var, Expr::Int(i));
+                                    // #insight plain `for` is useful only for the side-effects.
+                                    let _ = eval(expr, context)?;
+                                }
+                            }
+
+                            context.scope = prev_scope;
+
+                            Ok(Expr::One)
                         }
                         "while" => {
                             // #insight
