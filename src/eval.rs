@@ -12,6 +12,8 @@ use crate::{
     util::is_reserved_symbol,
 };
 
+use self::iterator::IntRangeIterator;
+
 // #Insight
 // _Not_ a pure evaluator, performs side-effects.
 
@@ -399,16 +401,17 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 return Err(Error::invalid_arguments("invalid for binding", var.range()));
                             };
 
-                            let Some(value) = value.as_int() else {
+                            let Some(iterator) = IntRangeIterator::try_from(value) else {
                                 // #todo proper error!
-                                return Err(Error::invalid_arguments("invalid for binding", value.range()));
+                                return Err(Error::invalid_arguments("invalid for binding, the value is not iterable", value.range()));
                             };
 
                             let prev_scope = context.scope.clone();
                             context.scope = Rc::new(Scope::new(prev_scope.clone()));
 
                             // #todo use the IntIterator.
-                            for i in 0..value {
+                            for i in (iterator.start..iterator.end).step_by(iterator.step as usize)
+                            {
                                 for expr in body {
                                     context.scope.insert(var, Expr::Int(i));
                                     // #insight plain `for` is useful only for the side-effects.
