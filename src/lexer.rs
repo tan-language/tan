@@ -37,6 +37,11 @@ fn is_eol(ch: char) -> bool {
     ch == '\n'
 }
 
+// #todo should consider n/step a 0..n/step range?
+fn is_range(input: &str) -> bool {
+    input.contains("..")
+}
+
 // #todo stateful lexer vs buffer
 
 // #Insight
@@ -330,6 +335,16 @@ impl<'a> Lexer<'a> {
         lexeme.replace('_', "")
     }
 
+    fn lex_number_or_range(&mut self) -> Token {
+        let lexeme = self.scan_number();
+
+        if is_range(&lexeme) {
+            Token::symbol(lexeme, self.current_range())
+        } else {
+            Token::number(lexeme, self.current_range())
+        }
+    }
+
     // #todo consider passing into array of chars or something more general.
     pub fn lex(&mut self) -> Result<Vec<Token>, Vec<Error>> {
         let mut tokens: Vec<Token> = Vec::new();
@@ -455,9 +470,8 @@ impl<'a> Lexer<'a> {
                     //     tokens.push(Ranged(Token::Comment(line), self.range()));
                     // } else
                     if ch1.is_numeric() {
-                        // Negative number
-                        let lexeme = self.scan_number();
-                        tokens.push(Token::number(lexeme, self.current_range()));
+                        // Negative number or range
+                        tokens.push(self.lex_number_or_range());
                     } else {
                         // #todo lint warning for this!
                         // Symbol starting with `-`.
@@ -500,8 +514,7 @@ impl<'a> Lexer<'a> {
                 }
                 _ if ch.is_numeric() => {
                     self.put_back_char(ch);
-                    let lexeme = self.scan_number();
-                    tokens.push(Token::number(lexeme, self.current_range()));
+                    tokens.push(self.lex_number_or_range());
                 }
                 _ => {
                     self.put_back_char(ch);

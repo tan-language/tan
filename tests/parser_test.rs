@@ -367,3 +367,14 @@ fn parse_keeps_comments() {
     let expr = &exprs[0];
     assert!(matches!(expr.unpack(), Expr::Comment(x, ..) if x == "; This is a comment"));
 }
+
+#[test]
+fn parse_handles_ranges() {
+    let input = "(let a 2..10/2)";
+    let exprs = parse_string_all(input).unwrap();
+
+    dbg!(&exprs);
+
+    // let expr = &exprs[0];
+    // assert!(matches!(expr.unpack(), Expr::Comment(x, ..) if x == "; This is a comment"));
+}
