@@ -79,6 +79,7 @@ pub enum Expr {
     // #todo different name?
     // #todo support Expr as keys?
     Dict(HashMap<String, Expr>),
+    IntRange(i64, i64, i64), // start, end, step #todo use a struct here,
     // Range(...),
     // #todo, the Func should probably store the Module environment.
     Func(Vec<Expr>, Vec<Expr>, Rc<Scope>), // #todo maybe should have explicit do block?
