@@ -1,8 +1,8 @@
 [package]
 name = "tan"
 description = "The Tan language"
-version = "0.7.0"
-license = "Apache-2.0"
+version = "0.8.0"
+license = "LLVM-exception"
 repository = "https://github.com/tan-language/tan"
 keywords = ["language", "functional", "lisp"]
 authors = ["Georgios Moschovitis <gmosx@reizu.org>"]
