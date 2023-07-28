@@ -401,6 +401,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 return Err(Error::invalid_arguments("invalid for binding", var.range()));
                             };
 
+                            // #todo also handle (Range start end step)
+                            // #todo maybe step should be external to Range, or use SteppedRange, or (Step-By (Range T))
                             let Some(iterator) = IntRangeIterator::try_from(value) else {
                                 // #todo proper error!
                                 return Err(Error::invalid_arguments("invalid for binding, the value is not iterable", value.range()));
