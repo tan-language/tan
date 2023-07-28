@@ -101,7 +101,7 @@ pub enum Expr {
 }
 
 // #todo what is the Expr default? One (Unit/Any) or Zero (Noting/Never)
-
+// #todo use Sexp notation here, duh.
 impl fmt::Debug for Expr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let text = match self {
@@ -128,6 +128,7 @@ impl fmt::Debug for Expr {
             }
             Expr::Array(v) => format!("Array({v:?})"),
             Expr::Dict(d) => format!("Dict({d:?})"),
+            Expr::IntRange(start, end, step) => format!("(Range Int {start} {end} {step})"),
             Expr::Func(..) => "#<func>".to_owned(),
             Expr::Macro(..) => "#<macro>".to_owned(),
             Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
@@ -191,6 +192,7 @@ impl fmt::Display for Expr {
                         .join(" ");
                     format!("{{{exprs}}}")
                 }
+                Expr::IntRange(start, end, step) => format!("{start}..{end}/{step}"),
                 Expr::Func(..) => "#<func>".to_owned(),
                 Expr::Macro(..) => "#<func>".to_owned(),
                 Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
