@@ -2,7 +2,7 @@
 name = "tan"
 description = "The Tan language"
 version = "0.8.0"
-license = "LLVM-exception"
+license = "Apache-2.0"
 repository = "https://github.com/tan-language/tan"
 keywords = ["language", "functional", "lisp"]
 authors = ["Georgios Moschovitis <gmosx@reizu.org>"]
