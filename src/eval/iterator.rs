@@ -7,8 +7,8 @@
 
 use crate::expr::Expr;
 
-pub trait ExprIterator<T> {
-    fn next(&mut self) -> Option<T>;
+pub trait ExprIterator {
+    fn next(&mut self) -> Option<Expr>;
 }
 
 // #todo hmm, not really needed, can reuse Rust's range/iterator/for.
@@ -20,14 +20,14 @@ pub struct IntRangeIterator {
     pub step: i64,
 }
 
-impl ExprIterator<i64> for IntRangeIterator {
-    fn next(&mut self) -> Option<i64> {
+impl ExprIterator for IntRangeIterator {
+    fn next(&mut self) -> Option<Expr> {
         if self.current >= self.end {
             None
         } else {
             let value = self.current;
-            self.current += 1;
-            Some(value)
+            self.current += self.step;
+            Some(Expr::Int(value))
         }
     }
 }

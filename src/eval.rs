@@ -12,7 +12,7 @@ use crate::{
     util::is_reserved_symbol,
 };
 
-use self::iterator::IntRangeIterator;
+use self::iterator::{ExprIterator, IntRangeIterator};
 
 // #Insight
 // _Not_ a pure evaluator, performs side-effects.
@@ -369,11 +369,6 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo reuse code from let
                             // #todo the resolver should handle this.
 
-                            // #todo this implements only the trivial case:
-                            // (for (x 10) (writeln x))
-
-                            // #todo not really a predicate.
-
                             if tail.len() < 2 {
                                 // #todo add more structural checks.
                                 // #todo proper error!
@@ -403,7 +398,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             // #todo also handle (Range start end step)
                             // #todo maybe step should be external to Range, or use SteppedRange, or (Step-By (Range T))
-                            let Some(iterator) = IntRangeIterator::try_from(value) else {
+                            let Some(mut iterator) = IntRangeIterator::try_from(value) else {
                                 // #todo proper error!
                                 return Err(Error::invalid_arguments("invalid for binding, the value is not iterable", value.range()));
                             };
@@ -411,11 +406,9 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             let prev_scope = context.scope.clone();
                             context.scope = Rc::new(Scope::new(prev_scope.clone()));
 
-                            // #todo use the IntIterator.
-                            for i in (iterator.start..iterator.end).step_by(iterator.step as usize)
-                            {
+                            while let Some(value) = iterator.next() {
+                                context.scope.insert(var, value);
                                 for expr in body {
-                                    context.scope.insert(var, Expr::Int(i));
                                     // #insight plain `for` is useful only for the side-effects.
                                     let _ = eval(expr, context)?;
                                 }
