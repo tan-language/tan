@@ -22,8 +22,9 @@ use crate::{
 
 // #todo can we remove the generics shenanigans form Parser?
 
-// #todo move to another file.
 // #ai-generated
+// #todo cleanup the implementation.
+// #todo move to another file.
 /// Parses a range string: start..end/step.
 fn split_range(range_str: &str) -> Option<Expr> {
     let parts: Vec<&str> = range_str.split('/').collect();
@@ -40,17 +41,31 @@ fn split_range(range_str: &str) -> Option<Expr> {
         return None;
     }
 
-    let start: i64 = start_end[0].parse().ok()?;
-    let end: i64 = start_end[1].parse().ok()?;
+    if start_end[0].contains(".") {
+        let start: f64 = start_end[0].parse().ok()?;
+        let end: f64 = start_end[1].parse().ok()?;
 
-    // Default step value is 1 if not provided
-    let step: i64 = if parts.len() == 2 {
-        parts[1].parse().ok()?
+        // Default step value is 1.0 if not provided
+        let step: f64 = if parts.len() == 2 {
+            parts[1].parse().ok()?
+        } else {
+            1.0
+        };
+
+        Some(Expr::FloatRange(start, end, step))
     } else {
-        1
-    };
+        let start: i64 = start_end[0].parse().ok()?;
+        let end: i64 = start_end[1].parse().ok()?;
 
-    Some(Expr::IntRange(start, end, step))
+        // Default step value is 1 if not provided
+        let step: i64 = if parts.len() == 2 {
+            parts[1].parse().ok()?
+        } else {
+            1
+        };
+
+        Some(Expr::IntRange(start, end, step))
+    }
 }
 
 /// The Parser performs the syntactic analysis stage of the compilation pipeline.

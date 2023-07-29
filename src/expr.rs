@@ -79,7 +79,8 @@ pub enum Expr {
     // #todo different name?
     // #todo support Expr as keys?
     Dict(HashMap<String, Expr>),
-    IntRange(i64, i64, i64), // start, end, step #todo use a struct here,
+    IntRange(i64, i64, i64),   // start, end, step #todo use a struct here,
+    FloatRange(f64, f64, f64), // start, end, step #todo use a struct here,
     // Range(...),
     // #todo, the Func should probably store the Module environment.
     Func(Vec<Expr>, Vec<Expr>, Rc<Scope>), // #todo maybe should have explicit do block?
@@ -129,6 +130,7 @@ impl fmt::Debug for Expr {
             Expr::Array(v) => format!("Array({v:?})"),
             Expr::Dict(d) => format!("Dict({d:?})"),
             Expr::IntRange(start, end, step) => format!("(Range Int {start} {end} {step})"),
+            Expr::FloatRange(start, end, step) => format!("(Range Int {start} {end} {step})"),
             Expr::Func(..) => "#<func>".to_owned(),
             Expr::Macro(..) => "#<macro>".to_owned(),
             Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
@@ -193,6 +195,7 @@ impl fmt::Display for Expr {
                     format!("{{{exprs}}}")
                 }
                 Expr::IntRange(start, end, step) => format!("{start}..{end}/{step}"),
+                Expr::FloatRange(start, end, step) => format!("{start}..{end}/{step}"), // #todo consider using `:` or `,` instead of `/`?
                 Expr::Func(..) => "#<func>".to_owned(),
                 Expr::Macro(..) => "#<func>".to_owned(),
                 Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),

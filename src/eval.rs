@@ -12,7 +12,7 @@ use crate::{
     util::is_reserved_symbol,
 };
 
-use self::iterator::{ExprIterator, IntRangeIterator};
+use self::iterator::try_iterator_from;
 
 // #Insight
 // _Not_ a pure evaluator, performs side-effects.
@@ -393,18 +393,20 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             let Some(var) = var.as_symbol() else {
                                 // #todo proper error!
-                                return Err(Error::invalid_arguments("invalid for binding", var.range()));
+                                return Err(Error::invalid_arguments("invalid for binding, malformed variable", var.range()));
                             };
 
                             // #todo also handle (Range start end step)
                             // #todo maybe step should be external to Range, or use SteppedRange, or (Step-By (Range T))
-                            let Some(mut iterator) = IntRangeIterator::try_from(value) else {
+                            let Some(iterator) = try_iterator_from(value) else {
                                 // #todo proper error!
                                 return Err(Error::invalid_arguments("invalid for binding, the value is not iterable", value.range()));
                             };
 
                             let prev_scope = context.scope.clone();
                             context.scope = Rc::new(Scope::new(prev_scope.clone()));
+
+                            let mut iterator = iterator.borrow_mut();
 
                             while let Some(value) = iterator.next() {
                                 context.scope.insert(var, value);

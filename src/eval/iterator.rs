@@ -3,7 +3,7 @@
 // #todo reuse Rust's iterator trait?
 // #todo consider renaming `next` -> `resume` like coroutines
 
-// #warning this is not used yet.
+use std::{cell::RefCell, rc::Rc};
 
 use crate::expr::Expr;
 
@@ -11,7 +11,8 @@ pub trait ExprIterator {
     fn next(&mut self) -> Option<Expr>;
 }
 
-// #todo hmm, not really needed, can reuse Rust's range/iterator/for.
+// #todo hmm, not really needed, can reuse Rust's range/iterator/for?
+// #todo somehow unify RangeITerators
 
 pub struct IntRangeIterator {
     current: i64,
@@ -32,30 +33,53 @@ impl ExprIterator for IntRangeIterator {
     }
 }
 
-impl IntRangeIterator {
-    pub fn new(start: i64, end: i64, step: i64) -> Self {
-        Self {
-            current: 0,
-            start,
-            end,
-            step,
+pub struct FloatRangeIterator {
+    current: f64,
+    pub start: f64,
+    pub end: f64,
+    pub step: f64,
+}
+
+impl ExprIterator for FloatRangeIterator {
+    fn next(&mut self) -> Option<Expr> {
+        if self.current >= self.end {
+            None
+        } else {
+            let value = self.current;
+            self.current += self.step;
+            Some(Expr::Float(value))
         }
     }
+}
 
-    pub fn from_int(end: i64) -> Self {
-        Self {
+// #todo find better name.
+// #todo consider using Box<dyn ExprIterator> instead, at least have a custom helper that returns Box.
+pub fn try_iterator_from(expr: &Expr) -> Option<Rc<RefCell<dyn ExprIterator>>> {
+    match expr.unpack() {
+        Expr::Int(n) => Some(Rc::new(RefCell::new(IntRangeIterator {
             current: 0,
             start: 0,
-            end,
+            end: *n,
             step: 1,
-        }
-    }
-
-    pub fn try_from(expr: &Expr) -> Option<Self> {
-        match expr.unpack() {
-            Expr::Int(n) => Some(IntRangeIterator::from_int(*n)),
-            Expr::IntRange(start, end, step) => Some(IntRangeIterator::new(*start, *end, *step)),
-            _ => None,
-        }
+        }))),
+        Expr::IntRange(start, end, step) => Some(Rc::new(RefCell::new(IntRangeIterator {
+            current: 0,
+            start: *start,
+            end: *end,
+            step: *step,
+        }))),
+        Expr::Float(n) => Some(Rc::new(RefCell::new(FloatRangeIterator {
+            current: 0.0,
+            start: 0.0,
+            end: *n,
+            step: 1.0,
+        }))),
+        Expr::FloatRange(start, end, step) => Some(Rc::new(RefCell::new(FloatRangeIterator {
+            current: 0.0,
+            start: *start,
+            end: *end,
+            step: *step,
+        }))),
+        _ => None,
     }
 }

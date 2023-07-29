@@ -370,7 +370,7 @@ fn parse_keeps_comments() {
 
 // #todo use assert_matches!
 #[test]
-fn parse_handles_ranges() {
+fn parse_handles_int_range() {
     let input = "(let a 2..30/3)";
     let result = parse_string(input).unwrap();
 
@@ -380,5 +380,19 @@ fn parse_handles_ranges() {
 
     assert!(
         matches!(&exprs[2].unpack(), Expr::IntRange(start, end, step) if *start == 2 && *end == 30 && *step == 3)
+    );
+}
+
+#[test]
+fn parse_handles_float_range() {
+    let input = "(let a 2.0..30.0/3.0)";
+    let result = parse_string(input).unwrap();
+
+    let Expr::List(exprs) = result.unpack() else {
+        panic!("invalid form")
+    };
+
+    assert!(
+        matches!(&exprs[2].unpack(), Expr::FloatRange(start, end, step) if *start == 2.0 && *end == 30.0 && *step == 3.0)
     );
 }
