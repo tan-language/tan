@@ -367,3 +367,18 @@ fn parse_keeps_comments() {
     let expr = &exprs[0];
     assert!(matches!(expr.unpack(), Expr::Comment(x, ..) if x == "; This is a comment"));
 }
+
+// #todo use assert_matches!
+#[test]
+fn parse_handles_ranges() {
+    let input = "(let a 2..30/3)";
+    let result = parse_string(input).unwrap();
+
+    let Expr::List(exprs) = result.unpack() else {
+        panic!("invalid form")
+    };
+
+    assert!(
+        matches!(&exprs[2].unpack(), Expr::IntRange(start, end, step) if *start == 2 && *end == 30 && *step == 3)
+    );
+}

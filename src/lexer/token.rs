@@ -30,6 +30,9 @@ use super::comment::CommentKind;
 
 // #todo do we ever need a non-ranged Token? should consider Token/TokenKind arrangement?
 
+// #insight
+// Ranges are represented as a Symbol token, will be handled during syntactical analysis.
+
 /// A lexical Token gives semantic meaning to a Lexeme.
 #[derive(Debug, Clone, PartialEq)]
 pub enum TokenKind {

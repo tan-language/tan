@@ -14,13 +14,44 @@ use crate::{
 // #todo think some more how annotations should be handled.
 // #todo annotations are not correctly attributed to lists
 
-// #Insight
+// #insight
 // The syntax of the language is explicitly designed to _not_ require a lookahead buffer.
 
-// #Insight
+// #insight
 // We move the tokens into the parser to simplify the code. The tokens are useless outside the parser.
 
 // #todo can we remove the generics shenanigans form Parser?
+
+// #todo move to another file.
+// #ai-generated
+/// Parses a range string: start..end/step.
+fn split_range(range_str: &str) -> Option<Expr> {
+    let parts: Vec<&str> = range_str.split('/').collect();
+
+    if parts.len() > 2 {
+        // If there are more than two parts, the input format is invalid
+        return None;
+    }
+
+    // Parse the start and end values from the first part of the split
+    let start_end: Vec<&str> = parts[0].split("..").collect();
+    if start_end.len() != 2 {
+        // If the start-end part doesn't have exactly two elements, the input format is invalid
+        return None;
+    }
+
+    let start: i64 = start_end[0].parse().ok()?;
+    let end: i64 = start_end[1].parse().ok()?;
+
+    // Default step value is 1 if not provided
+    let step: i64 = if parts.len() == 2 {
+        parts[1].parse().ok()?
+    } else {
+        1
+    };
+
+    Some(Expr::IntRange(start, end, step))
+}
 
 /// The Parser performs the syntactic analysis stage of the compilation pipeline.
 /// The input token stream is reduced into and Abstract Syntax Tree (AST).
@@ -203,6 +234,18 @@ impl<'a> Parser<'a> {
                     // #todo consider using nil for false and everything else for true
                     // #todo consider using nothing/never for false and everything else for true.
                     Some(Expr::Bool(false))
+                } else if lexeme.contains("..") {
+                    // #todo cleanup.
+                    // #todo consider accepting as range `end/step`, without the `..` spread.
+                    // #todo validate a range (e.g. only one .., no other random chars)
+                    match split_range(lexeme) {
+                        Some(r) => Some(r),
+                        None => {
+                            let error = Error::new(ErrorKind::MalformedRange);
+                            self.errors.push(error);
+                            None
+                        }
+                    }
                 } else {
                     Some(Expr::Symbol(lexeme.clone()))
                 }
@@ -235,7 +278,7 @@ impl<'a> Parser<'a> {
                         lexeme = lexeme.replace("0b", "");
                         radix = 2
                     } else if lexeme.starts_with("0o") {
-                        // #Insight Octal literals are supported for historical reasons.
+                        // #insight Octal literals are supported for historical reasons.
                         lexeme = lexeme.replace("0o", "");
                         radix = 8
                     }
@@ -263,7 +306,7 @@ impl<'a> Parser<'a> {
                 None
             }
             TokenKind::Quote => {
-                // #Insight we should allow consecutive quotes, emit a linter warning instead!
+                // #insight we should allow consecutive quotes, emit a linter warning instead!
 
                 let Ok(quot_expr) = self.parse_expr() else {
                     // Parsing the quoted expression failed.
@@ -309,7 +352,7 @@ impl<'a> Parser<'a> {
                     // match head {
                     //     // #todo optimize more special forms.
 
-                    //     // #Insight
+                    //     // #insight
                     //     // Parsing built-ins as Exprs optimizes runtime evaluation, with more efficient
                     //     // matching.
 
@@ -330,7 +373,7 @@ impl<'a> Parser<'a> {
             TokenKind::LeftBracket => {
                 // Syntactic sugar for a List/Array.
 
-                // #Insight
+                // #insight
                 // Don't optimize to `Expr::Array` here, leave the parser expr
                 // 'normalized as it is beneficial for some kinds of analysis.
 
@@ -351,7 +394,7 @@ impl<'a> Parser<'a> {
             TokenKind::LeftBrace => {
                 // Syntactic sugar for a Dict.
 
-                // #Insight
+                // #insight
                 // Don't optimize to `Expr::Dict` here, leave the parser expr
                 // 'normalized as it is beneficial for some kinds of analysis.
 
@@ -422,12 +465,12 @@ impl<'a> Parser<'a> {
         }
     }
 
-    // #Insight
+    // #insight
     // The parse function intentionally returns an 'unstructured' vector of
     // expressions instead of something like a do-block or a module. Downstream
     // functions can enforce some structure.
 
-    // #Insight
+    // #insight
     // The loop in the parser is also useful to skip over comments.
 
     /// Parses the input tokens into expressions.
