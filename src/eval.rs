@@ -396,9 +396,12 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 return Err(Error::invalid_arguments("invalid for binding, malformed variable", var.range()));
                             };
 
+                            // #insight for the ListIterator
+                            let value = eval(value, context)?;
+
                             // #todo also handle (Range start end step)
                             // #todo maybe step should be external to Range, or use SteppedRange, or (Step-By (Range T))
-                            let Some(iterator) = try_iterator_from(value) else {
+                            let Some(iterator) = try_iterator_from(&value) else {
                                 // #todo proper error!
                                 return Err(Error::invalid_arguments("invalid for binding, the value is not iterable", value.range()));
                             };

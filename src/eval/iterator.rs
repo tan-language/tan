@@ -52,9 +52,30 @@ impl ExprIterator for FloatRangeIterator {
     }
 }
 
+// #todo what about reverse?
+// #todo consolidate List/Array
+
+pub struct ArrayIterator<'a> {
+    current: usize,
+    items: &'a [Expr],
+    pub step: usize,
+}
+
+impl<'a> ExprIterator for ArrayIterator<'a> {
+    fn next(&mut self) -> Option<Expr> {
+        if self.current < self.items.len() {
+            let value = self.items[self.current].clone(); // #todo argh, avoid this. should array have Rcs?
+            self.current += self.step;
+            Some(value)
+        } else {
+            None
+        }
+    }
+}
+
 // #todo find better name.
 // #todo consider using Box<dyn ExprIterator> instead, at least have a custom helper that returns Box.
-pub fn try_iterator_from(expr: &Expr) -> Option<Rc<RefCell<dyn ExprIterator>>> {
+pub fn try_iterator_from<'a>(expr: &'a Expr) -> Option<Rc<RefCell<dyn ExprIterator + 'a>>> {
     match expr.unpack() {
         Expr::Int(n) => Some(Rc::new(RefCell::new(IntRangeIterator {
             current: 0,
@@ -79,6 +100,11 @@ pub fn try_iterator_from(expr: &Expr) -> Option<Rc<RefCell<dyn ExprIterator>>> {
             start: *start,
             end: *end,
             step: *step,
+        }))),
+        Expr::Array(items) => Some(Rc::new(RefCell::new(ArrayIterator {
+            current: 0,
+            items: &items,
+            step: 1,
         }))),
         _ => None,
     }

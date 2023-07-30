@@ -1,5 +1,7 @@
 mod common;
 
+use assert_matches::assert_matches;
+
 use tan::{
     api::eval_string,
     context::Context,
@@ -405,4 +407,18 @@ fn eval_function_returns_dict() {
     let body = dict.get("body");
 
     assert!(matches!(body, Some(Expr::String(s)) if s == "quote: a quote"));
+}
+
+#[test]
+fn format_string_retains_escaped_chars() {
+    let result = eval_file("format-str.tan");
+
+    assert_matches!(result, Ok(Expr::String(s)) if s == r#"has \"escaped\" chars"#);
+}
+
+#[test]
+fn format_float_has_fractional_part() {
+    let result = eval_file("format-float.tan");
+
+    assert_matches!(result, Ok(Expr::String(s)) if s == "1.0");
 }

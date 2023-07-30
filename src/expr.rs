@@ -10,6 +10,7 @@ use crate::{
     module::Module,
     range::{Position, Range},
     scope::Scope,
+    util::fmt::format_float,
 };
 
 // #todo introduce Expr::Ref() with an Rc reference to avoid excessive cloning!
@@ -407,6 +408,7 @@ pub fn annotate_range(expr: Expr, range: Range) -> Expr {
 pub fn format_value(expr: impl AsRef<Expr>) -> String {
     let expr = expr.as_ref();
     match expr {
+        Expr::Float(n) => format_float(*n),
         Expr::Annotated(expr, _) => format_value(expr),
         Expr::String(s) => s.to_string(),
         Expr::KeySymbol(s) => s.to_string(),

@@ -11,3 +11,6 @@ edition = "2021"
 [dependencies]
 tracing = "0.1"
 rand = "0.8"
+
+[dev-dependencies]
+assert_matches = "1.5"

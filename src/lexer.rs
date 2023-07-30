@@ -208,13 +208,8 @@ impl<'a> Lexer<'a> {
                 return None;
             };
 
-            // #todo support escaping more than one char
-            if ch == '\\' {
-                is_escaping = true;
-                continue;
-            }
-
             if is_escaping {
+                // #todo support escaping more than one char
                 // #todo add additional escape sequences.
                 match ch {
                     '\\' | '"' => string.push(ch),
@@ -224,6 +219,11 @@ impl<'a> Lexer<'a> {
                 }
 
                 is_escaping = false;
+                continue;
+            }
+
+            if ch == '\\' {
+                is_escaping = true;
                 continue;
             }
 
