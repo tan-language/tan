@@ -3,6 +3,8 @@ pub mod expr_transform;
 
 use std::{collections::HashMap, fmt, rc::Rc, sync::Arc};
 
+use rust_decimal::Decimal;
+
 use crate::{
     context::Context,
     error::Error,
@@ -68,6 +70,7 @@ pub enum Expr {
     Bool(bool),                   // #todo remove?
     Int(i64),
     Float(f64),
+    Dec(Decimal),
     Symbol(String),
     KeySymbol(String),
     Char(char),
@@ -117,6 +120,7 @@ impl fmt::Debug for Expr {
             Expr::String(s) => format!("String(\"{s}\")"),
             Expr::Int(num) => format!("Int({num})"),
             Expr::Float(num) => format!("Float({num})"),
+            Expr::Dec(num) => format!("(Dec {num})"),
             Expr::Do => "do".to_owned(),
             Expr::List(terms) => {
                 format!(
@@ -159,6 +163,7 @@ impl fmt::Display for Expr {
                 Expr::Bool(b) => b.to_string(),
                 Expr::Int(n) => n.to_string(),
                 Expr::Float(n) => n.to_string(),
+                Expr::Dec(n) => format!("(Dec {n})"), // #todo 'literal', e.f. 1.23d or #Dec 1.23
                 Expr::Symbol(s) => s.clone(),
                 Expr::KeySymbol(s) => format!(":{s}"),
                 Expr::Char(c) => format!(r#"(Char "{c}")"#), // #todo no char literal?

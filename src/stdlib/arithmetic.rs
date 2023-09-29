@@ -18,7 +18,10 @@ pub fn add_int(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
         let Some(n) = arg.as_int() else {
             // #todo we could return the argument position here and enrich the error upstream.
             // #todo hmm, the error is too precise here, do we really need the annotations?
-            return Err(Error::invalid_arguments(&format!("{arg} is not an Int"), arg.range()));
+            return Err(Error::invalid_arguments(
+                &format!("{arg} is not an Int"),
+                arg.range(),
+            ));
         };
         xs.push(n);
     }
@@ -38,7 +41,10 @@ pub fn add_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 
     for arg in args {
         let Some(n) = arg.as_float() else {
-            return Err(Error::invalid_arguments(&format!("{arg} is not a Float"), arg.range()));
+            return Err(Error::invalid_arguments(
+                &format!("{arg} is not a Float"),
+                arg.range(),
+            ));
         };
         sum += n;
     }
@@ -46,21 +52,32 @@ pub fn add_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(Expr::Float(sum))
 }
 
+// #todo add_dec
+
 // #todo keep separate, optimized version with just 2 arguments!
 // #todo should support varargs.
 // #todo should return the error without range and range should be added by caller.
 pub fn sub_int(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     // #todo support multiple arguments.
     let [a, b] = args else {
-        return Err(Error::invalid_arguments("- requires at least two arguments", None));
+        return Err(Error::invalid_arguments(
+            "- requires at least two arguments",
+            None,
+        ));
     };
 
     let Some(a) = a.as_int() else {
-        return Err(Error::invalid_arguments(&format!("{a} is not an Int"), a.range()));
+        return Err(Error::invalid_arguments(
+            &format!("{a} is not an Int"),
+            a.range(),
+        ));
     };
 
     let Some(b) = b.as_int() else {
-        return Err(Error::invalid_arguments(&format!("{b} is not an Int"), b.range()));
+        return Err(Error::invalid_arguments(
+            &format!("{b} is not an Int"),
+            b.range(),
+        ));
     };
 
     Ok(Expr::Int(a - b))
@@ -69,15 +86,24 @@ pub fn sub_int(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 pub fn sub_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     // #todo support multiple arguments.
     let [a, b] = args else {
-        return Err(Error::invalid_arguments("- requires at least two arguments", None));
+        return Err(Error::invalid_arguments(
+            "- requires at least two arguments",
+            None,
+        ));
     };
 
     let Some(a) = a.as_float() else {
-        return Err(Error::invalid_arguments(&format!("{a} is not a Float"), a.range()));
+        return Err(Error::invalid_arguments(
+            &format!("{a} is not a Float"),
+            a.range(),
+        ));
     };
 
     let Some(b) = b.as_float() else {
-        return Err(Error::invalid_arguments(&format!("{b} is not a Float"), b.range()));
+        return Err(Error::invalid_arguments(
+            &format!("{b} is not a Float"),
+            b.range(),
+        ));
     };
 
     Ok(Expr::Float(a - b))
@@ -89,7 +115,10 @@ pub fn mul_int(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 
     for arg in args {
         let Some(n) = arg.as_int() else {
-            return Err(Error::invalid_arguments(&format!("{arg} is not an Int"), arg.range()));
+            return Err(Error::invalid_arguments(
+                &format!("{arg} is not an Int"),
+                arg.range(),
+            ));
         };
         product *= n;
     }
@@ -103,7 +132,10 @@ pub fn mul_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 
     for arg in args {
         let Some(n) = arg.as_float() else {
-            return Err(Error::invalid_arguments(&format!("{arg} is not a Float"), arg.range()));
+            return Err(Error::invalid_arguments(
+                &format!("{arg} is not a Float"),
+                arg.range(),
+            ));
         };
         product *= n;
     }
@@ -121,7 +153,10 @@ pub fn div_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 
     for arg in args {
         let Some(n) = arg.as_float() else {
-            return Err(Error::invalid_arguments(&format!("{arg} is not a Float"), arg.range()));
+            return Err(Error::invalid_arguments(
+                &format!("{arg} is not a Float"),
+                arg.range(),
+            ));
         };
 
         if quotient.is_nan() {
@@ -140,7 +175,10 @@ pub fn sin_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     };
 
     let Some(n) = n.as_float() else {
-        return Err(Error::invalid_arguments("expected Float argument", n.range()));
+        return Err(Error::invalid_arguments(
+            "expected Float argument",
+            n.range(),
+        ));
     };
 
     Ok(Expr::Float(n.sin()))
@@ -152,7 +190,10 @@ pub fn cos_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     };
 
     let Some(n) = n.as_float() else {
-        return Err(Error::invalid_arguments("expected Float argument", n.range()));
+        return Err(Error::invalid_arguments(
+            "expected Float argument",
+            n.range(),
+        ));
     };
 
     Ok(Expr::Float(n.cos()))
@@ -161,16 +202,25 @@ pub fn cos_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 // #todo support varargs?
 pub fn powi_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [n, e] = args else {
-        return Err(Error::invalid_arguments("- requires at least two arguments", None));
+        return Err(Error::invalid_arguments(
+            "- requires at least two arguments",
+            None,
+        ));
     };
 
     // #todo version of as_float that automatically throws an Error?
     let Some(n) = n.as_float() else {
-        return Err(Error::invalid_arguments(&format!("{n} is not a Float"), n.range()));
+        return Err(Error::invalid_arguments(
+            &format!("{n} is not a Float"),
+            n.range(),
+        ));
     };
 
     let Some(e) = e.as_int() else {
-        return Err(Error::invalid_arguments(&format!("{e} is not an Int"), e.range()));
+        return Err(Error::invalid_arguments(
+            &format!("{e} is not an Int"),
+            e.range(),
+        ));
     };
 
     Ok(Expr::Float(n.powi(e as i32)))
