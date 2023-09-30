@@ -298,6 +298,13 @@ impl Expr {
         Some(*n)
     }
 
+    pub fn as_decimal(&self) -> Option<Decimal> {
+        let Expr::Dec(n) = self.unpack() else {
+            return None;
+        };
+        Some(*n)
+    }
+
     pub fn as_bool(&self) -> Option<bool> {
         let Expr::Bool(b) = self.unpack() else {
             return None;

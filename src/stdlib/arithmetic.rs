@@ -1,3 +1,5 @@
+use rust_decimal_macros::dec;
+
 use crate::{context::Context, error::Error, expr::Expr};
 
 // #Insight
@@ -53,6 +55,22 @@ pub fn add_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 }
 
 // #todo add_dec
+
+pub fn add_dec(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    let mut sum = dec!(0.0);
+
+    for arg in args {
+        let Some(n) = arg.as_decimal() else {
+            return Err(Error::invalid_arguments(
+                &format!("{arg} is not a Dec"),
+                arg.range(),
+            ));
+        };
+        sum += n;
+    }
+
+    Ok(Expr::Dec(sum))
+}
 
 // #todo keep separate, optimized version with just 2 arguments!
 // #todo should support varargs.
