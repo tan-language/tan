@@ -11,6 +11,8 @@ edition = "2021"
 [dependencies]
 tracing = "0.1"
 rand = "0.8"
+rust_decimal = "1.32"
+rust_decimal_macros = "1.32"
 
 [dev-dependencies]
 assert_matches = "1.5"

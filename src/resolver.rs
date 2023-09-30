@@ -75,6 +75,7 @@ impl Resolver {
             }
             Expr::Int(_) => annotate_type(expr, "Int"),
             Expr::Float(_) => annotate_type(expr, "Float"),
+            Expr::Dec(_) => annotate_type(expr, "Dec"),
             Expr::String(_) => annotate_type(expr, "String"),
             // #todo hmm... ultra-hack.
             Expr::Array(_) => annotate_type(expr, "Array"),
@@ -142,7 +143,10 @@ impl Resolver {
                             };
 
                             let Some(s) = sym.as_symbol() else {
-                                self.errors.push(Error::invalid_arguments(&format!("`{sym}` is not a Symbol"), sym.range()));
+                                self.errors.push(Error::invalid_arguments(
+                                    &format!("`{sym}` is not a Symbol"),
+                                    sym.range(),
+                                ));
                                 // Continue to detect more errors.
                                 continue;
                             };
@@ -194,13 +198,19 @@ impl Resolver {
                         // Import a directory as a module.
 
                         let Some(term) = tail.get(0) else {
-                            self.errors.push(Error::invalid_arguments("malformed use expression", expr.range()));
+                            self.errors.push(Error::invalid_arguments(
+                                "malformed use expression",
+                                expr.range(),
+                            ));
                             // #todo what to return here?
                             return Expr::One;
                         };
 
                         let Some(module_path) = term.as_string() else {
-                            self.errors.push(Error::invalid_arguments("malformed use expression", expr.range()));
+                            self.errors.push(Error::invalid_arguments(
+                                "malformed use expression",
+                                expr.range(),
+                            ));
                             // #todo what to return here?
                             return Expr::One;
                         };
@@ -220,7 +230,7 @@ impl Resolver {
                         let Ok(Expr::Module(module)) = result else {
                             // #todo could use a panic here, this should never happen.
                             self.errors.push(Error::failed_use(&module_path, vec![])); // #todo add note with information!
-                            // #todo what to return here?
+                                                                                       // #todo what to return here?
                             return Expr::One;
                         };
 
@@ -361,7 +371,7 @@ impl Resolver {
                     expr
                 }
             }
-            _ => expr,
+            _ => expr, // #todo add a debugging trace here!
         }
     }
 

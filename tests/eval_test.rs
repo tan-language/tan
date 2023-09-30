@@ -28,6 +28,18 @@ fn eval_processes_arithmetic_expressions() {
 }
 
 #[test]
+fn eval_processes_decimal_arithmetic_expressions() {
+    let result = eval_file("sum-dec.tan");
+
+    assert!(result.is_ok());
+
+    let value = format!("{}", result.unwrap());
+    let expected_value = read_file("sum-dec.value.tan");
+
+    assert_eq!(value, expected_value);
+}
+
+#[test]
 fn do_reports_intermediate_errors() {
     let result = eval_file("do-intermediate-error.tan");
 

@@ -3,6 +3,7 @@ use std::{rc::Rc, sync::Arc};
 use crate::expr::annotate_type;
 use crate::{context::Context, expr::Expr, module::Module};
 
+use super::arithmetic::add_dec;
 use super::io::{read_string, write, writeln};
 use super::seq::array_count;
 use super::{
@@ -36,6 +37,12 @@ pub fn setup_std_prelude(context: &mut Context) {
         // #todo add the proper type: (Func Float Float Float)
         // #todo even better: (Func (Many Float) Float)
         annotate_type(Expr::ForeignFunc(Arc::new(add_float)), "Float"),
+    );
+    scope.insert(
+        "+$$Dec$$Dec",
+        // #todo add the proper type: (Func Dec Dec Dec)
+        // #todo even better: (Func (Many Dec) Dec)
+        annotate_type(Expr::ForeignFunc(Arc::new(add_dec)), "Dec"),
     );
     scope.insert("-", Expr::ForeignFunc(Arc::new(sub_int)));
     scope.insert(

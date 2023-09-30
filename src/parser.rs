@@ -1,3 +1,5 @@
+use rust_decimal::prelude::*;
+
 use crate::{
     error::{Error, ErrorKind},
     expr::{annotate, annotate_range, Expr},
@@ -121,7 +123,13 @@ impl<'a> Parser<'a> {
 
             let Ok(tokens) = lexer.lex() else {
                 let mut error = Error::new(ErrorKind::MalformedAnnotation);
-                error.push_note(&format!("Lexical error in annotation `{}`", annotation_token.lexeme()), Some(annotation_token.range()));
+                error.push_note(
+                    &format!(
+                        "Lexical error in annotation `{}`",
+                        annotation_token.lexeme()
+                    ),
+                    Some(annotation_token.range()),
+                );
                 self.errors.push(error);
                 // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
                 return expr;
@@ -272,14 +280,30 @@ impl<'a> Parser<'a> {
                 // #todo error handling not enough, we need to add context, check error_stack
                 if lexeme.contains('.') {
                     // #todo support radix for non-integers?
-                    // #todo find a better name for 'non-integer'.
-                    match lexeme.parse::<f64>() {
-                        Ok(n) => Some(Expr::Float(n)),
-                        Err(pf_error) => {
-                            let mut error = Error::new(ErrorKind::MalformedFloat);
-                            error.push_note(&format!("{pf_error}"), Some(range));
-                            self.errors.push(error);
-                            None
+
+                    if lexeme.ends_with("d") {
+                        // numbers ending with a 'd' postfix are Dec (decimal) literals.
+                        // #todo a proper regular expression to match decimals is needed.
+                        let lexeme = &lexeme[0..lexeme.len() - 1];
+                        match Decimal::from_str(lexeme) {
+                            Ok(num) => Some(Expr::Dec(num)),
+                            Err(dec_error) => {
+                                let mut error = Error::new(ErrorKind::MalformedFloat); // #todo introduce MalformedDec?
+                                error.push_note(&format!("{dec_error}"), Some(range));
+                                self.errors.push(error);
+                                None
+                            }
+                        }
+                    } else {
+                        // #todo find a better name for 'non-integer'.
+                        match lexeme.parse::<f64>() {
+                            Ok(num) => Some(Expr::Float(num)),
+                            Err(pf_error) => {
+                                let mut error = Error::new(ErrorKind::MalformedFloat);
+                                error.push_note(&format!("{pf_error}"), Some(range));
+                                self.errors.push(error);
+                                None
+                            }
                         }
                     }
                 } else {
@@ -327,20 +351,14 @@ impl<'a> Parser<'a> {
                     // Parsing the quoted expression failed.
                     // Continue parsing to detect more errors.
                     let mut error = Error::new(ErrorKind::InvalidQuote);
-                    error.push_note(
-                        "Cannot parse quoted expression",
-                        Some(token.range()),
-                    );
+                    error.push_note("Cannot parse quoted expression", Some(token.range()));
                     self.errors.push(error);
                     return Ok(None);
                 };
 
                 let Some(target) = quot_expr else {
                     let mut error = Error::new(ErrorKind::InvalidQuote);
-                    error.push_note(
-                        "Invalid quoted expression",
-                        Some(token.range()),
-                    );
+                    error.push_note("Invalid quoted expression", Some(token.range()));
                     self.errors.push(error);
                     // It is recoverable error.
                     return Ok(None);
@@ -460,10 +478,7 @@ impl<'a> Parser<'a> {
             let Some(token) = self.next_token() else {
                 let range = start_position..self.current_position;
                 let mut error = Error::new(ErrorKind::UnterminatedList);
-                error.push_note(
-                    "List not terminated",
-                    Some(range),
-                );
+                error.push_note("List not terminated", Some(range));
                 self.errors.push(error);
                 return Err(Break {});
             };
