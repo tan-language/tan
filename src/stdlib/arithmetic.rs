@@ -1,3 +1,4 @@
+#[cfg(feature = "dec")]
 use rust_decimal_macros::dec;
 
 use crate::{context::Context, error::Error, expr::Expr};
@@ -54,8 +55,7 @@ pub fn add_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(Expr::Float(sum))
 }
 
-// #todo add_dec
-
+#[cfg(feature = "dec")]
 pub fn add_dec(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let mut sum = dec!(0.0);
 

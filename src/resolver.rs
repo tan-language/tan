@@ -75,6 +75,7 @@ impl Resolver {
             }
             Expr::Int(_) => annotate_type(expr, "Int"),
             Expr::Float(_) => annotate_type(expr, "Float"),
+            #[cfg(feature = "dec")]
             Expr::Dec(_) => annotate_type(expr, "Dec"),
             Expr::String(_) => annotate_type(expr, "String"),
             // #todo hmm... ultra-hack.

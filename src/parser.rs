@@ -1,3 +1,4 @@
+#[cfg(feature = "dec")]
 use rust_decimal::prelude::*;
 
 use crate::{
@@ -284,16 +285,24 @@ impl<'a> Parser<'a> {
                     if lexeme.ends_with("d") {
                         // numbers ending with a 'd' postfix are Dec (decimal) literals.
                         // #todo a proper regular expression to match decimals is needed.
-                        let lexeme = &lexeme[0..lexeme.len() - 1];
-                        match Decimal::from_str(lexeme) {
-                            Ok(num) => Some(Expr::Dec(num)),
-                            Err(dec_error) => {
-                                let mut error = Error::new(ErrorKind::MalformedFloat); // #todo introduce MalformedDec?
-                                error.push_note(&format!("{dec_error}"), Some(range));
-                                self.errors.push(error);
-                                None
+
+                        #[cfg(feature = "dec")]
+                        {
+                            let lexeme = &lexeme[0..lexeme.len() - 1];
+                            match Decimal::from_str(lexeme) {
+                                Ok(num) => Some(Expr::Dec(num)),
+                                Err(dec_error) => {
+                                    let mut error = Error::new(ErrorKind::MalformedFloat); // #todo introduce MalformedDec?
+                                    error.push_note(&format!("{dec_error}"), Some(range));
+                                    self.errors.push(error);
+                                    None
+                                }
                             }
                         }
+
+                        // #todo return error instead!
+                        #[cfg(not(feature = "dec"))]
+                        panic!("Dec not supported in this build");
                     } else {
                         // #todo find a better name for 'non-integer'.
                         match lexeme.parse::<f64>() {

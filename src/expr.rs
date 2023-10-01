@@ -3,6 +3,7 @@ pub mod expr_transform;
 
 use std::{collections::HashMap, fmt, rc::Rc, sync::Arc};
 
+#[cfg(feature = "dec")]
 use rust_decimal::Decimal;
 
 use crate::{
@@ -70,6 +71,7 @@ pub enum Expr {
     Bool(bool),                   // #todo remove?
     Int(i64),
     Float(f64),
+    #[cfg(feature = "dec")]
     Dec(Decimal),
     Symbol(String),
     KeySymbol(String),
@@ -120,6 +122,7 @@ impl fmt::Debug for Expr {
             Expr::String(s) => format!("String(\"{s}\")"),
             Expr::Int(num) => format!("Int({num})"),
             Expr::Float(num) => format!("Float({num})"),
+            #[cfg(feature = "dec")]
             Expr::Dec(num) => format!("(Dec {num})"),
             Expr::Do => "do".to_owned(),
             Expr::List(terms) => {
@@ -163,6 +166,7 @@ impl fmt::Display for Expr {
                 Expr::Bool(b) => b.to_string(),
                 Expr::Int(n) => n.to_string(),
                 Expr::Float(n) => n.to_string(),
+                #[cfg(feature = "dec")]
                 Expr::Dec(n) => format!("(Dec {n})"), // #todo 'literal', e.f. 1.23d or #Dec 1.23
                 Expr::Symbol(s) => s.clone(),
                 Expr::KeySymbol(s) => format!(":{s}"),
@@ -298,6 +302,7 @@ impl Expr {
         Some(*n)
     }
 
+    #[cfg(feature = "dec")]
     pub fn as_decimal(&self) -> Option<Decimal> {
         let Expr::Dec(n) = self.unpack() else {
             return None;

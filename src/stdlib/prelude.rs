@@ -3,14 +3,10 @@ use std::{rc::Rc, sync::Arc};
 use crate::expr::annotate_type;
 use crate::{context::Context, expr::Expr, module::Module};
 
-use super::arithmetic::add_dec;
+use super::arithmetic;
 use super::io::{read_string, write, writeln};
 use super::seq::array_count;
 use super::{
-    arithmetic::{
-        add_float, add_int, cos_float, div_float, mul_float, mul_int, powi_float, sin_float,
-        sub_float, sub_int,
-    },
     eq::{eq, gt, lt},
     seq::array_join,
     string::{char_uppercased, format, string_chars, string_constructor_from_chars},
@@ -26,69 +22,70 @@ pub fn setup_std_prelude(context: &mut Context) {
     // #todo forget the mangling, implement with a dispatcher function, multi-function.
     scope.insert(
         "+",
-        annotate_type(Expr::ForeignFunc(Arc::new(add_int)), "Int"),
+        annotate_type(Expr::ForeignFunc(Arc::new(arithmetic::add_int)), "Int"),
     );
     scope.insert(
         "+$$Int$$Int",
-        annotate_type(Expr::ForeignFunc(Arc::new(add_int)), "Int"),
+        annotate_type(Expr::ForeignFunc(Arc::new(arithmetic::add_int)), "Int"),
     );
     scope.insert(
         "+$$Float$$Float",
         // #todo add the proper type: (Func Float Float Float)
         // #todo even better: (Func (Many Float) Float)
-        annotate_type(Expr::ForeignFunc(Arc::new(add_float)), "Float"),
+        annotate_type(Expr::ForeignFunc(Arc::new(arithmetic::add_float)), "Float"),
     );
+    #[cfg(feature = "dec")]
     scope.insert(
         "+$$Dec$$Dec",
         // #todo add the proper type: (Func Dec Dec Dec)
         // #todo even better: (Func (Many Dec) Dec)
-        annotate_type(Expr::ForeignFunc(Arc::new(add_dec)), "Dec"),
+        annotate_type(Expr::ForeignFunc(Arc::new(arithmetic::add_dec)), "Dec"),
     );
-    scope.insert("-", Expr::ForeignFunc(Arc::new(sub_int)));
+    scope.insert("-", Expr::ForeignFunc(Arc::new(arithmetic::sub_int)));
     scope.insert(
         "-$$Int$$Int",
-        annotate_type(Expr::ForeignFunc(Arc::new(sub_int)), "Int"),
+        annotate_type(Expr::ForeignFunc(Arc::new(arithmetic::sub_int)), "Int"),
     );
     scope.insert(
         "-$$Float$$Float",
-        annotate_type(Expr::ForeignFunc(Arc::new(sub_float)), "Float"),
+        annotate_type(Expr::ForeignFunc(Arc::new(arithmetic::sub_float)), "Float"),
     );
-    scope.insert("*", Expr::ForeignFunc(Arc::new(mul_int)));
+    scope.insert("*", Expr::ForeignFunc(Arc::new(arithmetic::mul_int)));
     scope.insert(
         "*$$Int$$Int",
-        annotate_type(Expr::ForeignFunc(Arc::new(mul_int)), "Int"),
+        annotate_type(Expr::ForeignFunc(Arc::new(arithmetic::mul_int)), "Int"),
     );
     scope.insert(
         "*$$Float$$Float",
         // #todo add the proper type: (Func Float Float Float)
         // #todo even better: (Func (Many Float) Float)
-        annotate_type(Expr::ForeignFunc(Arc::new(mul_float)), "Float"),
+        annotate_type(Expr::ForeignFunc(Arc::new(arithmetic::mul_float)), "Float"),
     );
     scope.insert(
         "/",
-        annotate_type(Expr::ForeignFunc(Arc::new(div_float)), "Float"),
+        annotate_type(Expr::ForeignFunc(Arc::new(arithmetic::div_float)), "Float"),
     );
     // #todo ultra-hack
     scope.insert(
         "/$$Float$$Float",
-        annotate_type(Expr::ForeignFunc(Arc::new(div_float)), "Float"),
+        annotate_type(Expr::ForeignFunc(Arc::new(arithmetic::div_float)), "Float"),
     );
     // #todo ultra-hack
     scope.insert(
         "/$$Float$$Float$$Float",
-        annotate_type(Expr::ForeignFunc(Arc::new(div_float)), "Float"),
+        annotate_type(Expr::ForeignFunc(Arc::new(arithmetic::div_float)), "Float"),
     );
     scope.insert(
         "sin",
-        annotate_type(Expr::ForeignFunc(Arc::new(sin_float)), "Float"),
+        annotate_type(Expr::ForeignFunc(Arc::new(arithmetic::sin_float)), "Float"),
     );
     scope.insert(
         "cos",
-        annotate_type(Expr::ForeignFunc(Arc::new(cos_float)), "Float"),
+        annotate_type(Expr::ForeignFunc(Arc::new(arithmetic::cos_float)), "Float"),
     );
     scope.insert(
         "**",
-        annotate_type(Expr::ForeignFunc(Arc::new(powi_float)), "Float"),
+        annotate_type(Expr::ForeignFunc(Arc::new(arithmetic::powi_float)), "Float"),
     );
 
     // eq
