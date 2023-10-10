@@ -245,6 +245,18 @@ fn eval_processes_dict() {
 }
 
 #[test]
+fn eval_processes_dict_with_keys() {
+    let result = eval_file("key-dict.tan");
+
+    assert!(result.is_ok());
+
+    let value = format!("{}", result.unwrap());
+    let expected_value = read_file("key-dict.value.tan");
+
+    assert_eq!(value, expected_value);
+}
+
+#[test]
 fn eval_processes_multiline_strings() {
     let result = eval_file("multi-line-string.tan");
 
