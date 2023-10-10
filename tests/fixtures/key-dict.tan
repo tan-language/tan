@@ -1,0 +1,8 @@
+(do
+    (let dict {given-name: "George" family-name: "Moschovitis"})
+    ; (let name (dict given_name:))
+    (let name (dict :given-name))
+    name
+)
+
+; (let name (((users "gmosx") "properties") 2))

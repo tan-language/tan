@@ -71,6 +71,14 @@ fn split_range(range_str: &str) -> Option<Expr> {
     }
 }
 
+/// A key is considered a `KeySymbol` (aka 'keyword') if it contains a collon. A collon
+/// can be at the end or at the beginning, or even in the middle of the lexeme.
+/// A `KeySymbol` always evaluates to itself.
+#[inline(always)]
+pub fn is_key_symbol(lexeme: &str) -> bool {
+    lexeme.contains(':')
+}
+
 /// The Parser performs the syntactic analysis stage of the compilation pipeline.
 /// The input token stream is reduced into and Abstract Syntax Tree (AST).
 /// The nodes of the AST are associated with annotations.
@@ -244,8 +252,11 @@ impl<'a> Parser<'a> {
             // Token::Char(c) => Some(Expr::Char(c)),
             TokenKind::String(lexeme) => Some(Expr::String(lexeme.clone())),
             TokenKind::Symbol(lexeme) => {
-                if lexeme.starts_with(':') {
-                    let sym = lexeme.strip_prefix(':').unwrap().to_string();
+                if is_key_symbol(lexeme) {
+                    // #todo consider forcing `:` at the end or beginning? don't use as separators?
+                    // #todo consider converting to (quote (Symbol ...))? KeySymbol is slightly faster?
+                    let sym = str::replace(lexeme, ":", "");
+                    // #todo consider Expr::Key instead of Expr::KeySymbol
                     Some(Expr::KeySymbol(sym))
                 } else if lexeme == "true" {
                     // #todo consider using (True) for true 'literal'.

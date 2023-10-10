@@ -74,7 +74,7 @@ pub enum Expr {
     #[cfg(feature = "dec")]
     Dec(Decimal),
     Symbol(String),
-    KeySymbol(String),
+    KeySymbol(String), // #todo consider renaming to Expr::Key
     Char(char),
     String(String),
     // #todo better name for 'generic' List, how about `Cons` or `ConsList` or `Cell`?

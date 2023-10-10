@@ -3,6 +3,7 @@ use std::{rc::Rc, sync::Arc};
 use crate::expr::annotate_type;
 use crate::{context::Context, expr::Expr, module::Module};
 
+// #todo remove granular imports
 use super::arithmetic;
 use super::io::{read_string, write, writeln};
 use super::seq::array_count;
