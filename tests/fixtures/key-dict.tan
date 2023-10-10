@@ -1,5 +1,9 @@
 (do
-    (let dict {given-name: "George" family-name: "Moschovitis"})
+    (let dict {
+        given-name: "George"
+        family-name: "Moschovitis"
+        level: 3
+    })
     ; (let name (dict given_name:))
     (let name (dict :given-name))
     name
