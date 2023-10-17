@@ -7,8 +7,10 @@
     ; (let name (get user :given-name))
     ; (let name (:given-name user))
     ; (let name (user given_name:))
+    ; (let name user/given-name)
     (let name (user :given-name))
     name
 )
 
+; (let name users/gmosx/properties/2)
 ; (let name (((users "gmosx") "properties") 2))
