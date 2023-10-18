@@ -1,3 +1,5 @@
+pub mod util;
+
 #[cfg(feature = "dec")]
 use rust_decimal::prelude::*;
 
@@ -8,9 +10,12 @@ use crate::{
         token::{Token, TokenKind},
         Lexer,
     },
+    parser::util::parse_string_template,
     range::{Position, Range},
     util::{put_back_iterator::PutBackIterator, Break},
 };
+
+use self::util::{is_key_symbol, split_range};
 
 // #todo no need to keep iterator as state in parser!
 // #todo can the parser be just a function? -> yes, if we use a custom iterator to keep the parsing state.
@@ -24,60 +29,6 @@ use crate::{
 // We move the tokens into the parser to simplify the code. The tokens are useless outside the parser.
 
 // #todo can we remove the generics shenanigans form Parser?
-
-// #ai-generated
-// #todo cleanup the implementation.
-// #todo move to another file.
-/// Parses a range string: start..end/step.
-fn split_range(range_str: &str) -> Option<Expr> {
-    let parts: Vec<&str> = range_str.split('/').collect();
-
-    if parts.len() > 2 {
-        // If there are more than two parts, the input format is invalid
-        return None;
-    }
-
-    // Parse the start and end values from the first part of the split
-    let start_end: Vec<&str> = parts[0].split("..").collect();
-    if start_end.len() != 2 {
-        // If the start-end part doesn't have exactly two elements, the input format is invalid
-        return None;
-    }
-
-    if start_end[0].contains(".") {
-        let start: f64 = start_end[0].parse().ok()?;
-        let end: f64 = start_end[1].parse().ok()?;
-
-        // Default step value is 1.0 if not provided
-        let step: f64 = if parts.len() == 2 {
-            parts[1].parse().ok()?
-        } else {
-            1.0
-        };
-
-        Some(Expr::FloatRange(start, end, step))
-    } else {
-        let start: i64 = start_end[0].parse().ok()?;
-        let end: i64 = start_end[1].parse().ok()?;
-
-        // Default step value is 1 if not provided
-        let step: i64 = if parts.len() == 2 {
-            parts[1].parse().ok()?
-        } else {
-            1
-        };
-
-        Some(Expr::IntRange(start, end, step))
-    }
-}
-
-/// A key is considered a `KeySymbol` (aka 'keyword') if it contains a collon. A collon
-/// can be at the end or at the beginning, or even in the middle of the lexeme.
-/// A `KeySymbol` always evaluates to itself.
-#[inline(always)]
-pub fn is_key_symbol(lexeme: &str) -> bool {
-    lexeme.contains(':')
-}
 
 /// The Parser performs the syntactic analysis stage of the compilation pipeline.
 /// The input token stream is reduced into and Abstract Syntax Tree (AST).
@@ -252,7 +203,21 @@ impl<'a> Parser<'a> {
             // Token::Char(c) => Some(Expr::Char(c)),
             // #todo handle strings with interpolation (String-Template)
             // #todo javascript-style templated/tagged string, with key at the end.
-            TokenKind::String(lexeme) => Some(Expr::String(lexeme.clone())),
+            // #todo add detailed description.
+            TokenKind::String(lexeme) => {
+                if lexeme.contains("${") {
+                    match parse_string_template(lexeme) {
+                        Some(format_expr) => Some(format_expr),
+                        None => {
+                            let error = Error::new(ErrorKind::MalformedRange);
+                            self.errors.push(error);
+                            None
+                        }
+                    }
+                } else {
+                    Some(Expr::String(lexeme.clone()))
+                }
+            }
             TokenKind::Symbol(lexeme) => {
                 if is_key_symbol(lexeme) {
                     // #todo do not support ':' at the end.
