@@ -250,9 +250,12 @@ impl<'a> Parser<'a> {
                 Some(Expr::TextSeparator)
             }
             // Token::Char(c) => Some(Expr::Char(c)),
+            // #todo handle strings with interpolation (String-Template)
+            // #todo javascript-style templated/tagged string, with key at the end.
             TokenKind::String(lexeme) => Some(Expr::String(lexeme.clone())),
             TokenKind::Symbol(lexeme) => {
                 if is_key_symbol(lexeme) {
+                    // #todo do not support ':' at the end.
                     // #todo consider forcing `:` at the end or beginning? don't use as separators?
                     // #todo consider converting to (quote (Symbol ...))? KeySymbol is slightly faster?
                     let sym = str::replace(lexeme, ":", "");

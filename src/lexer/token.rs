@@ -47,7 +47,7 @@ pub enum TokenKind {
     /// 'paragraphs' of text.
     MultiLineWhitespace, // #todo use something more general, like `Pragma`.
     // Char(char),
-    String(String),
+    String(String), // #todo support a tag? javascript-style tagged/template string?
     Symbol(String),
     Number(String),
     Annotation(String),
