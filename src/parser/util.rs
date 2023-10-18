@@ -7,8 +7,10 @@ use crate::{api::parse_string, error::Error, expr::Expr};
 // #insight `$` is not enough and we need the braces `{}`, as symbols can use almost all characters.
 
 // #todo allow whitespace and some non-symbol characters to delineate the interpolation to allow e.g. "$name hello!!".
+// #todo support 'toggle' interpolation with %{..}
 
 // #todo refactor, this is a temp implementation.
+// #todo could use (String ...) constructor instead of (format ...)? (format <> scan)
 // #ai-generated
 // Parses string templates, e.g. "name: ${name}, age: ${age}."
 pub fn recognize_string_template(input: &str) -> Result<Expr, Vec<Error>> {
