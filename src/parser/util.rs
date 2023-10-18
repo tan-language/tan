@@ -4,8 +4,9 @@ use crate::{api::parse_string, error::Error, expr::Expr};
 
 // #todo add unit-tests for these functions.
 
-// #todo refactor
+// #todo refactor, this is a temp implementation.
 // #ai-generated
+// Parses string templates, e.g. "name: ${name}, age: ${age}."
 pub fn recognize_string_template(input: &str) -> Result<Expr, Vec<Error>> {
     let mut exprs = vec![Expr::symbol("format")];
 
