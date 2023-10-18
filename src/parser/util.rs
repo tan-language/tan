@@ -4,6 +4,10 @@ use crate::{api::parse_string, error::Error, expr::Expr};
 
 // #todo add unit-tests for these functions.
 
+// #insight `$` is not enough and we need the braces `{}`, as symbols can use almost all characters.
+
+// #todo allow whitespace and some non-symbol characters to delineate the interpolation to allow e.g. "$name hello!!".
+
 // #todo refactor, this is a temp implementation.
 // #ai-generated
 // Parses string templates, e.g. "name: ${name}, age: ${age}."
@@ -86,6 +90,8 @@ pub fn recognize_range(range_str: &str) -> Option<Expr> {
         Some(Expr::IntRange(start, end, step))
     }
 }
+
+// #todo force the `:` at the beginning
 
 /// A key is considered a `KeySymbol` (aka 'keyword') if it contains a collon. A collon
 /// can be at the end or at the beginning, or even in the middle of the lexeme.
