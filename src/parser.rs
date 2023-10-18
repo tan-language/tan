@@ -10,12 +10,12 @@ use crate::{
         token::{Token, TokenKind},
         Lexer,
     },
-    parser::util::parse_string_template,
+    parser::util::recognize_string_template,
     range::{Position, Range},
     util::{put_back_iterator::PutBackIterator, Break},
 };
 
-use self::util::{is_key_symbol, split_range};
+use self::util::{is_key_symbol, recognize_range};
 
 // #todo no need to keep iterator as state in parser!
 // #todo can the parser be just a function? -> yes, if we use a custom iterator to keep the parsing state.
@@ -206,10 +206,13 @@ impl<'a> Parser<'a> {
             // #todo add detailed description.
             TokenKind::String(lexeme) => {
                 if lexeme.contains("${") {
-                    match parse_string_template(lexeme) {
-                        Some(format_expr) => Some(format_expr),
-                        None => {
-                            let error = Error::new(ErrorKind::MalformedRange);
+                    match recognize_string_template(lexeme) {
+                        Ok(format_expr) => Some(format_expr),
+                        Err(errs) => {
+                            let mut error = Error::new(ErrorKind::MalformedRange);
+                            for err in errs {
+                                error.push_note(&err.to_string(), Some(range.clone()));
+                            }
                             self.errors.push(error);
                             None
                         }
@@ -241,7 +244,7 @@ impl<'a> Parser<'a> {
                     // #todo cleanup.
                     // #todo consider accepting as range `end/step`, without the `..` spread.
                     // #todo validate a range (e.g. only one .., no other random chars)
-                    match split_range(lexeme) {
+                    match recognize_range(lexeme) {
                         Some(r) => Some(r),
                         None => {
                             let error = Error::new(ErrorKind::MalformedRange);

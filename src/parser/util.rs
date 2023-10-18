@@ -1,43 +1,50 @@
-use crate::expr::Expr;
+use crate::{api::parse_string, error::Error, expr::Expr};
 
-// #ai
-pub fn parse_string_template(input: &str) -> Option<Expr> {
+// #insight `recognize_` is used instead of e.g. `parse_` to avoid confusion with `parse_string` and other helpers.
+
+// #todo add unit-tests for these functions.
+
+// #todo refactor
+// #ai-generated
+pub fn recognize_string_template(input: &str) -> Result<Expr, Vec<Error>> {
     let mut exprs = vec![Expr::symbol("format")];
 
-    let mut last_end = 0;
+    let mut previous_end = 0;
 
-    while let Some(start) = input[last_end..].find("${") {
-        let start = last_end + start;
+    while let Some(start) = input[previous_end..].find("${") {
+        let start = previous_end + start;
 
         if let Some(end) = input[start..].find('}') {
             let end = start + end + 1;
 
-            // Add text before the interpolation
-            exprs.push(Expr::string(&input[last_end..start]));
+            // Add text before the interpolation.
+            exprs.push(Expr::string(&input[previous_end..start]));
 
-            // #todo should parse the expression!
-            // Add the interpolation itself
-            exprs.push(Expr::symbol(&input[(start + 2)..(end - 1)]));
+            // #todo make sure that interpolation error contains correct range!
+            // #todo what happens if the interpolation contains an }?
+            // Add the interpolation itself.
+            exprs.push(parse_string(&input[(start + 2)..(end - 1)])?);
 
-            // Update last_end
-            last_end = end;
+            previous_end = end;
         } else {
-            // If '}' is not found after '${', break the loop
+            // If '}' is not found after '${', break the loop.
             break;
         }
     }
 
-    // Add the remaining text after the last interpolation
-    exprs.push(Expr::string(&input[last_end..]));
+    if previous_end < input.len() {
+        // Add the remaining text after the last interpolation.
+        exprs.push(Expr::string(&input[previous_end..]));
+    }
 
-    Some(Expr::List(exprs))
+    Ok(Expr::List(exprs))
 }
 
 // #ai-generated
 // #todo cleanup the implementation.
 // #todo move to another file.
 /// Parses a range string: start..end/step.
-pub fn split_range(range_str: &str) -> Option<Expr> {
+pub fn recognize_range(range_str: &str) -> Option<Expr> {
     let parts: Vec<&str> = range_str.split('/').collect();
 
     if parts.len() > 2 {

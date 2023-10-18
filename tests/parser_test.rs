@@ -221,12 +221,12 @@ fn parse_handles_template_strings() {
 
     dbg!(exprs);
 
-    // let Expr::List(ref exprs) = exprs[2].unpack() else {
-    //     panic!("assertion failed: invalid form")
-    // };
+    let Expr::List(ref exprs) = exprs[2].unpack() else {
+        panic!("assertion failed: invalid form")
+    };
 
-    // assert!(matches!(&exprs[0].unpack(), Expr::Symbol(s) if s == "Array"));
-    // assert!(matches!(exprs.len(), 4));
+    assert!(matches!(&exprs[0].unpack(), Expr::Symbol(s) if s == "format"));
+    assert_eq!(exprs.len(), 5);
 }
 
 #[test]
