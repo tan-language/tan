@@ -105,7 +105,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             let predicate = eval(predicate, context)?;
 
             let Some(predicate) = predicate.as_bool() else {
-                return Err(Error::invalid_arguments("the if predicate is not a boolean value", predicate.range()));
+                return Err(Error::invalid_arguments(
+                    "the if predicate is not a boolean value",
+                    predicate.range(),
+                ));
             };
 
             if predicate {
@@ -154,8 +157,11 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             for (param, arg) in params.iter().zip(&args) {
                                 let Some(param) = param.as_symbol() else {
-                                        return Err(Error::invalid_arguments("parameter is not a symbol", param.range()));
-                                    };
+                                    return Err(Error::invalid_arguments(
+                                        "parameter is not a symbol",
+                                        param.range(),
+                                    ));
+                                };
 
                                 context.scope.insert(param, arg.clone());
                             }
@@ -211,8 +217,11 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                     for (param, arg) in params.iter().zip(args) {
                         let Some(param) = param.as_symbol() else {
-                                return Err(Error::invalid_arguments("parameter is not a symbol", param.range()));
-                            };
+                            return Err(Error::invalid_arguments(
+                                "parameter is not a symbol",
+                                param.range(),
+                            ));
+                        };
 
                         context.scope.insert(param, arg);
                     }
@@ -262,7 +271,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     let index = &args[0];
                     // #todo we need UInt, USize, Nat type
                     let Some(index) = index.as_int() else {
-                        return Err(Error::invalid_arguments("invalid array index, expecting Int", index.range()));
+                        return Err(Error::invalid_arguments(
+                            "invalid array index, expecting Int",
+                            index.range(),
+                        ));
                     };
                     let index = index as usize;
                     if let Some(value) = arr.get(index) {
@@ -338,7 +350,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         }
                         "eval" => {
                             let [expr] = tail else {
-                                return Err(Error::invalid_arguments("missing expression to be evaluated", expr.range()));
+                                return Err(Error::invalid_arguments(
+                                    "missing expression to be evaluated",
+                                    expr.range(),
+                                ));
                             };
 
                             // #todo consider naming this `form`?
@@ -350,12 +365,16 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         // #todo doesn't quote all exprs, e.g. the if expression.
                         "quot" => {
                             let [value] = tail else {
-                                return Err(Error::invalid_arguments("missing quote target", expr.range()));
+                                return Err(Error::invalid_arguments(
+                                    "missing quote target",
+                                    expr.range(),
+                                ));
                             };
 
                             // #todo hm, that clone, maybe `Rc` can fix this?
                             Ok(value.unpack().clone())
                         }
+                        // #todo check racket.
                         // #todo implement for->list, for->map, for->fold, etc.
                         "for" => {
                             // #insight
@@ -384,16 +403,25 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo should check both for list and array.
                             let Some(binding_parts) = binding.as_list() else {
                                 // #todo proper error!
-                                return Err(Error::invalid_arguments("invalid for binding", binding.range()));
+                                return Err(Error::invalid_arguments(
+                                    "invalid for binding",
+                                    binding.range(),
+                                ));
                             };
 
                             let [var, value] = &binding_parts[..] else {
-                                return Err(Error::invalid_arguments("invalid for binding", binding.range()));
+                                return Err(Error::invalid_arguments(
+                                    "invalid for binding",
+                                    binding.range(),
+                                ));
                             };
 
                             let Some(var) = var.as_symbol() else {
                                 // #todo proper error!
-                                return Err(Error::invalid_arguments("invalid for binding, malformed variable", var.range()));
+                                return Err(Error::invalid_arguments(
+                                    "invalid for binding, malformed variable",
+                                    var.range(),
+                                ));
                             };
 
                             // #insight for the ListIterator
@@ -403,7 +431,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo maybe step should be external to Range, or use SteppedRange, or (Step-By (Range T))
                             let Some(iterator) = try_iterator_from(&value) else {
                                 // #todo proper error!
-                                return Err(Error::invalid_arguments("invalid for binding, the value is not iterable", value.range()));
+                                return Err(Error::invalid_arguments(
+                                    "invalid for binding, the value is not iterable",
+                                    value.range(),
+                                ));
                             };
 
                             let prev_scope = context.scope.clone();
@@ -435,7 +466,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             let [predicate, body] = tail else {
                                 // #todo proper error!
-                                return Err(Error::invalid_arguments("missing for arguments", expr.range()));
+                                return Err(Error::invalid_arguments(
+                                    "missing for arguments",
+                                    expr.range(),
+                                ));
                             };
 
                             let mut value = Expr::One.into();
@@ -444,7 +478,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 let predicate = eval(predicate, context)?;
 
                                 let Some(predicate) = predicate.as_bool() else {
-                                    return Err(Error::invalid_arguments("the `while` predicate is not a boolean value", predicate.range()));
+                                    return Err(Error::invalid_arguments(
+                                        "the `while` predicate is not a boolean value",
+                                        predicate.range(),
+                                    ));
                                 };
 
                                 if !predicate {
@@ -459,11 +496,17 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         "if" => {
                             // #todo this is a temp hack!
                             let Some(predicate) = tail.get(0) else {
-                                return Err(Error::invalid_arguments("malformed if predicate", expr.range()));
+                                return Err(Error::invalid_arguments(
+                                    "malformed if predicate",
+                                    expr.range(),
+                                ));
                             };
 
                             let Some(true_clause) = tail.get(1) else {
-                                return Err(Error::invalid_arguments("malformed if true clause", expr.range()));
+                                return Err(Error::invalid_arguments(
+                                    "malformed if true clause",
+                                    expr.range(),
+                                ));
                             };
 
                             let false_clause = tail.get(2);
@@ -471,7 +514,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             let predicate = eval(predicate, context)?;
 
                             let Some(predicate) = predicate.as_bool() else {
-                                return Err(Error::invalid_arguments("the if predicate is not a boolean value", predicate.range()));
+                                return Err(Error::invalid_arguments(
+                                    "the if predicate is not a boolean value",
+                                    predicate.range(),
+                                ));
                             };
 
                             if predicate {
@@ -487,17 +533,26 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         "for-each" => {
                             // #todo this is a temp hack!
                             let [seq, var, body] = tail else {
-                                return Err(Error::invalid_arguments("malformed `for-each`", expr.range()));
+                                return Err(Error::invalid_arguments(
+                                    "malformed `for-each`",
+                                    expr.range(),
+                                ));
                             };
 
                             let seq = eval(seq, context)?;
 
                             let Some(arr) = seq.as_array() else {
-                                return Err(Error::invalid_arguments("`for-each` requires a `Seq` as the first argument", seq.range()));
+                                return Err(Error::invalid_arguments(
+                                    "`for-each` requires a `Seq` as the first argument",
+                                    seq.range(),
+                                ));
                             };
 
                             let Some(sym) = var.as_symbol() else {
-                                return Err(Error::invalid_arguments("`for-each` requires a symbol as the second argument", var.range()));
+                                return Err(Error::invalid_arguments(
+                                    "`for-each` requires a symbol as the second argument",
+                                    var.range(),
+                                ));
                             };
 
                             let prev_scope = context.scope.clone();
@@ -519,17 +574,26 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         "map" => {
                             // #todo this is a temp hack!
                             let [seq, var, body] = tail else {
-                                return Err(Error::invalid_arguments("malformed `map`", expr.range()));
+                                return Err(Error::invalid_arguments(
+                                    "malformed `map`",
+                                    expr.range(),
+                                ));
                             };
 
                             let seq = eval(seq, context)?;
 
                             let Some(arr) = seq.as_array() else {
-                                return Err(Error::invalid_arguments("`map` requires a `Seq` as the first argument", seq.range()));
+                                return Err(Error::invalid_arguments(
+                                    "`map` requires a `Seq` as the first argument",
+                                    seq.range(),
+                                ));
                             };
 
                             let Some(sym) = var.as_symbol() else {
-                                return Err(Error::invalid_arguments("`map` requires a symbol as the second argument", var.range()));
+                                return Err(Error::invalid_arguments(
+                                    "`map` requires a symbol as the second argument",
+                                    var.range(),
+                                ));
                             };
 
                             let prev_scope = context.scope.clone();
@@ -571,7 +635,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 };
 
                                 let Some(s) = name.as_symbol() else {
-                                    return Err(Error::invalid_arguments(&format!("`{name}` is not a Symbol"), name.range()));
+                                    return Err(Error::invalid_arguments(
+                                        &format!("`{name}` is not a Symbol"),
+                                        name.range(),
+                                    ));
                                 };
 
                                 // #todo do we really want this? Maybe convert to a lint?
@@ -595,11 +662,17 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo report more than 1 arguments.
 
                             let Some(arg) = tail.get(0) else {
-                                return Err(Error::invalid_arguments("malformed Char constructor, missing argument", expr.range()));
+                                return Err(Error::invalid_arguments(
+                                    "malformed Char constructor, missing argument",
+                                    expr.range(),
+                                ));
                             };
 
                             let Some(c) = arg.as_string() else {
-                                return Err(Error::invalid_arguments("malformed Char constructor, expected String argument", expr.range()));
+                                return Err(Error::invalid_arguments(
+                                    "malformed Char constructor, expected String argument",
+                                    expr.range(),
+                                ));
                             };
 
                             if c.len() != 1 {
@@ -630,7 +703,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             let body = &tail[1..];
 
                             let Some(params) = params.as_list() else {
-                                return Err(Error::invalid_arguments("malformed func parameters definition", params.range()));
+                                return Err(Error::invalid_arguments(
+                                    "malformed func parameters definition",
+                                    params.range(),
+                                ));
                             };
 
                             // #insight captures the static (lexical scope)
@@ -657,7 +733,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             let body = &tail[1..];
 
                             let Some(params) = params.as_list() else {
-                                return Err(Error::invalid_arguments("malformed macro parameters definition", params.range()));
+                                return Err(Error::invalid_arguments(
+                                    "malformed macro parameters definition",
+                                    params.range(),
+                                ));
                             };
 
                             // #todo optimize!

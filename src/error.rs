@@ -60,6 +60,7 @@ pub enum ErrorKind {
     UnterminatedList,
     MalformedAnnotation,
     MalformedRange,
+    MalformedStringTemplate, // #todo better name?
 
     // Semantic errors
     UndefinedSymbol(String), // #todo maybe pass the whole Symbol expression?
@@ -88,6 +89,7 @@ impl fmt::Display for ErrorKind {
             ErrorKind::UnterminatedList => "unterminated list".to_owned(),
             ErrorKind::MalformedAnnotation => "malformed annotation".to_owned(),
             ErrorKind::MalformedRange => "malformed range".to_owned(),
+            ErrorKind::MalformedStringTemplate => "malformed string template".to_owned(),
             ErrorKind::UndefinedSymbol(sym) => format!("`{sym}` is undefined"),
             ErrorKind::UndefinedFunction(sym, signature) => {
                 format!("function `{sym}` with signature `{signature}` is undefined")

@@ -208,6 +208,27 @@ fn parse_handles_multiline_whitespace() {
     dbg!(&expr);
 }
 
+// #todo find a better name for 'template_strings'
+#[test]
+fn parse_handles_template_strings() {
+    let input =
+        r#"(let m "An amount: $110.00. Here is a number: ${num}, and another: ${another-num}")"#;
+    let result = parse_string(input).unwrap();
+
+    let Expr::List(exprs) = result.unpack() else {
+        panic!("assertion failed: invalid form")
+    };
+
+    dbg!(exprs);
+
+    let Expr::List(ref exprs) = exprs[2].unpack() else {
+        panic!("assertion failed: invalid form")
+    };
+
+    assert!(matches!(&exprs[0].unpack(), Expr::Symbol(s) if s == "format"));
+    assert_eq!(exprs.len(), 5);
+}
+
 #[test]
 fn parse_parses_arrays() {
     let input = r#"(let m ["george" "chris" "costas"])"#;
