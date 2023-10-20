@@ -88,6 +88,8 @@ pub fn resolve_string(
 ) -> Result<Vec<Expr>, Vec<Error>> {
     let exprs = parse_string_all(input)?;
 
+    dbg!(&exprs);
+
     // #todo also resolve static-use (normal use) here!
 
     // #insight
