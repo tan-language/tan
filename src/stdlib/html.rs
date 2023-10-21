@@ -23,7 +23,6 @@ pub fn html_from_expr_expr(args: &[Expr], _context: &Context) -> Result<Expr, Er
     //         None,
     //     ))
     // }
-    println!("-- HELLO --");
     dbg!(&args);
     Ok(Expr::string("TODO"))
 }
@@ -34,16 +33,8 @@ pub fn setup_std_html(context: &mut Context) {
     let scope = &module.scope;
 
     // (let html-string (html-from-expr expr))
-    // scope.insert(
-    //     "html-from-expr",
-    //     Expr::ForeignFunc(Arc::new(html_from_expr_expr)),
-    // );
-    // scope.insert(
-    //     "html-from-expr$$",
-    //     Expr::ForeignFunc(Arc::new(html_from_expr_expr)),
-    // );
     scope.insert(
-        "html-from-expr$$Symbol", // #todo ULTRA HACK to work-around quote-resolving bug.
+        "html-from-expr",
         Expr::ForeignFunc(Arc::new(html_from_expr_expr)),
     );
 

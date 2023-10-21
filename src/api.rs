@@ -79,6 +79,7 @@ pub fn parse_string_all(input: impl AsRef<str>) -> Result<Vec<Expr>, Vec<Error>>
     Ok(exprs)
 }
 
+// #todo should refactor
 // #todo what is a good name?
 /// Reads and resolves a Tan expression encoded as a text string.
 /// Updates the environment with definitions.
@@ -88,7 +89,7 @@ pub fn resolve_string(
 ) -> Result<Vec<Expr>, Vec<Error>> {
     let exprs = parse_string_all(input)?;
 
-    dbg!(&exprs);
+    // dbg!(&exprs);
 
     // #todo also resolve static-use (normal use) here!
 
@@ -110,12 +111,16 @@ pub fn resolve_string(
     let mut resolved_exprs = Vec::new();
 
     for expr in exprs {
-        // #Insight
+        // #insight this is the main read/analysis pipeline, it consists of passes or stages.
+        // #todo better use the term `stage` (multi-stage programming)
+
+        // #insight
         // Macro expansion should be performed before resolving.
 
         // Prune pass
 
         // #insight first prune pass needed before macro_expand.
+        // #todo find a better name for the `prune` stage.
 
         let Some(expr) = prune(expr) else {
             // The expression is pruned (elided)
