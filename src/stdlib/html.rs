@@ -1,9 +1,16 @@
 // #todo think a bit more about a good name
 // #todo probably should move out from std lib into platform lib
+// #todo also perform attribute and body escaping
+// 
 
 use std::{rc::Rc, sync::Arc};
 
-use crate::{context::Context, error::Error, expr::Expr, module::Module};
+use crate::{
+    context::Context,
+    error::Error,
+    expr::{format_value, Expr},
+    module::Module,
+};
 
 fn render_expr(expr: &Expr) -> Result<Expr, Error> {
     match expr {
@@ -17,7 +24,25 @@ fn render_expr(expr: &Expr) -> Result<Expr, Error> {
                         op.range(),
                     ));
                 };
-                Ok(Expr::string(format!("<{sym}></{sym}>")))
+
+                if let Some(term) = terms.get(1) {
+                    let attributes: String = if let Some(dict) = term.as_dict() {
+                        // #todo eval value!
+                        format!(
+                            " {}",
+                            dict.iter()
+                                .map(|(k, v)| format!("{k}=\"{}\"", format_value(v)))
+                                .collect::<Vec<String>>()
+                                .join(" ")
+                        )
+                    } else {
+                        "".to_string()
+                    };
+                    // #todo eval body.
+                    Ok(Expr::string(format!("<{sym}{attributes}></{sym}>")))
+                } else {
+                    Ok(Expr::string(format!("<{sym} />")))
+                }
             } else {
                 // #todo offer context, e.g. in which function we are.
                 Err(Error::invalid_arguments(

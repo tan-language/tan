@@ -20,6 +20,7 @@ pub fn prune_fn(expr: Expr) -> Option<Expr> {
             // Prune TextSeparator expressions.
             None
         }
+        // #todo quote: list->array, symbol->key
         // #todo resolve quoting+interpolation here? i.e. quasiquoting
         // #todo maybe even resolve string interpolation here?
         // Expr::List(terms) => {
