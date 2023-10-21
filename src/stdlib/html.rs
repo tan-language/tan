@@ -1,7 +1,7 @@
 // #todo think a bit more about a good name
 // #todo probably should move out from std lib into platform lib
 // #todo also perform attribute and body escaping
-// 
+//
 
 use std::{rc::Rc, sync::Arc};
 
@@ -12,7 +12,11 @@ use crate::{
     module::Module,
 };
 
+// #todo consider using 'interned'/self-evaluating symbols instead of strings for text nodes.
+
 fn render_expr(expr: &Expr) -> Result<Expr, Error> {
+    let expr = expr.unpack();
+
     match expr {
         Expr::List(terms) => {
             if let Some(op) = terms.first() {
@@ -25,9 +29,13 @@ fn render_expr(expr: &Expr) -> Result<Expr, Error> {
                     ));
                 };
 
-                if let Some(term) = terms.get(1) {
+                let mut i = 1;
+
+                if let Some(term) = terms.get(i) {
                     let attributes: String = if let Some(dict) = term.as_dict() {
+                        i += 1;
                         // #todo eval value!
+                        // #todo escape value!
                         format!(
                             " {}",
                             dict.iter()
@@ -38,8 +46,18 @@ fn render_expr(expr: &Expr) -> Result<Expr, Error> {
                     } else {
                         "".to_string()
                     };
+
+                    // #todo escape body/
+                    let mut body = String::from("");
+
+                    while i < terms.len() {
+                        let child = render_expr(&terms[i])?;
+                        body.push_str(&format_value(&child));
+                        i += 1;
+                    }
+
                     // #todo eval body.
-                    Ok(Expr::string(format!("<{sym}{attributes}></{sym}>")))
+                    Ok(Expr::string(format!("<{sym}{attributes}>{body}</{sym}>")))
                 } else {
                     Ok(Expr::string(format!("<{sym} />")))
                 }
@@ -51,7 +69,7 @@ fn render_expr(expr: &Expr) -> Result<Expr, Error> {
                 )) // #todo
             }
         }
-        _ => Ok(Expr::string("KOKO")),
+        _ => Ok(Expr::string(format_value(expr))),
     }
 }
 
