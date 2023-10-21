@@ -20,6 +20,8 @@ pub fn prune_fn(expr: Expr) -> Option<Expr> {
             // Prune TextSeparator expressions.
             None
         }
+        // #todo resolve quoting+interpolation here? i.e. quasiquoting
+        // #todo maybe even resolve string interpolation here?
         // Expr::List(terms) => {
         //     if let Some(Expr::Symbol(sym)) = terms.first() {
         //         if sym == "quot" {

@@ -5,26 +5,41 @@ use std::{rc::Rc, sync::Arc};
 
 use crate::{context::Context, error::Error, expr::Expr, module::Module};
 
+fn render_expr(expr: &Expr) -> Result<Expr, Error> {
+    match expr {
+        Expr::List(terms) => {
+            if let Some(op) = terms.first() {
+                let Some(sym) = op.as_symbol() else {
+                    // #todo we could return the argument position here and enrich the error upstream.
+                    // #todo hmm, the error is too precise here, do we really need the annotations?
+                    return Err(Error::invalid_arguments(
+                        &format!("{op} is not a Symbol"),
+                        op.range(),
+                    ));
+                };
+                Ok(Expr::string(format!("<{sym}></{sym}>")))
+            } else {
+                // #todo offer context, e.g. in which function we are.
+                Err(Error::invalid_arguments(
+                    "empty expression, remove",
+                    expr.range(),
+                )) // #todo
+            }
+        }
+        _ => Ok(Expr::string("KOKO")),
+    }
+}
+
+// #todo find a better name.
 pub fn html_from_expr_expr(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
-    // if let Some(end) = args.first() {
-    //     let Some(end) = end.as_int() else {
-    //         return Err(Error::invalid_arguments(
-    //             "expected Int argument",
-    //             end.range(),
-    //         ));
-    //     };
-
-    //     let mut rng = rand::thread_rng();
-
-    //     Ok(Expr::Int(rng.gen_range(0..end)))
-    // } else {
-    //     Err(Error::invalid_arguments(
-    //         "expected at least one argument",
-    //         None,
-    //     ))
-    // }
-    dbg!(&args);
-    Ok(Expr::string("TODO"))
+    if let Some(expr) = args.first() {
+        render_expr(expr)
+    } else {
+        Err(Error::invalid_arguments(
+            "expected at least one argument",
+            None,
+        ))
+    }
 }
 
 pub fn setup_std_html(context: &mut Context) {
