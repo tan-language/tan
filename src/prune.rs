@@ -1,5 +1,7 @@
 use crate::expr::Expr;
 
+// #todo find a better, more general name for this stage.
+
 // #insight prune does not err.
 
 // #insight
@@ -18,6 +20,21 @@ pub fn prune_fn(expr: Expr) -> Option<Expr> {
             // Prune TextSeparator expressions.
             None
         }
+        // #todo quote: list->array, symbol->key
+        // #todo resolve quoting+interpolation here? i.e. quasiquoting
+        // #todo maybe even resolve string interpolation here?
+        // Expr::List(terms) => {
+        //     if let Some(Expr::Symbol(sym)) = terms.first() {
+        //         if sym == "quot" {
+        //             println!("--- QUOTE ---");
+        //             Some(terms[1].clone())
+        //         } else {
+        //             Some(expr)
+        //         }
+        //     } else {
+        //         Some(expr)
+        //     }
+        // }
         _ => Some(expr),
     }
 }

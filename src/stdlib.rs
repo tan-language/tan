@@ -1,6 +1,7 @@
 pub mod arithmetic;
 pub mod eq;
 pub mod fs;
+pub mod html;
 pub mod io;
 pub mod lang;
 pub mod math;
@@ -13,7 +14,8 @@ pub mod string;
 use crate::context::Context;
 
 use self::{
-    fs::setup_std_fs, prelude::setup_std_prelude, process::setup_std_process, rng::setup_std_rand,
+    fs::setup_std_fs, html::setup_std_html, prelude::setup_std_prelude, process::setup_std_process,
+    rng::setup_std_rand,
 };
 
 // #todo add unit test for the foreign-functions.
@@ -43,5 +45,6 @@ pub fn setup_std(context: &mut Context) {
     setup_std_fs(context);
     setup_std_process(context);
     setup_std_rand(context);
+    setup_std_html(context);
     setup_std_prelude(context);
 }

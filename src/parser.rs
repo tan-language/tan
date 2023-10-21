@@ -336,6 +336,8 @@ impl<'a> Parser<'a> {
                 None
             }
             TokenKind::Quote => {
+                // #insight in the parser we just replace the quoting sigil with a `quot` function invocation
+                // #todo maybe this should happen in the lexer?
                 // #insight we should allow consecutive quotes, emit a linter warning instead!
 
                 let Ok(quot_expr) = self.parse_expr() else {

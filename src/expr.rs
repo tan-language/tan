@@ -354,6 +354,13 @@ impl Expr {
         Some(v)
     }
 
+    pub fn as_dict(&self) -> Option<&HashMap<String, Expr>> {
+        let Expr::Dict(dict) = self.unpack() else {
+            return None;
+        };
+        Some(dict)
+    }
+
     // // static vs dyn type.
     // pub fn static_type(&self) -> Expr {
     //     match self {
@@ -421,7 +428,9 @@ pub fn annotate_range(expr: Expr, range: Range) -> Expr {
 // #todo move elsewhere, e.g. api.
 // #todo think where this function is used. (it is used for Dict keys, hmm...)
 // #todo this is a confusing name!
-/// Formats the expression as a value
+/// Formats the expression as a value.
+/// For example strings are formatted without the quotes and keys without
+/// the `:` prefix.
 pub fn format_value(expr: impl AsRef<Expr>) -> String {
     let expr = expr.as_ref();
     match expr {
