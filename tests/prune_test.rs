@@ -18,7 +18,7 @@ fn parse_removes_comments() {
 
 #[test]
 fn parse_transforms_quasiquotes() {
-    let input = "'(hello world $(cos 1))"; // #todo extract as fixture file.
+    let input = "'(hello world (cos (+ 1 0)) $(cos 1))"; // #todo extract as fixture file.
     let exprs = parse_string_all(input).unwrap();
 
     let exprs: Vec<Expr> = exprs.into_iter().filter_map(|expr| prune(expr)).collect();
