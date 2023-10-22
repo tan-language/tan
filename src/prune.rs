@@ -29,6 +29,7 @@ fn quote_list(expr: Expr) -> Expr {
 // #todo maintain annotations, use extract instead of unpack!!
 
 fn quote_fn(expr: Expr) -> Expr {
+    // #insight unpack is OK, no extract needed.
     match expr.unpack() {
         // #todo handle unquote!
         Expr::List(terms) => {
@@ -47,11 +48,14 @@ fn quote_fn(expr: Expr) -> Expr {
                 }
             }
         }
+        // #todo Symbol handling needs extract to maintain the annotations.
+        Expr::Symbol(sym) => Expr::KeySymbol(sym.clone()),
         _ => expr,
     }
 }
 
 pub fn prune_fn(expr: Expr) -> Option<Expr> {
+    // #todo use `extract` instead of `unpack`.
     match expr.unpack() {
         Expr::Comment(..) => {
             // #todo move prune elsewhere.
