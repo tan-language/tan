@@ -36,6 +36,31 @@ fn eval_args(args: &[Expr], context: &mut Context) -> Result<Vec<Expr>, Error> {
         .collect::<Result<Vec<_>, _>>()
 }
 
+fn eval_quote(expr: Expr, context: &mut Context) -> Expr {
+    // #insight unpack is OK, no extract needed.
+    match expr.unpack() {
+        // #todo handle unquote!
+        Expr::List(terms) => {
+            if terms.is_empty() {
+                expr
+            } else {
+                if let Some(sym) = terms[0].unpack().as_symbol() {
+                    if sym == "unquot" {
+                        debug_assert!(terms.len() == 2);
+                        // #todo remove the unwrap!
+                        eval(&terms[1], context).unwrap()
+                    } else {
+                        expr
+                    }
+                } else {
+                    expr
+                }
+            }
+        }
+        _ => expr,
+    }
+}
+
 // #todo needs better conversion to Expr::Annotated
 
 /// Evaluates via expression rewriting. The expression `expr` evaluates to
@@ -361,9 +386,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             eval(&expr, context)
                         }
-                        // #todo can move to static/comptime phase.
-                        // #todo doesn't quote all exprs, e.g. the if expression.
                         "quot" => {
+                            // #insight not obvious how to move to static/comptime phase.
+                            // #todo doesn't quote all exprs, e.g. the if expression.
+
                             let [value] = tail else {
                                 return Err(Error::invalid_arguments(
                                     "missing quote target",
@@ -371,8 +397,9 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 ));
                             };
 
-                            // #todo hm, that clone, maybe `Rc` can fix this?
-                            Ok(value.unpack().clone())
+                            Ok(value
+                                .clone()
+                                .transform_mut(&mut |expr| eval_quote(expr, context)))
                         }
                         // #todo check racket.
                         // #todo implement for->list, for->map, for->fold, etc.

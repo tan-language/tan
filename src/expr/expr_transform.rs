@@ -23,6 +23,24 @@ impl Expr {
         }
     }
 
+    pub fn transform_mut<F>(self, f: &mut F) -> Self
+    where
+        F: FnMut(Self) -> Self,
+    {
+        match self.extract() {
+            (Expr::List(terms), ann) => {
+                // #todo investigate this clone!!!!
+                let terms = terms
+                    .into_iter()
+                    .map(|t| t.clone().transform_mut(f))
+                    .collect();
+                let list = Expr::maybe_annotated(Expr::List(terms), ann);
+                f(list)
+            }
+            _ => f(self),
+        }
+    }
+
     /// Transforms the expression by recursively applying the `f` mapping
     /// function, breadth-first-search
     pub fn transform_bfs<F>(self, _f: &F) -> Self

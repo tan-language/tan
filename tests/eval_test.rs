@@ -213,6 +213,18 @@ fn quot_handles_lists() {
 }
 
 #[test]
+fn quot_handles_interpolation() {
+    let mut context = Context::new();
+    let input = "'(hello world (+ 1 0) $(+ 1 2))";
+    let result = eval_string(input, &mut context);
+    assert!(result.is_ok());
+
+    let value = format!("{}", result.unwrap());
+    let expected_value = "(hello world (+ 1 0) 3)";
+    assert_eq!(value, expected_value);
+}
+
+#[test]
 fn eval_processes_function_definition_and_application() {
     let result = eval_file("factorial.tan");
     assert!(result.is_ok());
