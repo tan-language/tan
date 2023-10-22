@@ -1,5 +1,6 @@
 mod common;
 
+use assert_matches::assert_matches;
 use tan::{
     error::ErrorKind,
     lexer::{token::TokenKind, Lexer},
@@ -215,4 +216,13 @@ fn lex_reports_unterminated_annotations() {
     let range = err.range().unwrap();
 
     assert_eq!(range.start.index, 21);
+}
+
+#[test]
+fn lex_handles_quasiquoting() {
+    let input = "'(hello world $(cos 1))";
+    let tokens = Lexer::new(input).lex().unwrap();
+
+    assert_matches!(tokens[0].kind(), TokenKind::Quote);
+    assert_matches!(tokens[4].kind(), TokenKind::Unquote);
 }
