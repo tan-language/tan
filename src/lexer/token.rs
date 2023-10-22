@@ -42,7 +42,8 @@ pub enum TokenKind {
     RightBracket,
     LeftBrace,
     RightBrace,
-    Quote,
+    Quote,   // #todo consider renaming to `Quot`
+    Unquote, // #todo consider renaming to `Unquot`
     /// MultiLineWhitespace tokens are leveraged by the formatter to maintain
     /// 'paragraphs' of text.
     MultiLineWhitespace, // #todo use something more general, like `Pragma`.
@@ -65,7 +66,8 @@ impl fmt::Display for TokenKind {
             TokenKind::RightBracket => "]",
             TokenKind::LeftBrace => "{",
             TokenKind::RightBrace => "}",
-            TokenKind::Quote => "'",
+            TokenKind::Quote => "'", // #todo consider `:`?
+            TokenKind::Unquote => "$",
             TokenKind::String(lexeme) => lexeme,
             TokenKind::Symbol(lexeme) => lexeme,
             TokenKind::Number(lexeme) => lexeme,

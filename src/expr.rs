@@ -59,10 +59,12 @@ pub type ExprFn = dyn Fn(&[Expr], &Context) -> Result<Expr, Error> + Send + Sync
 
 // #todo use normal structs instead of tuple-structs?
 
-#[derive(Clone)]
+// #todo add Expr::Date
+
 /// A symbolic expression. This is the 'universal' data type in the language,
 /// all values are expressions (and expressions are values). Evaluation is expression
 /// rewriting to a fixed point.
+#[derive(Clone)]
 pub enum Expr {
     // --- Low-level ---
     One,                          // Unit == List(Vec::new())

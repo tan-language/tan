@@ -362,6 +362,32 @@ impl<'a> Parser<'a> {
 
                 Some(Expr::List(vec![Expr::symbol("quot").into(), target]))
             }
+            TokenKind::Unquote => {
+                // #insight in the parser we just replace the unquoting sigil with an `unquot` function invocation
+                // #todo maybe this should happen in the lexer?
+
+                let Ok(quot_expr) = self.parse_expr() else {
+                    // Parsing the quoted expression failed.
+                    // Continue parsing to detect more errors.
+                    let mut error = Error::new(ErrorKind::InvalidQuote);
+                    error.push_note("Cannot parse unquoted expression", Some(token.range()));
+                    self.errors.push(error);
+                    return Ok(None);
+                };
+
+                let Some(target) = quot_expr else {
+                    let mut error = Error::new(ErrorKind::InvalidQuote);
+                    error.push_note("Invalid unquoted expression", Some(token.range()));
+                    self.errors.push(error);
+                    // It is recoverable error.
+                    return Ok(None);
+                };
+
+                // #todo the actual quoting should be handled here?
+                // #todo what about interpolation?
+
+                Some(Expr::List(vec![Expr::symbol("unquot").into(), target]))
+            }
             TokenKind::LeftParen => {
                 let terms = self.parse_many(TokenKind::RightParen, start_position)?;
 

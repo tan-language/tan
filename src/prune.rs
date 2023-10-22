@@ -1,13 +1,21 @@
 use crate::expr::Expr;
 
+// #todo remove excessive clones.
+
 // #todo find a better, more general name for this stage.
 
 // #insight prune does not err.
 
-// #insight
-// Prune strips unnecessary auxiliary exprs not needed for evaluation.
+// #insight prune strips unnecessary auxiliary exprs not needed for evaluation.
+
+// #todo strip quoting of literals (nops)
+// #todo consider only allowing the sigils, and not quot/unquot -> no, we need them to maintain the list/tree abstraction, it has to be syntax-sugar!
+// #todo actually we could skip the `unquot`, think about it.
+
+// #insight no need to convert Symbol to KeySymbol, just converting List -> Array works.
 
 pub fn prune_fn(expr: Expr) -> Option<Expr> {
+    // #todo use `extract` instead of `unpack`.
     match expr.unpack() {
         Expr::Comment(..) => {
             // #todo move prune elsewhere.
@@ -20,21 +28,8 @@ pub fn prune_fn(expr: Expr) -> Option<Expr> {
             // Prune TextSeparator expressions.
             None
         }
-        // #todo quote: list->array, symbol->key
         // #todo resolve quoting+interpolation here? i.e. quasiquoting
         // #todo maybe even resolve string interpolation here?
-        // Expr::List(terms) => {
-        //     if let Some(Expr::Symbol(sym)) = terms.first() {
-        //         if sym == "quot" {
-        //             println!("--- QUOTE ---");
-        //             Some(terms[1].clone())
-        //         } else {
-        //             Some(expr)
-        //         }
-        //     } else {
-        //         Some(expr)
-        //     }
-        // }
         _ => Some(expr),
     }
 }

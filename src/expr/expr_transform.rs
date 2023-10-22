@@ -4,6 +4,8 @@ impl Expr {
     // #todo this is some kind of map-reduce, try to use some kind of interator.
     // #todo alternatively, this implements some kind of visitor pattern.
 
+    // #todo I think this is depth-first!
+    // #todo we also need breadth-first!
     /// Transforms the expression by recursively applying the `f` mapping
     /// function.
     pub fn transform<F>(self, f: &F) -> Self
@@ -19,6 +21,33 @@ impl Expr {
             }
             _ => f(self),
         }
+    }
+
+    pub fn transform_mut<F>(self, f: &mut F) -> Self
+    where
+        F: FnMut(Self) -> Self,
+    {
+        match self.extract() {
+            (Expr::List(terms), ann) => {
+                // #todo investigate this clone!!!!
+                let terms = terms
+                    .into_iter()
+                    .map(|t| t.clone().transform_mut(f))
+                    .collect();
+                let list = Expr::maybe_annotated(Expr::List(terms), ann);
+                f(list)
+            }
+            _ => f(self),
+        }
+    }
+
+    /// Transforms the expression by recursively applying the `f` mapping
+    /// function, breadth-first-search
+    pub fn transform_bfs<F>(self, _f: &F) -> Self
+    where
+        F: Fn(Self) -> Self,
+    {
+        todo!()
     }
 
     /// Transforms the expression by recursively applying the `f` mapping

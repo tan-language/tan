@@ -1,7 +1,7 @@
 // #todo think a bit more about a good name
 // #todo probably should move out from std lib into platform lib
 // #todo also perform attribute and body escaping
-//
+// #todo add unit tests
 
 use std::{rc::Rc, sync::Arc};
 
@@ -47,7 +47,7 @@ fn render_expr(expr: &Expr) -> Result<Expr, Error> {
                         "".to_string()
                     };
 
-                    // #todo escape body/
+                    // #todo escape body/children
                     let mut body = String::from("");
 
                     while i < terms.len() {
@@ -90,7 +90,6 @@ pub fn setup_std_html(context: &mut Context) {
 
     let scope = &module.scope;
 
-    // (let html-string (html-from-expr expr))
     scope.insert(
         "html-from-expr",
         Expr::ForeignFunc(Arc::new(html_from_expr_expr)),
@@ -101,3 +100,11 @@ pub fn setup_std_html(context: &mut Context) {
     // #todo introduce a helper for this.
     context.module_registry.insert(module_path, Rc::new(module));
 }
+
+// #todo!
+// #[cfg(test)]
+// mod tests {
+//     #[test]
+//     fn todo() {
+//     }
+// }

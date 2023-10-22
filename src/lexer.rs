@@ -203,7 +203,10 @@ impl<'a> Lexer<'a> {
         loop {
             let Some(ch) = self.next_char() else {
                 let mut error = Error::new(ErrorKind::UnterminatedString);
-                error.push_note("string is missing the closing `\"` character", Some(self.current_range())); // #todo refine the text.
+                error.push_note(
+                    "string is missing the closing `\"` character",
+                    Some(self.current_range()),
+                ); // #todo refine the text.
                 self.errors.push(error);
                 return None;
             };
@@ -397,7 +400,12 @@ impl<'a> Lexer<'a> {
                     tokens.push(Token::comment(lexeme, self.current_range(), comment_kind));
                 }
                 '\'' => {
+                    // #todo consider `:`
                     tokens.push(Token::new(TokenKind::Quote, self.current_range()));
+                }
+                '$' => {
+                    // #insight unquoting is interpolation.
+                    tokens.push(Token::new(TokenKind::Unquote, self.current_range()));
                 }
                 '"' => {
                     let Some(ch1) = self.next_char() else {
@@ -417,7 +425,10 @@ impl<'a> Lexer<'a> {
                                 loop {
                                     let Some(ch3) = self.next_char() else {
                                         let mut error = Error::new(ErrorKind::UnterminatedString);
-                                        error.push_note("Text string is not closed", Some(self.current_range())); // #todo refine the text.
+                                        error.push_note(
+                                            "Text string is not closed",
+                                            Some(self.current_range()),
+                                        ); // #todo refine the text.
                                         self.errors.push(error);
                                         break 'outer;
                                     };
