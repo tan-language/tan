@@ -13,6 +13,8 @@ use crate::{
 };
 
 // #todo consider using 'interned'/self-evaluating symbols instead of strings for text nodes.
+// #todo special handling of child strings with interpolation.
+// #todo support pretty-printing
 
 fn render_expr(expr: &Expr) -> Result<Expr, Error> {
     let expr = expr.unpack();
