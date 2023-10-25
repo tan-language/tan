@@ -2,9 +2,8 @@ use std::fs;
 use std::path::Path;
 use std::{rc::Rc, sync::Arc};
 
-use crate::{context::Context, error::Error, expr::Expr};
-
 use crate::module::Module;
+use crate::{context::Context, error::Error, expr::Expr};
 
 // #todo do FFI functions really need an env?
 // #todo differentiate pure functions that do not change the env!
@@ -63,30 +62,64 @@ pub fn write_string_to_file(args: &[Expr], _context: &Context) -> Result<Expr, E
 }
 
 // #todo improve
+// #todo follow symlinks
+// #todo include dot-files
 // #ai-generated
-fn walk_dir(dir_path: &Path) -> Vec<Vec<String>> {
-    let mut tree = Vec::new();
+fn walk_dir_nested(dir_path: &Path) -> Vec<Expr> {
+    let mut tree: Vec<Expr> = Vec::new();
 
-    // #todo ugh that unwrap.
+    // #todo ugh remove all unwraps!
     for entry in fs::read_dir(dir_path).unwrap() {
         let entry_path = entry.unwrap().path();
 
         if entry_path.is_dir() {
-            tree.push(vec![entry_path
-                .file_name()
-                .unwrap()
-                .to_str()
-                .unwrap()
-                .to_string()]);
-            tree.append(&mut walk_dir(&entry_path));
+            // #insight returns nested structure.
+            let mut dir_tree: Vec<Expr> = Vec::new();
+            dir_tree.push(Expr::String(
+                entry_path
+                    .file_name()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .to_string(),
+            ));
+            dir_tree.append(&mut walk_dir_nested(&entry_path));
+            tree.push(Expr::List(dir_tree));
         } else {
-            tree.push(vec![entry_path.to_str().unwrap().to_string()]);
+            tree.push(Expr::String(entry_path.to_str().unwrap().to_string()));
         }
     }
 
     tree
 }
 
+/// Returns flat structure.
+fn walk_dir(dir_path: &Path) -> Vec<Expr> {
+    let mut tree: Vec<Expr> = Vec::new();
+
+    // #todo ugh remove all unwraps!
+    for entry in fs::read_dir(dir_path).unwrap() {
+        let entry_path = entry.unwrap().path();
+
+        if entry_path.is_dir() {
+            tree.push(Expr::String(
+                entry_path
+                    // .file_name()
+                    // .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .to_string(),
+            ));
+            tree.append(&mut walk_dir(&entry_path));
+        } else {
+            tree.push(Expr::String(entry_path.to_str().unwrap().to_string()));
+        }
+    }
+
+    tree
+}
+
+// #todo should return nested or flat structure?
 // #todo find a better name: walk-as-tree, build-tree
 // #todo implement as generator/iterator, or (and?) with callback.
 // (let tree (fs/list-as-tree "./source/"))
@@ -105,11 +138,9 @@ pub fn list_as_tree(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
         ));
     };
 
-    let tree = walk_dir(Path::new(path));
+    let tree = Expr::List(walk_dir(Path::new(path)));
 
-    dbg!(&tree);
-
-    Ok(Expr::One)
+    Ok(tree)
 }
 
 // #todo use Rc/Arc consistently
