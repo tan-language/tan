@@ -65,33 +65,33 @@ pub fn write_string_to_file(args: &[Expr], _context: &Context) -> Result<Expr, E
 // #todo follow symlinks
 // #todo include dot-files
 // #ai-generated
-fn walk_dir_nested(dir_path: &Path) -> Vec<Expr> {
-    let mut tree: Vec<Expr> = Vec::new();
+// fn walk_dir_nested(dir_path: &Path) -> Vec<Expr> {
+//     let mut tree: Vec<Expr> = Vec::new();
 
-    // #todo ugh remove all unwraps!
-    for entry in fs::read_dir(dir_path).unwrap() {
-        let entry_path = entry.unwrap().path();
+//     // #todo ugh remove all unwraps!
+//     for entry in fs::read_dir(dir_path).unwrap() {
+//         let entry_path = entry.unwrap().path();
 
-        if entry_path.is_dir() {
-            // #insight returns nested structure.
-            let mut dir_tree: Vec<Expr> = Vec::new();
-            dir_tree.push(Expr::String(
-                entry_path
-                    .file_name()
-                    .unwrap()
-                    .to_str()
-                    .unwrap()
-                    .to_string(),
-            ));
-            dir_tree.append(&mut walk_dir_nested(&entry_path));
-            tree.push(Expr::List(dir_tree));
-        } else {
-            tree.push(Expr::String(entry_path.to_str().unwrap().to_string()));
-        }
-    }
+//         if entry_path.is_dir() {
+//             // #insight returns nested structure.
+//             let mut dir_tree: Vec<Expr> = Vec::new();
+//             dir_tree.push(Expr::String(
+//                 entry_path
+//                     .file_name()
+//                     .unwrap()
+//                     .to_str()
+//                     .unwrap()
+//                     .to_string(),
+//             ));
+//             dir_tree.append(&mut walk_dir_nested(&entry_path));
+//             tree.push(Expr::List(dir_tree));
+//         } else {
+//             tree.push(Expr::String(entry_path.to_str().unwrap().to_string()));
+//         }
+//     }
 
-    tree
-}
+//     tree
+// }
 
 /// Returns flat structure.
 fn walk_dir(dir_path: &Path) -> Vec<Expr> {
