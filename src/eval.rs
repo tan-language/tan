@@ -389,6 +389,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         "quot" => {
                             // #insight not obvious how to move to static/comptime phase.
                             // #todo doesn't quote all exprs, e.g. the if expression.
+                            // #todo optimize with custom exprs, e.g Expr::Quot, Expr::QuasiQuot, etc.
 
                             let [value] = tail else {
                                 return Err(Error::invalid_arguments(

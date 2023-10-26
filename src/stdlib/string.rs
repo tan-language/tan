@@ -7,11 +7,17 @@ use crate::{
 /// Returns a char iterable for the chars in the string.
 pub fn string_chars(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [this] = args else {
-        return Err(Error::invalid_arguments("`chars` requires `this` argument", None));
+        return Err(Error::invalid_arguments(
+            "`chars` requires `this` argument",
+            None,
+        ));
     };
 
     let Some(this) = this.as_string() else {
-        return Err(Error::invalid_arguments("`this` argument should be a String", this.range()));
+        return Err(Error::invalid_arguments(
+            "`this` argument should be a String",
+            this.range(),
+        ));
     };
 
     let mut exprs: Vec<Expr> = Vec::new();
@@ -29,7 +35,10 @@ pub fn string_constructor_from_chars(args: &[Expr], _context: &Context) -> Resul
     };
 
     let Some(exprs) = chars.as_array() else {
-        return Err(Error::invalid_arguments("`chars` argument should be a (Array Char)", chars.range()));
+        return Err(Error::invalid_arguments(
+            "`chars` argument should be a (Array Char)",
+            chars.range(),
+        ));
     };
 
     // #todo verify Array item type!
@@ -51,11 +60,17 @@ pub fn string_constructor_from_chars(args: &[Expr], _context: &Context) -> Resul
 
 pub fn char_uppercased(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [this] = args else {
-        return Err(Error::invalid_arguments("`uppercased` requires `this` argument", None));
+        return Err(Error::invalid_arguments(
+            "`uppercased` requires `this` argument",
+            None,
+        ));
     };
 
     let Expr::Char(this) = this.unpack() else {
-        return Err(Error::invalid_arguments("`this` argument should be a Char", this.range()));
+        return Err(Error::invalid_arguments(
+            "`this` argument should be a Char",
+            this.range(),
+        ));
     };
 
     // #todo omg...
@@ -75,4 +90,54 @@ pub fn format(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     });
 
     Ok(Expr::String(output))
+}
+
+pub fn string_ends_with(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    let [this, postfix] = args else {
+        return Err(Error::invalid_arguments(
+            "`ends-with` requires `this` and `postfix` arguments",
+            None,
+        ));
+    };
+
+    let Some(this) = this.as_string() else {
+        return Err(Error::invalid_arguments(
+            "`this` argument should be a String",
+            this.range(),
+        ));
+    };
+
+    let Some(postfix) = postfix.as_string() else {
+        return Err(Error::invalid_arguments(
+            "`postfix` argument should be a String",
+            postfix.range(),
+        ));
+    };
+
+    Ok(Expr::Bool(this.ends_with(postfix)))
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{api::eval_string, context::Context};
+
+    #[test]
+    fn ends_with_usage() {
+        let mut context = Context::new();
+        let input = r#"
+            (let filename "/path/to/image.png")
+            (ends-with? filename ".png")
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = expr.as_bool().unwrap();
+        assert!(value);
+
+        let input = r#"
+            (let filename "/path/to/image.png")
+            (ends-with? filename ".gif")
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = expr.as_bool().unwrap();
+        assert_eq!(value, false);
+    }
 }

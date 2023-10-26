@@ -7,12 +7,14 @@ use crate::{context::Context, expr::Expr, module::Module};
 use super::arithmetic;
 use super::io::{read_string, write, writeln};
 use super::seq::array_count;
+use super::string::string_ends_with;
 use super::{
     eq::{eq, gt, lt},
     seq::array_join,
     string::{char_uppercased, format, string_chars, string_constructor_from_chars},
 };
 
+// #todo instead of evaluating in prelude maybe it's better to use the functions from the actual modules?
 pub fn setup_std_prelude(context: &mut Context) {
     let module = Module::new("prelude", context.top_scope.clone());
 
@@ -115,6 +117,8 @@ pub fn setup_std_prelude(context: &mut Context) {
 
     // string
 
+    // #todo define string functions in string.rs
+
     scope.insert(
         "String",
         Expr::ForeignFunc(Arc::new(string_constructor_from_chars)),
@@ -131,6 +135,18 @@ pub fn setup_std_prelude(context: &mut Context) {
     );
 
     scope.insert("format", Expr::ForeignFunc(Arc::new(format)));
+
+    /*
+    (if (ends-with filename ".png")
+    (if (ends-with? filename ".png")
+        (handle-image filename)
+        (handle filename)
+    )
+     */
+    // #todo: consider `ends-with?`
+    scope.insert("ends-with?", Expr::ForeignFunc(Arc::new(string_ends_with)));
+
+    // ...
 
     // #todo this is a hack.
     let module_path = format!("{}/std/prelude", context.root_path);
