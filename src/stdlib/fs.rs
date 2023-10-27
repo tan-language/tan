@@ -102,14 +102,8 @@ fn walk_dir(dir_path: &Path) -> Vec<Expr> {
         let entry_path = entry.unwrap().path();
 
         if entry_path.is_dir() {
-            tree.push(Expr::String(
-                entry_path
-                    // .file_name()
-                    // .unwrap()
-                    .to_str()
-                    .unwrap()
-                    .to_string(),
-            ));
+            let dir_name = entry_path.to_str().unwrap().to_string();
+            tree.push(Expr::String(format!("{dir_name}/")));
             tree.append(&mut walk_dir(&entry_path));
         } else {
             tree.push(Expr::String(entry_path.to_str().unwrap().to_string()));
