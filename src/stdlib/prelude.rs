@@ -7,7 +7,7 @@ use crate::{context::Context, expr::Expr, module::Module};
 use super::arithmetic;
 use super::io::{read_string, write, writeln};
 use super::seq::array_count;
-use super::string::string_ends_with;
+use super::string::{string_ends_with, string_split};
 use super::{
     eq::{eq, gt, lt},
     seq::array_join,
@@ -136,6 +136,8 @@ pub fn setup_std_prelude(context: &mut Context) {
 
     scope.insert("format", Expr::ForeignFunc(Arc::new(format)));
 
+    scope.insert("split", Expr::ForeignFunc(Arc::new(string_split)));
+
     /*
     (if (ends-with filename ".png")
     (if (ends-with? filename ".png")
@@ -143,7 +145,7 @@ pub fn setup_std_prelude(context: &mut Context) {
         (handle filename)
     )
      */
-    // #todo: consider `ends-with?`
+    // #todo: consider 'ends-with' without '?'.
     scope.insert("ends-with?", Expr::ForeignFunc(Arc::new(string_ends_with)));
 
     // ...

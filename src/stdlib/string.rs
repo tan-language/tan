@@ -92,7 +92,44 @@ pub fn format(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(Expr::String(output))
 }
 
+// name: split
+// type: (Func (String String) String)
+// macro annotation: (this: String, separator: String) -> String
+// (Func (this separator) ..)
+// (Func (#String this #String separator) String)
+pub fn string_split(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    let [this, separator] = args else {
+        return Err(Error::invalid_arguments(
+            "`split` requires `this` and `separator` arguments",
+            None,
+        ));
+    };
+
+    let Some(this) = this.as_string() else {
+        return Err(Error::invalid_arguments(
+            "`this` argument should be a String",
+            this.range(),
+        ));
+    };
+
+    let Some(separator) = separator.as_string() else {
+        return Err(Error::invalid_arguments(
+            "`separator` argument should be a String",
+            separator.range(),
+        ));
+    };
+
+    // #todo should return iterator
+
+    let parts = this.split(separator).map(Expr::string).collect();
+
+    Ok(Expr::List(parts))
+}
+
+// #todo have FFI functions without Context?
+
 pub fn string_ends_with(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    // #todo consider `suffix` instead of `postfix`.
     let [this, postfix] = args else {
         return Err(Error::invalid_arguments(
             "`ends-with` requires `this` and `postfix` arguments",
@@ -119,7 +156,7 @@ pub fn string_ends_with(args: &[Expr], _context: &Context) -> Result<Expr, Error
 
 #[cfg(test)]
 mod tests {
-    use crate::{api::eval_string, context::Context};
+    use crate::{api::eval_string, context::Context, expr::format_value};
 
     #[test]
     fn ends_with_usage() {
@@ -139,5 +176,15 @@ mod tests {
         let expr = eval_string(input, &mut context).unwrap();
         let value = expr.as_bool().unwrap();
         assert_eq!(value, false);
+    }
+
+    #[test]
+    fn split_usage() {
+        let mut context = Context::new();
+        let input = r#"(split "path/to/my/secret/file.ext" "/")"#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = r#"("path" "to" "my" "secret" "file.ext")"#;
+        assert_eq!(value, expected);
     }
 }

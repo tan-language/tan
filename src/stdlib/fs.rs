@@ -102,14 +102,8 @@ fn walk_dir(dir_path: &Path) -> Vec<Expr> {
         let entry_path = entry.unwrap().path();
 
         if entry_path.is_dir() {
-            tree.push(Expr::String(
-                entry_path
-                    // .file_name()
-                    // .unwrap()
-                    .to_str()
-                    .unwrap()
-                    .to_string(),
-            ));
+            let dir_name = entry_path.to_str().unwrap().to_string();
+            tree.push(Expr::String(format!("{dir_name}/")));
             tree.append(&mut walk_dir(&entry_path));
         } else {
             tree.push(Expr::String(entry_path.to_str().unwrap().to_string()));
@@ -141,6 +135,39 @@ pub fn list_as_tree(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let tree = Expr::List(walk_dir(Path::new(path)));
 
     Ok(tree)
+}
+
+// #todo copy
+// #todo move
+// #todo delete (or remove?)
+
+// #todo support paths
+pub fn copy(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    let [source, target] = args else {
+        return Err(Error::invalid_arguments(
+            "`copy` requires `source` and `target` arguments",
+            None,
+        ));
+    };
+
+    let Some(source) = source.as_string() else {
+        return Err(Error::invalid_arguments(
+            "`source` argument should be a String",
+            source.range(),
+        ));
+    };
+
+    let Some(target) = target.as_string() else {
+        return Err(Error::invalid_arguments(
+            "`target` argument should be a String",
+            target.range(),
+        ));
+    };
+
+    let bytes_count = fs::copy(source, target)?;
+
+    // #todo what to return?
+    Ok(Expr::Int(bytes_count as i64))
 }
 
 // #todo use Rc/Arc consistently
@@ -180,6 +207,8 @@ pub fn setup_std_fs(context: &mut Context) {
 
     // #todo find better name.
     scope.insert("list-as-tree", Expr::ForeignFunc(Arc::new(list_as_tree)));
+
+    scope.insert("copy", Expr::ForeignFunc(Arc::new(copy)));
 
     // #todo this is a hack.
     let module_path = format!("{}/std/fs", context.root_path);

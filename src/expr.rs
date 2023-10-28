@@ -16,6 +16,7 @@ use crate::{
     util::fmt::format_float,
 };
 
+// #todo introduce Expr::ForeignStruct
 // #todo introduce Expr::Ref() with an Rc reference to avoid excessive cloning!
 
 // #insight
