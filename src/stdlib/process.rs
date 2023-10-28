@@ -3,6 +3,9 @@ use std::{rc::Rc, sync::Arc};
 use crate::error::Error;
 use crate::{context::Context, expr::Expr, module::Module};
 
+// #todo process/env, (let version (process/env :TAN-VERSION))
+// #todo process/args, (let file (process/args 1)) (let file (1 (process/args)))
+
 /// Terminates the current process with the specified exit code.
 pub fn exit(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     if let Some(code) = args.first() {

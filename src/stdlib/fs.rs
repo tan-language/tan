@@ -137,6 +137,39 @@ pub fn list_as_tree(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(tree)
 }
 
+// #todo copy
+// #todo move
+// #todo delete (or remove?)
+
+// #todo support paths
+pub fn copy(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    let [source, target] = args else {
+        return Err(Error::invalid_arguments(
+            "`copy` requires `source` and `target` arguments",
+            None,
+        ));
+    };
+
+    let Some(source) = source.as_string() else {
+        return Err(Error::invalid_arguments(
+            "`source` argument should be a String",
+            source.range(),
+        ));
+    };
+
+    let Some(target) = target.as_string() else {
+        return Err(Error::invalid_arguments(
+            "`target` argument should be a String",
+            target.range(),
+        ));
+    };
+
+    let bytes_count = fs::copy(source, target)?;
+
+    // #todo what to return?
+    Ok(Expr::Int(bytes_count as i64))
+}
+
 // #todo use Rc/Arc consistently
 // #todo some helpers are needed here, to streamline the code.
 
@@ -174,6 +207,8 @@ pub fn setup_std_fs(context: &mut Context) {
 
     // #todo find better name.
     scope.insert("list-as-tree", Expr::ForeignFunc(Arc::new(list_as_tree)));
+
+    scope.insert("copy", Expr::ForeignFunc(Arc::new(copy)));
 
     // #todo this is a hack.
     let module_path = format!("{}/std/fs", context.root_path);

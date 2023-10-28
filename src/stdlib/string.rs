@@ -93,8 +93,10 @@ pub fn format(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 }
 
 // name: split
-// type: (Func String String String)
+// type: (Func (String String) String)
 // macro annotation: (this: String, separator: String) -> String
+// (Func (this separator) ..)
+// (Func (#String this #String separator) String)
 pub fn string_split(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [this, separator] = args else {
         return Err(Error::invalid_arguments(
