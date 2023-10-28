@@ -137,7 +137,6 @@ pub fn list_as_tree(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(tree)
 }
 
-// #todo copy
 // #todo move
 // #todo delete (or remove?)
 
@@ -168,6 +167,30 @@ pub fn copy(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 
     // #todo what to return?
     Ok(Expr::Int(bytes_count as i64))
+}
+
+// #todo consider `make-directory`? (make in process, create in system)
+pub fn create_directory(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    let [path] = args else {
+        return Err(Error::invalid_arguments(
+            "`create-directory` requires a `path` argument",
+            None,
+        ));
+    };
+
+    let Some(path) = path.as_string() else {
+        return Err(Error::invalid_arguments(
+            "`path` argument should be a String",
+            path.range(),
+        ));
+    };
+
+    // #todo create_dir vs create_dir_all
+
+    fs::create_dir_all(path)?;
+
+    // #todo what to return?
+    Ok(Expr::One)
 }
 
 // #todo use Rc/Arc consistently
@@ -209,6 +232,11 @@ pub fn setup_std_fs(context: &mut Context) {
     scope.insert("list-as-tree", Expr::ForeignFunc(Arc::new(list_as_tree)));
 
     scope.insert("copy", Expr::ForeignFunc(Arc::new(copy)));
+
+    scope.insert(
+        "create-directory",
+        Expr::ForeignFunc(Arc::new(create_directory)),
+    );
 
     // #todo this is a hack.
     let module_path = format!("{}/std/fs", context.root_path);
