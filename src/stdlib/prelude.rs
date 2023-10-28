@@ -7,7 +7,7 @@ use crate::{context::Context, expr::Expr, module::Module};
 use super::arithmetic;
 use super::io::{read_string, write, writeln};
 use super::seq::array_count;
-use super::string::{string_ends_with, string_split};
+use super::string::{string_ends_with, string_replace, string_split};
 use super::{
     eq::{eq, gt, lt},
     seq::array_join,
@@ -137,6 +137,8 @@ pub fn setup_std_prelude(context: &mut Context) {
     scope.insert("format", Expr::ForeignFunc(Arc::new(format)));
 
     scope.insert("split", Expr::ForeignFunc(Arc::new(string_split)));
+
+    scope.insert("replace", Expr::ForeignFunc(Arc::new(string_replace)));
 
     /*
     (if (ends-with filename ".png")

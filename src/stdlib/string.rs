@@ -154,6 +154,39 @@ pub fn string_ends_with(args: &[Expr], _context: &Context) -> Result<Expr, Error
     Ok(Expr::Bool(this.ends_with(postfix)))
 }
 
+// #todo different name? e.g. rewrite?
+pub fn string_replace(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    let [this, from, to] = args else {
+        return Err(Error::invalid_arguments(
+            "`replace` requires `this`, `from`, and `to` arguments",
+            None,
+        ));
+    };
+
+    let Some(this) = this.as_string() else {
+        return Err(Error::invalid_arguments(
+            "`this` argument should be a String",
+            this.range(),
+        ));
+    };
+
+    let Some(from) = from.as_string() else {
+        return Err(Error::invalid_arguments(
+            "`from` argument should be a String",
+            from.range(),
+        ));
+    };
+
+    let Some(to) = to.as_string() else {
+        return Err(Error::invalid_arguments(
+            "`to` argument should be a String",
+            to.range(),
+        ));
+    };
+
+    Ok(Expr::String(this.replace(from, to)))
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{api::eval_string, context::Context, expr::format_value};
@@ -185,6 +218,16 @@ mod tests {
         let expr = eval_string(input, &mut context).unwrap();
         let value = format_value(expr);
         let expected = r#"("path" "to" "my" "secret" "file.ext")"#;
+        assert_eq!(value, expected);
+    }
+
+    #[test]
+    fn replace_usage() {
+        let mut context = Context::new();
+        let input = r#"(replace "Hello George" "George" "Alex")"#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "Hello Alex";
         assert_eq!(value, expected);
     }
 }
