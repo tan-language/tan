@@ -6,7 +6,7 @@ use std::{collections::HashMap, rc::Rc};
 use crate::{
     context::Context,
     error::Error,
-    expr::{annotate, format_value, Expr},
+    expr::{annotate, expr_clone, format_value, Expr},
     resolver::compute_dyn_signature,
     scope::Scope,
     util::is_reserved_symbol,
@@ -112,13 +112,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             // #todo hm, can we somehow work with references?
             // #hint this could help: https://doc.rust-lang.org/std/rc/struct.Rc.html#method.unwrap_or_clone
 
-            // #todo extract as function.
-            // #todo proper value/reference handling for all types.
-            match &*value {
-                // #insight treat Array as a 'reference' type.
-                Expr::Array(items) => Ok(Expr::Array(items.clone())),
-                _ => Ok((*value).clone()),
-            }
+            Ok(expr_clone(&value))
         }
         Expr::KeySymbol(..) => {
             // #todo handle 'PathSymbol'

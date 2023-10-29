@@ -463,6 +463,18 @@ pub fn format_value(expr: impl AsRef<Expr>) -> String {
     }
 }
 
+// #todo consider using Rc<Expr> everywhere?
+// #todo proper name
+// #todo proper value/reference handling for all types.
+/// Clones expressions in optimized way, handles ref types.
+pub fn expr_clone(expr: &Expr) -> Expr {
+    match expr {
+        // #insight treat Array as a 'reference' type, Rc.clone is efficient.
+        Expr::Array(items) => Expr::Array(items.clone()),
+        _ => expr.clone(),
+    }
+}
+
 // ---
 
 // #todo implement Defer into Expr!

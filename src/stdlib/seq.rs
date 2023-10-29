@@ -24,20 +24,6 @@ pub fn array_push(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
         ));
     };
 
-    // // #todo ARGH!
-    // unsafe {
-    //     // #todo the mother of all hacks!
-    //     // #todo ARGH!!! interior mutability needed!
-    //     let const_ptr = array as *const Vec<Expr>;
-    //     println!("+++++ {const_ptr:?}");
-    //     let mut_ptr = const_ptr as *mut Vec<Expr>;
-    //     let array = &mut *mut_ptr;
-    //     // dbg!(&array);
-    //     array.push(element.unpack().clone());
-    //     // dbg!(&element, &array);
-    // }
-    // // dbg!(&element, &array);
-
     elements.push(element.unpack().clone()); // #todo hmm this clone!
 
     // #todo what to return?
