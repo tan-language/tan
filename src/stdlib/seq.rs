@@ -82,3 +82,23 @@ pub fn array_count(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 }
 
 // #todo implement first, last
+
+#[cfg(test)]
+mod tests {
+    use crate::{api::eval_string, context::Context, expr::format_value};
+
+    #[test]
+    fn array_push_usage() {
+        let input = r#"
+            (let arr [1 2])
+            (push arr 3)
+            (push arr 4)
+            arr
+        "#;
+        let mut context = Context::new();
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "[1 2 3 4]";
+        assert_eq!(value, expected);
+    }
+}

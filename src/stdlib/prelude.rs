@@ -6,7 +6,7 @@ use crate::{context::Context, expr::Expr, module::Module};
 // #todo remove granular imports
 use super::arithmetic;
 use super::io::{read_string, write, writeln};
-use super::seq::array_count;
+use super::seq::{array_count, array_push};
 use super::string::{string_ends_with, string_replace, string_split};
 use super::{
     eq::{eq, gt, lt},
@@ -112,6 +112,7 @@ pub fn setup_std_prelude(context: &mut Context) {
 
     // seq
 
+    scope.insert("push", Expr::ForeignFunc(Arc::new(array_push)));
     scope.insert("join", Expr::ForeignFunc(Arc::new(array_join)));
     scope.insert("count", Expr::ForeignFunc(Arc::new(array_count)));
 

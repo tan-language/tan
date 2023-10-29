@@ -112,6 +112,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             // #todo hm, can we somehow work with references?
             // #hint this could help: https://doc.rust-lang.org/std/rc/struct.Rc.html#method.unwrap_or_clone
 
+            // #todo extract as function.
             // #todo proper value/reference handling for all types.
             match &*value {
                 // #insight treat Array as a 'reference' type.
