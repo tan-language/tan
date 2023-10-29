@@ -26,7 +26,7 @@ pub fn string_chars(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
         exprs.push(Expr::Char(char));
     }
 
-    Ok(Expr::Array(exprs))
+    Ok(Expr::array(exprs))
 }
 
 pub fn string_constructor_from_chars(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
@@ -45,7 +45,7 @@ pub fn string_constructor_from_chars(args: &[Expr], _context: &Context) -> Resul
 
     let mut chars: Vec<char> = Vec::new();
 
-    for expr in exprs {
+    for expr in exprs.iter() {
         if let Some(c) = expr.as_char() {
             chars.push(c);
         }

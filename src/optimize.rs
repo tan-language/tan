@@ -17,8 +17,9 @@ pub fn optimize_fn(expr: Expr) -> Expr {
             if !terms.is_empty() {
                 if let Expr::Symbol(s) = &terms[0].unpack() {
                     if s == "Array" {
-                        let items = terms[1..].iter().map(|ax| ax.unpack().clone()).collect();
-                        return Expr::maybe_annotated(Expr::Array(items), expr.annotations());
+                        let items: Vec<Expr> =
+                            terms[1..].iter().map(|ax| ax.unpack().clone()).collect();
+                        return Expr::maybe_annotated(Expr::array(items), expr.annotations());
                     } else if s == "Dict" {
                         let items: Vec<Expr> =
                             terms[1..].iter().map(|ax| ax.unpack().clone()).collect();
@@ -56,7 +57,8 @@ mod tests {
 
         let s = format!("{expr_optimized:?}");
 
-        assert!(s.contains("Array([Int(1), Int(2), Int(3), Int(4)])"));
+        // assert!(s.contains("Array([Int(1), Int(2), Int(3), Int(4)])"));
+        assert!(s.contains("Array(RefCell { value: [Int(1), Int(2), Int(3), Int(4)] })"));
     }
 
     // #todo the test is flaky for some reason, temporarily disabled, investigate.

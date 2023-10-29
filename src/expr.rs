@@ -1,7 +1,13 @@
 pub mod expr_iter;
 pub mod expr_transform;
 
-use std::{collections::HashMap, fmt, rc::Rc, sync::Arc};
+use std::{
+    cell::{Ref, RefCell},
+    collections::HashMap,
+    fmt,
+    rc::Rc,
+    sync::Arc,
+};
 
 #[cfg(feature = "dec")]
 use rust_decimal::Decimal;
@@ -84,7 +90,7 @@ pub enum Expr {
     // #todo add 'quoted' List -> Array!
     // #todo do we really need Vec here? Maybe Arc<[Expr]> is enough?
     List(Vec<Expr>),
-    Array(Vec<Expr>),
+    Array(Rc<RefCell<Vec<Expr>>>), // #insight 'reference' type
     // #todo different name?
     // #todo support Expr as keys?
     Dict(HashMap<String, Expr>),
@@ -191,6 +197,7 @@ impl fmt::Display for Expr {
                 }
                 Expr::Array(exprs) => {
                     let exprs = exprs
+                        .borrow()
                         .iter()
                         .map(|expr| expr.to_string())
                         .collect::<Vec<String>>()
@@ -234,6 +241,10 @@ impl Expr {
 
     pub fn string(s: impl Into<String>) -> Self {
         Expr::String(s.into())
+    }
+
+    pub fn array(a: impl Into<Vec<Expr>>) -> Self {
+        Expr::Array(Rc::new(RefCell::new(a.into())))
     }
 
     // pub fn foreign_func(f: &ExprFn) -> Self {
@@ -350,11 +361,11 @@ impl Expr {
         Some(v)
     }
 
-    pub fn as_array(&self) -> Option<&Vec<Expr>> {
+    pub fn as_array(&self) -> Option<Ref<'_, Vec<Expr>>> {
         let Expr::Array(v) = self.unpack() else {
             return None;
         };
-        Some(v)
+        Some(v.borrow())
     }
 
     pub fn as_dict(&self) -> Option<&HashMap<String, Expr>> {
@@ -492,13 +503,18 @@ pub fn range_to_expr(range: &Range) -> Expr {
     let start = position_to_expr(&range.start);
     let end = position_to_expr(&range.end);
 
-    Expr::Array(vec![start, end])
+    Expr::array(vec![start, end])
 }
 
 // #todo nasty code.
 pub fn expr_to_range(expr: &Expr) -> Range {
     // #todo error checking?
-    let Expr::Array(terms) = expr else {
+    // let Expr::Array(terms) = expr else {
+    //     // #todo hmm...
+    //     return Range::default();
+    // };
+
+    let Some(terms) = expr.as_array() else {
         // #todo hmm...
         return Range::default();
     };
