@@ -61,7 +61,13 @@ fn render_expr(expr: &Expr) -> Result<Expr, Error> {
                     }
 
                     // #todo eval body.
-                    Ok(Expr::string(format!("<{sym}{attributes}>{body}</{sym}>")))
+
+                    if body.is_empty() {
+                        // #todo add exception for <script> tag.
+                        Ok(Expr::string(format!("<{sym}{attributes} />")))
+                    } else {
+                        Ok(Expr::string(format!("<{sym}{attributes}>{body}</{sym}>")))
+                    }
                 } else {
                     Ok(Expr::string(format!("<{sym} />")))
                 }
@@ -112,7 +118,7 @@ mod tests {
     #[test]
     fn html_form_expr_usage() {
         // #todo extract as fixture.
-        // #insight intentionally use html tags with a single attribute as ordering is currently not preserved.
+        // #insight we intentionally use html tags with a single attribute, in this test, as ordering is currently not preserved.
         let input = r#"
             (use "/std/html")
 
@@ -141,7 +147,7 @@ mod tests {
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
         let value = expr.as_string().unwrap();
-        let expected = r#"<html lang="el"><head><title>Hello</title><link href="https://www.example.com/icon.png"></link></head><body>Hello George! Num: <b>cool 3</b><br /><br /><div>Component: <i>Stella</i> is cool!</div></body></html>"#;
+        let expected = r#"<html lang="el"><head><title>Hello</title><link href="https://www.example.com/icon.png" /></head><body>Hello George! Num: <b>cool 3</b><br /><br /><div>Component: <i>Stella</i> is cool!</div></body></html>"#;
         assert_eq!(value, expected);
     }
 }
