@@ -6,7 +6,7 @@ use std::{collections::HashMap, rc::Rc};
 use crate::{
     context::Context,
     error::Error,
-    expr::{annotate, format_value, Expr},
+    expr::{annotate, expr_clone, format_value, Expr},
     resolver::compute_dyn_signature,
     scope::Scope,
     util::is_reserved_symbol,
@@ -111,7 +111,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
             // #todo hm, can we somehow work with references?
             // #hint this could help: https://doc.rust-lang.org/std/rc/struct.Rc.html#method.unwrap_or_clone
-            Ok((*value).clone())
+
+            Ok(expr_clone(&value))
         }
         Expr::KeySymbol(..) => {
             // #todo handle 'PathSymbol'
@@ -302,7 +303,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         ));
                     };
                     let index = index as usize;
-                    if let Some(value) = arr.get(index) {
+                    if let Some(value) = arr.borrow().get(index) {
+                        // #todo replace the clone with the custom expr::copy/ref
                         Ok(value.clone().into())
                     } else {
                         // #todo introduce Maybe { Some, None }
@@ -586,8 +588,9 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             let prev_scope = context.scope.clone();
                             context.scope = Rc::new(Scope::new(prev_scope.clone()));
 
-                            for x in arr {
+                            for x in arr.iter() {
                                 // #todo array should have Ann<Expr> use Ann<Expr> everywhere, avoid the clones!
+                                // #todo replace the clone with custom expr::ref/copy?
                                 context.scope.insert(sym, x.clone());
                                 eval(body, context)?;
                             }
@@ -629,17 +632,18 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             let mut results: Vec<Expr> = Vec::new();
 
-                            for x in arr {
+                            for x in arr.iter() {
                                 // #todo array should have Ann<Expr> use Ann<Expr> everywhere, avoid the clones!
                                 context.scope.insert(sym, x.clone());
                                 let result = eval(body, context)?;
+                                // #todo replace the clone with custom expr::ref/copy?
                                 results.push(result.unpack().clone());
                             }
 
                             context.scope = prev_scope.clone();
 
                             // #todo intentionally don't return a value, reconsider this?
-                            Ok(Expr::Array(results).into())
+                            Ok(Expr::array(results).into())
                         }
                         "use" => {
                             // #todo also introduce a dynamic version of `use`.
@@ -790,10 +794,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             // #insight [...] => (Array ...) => it's like a function.
             // #todo can this get pre-evaluated statically in some cases?
             let mut evaled_items = Vec::new();
-            for item in items {
+            for item in items.borrow().iter() {
                 evaled_items.push(eval(item, context)?);
             }
-            Ok(Expr::Array(evaled_items))
+            Ok(Expr::array(evaled_items))
         }
         Expr::Dict(dict) => {
             // #insight evaluates the values.

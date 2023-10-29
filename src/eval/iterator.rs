@@ -73,6 +73,24 @@ impl<'a> ExprIterator for ArrayIterator<'a> {
     }
 }
 
+pub struct ArrayIterator2<'a> {
+    current: usize,
+    items: std::cell::Ref<'a, Vec<Expr>>,
+    pub step: usize,
+}
+
+impl<'a> ExprIterator for ArrayIterator2<'a> {
+    fn next(&mut self) -> Option<Expr> {
+        if self.current < self.items.len() {
+            let value = self.items[self.current].clone(); // #todo argh, avoid this. should array have Rcs? SOS!!!
+            self.current += self.step;
+            Some(value)
+        } else {
+            None
+        }
+    }
+}
+
 // #todo find better name.
 // #todo consider using Box<dyn ExprIterator> instead, at least have a custom helper that returns Box.
 pub fn try_iterator_from<'a>(expr: &'a Expr) -> Option<Rc<RefCell<dyn ExprIterator + 'a>>> {
@@ -107,11 +125,14 @@ pub fn try_iterator_from<'a>(expr: &'a Expr) -> Option<Rc<RefCell<dyn ExprIterat
             items: &items,
             step: 1,
         }))),
-        Expr::Array(items) => Some(Rc::new(RefCell::new(ArrayIterator {
-            current: 0,
-            items: &items,
-            step: 1,
-        }))),
+        Expr::Array(items) => {
+            let items = items.borrow();
+            Some(Rc::new(RefCell::new(ArrayIterator2 {
+                current: 0,
+                items: items,
+                step: 1,
+            })))
+        }
         _ => None,
     }
 }
