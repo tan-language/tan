@@ -154,6 +154,7 @@ pub fn string_ends_with(args: &[Expr], _context: &Context) -> Result<Expr, Error
     Ok(Expr::Bool(this.ends_with(postfix)))
 }
 
+// #todo could allow for multiple replacements (i.e. paris of rules)
 // #todo different name? e.g. rewrite?
 pub fn string_replace(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [this, from, to] = args else {

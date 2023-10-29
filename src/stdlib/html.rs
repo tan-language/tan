@@ -16,6 +16,8 @@ use crate::{
 // #todo special handling of child strings with interpolation.
 // #todo support pretty-printing
 
+// #todo should take a list of expressions to handle '(!DOCTYPE "html")
+// #todo handle self-closing tags, e.g. <meta ... />, <link ... />
 fn render_expr(expr: &Expr) -> Result<Expr, Error> {
     let expr = expr.unpack();
 
@@ -76,7 +78,7 @@ fn render_expr(expr: &Expr) -> Result<Expr, Error> {
 }
 
 // #todo find a better name.
-pub fn html_from_expr_expr(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn html_from_expr(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     if let Some(expr) = args.first() {
         render_expr(expr)
     } else {
@@ -94,7 +96,7 @@ pub fn setup_std_html(context: &mut Context) {
 
     scope.insert(
         "html-from-expr",
-        Expr::ForeignFunc(Arc::new(html_from_expr_expr)),
+        Expr::ForeignFunc(Arc::new(html_from_expr)),
     );
 
     // #todo this is a hack.
@@ -103,10 +105,43 @@ pub fn setup_std_html(context: &mut Context) {
     context.module_registry.insert(module_path, Rc::new(module));
 }
 
-// #todo!
-// #[cfg(test)]
-// mod tests {
-//     #[test]
-//     fn todo() {
-//     }
-// }
+#[cfg(test)]
+mod tests {
+    use crate::{api::eval_string, context::Context};
+
+    #[test]
+    fn html_form_expr_usage() {
+        // #todo extract as fixture.
+        // #insight intentionally use html tags with a single attribute as ordering is currently not preserved.
+        let input = r#"
+            (use "/std/html")
+
+            (let name "George")
+
+            (let component (Func (name)
+                '(div "Component: " $name " is cool!")
+            ))
+
+            (let expr #HTML
+                '(html {lang: "el"}
+                    (head
+                        (title "Hello")
+                        (link {href: "https://www.example.com/icon.png"})
+                    )
+                    (body
+                        "Hello " $name "! Num: " (b "cool " $(+ 1 2))
+                        (br)(br)
+                        $(component '(i "Stella"))
+                    )
+                )
+            )
+
+            (html/html-from-expr expr)
+        "#;
+        let mut context = Context::new();
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = expr.as_string().unwrap();
+        let expected = r#"<html lang="el"><head><title>Hello</title><link href="https://www.example.com/icon.png"></link></head><body>Hello George! Num: <b>cool 3</b><br /><br /><div>Component: <i>Stella</i> is cool!</div></body></html>"#;
+        assert_eq!(value, expected);
+    }
+}

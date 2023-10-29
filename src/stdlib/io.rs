@@ -7,6 +7,7 @@ use crate::{
 
 // #todo also register as a non-prelude module.
 
+// #todo put example usage here!
 // #todo should take a &mut Context
 pub fn read_string(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     // #todo support all `Stringable`s
@@ -16,7 +17,10 @@ pub fn read_string(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 
     if let Some(input) = args.first() {
         let Some(input) = input.as_string() else {
-            return Err(Error::invalid_arguments("expected String argument", input.range()));
+            return Err(Error::invalid_arguments(
+                "expected String argument",
+                input.range(),
+            ));
         };
 
         // #todo think carefully which eval function to use.

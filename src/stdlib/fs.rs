@@ -13,6 +13,9 @@ use crate::{context::Context, error::Error, expr::Expr};
 // #todo consider mapping `:` to `__` and use #[allow(snake_case)]
 
 /// Reads the contents of a text file as a string.
+/// ```tan
+/// (let content (read-file-to-string "index.html"))
+/// ```
 pub fn read_file_to_string(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [path] = args else {
         return Err(Error::invalid_arguments(
