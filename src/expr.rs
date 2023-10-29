@@ -2,7 +2,7 @@ pub mod expr_iter;
 pub mod expr_transform;
 
 use std::{
-    cell::{Ref, RefCell},
+    cell::{Ref, RefCell, RefMut},
     collections::HashMap,
     fmt,
     rc::Rc,
@@ -366,6 +366,13 @@ impl Expr {
             return None;
         };
         Some(v.borrow())
+    }
+
+    pub fn as_array_mut(&self) -> Option<RefMut<'_, Vec<Expr>>> {
+        let Expr::Array(v) = self.unpack() else {
+            return None;
+        };
+        Some(v.borrow_mut())
     }
 
     pub fn as_dict(&self) -> Option<&HashMap<String, Expr>> {
