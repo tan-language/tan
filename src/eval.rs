@@ -111,7 +111,13 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
             // #todo hm, can we somehow work with references?
             // #hint this could help: https://doc.rust-lang.org/std/rc/struct.Rc.html#method.unwrap_or_clone
-            Ok((*value).clone())
+
+            // #todo proper value/reference handling for all types.
+            match &*value {
+                // #insight treat Array as a 'reference' type.
+                Expr::Array(items) => Ok(Expr::Array(items.clone())),
+                _ => Ok((*value).clone()),
+            }
         }
         Expr::KeySymbol(..) => {
             // #todo handle 'PathSymbol'
