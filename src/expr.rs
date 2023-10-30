@@ -93,7 +93,7 @@ pub enum Expr {
     Array(Rc<RefCell<Vec<Expr>>>), // #insight 'reference' type
     // #todo different name?
     // #todo support Expr as keys?
-    Dict(HashMap<String, Expr>),
+    Dict(Rc<RefCell<HashMap<String, Expr>>>),
     IntRange(i64, i64, i64),   // start, end, step #todo use a struct here,
     FloatRange(f64, f64, f64), // start, end, step #todo use a struct here,
     // Range(...),
@@ -208,6 +208,7 @@ impl fmt::Display for Expr {
                     // #todo Dict should support arbitrary exprs (or at lease `(Into String)` exprs)
                     // #todo currently we convert keys to symbol, make this more subtle.
                     let exprs = dict
+                        .borrow()
                         .iter()
                         .map(|(k, v)| format!(":{k} {v}"))
                         .collect::<Vec<String>>()
@@ -245,6 +246,10 @@ impl Expr {
 
     pub fn array(a: impl Into<Vec<Expr>>) -> Self {
         Expr::Array(Rc::new(RefCell::new(a.into())))
+    }
+
+    pub fn dict(d: impl Into<HashMap<String, Expr>>) -> Self {
+        Expr::Dict(Rc::new(RefCell::new(d.into())))
     }
 
     // pub fn foreign_func(f: &ExprFn) -> Self {
@@ -375,11 +380,18 @@ impl Expr {
         Some(v.borrow_mut())
     }
 
-    pub fn as_dict(&self) -> Option<&HashMap<String, Expr>> {
+    pub fn as_dict(&self) -> Option<Ref<'_, HashMap<String, Expr>>> {
         let Expr::Dict(dict) = self.unpack() else {
             return None;
         };
-        Some(dict)
+        Some(dict.borrow())
+    }
+
+    pub fn as_dict_mut(&self) -> Option<RefMut<'_, HashMap<String, Expr>>> {
+        let Expr::Dict(dict) = self.unpack() else {
+            return None;
+        };
+        Some(dict.borrow_mut())
     }
 
     // // static vs dyn type.
@@ -469,8 +481,9 @@ pub fn format_value(expr: impl AsRef<Expr>) -> String {
 /// Clones expressions in optimized way, handles ref types.
 pub fn expr_clone(expr: &Expr) -> Expr {
     match expr {
-        // #insight treat Array as a 'reference' type, Rc.clone is efficient.
+        // #insight treat Array and Dict as a 'reference' types, Rc.clone is efficient.
         Expr::Array(items) => Expr::Array(items.clone()),
+        Expr::Dict(items) => Expr::Dict(items.clone()),
         _ => expr.clone(),
     }
 }
@@ -487,11 +500,11 @@ pub fn position_to_expr(position: &Position) -> Expr {
     map.insert("index".to_owned(), Expr::Int(position.index as i64));
     map.insert("line".to_owned(), Expr::Int(position.line as i64));
     map.insert("col".to_owned(), Expr::Int(position.line as i64));
-    Expr::Dict(map)
+    Expr::dict(map)
 }
 
 pub fn expr_to_position(expr: &Expr) -> Position {
-    if let Expr::Dict(dict) = expr {
+    if let Some(dict) = expr.as_dict() {
         let Some(Expr::Int(index)) = dict.get("index") else {
             // #todo fix me!
             return Position::default();

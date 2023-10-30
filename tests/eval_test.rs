@@ -434,9 +434,9 @@ fn module_cannot_access_private_members_of_other_modules() {
 
 #[test]
 fn eval_function_returns_dict() {
-    let result = eval_file("func-dict.tan");
+    let expr = eval_file("func-dict.tan").unwrap();
 
-    let Ok(Expr::Dict(dict)) = result else {
+    let Some(dict) = expr.as_dict() else {
         panic!();
     };
 
@@ -457,4 +457,12 @@ fn format_float_has_fractional_part() {
     let result = eval_file("format-float.tan");
 
     assert_matches!(result, Ok(Expr::String(s)) if s == "1.0");
+}
+
+// #todo make this pass!
+#[test]
+fn for_let_regression() {
+    let result = eval_file("for-let.tan");
+    dbg!(&result);
+    // assert!(result.is_ok())
 }

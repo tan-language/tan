@@ -1,4 +1,5 @@
 pub mod arithmetic;
+pub mod dict;
 pub mod eq;
 pub mod fs;
 pub mod html;

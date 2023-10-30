@@ -29,7 +29,7 @@ pub fn optimize_fn(expr: Expr) -> Expr {
                             let v = pair[1].clone();
                             dict.insert(format_value(k), v);
                         }
-                        return Expr::maybe_annotated(Expr::Dict(dict), expr.annotations());
+                        return Expr::maybe_annotated(Expr::dict(dict), expr.annotations());
                     }
                 }
             }

@@ -320,7 +320,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                     // #insight no need to unpack, format_value sees-through.
                     let key = format_value(&args[0]);
-                    if let Some(value) = dict.get(&key) {
+                    if let Some(value) = dict.borrow().get(&key) {
                         Ok(value.clone().into())
                     } else {
                         // #todo introduce Maybe { Some, None }
@@ -370,9 +370,9 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             let expr = tail.first().unwrap();
 
                             if let Some(ann) = expr.annotations() {
-                                Ok(Expr::Dict(ann.clone()))
+                                Ok(Expr::dict(ann.clone()))
                             } else {
-                                Ok(Expr::Dict(HashMap::new()))
+                                Ok(Expr::dict(HashMap::new()))
                             }
                         }
                         "eval" => {
@@ -805,10 +805,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             // #todo nasty code, improve.
             // #todo can this get pre-evaluated statically in some cases?
             let mut evaled_dict = HashMap::new();
-            for (k, v) in dict {
+            for (k, v) in dict.borrow().iter() {
                 evaled_dict.insert(k.clone(), eval(v, context)?);
             }
-            Ok(Expr::Dict(evaled_dict))
+            Ok(Expr::dict(evaled_dict))
         }
         _ => {
             // #todo hm, maybe need to report an error here? or even select the desired behavior? -> NO ERROR
