@@ -5,7 +5,7 @@ use crate::{context::Context, expr::Expr, module::Module};
 
 // #todo remove granular imports
 use super::arithmetic;
-use super::dict::dict_insert;
+use super::dict::{dict_get_or, dict_insert};
 use super::io::{read_string, write, writeln};
 use super::seq::{array_count, array_push};
 use super::string::{string_ends_with, string_replace, string_split};
@@ -122,6 +122,7 @@ pub fn setup_std_prelude(context: &mut Context) {
 
     // #todo add type qualifiers!
     scope.insert("insert", Expr::ForeignFunc(Arc::new(dict_insert)));
+    scope.insert("get-or", Expr::ForeignFunc(Arc::new(dict_get_or)));
 
     // string
 
