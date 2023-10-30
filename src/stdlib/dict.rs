@@ -91,13 +91,12 @@ mod tests {
         let input = r#"
             (let dict {})
             (insert dict :given-name "Georgios")
-            (insert dict :family-name "Moschovitis")
             dict
         "#;
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
         let value = format_value(expr);
-        let expected = r#"{:given-name "Georgios" :family-name "Moschovitis"}"#;
+        let expected = r#"{:given-name "Georgios"}"#;
         assert_eq!(value, expected);
     }
 

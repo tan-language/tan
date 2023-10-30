@@ -458,3 +458,11 @@ fn format_float_has_fractional_part() {
 
     assert_matches!(result, Ok(Expr::String(s)) if s == "1.0");
 }
+
+// #todo make this pass!
+#[test]
+fn for_let_regression() {
+    let result = eval_file("for-let.tan");
+    dbg!(&result);
+    // assert!(result.is_ok())
+}
