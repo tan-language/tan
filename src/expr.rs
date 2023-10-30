@@ -481,8 +481,9 @@ pub fn format_value(expr: impl AsRef<Expr>) -> String {
 /// Clones expressions in optimized way, handles ref types.
 pub fn expr_clone(expr: &Expr) -> Expr {
     match expr {
-        // #insight treat Array as a 'reference' type, Rc.clone is efficient.
+        // #insight treat Array and Dict as a 'reference' types, Rc.clone is efficient.
         Expr::Array(items) => Expr::Array(items.clone()),
+        Expr::Dict(items) => Expr::Dict(items.clone()),
         _ => expr.clone(),
     }
 }
