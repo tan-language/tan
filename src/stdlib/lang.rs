@@ -14,7 +14,7 @@ pub fn ann(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let expr = args.first().unwrap();
 
     if let Some(ann) = expr.annotations() {
-        Ok(Expr::Dict(ann.clone()))
+        Ok(Expr::dict(ann.clone()))
     } else {
         // #todo what to return here?
         Ok(Expr::One.into())

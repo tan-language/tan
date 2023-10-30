@@ -434,9 +434,9 @@ fn module_cannot_access_private_members_of_other_modules() {
 
 #[test]
 fn eval_function_returns_dict() {
-    let result = eval_file("func-dict.tan");
+    let expr = eval_file("func-dict.tan").unwrap();
 
-    let Ok(Expr::Dict(dict)) = result else {
+    let Some(dict) = expr.as_dict() else {
         panic!();
     };
 
