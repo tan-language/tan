@@ -848,6 +848,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     }
                 }
                 _ => {
+                    dbg!(&head);
                     return Err(Error::not_invocable(
                         &format!("expression `{head}`"),
                         head.range(),
