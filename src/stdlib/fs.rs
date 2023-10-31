@@ -233,6 +233,10 @@ pub fn setup_std_fs(context: &mut Context) {
 
     // #todo find better name.
     scope.insert("list-as-tree", Expr::ForeignFunc(Arc::new(list_as_tree)));
+    scope.insert(
+        "list-as-tree$$String",
+        Expr::ForeignFunc(Arc::new(list_as_tree)),
+    );
 
     scope.insert("copy", Expr::ForeignFunc(Arc::new(copy)));
 

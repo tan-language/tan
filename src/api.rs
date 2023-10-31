@@ -12,7 +12,7 @@ use crate::{
     optimize::optimize,
     parser::Parser,
     prune::prune,
-    resolver::Resolver,
+    // resolver::Resolver,
 };
 
 pub const TAN_FILE_EXTENSION: &str = "tan";
@@ -153,8 +153,8 @@ pub fn resolve_string(
         // Resolve pass (typechecking, definitions, etc)
 
         // #todo should we push a new env?
-        let mut resolver = Resolver::new();
-        let expr = resolver.resolve(expr, context)?;
+        // let mut resolver = Resolver::new();
+        // let expr = resolver.resolve(expr, context)?;
 
         resolved_exprs.push(expr);
     }

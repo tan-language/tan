@@ -31,6 +31,8 @@ fn eval_processes_arithmetic_expressions() {
 fn eval_processes_decimal_arithmetic_expressions() {
     let result = eval_file("sum-dec.tan");
 
+    dbg!(&result);
+
     assert!(result.is_ok());
 
     let value = format!("{}", result.unwrap());
@@ -48,7 +50,13 @@ fn do_reports_intermediate_errors() {
     let err = result.unwrap_err();
     let err = &err[0];
 
-    assert!(matches!(err, Error{ kind: ErrorKind::UndefinedFunction(s, _), .. } if s == "write33"));
+    dbg!(&err);
+
+    // #insight
+    // emitting undefined-symbol happened after removing resolver but it may
+    // actually be better.
+    // assert_matches!(err, Error{ kind: ErrorKind::UndefinedFunction(s, _), .. } if s == "write33");
+    assert_matches!(err, Error{ kind: ErrorKind::UndefinedSymbol(s), .. } if s == "write33");
 }
 
 #[test]
@@ -463,6 +471,5 @@ fn format_float_has_fractional_part() {
 #[test]
 fn for_let_regression() {
     let result = eval_file("for-let.tan");
-    dbg!(&result);
-    // assert!(result.is_ok())
+    assert!(result.is_ok())
 }
