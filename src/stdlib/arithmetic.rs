@@ -3,7 +3,7 @@ use rust_decimal_macros::dec;
 
 use crate::{context::Context, error::Error, expr::Expr};
 
-// #Insight
+// #insight
 // Named `arithmetic` as those operators can apply to non-numbers, e.g. Time, Date
 
 // #todo use AsRef, to avoid Annotated!
@@ -12,6 +12,8 @@ use crate::{context::Context, error::Error, expr::Expr};
 
 // #todo ranges for arguments is too detailed, most probably we do not have the ranges!
 // #todo support invalid_arguments without range.
+
+// #fixme (+ 1.2 1.4 1.5) does not work, falls back to Int (more than 2 arguments)
 
 // #todo autogen with a macro!
 pub fn add_int(args: &[Expr], _context: &Context) -> Result<Expr, Error> {

@@ -121,9 +121,9 @@ pub fn string_split(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 
     // #todo should return iterator
 
-    let parts = this.split(separator).map(Expr::string).collect();
+    let parts: Vec<Expr> = this.split(separator).map(Expr::string).collect();
 
-    Ok(Expr::List(parts))
+    Ok(Expr::array(parts))
 }
 
 // #todo have FFI functions without Context?
@@ -218,7 +218,7 @@ mod tests {
         let input = r#"(split "path/to/my/secret/file.ext" "/")"#;
         let expr = eval_string(input, &mut context).unwrap();
         let value = format_value(expr);
-        let expected = r#"("path" "to" "my" "secret" "file.ext")"#;
+        let expected = r#"["path" "to" "my" "secret" "file.ext"]"#;
         assert_eq!(value, expected);
     }
 

@@ -1,7 +1,7 @@
 use crate::{
     context::Context,
     error::Error,
-    expr::{expr_clone, Expr},
+    expr::{expr_clone, format_value, Expr},
 };
 
 // #todo version that returns a new sequence
@@ -25,12 +25,15 @@ pub fn dict_insert(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     // #todo support non-string/symbol keys
     // #todo support string keys also.
 
-    let Expr::KeySymbol(key) = key.unpack() else {
-        return Err(Error::invalid_arguments(
-            "`key` argument should be a KeySymbol",
-            key.range(),
-        ));
-    };
+    // let Expr::KeySymbol(key) = key.unpack() else {
+    //     return Err(Error::invalid_arguments(
+    //         "`key` argument should be a KeySymbol",
+    //         key.range(),
+    //     ));
+    // };
+
+    // #todo temp solution!
+    let key = format_value(key);
 
     // #idea instead convert key to string? or hash?
 
@@ -62,16 +65,19 @@ pub fn dict_get_or(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     // #todo support non-string/symbol keys
     // #todo support string keys also.
 
-    let Expr::KeySymbol(key) = key.unpack() else {
-        return Err(Error::invalid_arguments(
-            "`key` argument should be a KeySymbol",
-            key.range(),
-        ));
-    };
+    // let Expr::KeySymbol(key) = key.unpack() else {
+    //     return Err(Error::invalid_arguments(
+    //         "`key` argument should be a KeySymbol",
+    //         key.range(),
+    //     ));
+    // };
+
+    // #todo temp solution!
+    let key = format_value(key);
 
     // #idea instead convert key to string? or hash?
 
-    let value = items.get(key);
+    let value = items.get(&key);
 
     // #todo can we remove the clones?
 

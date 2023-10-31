@@ -40,7 +40,13 @@ pub fn compute_dyn_signature(args: &[Expr], context: &Context) -> String {
     signature
 }
 
+// -----------------------------------------------------------------------------
+// #WARN the resolver is temporarily disabled.
+
 // #todo explain what the Resolver is doing.
+/// The resolver performs the following functions:
+/// - statically infers types
+/// - resolves `use`d modules
 pub struct Resolver {
     errors: Vec<Error>,
 }
@@ -190,6 +196,7 @@ impl Resolver {
                             head.annotations(),
                         );
                     } else if sym == "use" {
+                        // #insight I moved this code to eval for the moment.
                         // #todo temp hack!!!
 
                         // #todo properly handle this here, strip the use expression, remove from eval
@@ -402,7 +409,7 @@ impl Default for Resolver {
 
 #[cfg(test)]
 mod tests {
-    use crate::{api::parse_string, context::Context, resolver::Resolver};
+    use crate::{resolver::Resolver, api::parse_string, context::Context};
 
     #[test]
     fn resolve_specializes_functions() {
