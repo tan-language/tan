@@ -79,7 +79,7 @@ impl Resolver {
             Expr::Dec(_) => annotate_type(expr, "Dec"),
             Expr::String(_) => annotate_type(expr, "String"),
             // #todo hmm... ultra-hack.
-            Expr::Array(_) => annotate_type(expr, "Array"),
+            Expr::Array(_) => annotate_type(expr, "Array"), // #todo what type of array?
             Expr::KeySymbol(_) => annotate_type(expr, "KeySymbol"),
             Expr::Symbol(ref sym) => {
                 if is_reserved_symbol(sym) {
@@ -415,5 +415,6 @@ mod tests {
         let mut context = Context::new();
         let expr = resolver.resolve(expr, &mut context).unwrap();
         dbg!(&expr);
+        // #todo make this a test!
     }
 }

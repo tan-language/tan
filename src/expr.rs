@@ -407,6 +407,7 @@ impl Expr {
         self.annotation("type").unwrap_or(&Expr::One)
     }
 
+    // #todo how about return &Expr to avoid clones?
     pub fn dyn_type(&self, context: &Context) -> Expr {
         if let Some(typ) = self.annotation("type") {
             return typ.clone();
@@ -415,6 +416,11 @@ impl Expr {
         match self.unpack() {
             Expr::Int(_) => Expr::symbol("Int"),
             Expr::Float(_) => Expr::symbol("Float"),
+            Expr::Dec(_) => Expr::symbol("Dec"),
+            Expr::String(_) => Expr::symbol("String"),
+            Expr::Array(_) => Expr::symbol("Array"), // #todo return parameterized type
+            Expr::Dict(_) => Expr::symbol("Dict"),   // #todo return parameterized type
+            // #TODO add more here!
             Expr::Symbol(name) => {
                 if let Some(value) = context.scope.get(name) {
                     value.dyn_type(context)
