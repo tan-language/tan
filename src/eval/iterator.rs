@@ -73,6 +73,7 @@ impl<'a> ExprIterator for ArrayIterator<'a> {
     }
 }
 
+// #todo ArrayIterator2 should replace ArrayIterator.
 pub struct ArrayIterator2<'a> {
     current: usize,
     items: std::cell::Ref<'a, Vec<Expr>>,
@@ -90,6 +91,27 @@ impl<'a> ExprIterator for ArrayIterator2<'a> {
         }
     }
 }
+
+// // #todo under construction.
+// pub struct DictIterator<'a> {
+//     current: usize,
+//     items: std::cell::Ref<'a, HashMap<String, Expr>>,
+//     pub step: usize,
+// }
+
+// impl<'a> ExprIterator for DictIterator<'a> {
+//     // #TODO keep rust iterator instead.
+//     fn next(&mut self) -> Option<Expr> {
+//         // if self.current < self.items.len() {
+//         //     let value = self.items[self.current].clone(); // #todo argh, avoid this. should array have Rcs? SOS!!!
+//         //     self.current += self.step;
+//         //     Some(value)
+//         // } else {
+//         //     None
+//         // }
+//         todo!()
+//     }
+// }
 
 // #todo find better name.
 // #todo consider using Box<dyn ExprIterator> instead, at least have a custom helper that returns Box.
@@ -129,10 +151,18 @@ pub fn try_iterator_from<'a>(expr: &'a Expr) -> Option<Rc<RefCell<dyn ExprIterat
             let items = items.borrow();
             Some(Rc::new(RefCell::new(ArrayIterator2 {
                 current: 0,
-                items: items,
+                items,
                 step: 1,
             })))
         }
+        // Expr::Dict(items) => {
+        //     let items = items.borrow();
+        //     Some(Rc::new(RefCell::new(DictIterator {
+        //         current: 0,
+        //         items,
+        //         step: 1,
+        //     })))
+        // }
         _ => None,
     }
 }
