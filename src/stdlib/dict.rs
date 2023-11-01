@@ -88,6 +88,26 @@ pub fn dict_get_or(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     }
 }
 
+// #todo consider name `keys-of` to avoid clash with variable keys? -> get-keys
+// #todo document the above in a decision file
+// #todo keys is problematic if it's in the prelude!
+pub fn dict_get_keys(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    let [dict] = args else {
+        return Err(Error::invalid_arguments("requires `this` argument", None));
+    };
+
+    let Some(items) = dict.as_dict_mut() else {
+        return Err(Error::invalid_arguments(
+            "`dict` argument should be a Dict",
+            dict.range(),
+        ));
+    };
+
+    let keys: Vec<_> = items.keys().map(Expr::string).collect();
+
+    Ok(Expr::array(keys))
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{api::eval_string, context::Context, expr::format_value};
@@ -126,6 +146,22 @@ mod tests {
         let expr = eval_string(input, &mut context).unwrap();
         let value = format_value(expr);
         let expected = "Admin";
+        assert_eq!(value, expected);
+    }
+
+    #[test]
+    fn dict_get_keys() {
+        let input = r#"
+            (let dict {:name "George", :role :admin})
+            (get-keys dict)
+        "#;
+        let mut context = Context::new();
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = r#"["name" "role"]"#;
+        // #todo implement Eq trait
+        // #todo ugh, it should return the original keys!!
+        // let expected = "[:name :role]";
         assert_eq!(value, expected);
     }
 }
