@@ -30,6 +30,7 @@ use self::{iterator::try_iterator_from, util::eval_module};
 // #todo try to remove non-needed .into()s
 
 // #todo give more 'general' name.
+// #todo what about if a required argument is not passed to a function? currently we report undefined symbol.
 fn eval_args(args: &[Expr], context: &mut Context) -> Result<Vec<Expr>, Error> {
     args.iter()
         .map(|x| eval(x, context))
