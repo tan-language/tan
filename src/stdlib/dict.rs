@@ -108,6 +108,23 @@ pub fn dict_get_keys(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(Expr::array(keys))
 }
 
+pub fn dict_get_values(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    let [dict] = args else {
+        return Err(Error::invalid_arguments("requires `this` argument", None));
+    };
+
+    let Some(items) = dict.as_dict_mut() else {
+        return Err(Error::invalid_arguments(
+            "`dict` argument should be a Dict",
+            dict.range(),
+        ));
+    };
+
+    let keys: Vec<_> = items.values().map(expr_clone).collect();
+
+    Ok(Expr::array(keys))
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{api::eval_string, context::Context, expr::format_value};
@@ -162,6 +179,19 @@ mod tests {
         // #todo implement Eq trait
         // #todo ugh, it should return the original keys!!
         // let expected = "[:name :role]";
+        assert_eq!(value, expected);
+    }
+
+    #[test]
+    fn dict_get_values() {
+        let input = r#"
+            (let dict {:name "George", :role :admin}) ; `:role :admin` is confusing!
+            (get-values dict)
+        "#;
+        let mut context = Context::new();
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = r#"["George" :admin]"#;
         assert_eq!(value, expected);
     }
 }
