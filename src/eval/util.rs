@@ -8,7 +8,7 @@ use crate::{
     api::{has_tan_extension, resolve_string, strip_tan_extension},
     context::Context,
     error::Error,
-    expr::Expr,
+    expr::{expr_clone, Expr},
     module::Module,
     util::standard_names::CURRENT_MODULE_PATH,
 };
@@ -249,4 +249,17 @@ pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr
     context.module_registry.insert(module_name, module.clone());
 
     Ok(Expr::Module(module))
+}
+
+// #todo consider a function that nests a new scope.
+/// Inserts a dict to the scope.
+pub fn scope_insert(context: &mut Context, dict: &Expr) {
+    // #todo the unwrap is OK? acts as an assert? think about it!
+
+    let dict = dict.as_dict().unwrap();
+
+    for (name, value) in dict.iter() {
+        // #todo remove clone.
+        context.scope.insert(name, expr_clone(value));
+    }
 }
