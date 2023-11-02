@@ -40,7 +40,6 @@ fn eval_args(args: &[Expr], context: &mut Context) -> Result<Vec<Expr>, Error> {
 fn eval_quote(expr: Expr, context: &mut Context) -> Expr {
     // #insight unpack is OK, no extract needed.
     match expr.unpack() {
-        // #todo handle unquote!
         Expr::List(terms) => {
             if terms.is_empty() {
                 expr

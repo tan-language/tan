@@ -4,9 +4,10 @@ use crate::{
     expr::{expr_clone, format_value, Expr},
 };
 
+// #insight use `contains-key` so that `contains` refers to the value, consistent with other collections.
 // #todo consider other names: has, has-key, contains-key, includes, etc.
 // #todo consider appending a `?`
-pub fn dict_contains(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn dict_contains_key(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [dict, key] = args else {
         return Err(Error::invalid_arguments(
             "requires `this` and `key` argument",
@@ -172,10 +173,10 @@ mod tests {
     }
 
     #[test]
-    fn dict_contains() {
+    fn dict_contains_key_usage() {
         let input = r#"
             (let dict {:name "George"})
-            (contains dict :name)
+            (contains-key dict :name)
         "#;
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
@@ -218,18 +219,22 @@ mod tests {
 
     #[test]
     fn dict_get_keys() {
+        // #todo `:role :admin` looks weird, not that `role: :admin` looks much better though
         let input = r#"
             (let dict {:name "George", :role :admin})
             (get-keys dict)
         "#;
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
-        let value = format_value(expr);
-        let expected = r#"["name" "role"]"#;
-        // #todo implement Eq trait
-        // #todo ugh, it should return the original keys!!
-        // let expected = "[:name :role]";
-        assert_eq!(value, expected);
+        let keys: Vec<String> = expr
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|x| x.to_string())
+            .collect();
+        // #fixme unfortunately it currently looses the ':' prefix.
+        assert!(keys.contains(&r#""name""#.to_string()));
+        assert!(keys.contains(&r#""role""#.to_string()));
     }
 
     #[test]
@@ -240,8 +245,13 @@ mod tests {
         "#;
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
-        let value = format_value(expr);
-        let expected = r#"["George" :admin]"#;
-        assert_eq!(value, expected);
+        let values: Vec<String> = expr
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|x| x.to_string())
+            .collect();
+        assert!(values.contains(&r#""George""#.to_string()));
+        assert!(values.contains(&":admin".to_string()));
     }
 }

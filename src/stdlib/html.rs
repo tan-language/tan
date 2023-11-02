@@ -12,6 +12,18 @@ use crate::{
     module::Module,
 };
 
+// #todo investigate the interaction between expr/string interpolation '$' and quoting, make string interpolation work in quoted expr.
+
+// example:
+// ```tan
+// (body
+//     "Hello " $name "! Num: " (b "cool " $(+ 1 2))
+//     (br)(br)
+//     $(component '(i "Zonk"))
+// )
+// ```
+
+// #todo how to interpolate values?
 // #todo consider using 'interned'/self-evaluating symbols instead of strings for text nodes.
 // #todo special handling of child strings with interpolation.
 // #todo support pretty-printing
