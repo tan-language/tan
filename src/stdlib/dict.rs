@@ -4,6 +4,34 @@ use crate::{
     expr::{expr_clone, format_value, Expr},
 };
 
+// #todo consider other names: has, has-key, contains-key, includes, etc.
+// #todo consider appending a `?`
+pub fn dict_contains(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    let [dict, key] = args else {
+        return Err(Error::invalid_arguments(
+            "requires `this` and `key` argument",
+            None,
+        ));
+    };
+
+    let Some(items) = dict.as_dict_mut() else {
+        return Err(Error::invalid_arguments(
+            "`dict` argument should be a Dict",
+            dict.range(),
+        ));
+    };
+
+    // #todo support non-string/symbol keys
+    // #todo support string keys also.
+
+    // #todo temp solution!
+    let key = format_value(key);
+
+    // #idea instead convert key to string? or hash?
+
+    Ok(Expr::Bool(items.contains_key(&key)))
+}
+
 // #todo version that returns a new sequence
 // #todo also consider set, put
 // #todo item or element? -> I think for collections item is better.
@@ -50,7 +78,7 @@ pub fn dict_insert(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 pub fn dict_get_or(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [dict, key, default_value] = args else {
         return Err(Error::invalid_arguments(
-            "requires `this` and `item` argument",
+            "requires `this` and `key` argument",
             None,
         ));
     };
@@ -140,6 +168,28 @@ mod tests {
         let expr = eval_string(input, &mut context).unwrap();
         let value = format_value(expr);
         let expected = r#"{:given-name "Georgios"}"#;
+        assert_eq!(value, expected);
+    }
+
+    #[test]
+    fn dict_contains() {
+        let input = r#"
+            (let dict {:name "George"})
+            (contains dict :name)
+        "#;
+        let mut context = Context::new();
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = expr.as_bool().unwrap();
+        assert_eq!(value, true);
+
+        let input = r#"
+            (let dict {:name "George"})
+            (get-or dict :role "Admin")
+        "#;
+        let mut context = Context::new();
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "Admin";
         assert_eq!(value, expected);
     }
 
