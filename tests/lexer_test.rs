@@ -28,10 +28,10 @@ fn lex_returns_tokens() {
     dbg!(&tokens);
 
     assert_eq!(tokens.len(), 8);
-    assert!(matches!(tokens[0].kind(), TokenKind::LeftParen));
-    assert!(matches!(tokens[2].kind(), TokenKind::Symbol(lexeme) if lexeme == "+"));
+    assert_matches!(tokens[0].kind(), TokenKind::LeftParen);
+    assert_matches!(tokens[2].kind(), TokenKind::Symbol(lexeme) if lexeme == "+");
     assert_eq!(tokens[2].range().start.index, 2);
-    assert!(matches!(tokens[3].kind(), TokenKind::Number(..)));
+    assert_matches!(tokens[3].kind(), TokenKind::Number(..));
     assert_eq!(tokens[3].range().start.index, 4);
     assert_eq!(tokens[3].range().start.line, 0);
     assert_eq!(tokens[3].range().start.col, tokens[3].range().start.index);
@@ -73,8 +73,8 @@ fn lex_parses_comments() {
 
 //     let tokens = tokens.unwrap();
 
-//     assert!(matches!(tokens[0].as_ref(), Token::Comment(x) if x == "-- This is a comment"));
-//     assert!(matches!(tokens[1].as_ref(), Token::Comment(x) if x == "-----"));
+//     assert_matches!(tokens[0].as_ref(), Token::Comment(x) if x == "-- This is a comment");
+//     assert_matches!(tokens[1].as_ref(), Token::Comment(x) if x == "-----");
 
 //     let c1 = &tokens[1];
 //     assert_eq!(c1.1.start, 21);
@@ -92,24 +92,22 @@ fn lex_parses_annotations() {
 
     let tokens = tokens.unwrap();
 
-    assert!(matches!(tokens[0].kind(), TokenKind::Annotation(lexeme) if lexeme == "deprecated"));
-    assert!(
-        matches!(tokens[1].kind(), TokenKind::Annotation(lexeme) if lexeme == "(inline 'always)")
-    );
+    assert_matches!(tokens[0].kind(), TokenKind::Annotation(lexeme) if lexeme == "deprecated");
+    assert_matches!(tokens[1].kind(), TokenKind::Annotation(lexeme) if lexeme == "(inline 'always)");
 }
 
 #[test]
 fn lex_scans_ints() {
     let input = "(let a 123)";
     let tokens = Lexer::new(input).lex().unwrap();
-    assert!(matches!(tokens[3].kind(), TokenKind::Number(lexeme) if lexeme == "123"));
+    assert_matches!(tokens[3].kind(), TokenKind::Number(lexeme) if lexeme == "123");
 }
 
 #[test]
 fn lex_scans_floats() {
     let input = "(let a 1_274.34)";
     let tokens = Lexer::new(input).lex().unwrap();
-    assert!(matches!(tokens[3].kind(), TokenKind::Number(lexeme) if lexeme == "1274.34"));
+    assert_matches!(tokens[3].kind(), TokenKind::Number(lexeme) if lexeme == "1274.34");
 }
 
 #[test]
@@ -117,7 +115,7 @@ fn lex_scans_number_with_delimiters() {
     let input = r##"(let a {"score" 93})"##;
     let tokens = Lexer::new(input).lex().unwrap();
 
-    assert!(matches!(tokens[5].kind(), TokenKind::Number(lexeme) if lexeme == "93"));
+    assert_matches!(tokens[5].kind(), TokenKind::Number(lexeme) if lexeme == "93");
 }
 
 #[test]
@@ -125,7 +123,7 @@ fn lex_scans_multiline_whitespace() {
     let input = "(+ 1 2) \n\n(+ 3 4)";
     let tokens = Lexer::new(input).lex().unwrap();
 
-    assert!(matches!(tokens[5].kind(), TokenKind::MultiLineWhitespace));
+    assert_matches!(tokens[5].kind(), TokenKind::MultiLineWhitespace);
 }
 
 #[test]
@@ -133,7 +131,7 @@ fn lex_handles_shebang_line() {
     let input = "#!/usr/bin/sh tan\n(writeln (+ 2 3)))\n";
     let tokens = Lexer::new(input).lex().unwrap();
 
-    assert!(matches!(tokens[0].kind(), TokenKind::LeftParen));
+    assert_matches!(tokens[0].kind(), TokenKind::LeftParen);
 }
 
 #[test]
@@ -141,7 +139,7 @@ fn lex_handles_number_separators() {
     let input = "(+ 1 3_000)";
     let tokens = Lexer::new(input).lex().unwrap();
 
-    assert!(matches!(tokens[3].kind(), TokenKind::Number(lexeme) if lexeme == "3000"));
+    assert_matches!(tokens[3].kind(), TokenKind::Number(lexeme) if lexeme == "3000");
 }
 
 #[test]
@@ -151,8 +149,8 @@ fn lex_handles_signed_numbers() {
 
     let tokens = tokens.unwrap();
 
-    assert!(matches!(tokens[3].kind(), TokenKind::Number(lexeme) if lexeme == "-123"));
-    assert!(matches!(tokens[7].kind(), TokenKind::Symbol(lexeme) if lexeme == "-variable"));
+    assert_matches!(tokens[3].kind(), TokenKind::Number(lexeme) if lexeme == "-123");
+    assert_matches!(tokens[7].kind(), TokenKind::Symbol(lexeme) if lexeme == "-variable");
 }
 
 #[test]
@@ -166,7 +164,7 @@ fn lex_reports_unexpected_eof() {
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
 
-    assert!(matches!(err[0].kind(), ErrorKind::UnexpectedEnd));
+    assert_matches!(err[0].kind(), ErrorKind::UnexpectedEnd);
 }
 
 #[test]
@@ -181,7 +179,7 @@ fn lex_reports_unterminated_strings() {
     let err = result.unwrap_err();
     let err = &err[0];
 
-    assert!(matches!(err.kind(), ErrorKind::UnterminatedString));
+    assert_matches!(err.kind(), ErrorKind::UnterminatedString);
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
 
@@ -209,7 +207,7 @@ fn lex_reports_unterminated_annotations() {
     let err = result.unwrap_err();
     let err = &err[0];
 
-    assert!(matches!(err.kind(), ErrorKind::UnterminatedAnnotation));
+    assert_matches!(err.kind(), ErrorKind::UnterminatedAnnotation);
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
 

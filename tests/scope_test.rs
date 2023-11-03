@@ -1,3 +1,5 @@
+use assert_matches::assert_matches;
+
 use tan::{expr::Expr, scope::Scope};
 
 // #todo test upstream (recursive) lookups
@@ -9,10 +11,10 @@ fn scope_binds_names_to_values() {
     scope.insert("a", Expr::symbol("hello"));
 
     if let Some(a) = scope.get("a") {
-        assert!(matches!((*a).clone(), Expr::Symbol(sym) if sym == "hello"));
+        assert_matches!((*a).clone(), Expr::Symbol(sym) if sym == "hello");
     }
 
-    assert!(matches!(scope.get("b"), None));
+    assert_matches!(scope.get("b"), None);
 }
 
 #[test]
@@ -21,11 +23,11 @@ fn scope_bindings_can_be_updated() {
 
     scope.insert("a", Expr::symbol("hello"));
     if let Some(a) = scope.get("a") {
-        assert!(matches!((*a).clone(), Expr::Symbol(sym) if sym == "hello"));
+        assert_matches!((*a).clone(), Expr::Symbol(sym) if sym == "hello");
     }
 
     scope.update("a", Expr::symbol("world"));
     if let Some(a) = scope.get("a") {
-        assert!(matches!((*a).clone(), Expr::Symbol(sym) if sym == "world"));
+        assert_matches!((*a).clone(), Expr::Symbol(sym) if sym == "world");
     }
 }

@@ -75,7 +75,7 @@ fn eval_processes_keyword_symbols() {
     let mut context = Context::new();
     let result = eval_string(":key", &mut context).unwrap();
 
-    assert!(matches!(result.unpack(), Expr::KeySymbol(x) if x == "key"));
+    assert_matches!(result.unpack(), Expr::KeySymbol(x) if x == "key");
 }
 
 #[test]
@@ -85,7 +85,7 @@ fn eval_processes_empty_list() {
     let mut context = Context::new();
     let value = eval(&expr, &mut context).unwrap();
 
-    assert!(matches!(value.unpack(), Expr::One));
+    assert_matches!(value.unpack(), Expr::One);
 }
 
 #[test]
@@ -101,17 +101,17 @@ fn eval_processes_let() {
 fn eval_processes_booleans() {
     let mut context = Context::new();
     let value = eval_string("(do (let flag true) flag)", &mut context).unwrap();
-    assert!(matches!(value.unpack(), Expr::Bool(x) if *x));
+    assert_matches!(value.unpack(), Expr::Bool(x) if *x);
 
     let value = eval_string("(do (let flag false) flag)", &mut context).unwrap();
-    assert!(matches!(value.unpack(), Expr::Bool(x) if !x));
+    assert_matches!(value.unpack(), Expr::Bool(x) if !x);
 }
 
 #[test]
 fn eval_processes_chars() {
     let mut context = Context::new();
     let value = eval_string(r#"(let ch (Char "r")) ch"#, &mut context).unwrap();
-    assert!(matches!(value.unpack(), Expr::Char(c) if *c == 'r'));
+    assert_matches!(value.unpack(), Expr::Char(c) if *c == 'r');
 }
 
 #[test]
@@ -128,13 +128,13 @@ fn eval_reports_let_errors() {
     //     matches!(err, Error{ kind: ErrorKind::InvalidArguments(x), .. } if x == "let cannot shadow the reserved symbol `if`")
     // );
 
-    assert!(matches!(
+    assert_matches!(
         err,
         Error {
             kind: ErrorKind::InvalidArguments,
             ..
         }
-    ));
+    );
 
     let range = err.notes.first().unwrap().range.as_ref().unwrap();
 
@@ -437,7 +437,7 @@ fn module_cannot_access_private_members_of_other_modules() {
     assert!(result.is_err());
 
     let err = result.unwrap_err();
-    assert!(matches!(&err[0].kind, ErrorKind::UndefinedSymbol(sym) if sym == "submodule/afunc"));
+    assert_matches!(&err[0].kind, ErrorKind::UndefinedSymbol(sym) if sym == "submodule/afunc");
 }
 
 #[test]
@@ -450,7 +450,7 @@ fn eval_function_returns_dict() {
 
     let body = dict.get("body");
 
-    assert!(matches!(body, Some(Expr::String(s)) if s == "quote: a quote"));
+    assert_matches!(body, Some(Expr::String(s)) if s == "quote: a quote");
 }
 
 #[test]

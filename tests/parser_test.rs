@@ -1,5 +1,7 @@
 mod common;
 
+use assert_matches::assert_matches;
+
 use tan::{
     api::{parse_string, parse_string_all},
     error::ErrorKind,
@@ -152,7 +154,7 @@ fn parse_handles_one() {
 
     dbg!(&expr);
 
-    assert!(matches!(expr.unpack(), Expr::One));
+    assert_matches!(expr.unpack(), Expr::One);
 }
 
 #[test]
@@ -225,7 +227,7 @@ fn parse_handles_template_strings() {
         panic!("assertion failed: invalid form")
     };
 
-    assert!(matches!(&exprs[0].unpack(), Expr::Symbol(s) if s == "format"));
+    assert_matches!(&exprs[0].unpack(), Expr::Symbol(s) if s == "format");
     assert_eq!(exprs.len(), 5);
 }
 
@@ -242,8 +244,8 @@ fn parse_parses_arrays() {
         panic!("assertion failed: invalid form")
     };
 
-    assert!(matches!(&exprs[0].unpack(), Expr::Symbol(s) if s == "Array"));
-    assert!(matches!(exprs.len(), 4));
+    assert_matches!(&exprs[0].unpack(), Expr::Symbol(s) if s == "Array");
+    assert_matches!(exprs.len(), 4);
 }
 
 #[test]
@@ -263,8 +265,8 @@ fn parse_parses_dicts() {
         panic!("assertion failed: invalid form")
     };
 
-    assert!(matches!(&exprs[0].unpack(), Expr::Symbol(s) if s == "Dict"));
-    assert!(matches!(exprs.len(), 5));
+    assert_matches!(&exprs[0].unpack(), Expr::Symbol(s) if s == "Dict");
+    assert_matches!(exprs.len(), 5);
 }
 
 // #todo move to eval_test?
@@ -277,7 +279,7 @@ fn parse_parses_dicts() {
 //         panic!("assertion failed: invalid form")
 //     };
 
-//     assert!(matches!(&vec[2], Ann(Expr::Dict(dict), ..) if dict.len() == 2));
+//     assert_matches!(&vec[2], Ann(Expr::Dict(dict), ..) if dict.len() == 2);
 // }
 
 #[test]
@@ -289,7 +291,7 @@ fn parse_detects_ints() {
         panic!("invalid form")
     };
 
-    assert!(matches!(&vec[2].unpack(), Expr::Int(n) if *n == 123));
+    assert_matches!(&vec[2].unpack(), Expr::Int(n) if *n == 123);
 }
 
 #[test]
@@ -301,7 +303,7 @@ fn parse_detects_floats() {
         panic!("invalid form")
     };
 
-    assert!(matches!(&vec[2].unpack(), Expr::Float(n) if *n == 1274.34));
+    assert_matches!(&vec[2].unpack(), Expr::Float(n) if *n == 1274.34);
 }
 
 #[test]
@@ -313,7 +315,7 @@ fn parse_handles_numbers_with_radix() {
         panic!("invalid form")
     };
 
-    assert!(matches!(&vec[2].unpack(), Expr::Int(n) if *n == 254));
+    assert_matches!(&vec[2].unpack(), Expr::Int(n) if *n == 254);
 
     let input = "(let a 0b1010)";
     let result = parse_string(input).unwrap();
@@ -322,7 +324,7 @@ fn parse_handles_numbers_with_radix() {
         panic!("invalid form")
     };
 
-    assert!(matches!(&vec[2].unpack(), Expr::Int(n) if *n == 10));
+    assert_matches!(&vec[2].unpack(), Expr::Int(n) if *n == 10);
 
     let input = "(let a 0b00000)";
     let result = parse_string(input).unwrap();
@@ -331,7 +333,7 @@ fn parse_handles_numbers_with_radix() {
         panic!("invalid form")
     };
 
-    assert!(matches!(&vec[2].unpack(), Expr::Int(n) if *n == 0));
+    assert_matches!(&vec[2].unpack(), Expr::Int(n) if *n == 0);
 
     let input = "(let a 0o755)";
     let result = parse_string(input).unwrap();
@@ -340,7 +342,7 @@ fn parse_handles_numbers_with_radix() {
         panic!("invalid form")
     };
 
-    assert!(matches!(&vec[2].unpack(), Expr::Int(n) if *n == 493));
+    assert_matches!(&vec[2].unpack(), Expr::Int(n) if *n == 493);
 }
 
 #[test]
@@ -356,7 +358,7 @@ fn parse_reports_number_errors() {
 
     let err = &err[0];
 
-    assert!(matches!(err.kind(), ErrorKind::MalformedInt));
+    assert_matches!(err.kind(), ErrorKind::MalformedInt);
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
 
@@ -386,7 +388,7 @@ fn parse_keeps_comments() {
     let exprs = parse_string_all(input).unwrap();
 
     let expr = &exprs[0];
-    assert!(matches!(expr.unpack(), Expr::Comment(x, ..) if x == "; This is a comment"));
+    assert_matches!(expr.unpack(), Expr::Comment(x, ..) if x == "; This is a comment");
 }
 
 // #todo use assert_matches!
@@ -399,9 +401,7 @@ fn parse_handles_int_range() {
         panic!("invalid form")
     };
 
-    assert!(
-        matches!(&exprs[2].unpack(), Expr::IntRange(start, end, step) if *start == 2 && *end == 30 && *step == 3)
-    );
+    assert_matches!(&exprs[2].unpack(), Expr::IntRange(start, end, step) if *start == 2 && *end == 30 && *step == 3);
 }
 
 #[test]
@@ -413,7 +413,5 @@ fn parse_handles_float_range() {
         panic!("invalid form")
     };
 
-    assert!(
-        matches!(&exprs[2].unpack(), Expr::FloatRange(start, end, step) if *start == 2.0 && *end == 30.0 && *step == 3.0)
-    );
+    assert_matches!(&exprs[2].unpack(), Expr::FloatRange(start, end, step) if *start == 2.0 && *end == 30.0 && *step == 3.0);
 }
