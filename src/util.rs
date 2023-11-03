@@ -11,6 +11,7 @@ pub mod standard_names;
 /// Returns true if `sym` is reserved.
 pub fn is_reserved_symbol(sym: &str) -> bool {
     // #todo think about `Func`.
+    // #todo currently it include even non-reserved symbols, fix!
     matches!(
         sym,
         "do" | "ann" // #todo consider `meta`?
@@ -23,6 +24,7 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
             | "map"
             | "eval"
             | "quot"
+            | "scope-update" // #todo rename to `let*` or `let..` or `let-all` or something.
             | "use" // #todo consider `using`
             | "Char"
             | "Func"

@@ -74,6 +74,7 @@ pub type ExprFn = dyn Fn(&[Expr], &Context) -> Result<Expr, Error> + Send + Sync
 #[derive(Clone)]
 pub enum Expr {
     // --- Low-level ---
+    // #todo hmm, not sure that Unit ~= 'One', I don't think there is a 'one' in the algebraic sense.
     One,                          // Unit == List(Vec::new())
     Comment(String, CommentKind), // #todo consider renaming to Remark (REM)
     TextSeparator,                // for the formatter.
@@ -82,7 +83,7 @@ pub enum Expr {
     Float(f64),
     #[cfg(feature = "dec")]
     Dec(Decimal),
-    Symbol(String),
+    Symbol(String),    // #todo consider renaming to Expr::Sym
     KeySymbol(String), // #todo consider renaming to Expr::Key
     Char(char),
     String(String),
@@ -97,10 +98,11 @@ pub enum Expr {
     IntRange(i64, i64, i64),   // start, end, step #todo use a struct here,
     FloatRange(f64, f64, f64), // start, end, step #todo use a struct here,
     // Range(...),
-    // #todo, the Func should probably store the Module environment.
+    // #todo the Func should probably store the Module environment.
     Func(Vec<Expr>, Vec<Expr>, Rc<Scope>), // #todo maybe should have explicit do block?
     Macro(Vec<Expr>, Vec<Expr>),           // #todo maybe should have explicit do block?
-    // #todo, the ForeignFunc should probably store the Module environment.
+    // #todo the ForeignFunc should probably store the Module environment.
+    // #todo introduce a ForeignFuncMut for mutating scope? what would be a better name?
     ForeignFunc(Arc<ExprFn>), // #todo for some reason, Box is not working here!
     // --- High-level ---
     // #todo do should contain the expressions also, pre-parsed!

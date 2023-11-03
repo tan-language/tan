@@ -203,6 +203,7 @@ impl Error {
         error
     }
 
+    // #todo make errors Option.
     pub fn failed_use(url: &str, errors: Vec<Error>) -> Self {
         let error = Self::new(ErrorKind::FailedUse(url.to_owned(), errors));
         // #todo url is _not_ the error.file_path, we need the caller module path.

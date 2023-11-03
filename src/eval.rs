@@ -607,6 +607,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         }
                         // #todo extract
                         // #todo functions implemented here have dynamic dispatch!
+                        // #todo show usage in comments
                         "map" => {
                             // #todo this is a temp hack!
                             let [seq, var, body] = tail else {
@@ -649,6 +650,37 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             // #todo intentionally don't return a value, reconsider this?
                             Ok(Expr::array(results).into())
+                        }
+                        "scope-update" => {
+                            // #todo consider a function that nests a new scope.
+                            // #todo maybe it should be some kind of let? e.g. (`let-all` ?? or `let*` or `let..`)
+                            // #todo this is a temp hack.
+
+                            // Updates the scope with bindings of the given dict.
+
+                            let [dict] = tail else {
+                                return Err(Error::invalid_arguments(
+                                    "malformed `scope-update`",
+                                    expr.range(),
+                                ));
+                            };
+
+                            let dict = eval(dict, context)?;
+
+                            let Some(dict) = dict.as_dict() else {
+                                // #todo report what was found!
+                                return Err(Error::invalid_arguments(
+                                    "malformed `scope-update`, expects Dict argument",
+                                    expr.range(),
+                                ));
+                            };
+
+                            for (name, value) in dict.iter() {
+                                // #todo remove clone.
+                                context.scope.insert(name, expr_clone(value));
+                            }
+
+                            Ok(Expr::One)
                         }
                         "use" => {
                             // #todo extract as function

@@ -1,5 +1,5 @@
 use crate::{
-    api::eval_string,
+    api::resolve_string,
     context::Context,
     error::Error,
     expr::{format_value, Expr},
@@ -16,7 +16,7 @@ pub fn read_string(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let mut context = Context::new();
 
     if let Some(input) = args.first() {
-        let Some(input) = input.as_string() else {
+        let Some(input_str) = input.as_string() else {
             return Err(Error::invalid_arguments(
                 "expected String argument",
                 input.range(),
@@ -24,9 +24,13 @@ pub fn read_string(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
         };
 
         // #todo think carefully which eval function to use.
-        let result = eval_string(input, &mut context);
+        // let result = eval_string(input, &mut context);
+        let result = resolve_string(input_str, &mut context);
 
         if let Ok(expr) = result {
+            // #todo temp fix
+            // #todo think carefully here!
+            let expr = expr.first().unwrap().clone(); // #todo double-argh!
             Ok(expr)
         } else {
             // #todo something more clever needed here!
