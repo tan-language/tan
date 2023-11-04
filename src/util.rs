@@ -11,11 +11,13 @@ pub mod standard_names;
 /// Returns true if `sym` is reserved.
 pub fn is_reserved_symbol(sym: &str) -> bool {
     // #todo think about `Func`.
-    // #todo currently it include even non-reserved symbols, fix!
+    // #todo currently it include even non-reserved symbols, fix!!!
     matches!(
         sym,
         "do" | "ann" // #todo consider `meta`?
             | "def"
+            | "and"
+            | "or"
             | "let"
             | "if"
             | "for"

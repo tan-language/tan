@@ -467,9 +467,37 @@ fn format_float_has_fractional_part() {
     assert_matches!(result, Ok(Expr::String(s)) if s == "1.0");
 }
 
-// #todo make this pass!
 #[test]
 fn for_let_regression() {
     let result = eval_file("for-let.tan");
     assert!(result.is_ok())
+}
+
+#[test]
+fn eval_and() {
+    let mut context = Context::new();
+    let result = eval_string("(and true false)", &mut context);
+    assert_matches!(result, Ok(Expr::Bool(b)) if b == false);
+
+    let result = eval_string("(and false false false true)", &mut context);
+    assert_matches!(result, Ok(Expr::Bool(b)) if b == false);
+
+    let result = eval_string("(and true true true)", &mut context);
+    assert_matches!(result, Ok(Expr::Bool(b)) if b == true);
+
+    let result = eval_string("(and true)", &mut context);
+    assert_matches!(result, Ok(Expr::Bool(b)) if b == true);
+}
+
+#[test]
+fn eval_or() {
+    let mut context = Context::new();
+    let result = eval_string("(or true false)", &mut context);
+    assert_matches!(result, Ok(Expr::Bool(b)) if b == true);
+
+    let result = eval_string("(or false false false true)", &mut context);
+    assert_matches!(result, Ok(Expr::Bool(b)) if b == true);
+
+    let result = eval_string("(or false false false)", &mut context);
+    assert_matches!(result, Ok(Expr::Bool(b)) if b == false);
 }

@@ -787,6 +787,49 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo return last value!
                             Ok(Expr::One.into())
                         }
+                        "and" => {
+                            // #todo what about binary and?
+                            // #todo consider operator form? `&&` or `*`
+                            // #todo optimize case with 2 arguments.
+                            // #insight `and` is not short-circuiting
+
+                            for arg in tail {
+                                let value = eval(arg, context)?;
+                                let Some(predicate) = value.as_bool() else {
+                                    return Err(Error::invalid_arguments(
+                                        "`and` argument should be boolean",
+                                        expr.range(),
+                                    ));
+                                };
+
+                                if !predicate {
+                                    return Ok(Expr::Bool(false));
+                                }
+                            }
+
+                            Ok(Expr::Bool(true))
+                        }
+                        "or" => {
+                            // #todo what about binary or?
+                            // #todo consider operator form? `||` or `+`
+                            // #insight `or` is short-circuiting so it cannot be implemented as a function
+
+                            for arg in tail {
+                                let value = eval(arg, context)?;
+                                let Some(predicate) = value.as_bool() else {
+                                    return Err(Error::invalid_arguments(
+                                        "`or` argument should be boolean",
+                                        expr.range(),
+                                    ));
+                                };
+
+                                if predicate {
+                                    return Ok(Expr::Bool(true));
+                                }
+                            }
+
+                            Ok(Expr::Bool(false))
+                        }
                         "Char" => {
                             // #todo report more than 1 arguments.
 
