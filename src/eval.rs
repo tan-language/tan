@@ -787,11 +787,36 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo return last value!
                             Ok(Expr::One.into())
                         }
+                        "not" => {
+                            // #todo make a function
+                            // #todo consider binary/bitmask version.
+                            // #todo consider operator `~` (_not_ `!`)
+
+                            let [arg] = tail else {
+                                return Err(Error::invalid_arguments(
+                                    "`not` expects one argument",
+                                    expr.range(),
+                                ));
+                            };
+
+                            let value = eval(arg, context)?;
+
+                            let Some(predicate) = value.as_bool() else {
+                                return Err(Error::invalid_arguments(
+                                    "`not` argument should be boolean",
+                                    expr.range(),
+                                ));
+                            };
+
+                            Ok(Expr::Bool(!predicate))
+                        }
                         "and" => {
                             // #todo what about binary and?
                             // #todo consider operator form? `&&` or `*`
                             // #todo optimize case with 2 arguments.
                             // #insight `and` is not short-circuiting
+                            // #todo make a function?
+                            // #todo should these 'special forms' get added in scope/env?
 
                             for arg in tail {
                                 let value = eval(arg, context)?;

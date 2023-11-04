@@ -482,7 +482,7 @@ fn eval_and() {
     let result = eval_string("(and false false false true)", &mut context);
     assert_matches!(result, Ok(Expr::Bool(b)) if b == false);
 
-    let result = eval_string("(and true true true)", &mut context);
+    let result = eval_string("(and true true (= 1 1))", &mut context);
     assert_matches!(result, Ok(Expr::Bool(b)) if b == true);
 
     let result = eval_string("(and true)", &mut context);
@@ -499,5 +499,20 @@ fn eval_or() {
     assert_matches!(result, Ok(Expr::Bool(b)) if b == true);
 
     let result = eval_string("(or false false false)", &mut context);
+    assert_matches!(result, Ok(Expr::Bool(b)) if b == false);
+}
+
+#[test]
+fn eval_not() {
+    let mut context = Context::new();
+    let result = eval_string("(not true)", &mut context);
+    assert_matches!(result, Ok(Expr::Bool(b)) if b == false);
+
+    let mut context = Context::new();
+    let result = eval_string("(not false)", &mut context);
+    assert_matches!(result, Ok(Expr::Bool(b)) if b == true);
+
+    let mut context = Context::new();
+    let result = eval_string("(not (= 1 1))", &mut context);
     assert_matches!(result, Ok(Expr::Bool(b)) if b == false);
 }
