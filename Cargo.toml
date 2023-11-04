@@ -13,6 +13,7 @@ tracing = "0.1"
 rand = "0.8"
 rust_decimal = { version = "1.32", optional = true }
 rust_decimal_macros = { version = "1.32", optional = true }
+comrak = { version = "0.19", default-features = false }
 
 [dev-dependencies]
 assert_matches = "1.5"

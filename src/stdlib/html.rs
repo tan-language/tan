@@ -128,7 +128,7 @@ mod tests {
     use crate::{api::eval_string, context::Context};
 
     #[test]
-    fn html_form_expr_usage() {
+    fn html_from_expr_usage() {
         // #todo extract as fixture.
         // #insight we intentionally use html tags with a single attribute, in this test, as ordering is currently not preserved.
         let input = r#"
