@@ -101,6 +101,8 @@ mod tests {
     #[test]
     fn to_expr_to_css_usage() {
         // #todo extract as fixture.
+        // #todo use #{dialect: :CSS} annotation
+        // #insight no need for [] wrapper, in the actual file reader, return a list of expression, and run to-css on all expressions.
         // #insight we intentionally use html tags with a single attribute, in this test, as ordering is currently not preserved.
         let input = r#"
             (use "/dialect/css-expr")
