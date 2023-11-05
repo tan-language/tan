@@ -12,6 +12,9 @@ use crate::{
     module::Module,
 };
 
+// #todo is this evaluating something?
+// #todo consider always adding the trailing `;`?
+
 fn render_css_expr(expr: &Expr) -> Result<Expr, Error> {
     let expr = expr.unpack();
 
@@ -29,27 +32,25 @@ fn render_css_expr(expr: &Expr) -> Result<Expr, Error> {
 
                 let mut i = 1;
 
-                if let Some(_term) = terms.get(i) {
-                    // #todo what happens here? _term is unused.
-                    // #todo escape body/children
-                    let mut body = String::from("");
+                // #todo escape body/children
 
-                    while i < terms.len() {
-                        let child = render_css_expr(&terms[i])?;
-                        body.push_str(&format_value(&child));
-                        i += 1;
-                    }
+                let mut body: Vec<String> = Vec::new();
 
-                    // #todo eval body.
+                while i < terms.len() {
+                    let prop = render_css_expr(&terms[i])?; // #todo no render needed
+                    let mut declaration = format!("{}: ", format_value(&prop));
+                    i += 1;
+                    let value = render_css_expr(&terms[i])?; // #todo no render needed
+                    declaration.push_str(&format_value(&value));
+                    i += 1;
+                    body.push(declaration);
+                }
 
-                    if body.is_empty() {
-                        // #todo add exception for <script> tag.
-                        Ok(Expr::string(format!("{sym} {{}}")))
-                    } else {
-                        Ok(Expr::string(format!("{sym} {{ {body} }}")))
-                    }
+                if body.is_empty() {
+                    // #todo add exception for <script> tag.
+                    Ok(Expr::string(format!("{sym} {{}}")))
                 } else {
-                    Ok(Expr::string("")) // #todo what should we do here?
+                    Ok(Expr::string(format!("{sym} {{ {} }}", body.join("; "))))
                 }
             } else {
                 // #todo offer context, e.g. in which function we are.
@@ -117,8 +118,7 @@ mod tests {
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
         let value = expr.as_string().unwrap();
-        dbg!(&value);
-        let expected = r#"body { margin-top: 0; margin-bottom: 10px; background: red; }"#;
+        let expected = r#"body { margin-top: 0; margin-bottom: 10px; background: red }"#;
         assert_eq!(value, expected);
     }
 }
