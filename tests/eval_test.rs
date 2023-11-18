@@ -516,3 +516,61 @@ fn eval_not() {
     let result = eval_string("(not (= 1 1))", &mut context);
     assert_matches!(result, Ok(Expr::Bool(b)) if b == false);
 }
+
+#[test]
+fn eval_cond() {
+    let mut context = Context::new();
+
+    let expr = eval_string(
+        r#"
+        (do
+            (let rank 3)
+            (cond
+                (> rank 10) :high
+                (> rank 5)  :medium
+                true        :low       ; use `else`
+            )
+        )
+    "#,
+        &mut context,
+    )
+    .unwrap();
+
+    assert_matches!(expr.unpack(), Expr::KeySymbol(sym) if sym == "low");
+
+    let expr = eval_string(
+        r#"
+        (do
+            (let rank 3)
+            (cond
+                (> rank 10) :high
+                (> rank 5)  :medium
+                else        :low
+            )
+        )
+    "#,
+        &mut context,
+    )
+    .unwrap();
+
+    assert_matches!(expr.unpack(), Expr::KeySymbol(sym) if sym == "low");
+
+    let expr = eval_string(
+        r#"
+        (do
+            (let rank 15)
+            (cond
+                (> rank 10) :high
+                (> rank 5)  :medium
+                else        :low
+            )
+        )
+    "#,
+        &mut context,
+    )
+    .unwrap();
+
+    assert_matches!(expr.unpack(), Expr::KeySymbol(sym) if sym == "high");
+
+    // #todo add extra tests to check for malformed conds.
+}

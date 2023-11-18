@@ -292,6 +292,7 @@ impl Expr {
     // #todo unpack is very dangerous, we need to encode in the typesystem that the expr is unpacked.
     // #todo unwrap into tuple (expr, ann)
     // #todo find better name?
+    /// Removes the annotation from an expression.
     #[inline]
     pub fn unpack(&self) -> &Self {
         match self {

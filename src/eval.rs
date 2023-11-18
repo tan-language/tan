@@ -119,6 +119,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
         }
         Expr::KeySymbol(..) => {
             // #todo handle 'PathSymbol'
+            // #todo strip annotation?
 
             // #todo lint '::' etc.
             // #todo check that if there is a leading ':' there is only one ':', make this a lint warning!
@@ -544,6 +545,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 ));
                             };
 
+                            // #todo don't get false_clause if not required?
                             let false_clause = tail.get(2);
 
                             let predicate = eval(predicate, context)?;
@@ -562,6 +564,61 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             } else {
                                 // #todo what should we return if there is no false-clause? Zero/Never?
                                 Ok(Expr::One.into())
+                            }
+                        }
+                        // #todo is this different enough from `if`?
+                        // (cond
+                        //   (> i 5) (...)
+                        //   (> i 15) (...)
+                        //   else (...)
+                        // )
+                        "cond" => {
+                            let mut i = 0;
+
+                            loop {
+                                if i >= tail.len() {
+                                    // #todo what should we return here? probably Never/Zero?
+                                    break Ok(Expr::One);
+                                }
+
+                                let Some(predicate) = tail.get(i) else {
+                                    return Err(Error::invalid_arguments(
+                                        "malformed cond predicate",
+                                        expr.range(),
+                                    ));
+                                };
+
+                                let Some(clause) = tail.get(i + 1) else {
+                                    return Err(Error::invalid_arguments(
+                                        "malformed cond clause",
+                                        expr.range(),
+                                    ));
+                                };
+
+                                // #todo `else` should not be annotated.
+                                // #todo should NOT annotate symbols and keysymbols!
+                                // #todo introduce a helper to check for specific symbol.
+
+                                if let Expr::Symbol(sym) = predicate.unpack() {
+                                    if sym == "else" {
+                                        break eval(clause, context);
+                                    }
+                                }
+
+                                let predicate = eval(predicate, context)?;
+
+                                let Some(predicate) = predicate.as_bool() else {
+                                    return Err(Error::invalid_arguments(
+                                        "the if predicate is not a boolean value",
+                                        predicate.range(),
+                                    ));
+                                };
+
+                                if predicate {
+                                    break eval(clause, context);
+                                }
+
+                                i += 2;
                             }
                         }
                         // #todo for-each or overload for?

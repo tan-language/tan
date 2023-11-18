@@ -21,6 +21,7 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
             | "not"
             | "let"
             | "if"
+            | "cond"
             | "for"
             | "while"
             | "for-each" // #todo extract as seq function
