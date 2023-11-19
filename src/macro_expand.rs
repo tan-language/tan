@@ -60,7 +60,10 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
 
                     for (param, arg) in params.iter().zip(args) {
                         let Expr::Symbol(param) = param.unpack() else {
-                            return Err(Error::invalid_arguments("parameter is not a symbol", param.range()));
+                            return Err(Error::invalid_arguments(
+                                "parameter is not a symbol",
+                                param.range(),
+                            ));
                         };
 
                         context.scope.insert(param, arg.clone());
@@ -96,11 +99,17 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                             };
 
                             let Some(binding_value) = args.next() else {
-                                return Err(Error::invalid_arguments("missing binding value", expr.range()));
+                                return Err(Error::invalid_arguments(
+                                    "missing binding value",
+                                    expr.range(),
+                                ));
                             };
 
                             let Expr::Symbol(s) = binding_sym.unpack() else {
-                                return Err(Error::invalid_arguments(&format!("`{sym}` is not a Symbol <<<<"), binding_sym.range()));
+                                return Err(Error::invalid_arguments(
+                                    &format!("`{sym}` is not a Symbol <<<<"),
+                                    binding_sym.range(),
+                                ));
                             };
 
                             if is_reserved_symbol(s) {
@@ -136,8 +145,11 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                         Ok(Some(Expr::List(result_exprs)))
                     } else if sym == "quot" {
                         let [value] = tail else {
-                                return Err(Error::invalid_arguments("missing quote target", expr.range()));
-                            };
+                            return Err(Error::invalid_arguments(
+                                "missing quote target",
+                                expr.range(),
+                            ));
+                        };
 
                         // #todo super nasty, quotes should be resolved statically (at compile time)
                         // #todo hm, that clone, maybe `Rc` can fix this?
@@ -162,7 +174,10 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                         let body = &tail[1..];
 
                         let Expr::List(params) = params.unpack() else {
-                            return Err(Error::invalid_arguments("malformed macro parameters definition", params.range()));
+                            return Err(Error::invalid_arguments(
+                                "malformed macro parameters definition",
+                                params.range(),
+                            ));
                         };
 
                         // #todo optimize!

@@ -221,14 +221,19 @@ fn parse_handles_template_strings() {
         panic!("assertion failed: invalid form")
     };
 
-    dbg!(exprs);
+    // dbg!(exprs);
 
-    let Expr::List(ref exprs) = exprs[2].unpack() else {
-        panic!("assertion failed: invalid form")
-    };
+    // let Expr::List(ref exprs) = exprs[2].unpack() else {
+    //     panic!("assertion failed: invalid form")
+    // };
 
-    assert_matches!(&exprs[0].unpack(), Expr::Symbol(s) if s == "format");
-    assert_eq!(exprs.len(), 5);
+    // assert_matches!(&exprs[0].unpack(), Expr::Symbol(s) if s == "format");
+    // assert_eq!(exprs.len(), 5);
+
+    // #insight the template string is not transformed at the parsing stage.
+    assert_eq!(exprs.len(), 3);
+
+    // #todo test error handling.
 }
 
 #[test]

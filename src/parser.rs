@@ -206,8 +206,15 @@ impl<'a> Parser<'a> {
             // #todo add detailed description.
             TokenKind::String(lexeme) => {
                 if lexeme.contains("${") {
+                    // #insight
+                    // The transformation is handled at a later stage to not affect
+                    // formatting. Only error checking happens here.
+
+                    // #todo this should happen at a later stage to not affect formatting!
                     match recognize_string_template(lexeme) {
-                        Ok(format_expr) => Some(format_expr),
+                        // Ok(format_expr) => Some(format_expr),
+                        // #insight no transformation performed here.
+                        Ok(_) => Some(Expr::String(lexeme.clone())),
                         Err(errs) => {
                             let mut error = Error::new(ErrorKind::MalformedRange);
                             for err in errs {

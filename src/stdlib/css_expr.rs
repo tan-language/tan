@@ -134,12 +134,6 @@ mod tests {
                     margin-top: "0"
                     margin-bottom: "10px"
                     background: "red"
-
-                    (main
-                        (div.profile
-                            background-color: "yellow"
-                        )
-                    )
                 )
             )
 
