@@ -346,6 +346,19 @@ impl Expr {
         Some(s)
     }
 
+    // #todo find a better name.
+    pub fn try_string(&self) -> Option<&str> {
+        // #todo try to optimize away the unpacks.
+        let expr = self.unpack();
+
+        match expr {
+            Expr::Symbol(s) => Some(s),
+            Expr::KeySymbol(s) => Some(s),
+            Expr::String(s) => Some(s),
+            _ => None,
+        }
+    }
+
     pub fn as_symbol(&self) -> Option<&str> {
         let Expr::Symbol(s) = self.unpack() else {
             return None;

@@ -759,7 +759,12 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 ));
                             };
 
-                            let Some(module_path) = term.as_string() else {
+                            // #todo the formatter should convert string paths to symbols.
+
+                            // #insight support both Strings and Symbols as module paths.
+                            // #insight, notice the `try_string`.
+                            let Some(module_path) = term.try_string() else {
+                                // let Some(module_path) = term.as_string() else {
                                 return Err(Error::invalid_arguments(
                                     "malformed use expression",
                                     expr.range(),
