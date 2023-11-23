@@ -346,6 +346,11 @@ impl Expr {
         Some(s)
     }
 
+    pub fn as_string_mut(&self) -> Option<RefMut<'_, &String>> {
+        // #todo how to implement this?
+        todo!()
+    }
+
     // #todo find a better name.
     pub fn try_string(&self) -> Option<&str> {
         // #todo try to optimize away the unpacks.

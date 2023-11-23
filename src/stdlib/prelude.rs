@@ -8,7 +8,7 @@ use super::arithmetic;
 use super::dict::{dict_contains_key, dict_get_keys, dict_get_or, dict_get_values, dict_insert};
 use super::io::{read_string, write, writeln};
 use super::seq::{array_count, array_push};
-use super::string::{string_ends_with, string_replace, string_split};
+use super::string::{string_ends_with, string_replace, string_slice, string_split};
 use super::{
     eq::{eq, gt, lt},
     seq::array_join,
@@ -154,6 +154,13 @@ pub fn setup_std_prelude(context: &mut Context) {
     scope.insert("split", Expr::ForeignFunc(Arc::new(string_split)));
 
     scope.insert("replace", Expr::ForeignFunc(Arc::new(string_replace)));
+
+    // #todo slice is to general works both as noun and verb, try to find an explicit verb? e.g. `cut` or `carve`
+    scope.insert("slice", Expr::ForeignFunc(Arc::new(string_slice)));
+    scope.insert(
+        "slice$$String$$Int$$Int",
+        Expr::ForeignFunc(Arc::new(string_slice)),
+    );
 
     /*
     (if (ends-with filename ".png")

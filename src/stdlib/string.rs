@@ -4,6 +4,57 @@ use crate::{
     expr::{format_value, Expr},
 };
 
+// #todo rearrange the functions in some logical order, can be alphabetical.
+
+// #todo how to implement a mutating function?
+// #todo return (Maybe Char) or (Maybe Rune), handle case of empty string.
+/// Removes the last character from the string buffer and returns it.
+pub fn string_pop(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    // #todo handle the string mutation!
+    // #todo handle empty string case!!
+
+    todo!()
+}
+
+// #todo relation with range?
+// #todo pass range as argument?
+pub fn string_slice(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    let [this, start, end] = args else {
+        return Err(Error::invalid_arguments(
+            "`pop` requires `this`, start, end arguments",
+            None,
+        ));
+    };
+
+    let Expr::String(s) = this.unpack() else {
+        return Err(Error::invalid_arguments(
+            "`this` argument should be a String",
+            this.range(),
+        ));
+    };
+
+    let Expr::Int(start) = start.unpack() else {
+        return Err(Error::invalid_arguments(
+            "`start` argument should be an Int",
+            this.range(),
+        ));
+    };
+
+    let Expr::Int(end) = end.unpack() else {
+        return Err(Error::invalid_arguments(
+            "`end` argument should be an Int",
+            this.range(),
+        ));
+    };
+
+    let start = *start as usize;
+    let end = *end as usize;
+
+    let string_slice = &s[start..end];
+
+    Ok(Expr::string(string_slice))
+}
+
 /// Returns a char iterable for the chars in the string.
 pub fn string_chars(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [this] = args else {
@@ -191,6 +242,17 @@ pub fn string_replace(args: &[Expr], _context: &Context) -> Result<Expr, Error> 
 #[cfg(test)]
 mod tests {
     use crate::{api::eval_string, context::Context, expr::format_value};
+
+    #[test]
+    fn slice_usage() {
+        let mut context = Context::new();
+        let input = r#"
+            (slice "hello/world" 0 5)
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = expr.as_string().unwrap();
+        assert_eq!(value, "hello");
+    }
 
     #[test]
     fn ends_with_usage() {
