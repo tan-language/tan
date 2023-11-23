@@ -6,10 +6,30 @@ use crate::{
 
 // #todo rearrange the functions in some logical order, can be alphabetical.
 
+// #todo better name: `size`?
+// #insight `count` is not a good name for length/len, better to be used as verb
+pub fn string_get_length(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    let [this] = args else {
+        return Err(Error::invalid_arguments(
+            "`chars` requires `this` argument",
+            None,
+        ));
+    };
+
+    let Expr::String(s) = this.unpack() else {
+        return Err(Error::invalid_arguments(
+            "`this` argument should be a String",
+            this.range(),
+        ));
+    };
+
+    Ok(Expr::Int(s.len() as i64))
+}
+
 // #todo how to implement a mutating function?
 // #todo return (Maybe Char) or (Maybe Rune), handle case of empty string.
 /// Removes the last character from the string buffer and returns it.
-pub fn string_pop(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn string_pop(_args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     // #todo handle the string mutation!
     // #todo handle empty string case!!
 
@@ -242,6 +262,25 @@ pub fn string_replace(args: &[Expr], _context: &Context) -> Result<Expr, Error> 
 #[cfg(test)]
 mod tests {
     use crate::{api::eval_string, context::Context, expr::format_value};
+
+    #[test]
+    fn get_length_usage() {
+        let mut context = Context::new();
+        let input = r#"
+            (get-length "hello world")
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = expr.as_int().unwrap();
+        assert_eq!(value, 11);
+
+        let mut context = Context::new();
+        let input = r#"
+            (get-length "")
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = expr.as_int().unwrap();
+        assert_eq!(value, 0);
+    }
 
     #[test]
     fn slice_usage() {

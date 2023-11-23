@@ -8,7 +8,9 @@ use super::arithmetic;
 use super::dict::{dict_contains_key, dict_get_keys, dict_get_or, dict_get_values, dict_insert};
 use super::io::{read_string, write, writeln};
 use super::seq::{array_count, array_push};
-use super::string::{string_ends_with, string_replace, string_slice, string_split};
+use super::string::{
+    string_ends_with, string_get_length, string_replace, string_slice, string_split,
+};
 use super::{
     eq::{eq, gt, lt},
     seq::array_join,
@@ -156,10 +158,19 @@ pub fn setup_std_prelude(context: &mut Context) {
     scope.insert("replace", Expr::ForeignFunc(Arc::new(string_replace)));
 
     // #todo slice is to general works both as noun and verb, try to find an explicit verb? e.g. `cut` or `carve`
+    // #todo alternatively use something like `get-slice` or `cut-slice` or `carve-slice`.
     scope.insert("slice", Expr::ForeignFunc(Arc::new(string_slice)));
     scope.insert(
         "slice$$String$$Int$$Int",
         Expr::ForeignFunc(Arc::new(string_slice)),
+    );
+
+    // #todo find a bette name, `size`?
+    // #insight `count` is _not_ a good name, reserve it for verb/action.
+    scope.insert("get-length", Expr::ForeignFunc(Arc::new(string_get_length)));
+    scope.insert(
+        "get-length$$String",
+        Expr::ForeignFunc(Arc::new(string_get_length)),
     );
 
     /*
