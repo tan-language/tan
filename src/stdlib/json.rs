@@ -84,6 +84,7 @@ pub fn setup_codec_json(context: &mut Context) {
 
     // #todo find a good path and name.
     // #todo codec or serder? codec is more general.
+    // #todo use `encode`/`decode` instead of `write`/`read`
 
     // (use /codec/json-codec)
     // (let value (/json-codec/read json))
