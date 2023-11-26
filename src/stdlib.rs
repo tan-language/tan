@@ -6,6 +6,7 @@ pub mod eq;
 pub mod fs;
 pub mod html;
 pub mod io;
+pub mod json;
 pub mod lang;
 pub mod math;
 pub mod prelude;
@@ -18,7 +19,8 @@ use crate::context::Context;
 
 use self::{
     cmark::setup_text_cmark, css_expr::setup_lib_css_expr, fs::setup_std_fs, html::setup_std_html,
-    prelude::setup_std_prelude, process::setup_std_process, rng::setup_std_rand,
+    json::setup_codec_json, prelude::setup_std_prelude, process::setup_std_process,
+    rng::setup_std_rand,
 };
 
 // #todo add unit test for the foreign-functions.
@@ -51,6 +53,7 @@ pub fn setup_std(context: &mut Context) {
     setup_std_html(context);
     setup_text_cmark(context);
     setup_lib_css_expr(context);
+    setup_codec_json(context);
 
     setup_std_prelude(context);
 }
