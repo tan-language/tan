@@ -108,6 +108,7 @@ mod tests {
     #[test]
     fn json_read_string_usage() {
         // #todo how to avoide `\"` escaping?
+        // #todo consider separate namespace for module names and paths? then we could have json-codec -> json
 
         let input = r#"
             (use /codec/json-codec)
