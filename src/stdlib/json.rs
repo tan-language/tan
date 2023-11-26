@@ -46,7 +46,7 @@ fn json_value_to_expr(json: Value) -> Expr {
     }
 }
 
-// #todo expr_to_json
+// #todo implement write.
 
 // #todo find a better name.
 pub fn json_read_string(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
