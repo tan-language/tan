@@ -6,6 +6,7 @@ use crate::{context::Context, expr::Expr, module::Module};
 // #todo remove granular imports
 use super::arithmetic;
 use super::dict::{dict_contains_key, dict_get_keys, dict_get_or, dict_get_values, dict_insert};
+use super::eq::eq_float;
 use super::io::{read_string, write, writeln};
 use super::seq::{array_count, array_push};
 use super::string::{
@@ -97,6 +98,9 @@ pub fn setup_std_prelude(context: &mut Context) {
     // eq
 
     scope.insert("=", Expr::ForeignFunc(Arc::new(eq)));
+    scope.insert("=$$Int$$Int", Expr::ForeignFunc(Arc::new(eq)));
+    scope.insert("=$$Float$$Float", Expr::ForeignFunc(Arc::new(eq_float)));
+
     scope.insert(">", Expr::ForeignFunc(Arc::new(gt)));
     scope.insert("<", Expr::ForeignFunc(Arc::new(lt)));
 

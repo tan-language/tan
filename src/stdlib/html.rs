@@ -68,9 +68,25 @@ fn render_expr(expr: &Expr) -> Result<Expr, Error> {
 
                     while i < terms.len() {
                         // #todo if term is an array, spread it!
+                        let term = &terms[i];
+
+                        match term.unpack() {
+                            Expr::Array(array) => {
+                                let array = array.borrow();
+                                for t in array.iter() {
+                                    let child = render_expr(t)?;
+                                    body.push_str(&format_value(&child));
+                                }
+                            }
+                            _ => {
+                                let child = render_expr(&terms[i])?;
+                                body.push_str(&format_value(&child));
+                            }
+                        }
+                        // #todo handle () / empty / Never (for conditionals)
                         // #insight spread will work nicely with for->list
-                        let child = render_expr(&terms[i])?;
-                        body.push_str(&format_value(&child));
+                        // let child = render_expr(&terms[i])?;
+                        // body.push_str(&format_value(&child));
                         i += 1;
                     }
 
@@ -128,6 +144,8 @@ pub fn setup_std_html(context: &mut Context) {
 #[cfg(test)]
 mod tests {
     use crate::{api::eval_string, context::Context};
+
+    // #todo add a test with arrays and conditionals.
 
     #[test]
     fn html_from_expr_usage() {
