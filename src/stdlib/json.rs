@@ -18,17 +18,6 @@ fn json_value_to_expr(json: Value) -> Expr {
             Expr::array(arr)
         }
         Value::Object(obj) => {
-            // // #insight the formatter works better with 'base' exprs.
-            // let mut terms = vec![Expr::symbol("Dict")];
-            // for (key, value) in obj {
-            //     // #todo should support more key types.
-            //     // #todo should convert k from camelCase, PascalCase, snake_case, etc.
-            //     let key = key.replace("_", "-");
-            //     let key = Expr::KeySymbol(key);
-            //     terms.push(key);
-            //     terms.push(json_value_to_expr(value));
-            // }
-            // Expr::List(terms)
             let mut dict: HashMap<String, Expr> = HashMap::new();
             for (key, value) in obj {
                 // #todo should support more key types.
@@ -46,7 +35,7 @@ fn json_value_to_expr(json: Value) -> Expr {
     }
 }
 
-// #todo implement write.
+// #todo implement write/encode.
 
 // #todo find a better name.
 pub fn json_read_string(args: &[Expr], _context: &Context) -> Result<Expr, Error> {

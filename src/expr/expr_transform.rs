@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use super::Expr;
 
 impl Expr {
@@ -19,6 +21,7 @@ impl Expr {
                 let list = Expr::maybe_annotated(Expr::List(terms), ann);
                 f(list)
             }
+            // #todo ARGHHHHHH does not handle Dict, Array, etc.
             _ => f(self),
         }
     }
@@ -37,6 +40,35 @@ impl Expr {
                 let list = Expr::maybe_annotated(Expr::List(terms), ann);
                 f(list)
             }
+            // #todo write unit test for array quote
+            // #todo ULTRA HACK: super nasty code here!
+            // #todo properly handle array
+            (Expr::Array(terms), ann) => {
+                // #todo investigate this clone!!!!
+                let terms: Vec<Expr> = terms
+                    .borrow()
+                    .clone()
+                    .into_iter()
+                    .map(|t| t.clone().transform_mut(f))
+                    .collect();
+                let array = Expr::maybe_annotated(Expr::array(terms), ann);
+                f(array)
+            }
+            // #todo write unit test for dict quote
+            // #todo ULTRA HACK: super nasty code here! and super non-optimal.
+            // #todo properly handle array
+            (Expr::Dict(dict), ann) => {
+                // #todo investigate this clone!!!!
+                let dict: HashMap<String, Expr> = dict
+                    .borrow()
+                    .clone()
+                    .into_iter()
+                    .map(|(key, value)| (key, value.clone().transform_mut(f)))
+                    .collect();
+                let dict = Expr::maybe_annotated(Expr::dict(dict), ann);
+                f(dict)
+            }
+            // #todo ARGHHHHHH does not handle Dict, Array, etc.
             _ => f(self),
         }
     }

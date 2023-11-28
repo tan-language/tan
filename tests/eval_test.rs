@@ -157,6 +157,18 @@ fn eval_processes_quoted_expressions() {
 }
 
 #[test]
+fn eval_handles_unquoting() {
+    let result = eval_file("unquoting.tan");
+
+    assert!(result.is_ok());
+
+    let value = format!("{}", result.unwrap());
+    let expected_value = read_file("unquoting.value.tan");
+
+    assert_eq!(value, expected_value);
+}
+
+#[test]
 fn do_creates_new_lexical_scope() {
     let mut context = Context::new();
     let result = eval_string(

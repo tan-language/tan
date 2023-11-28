@@ -67,6 +67,8 @@ fn render_expr(expr: &Expr) -> Result<Expr, Error> {
                     let mut body = String::from("");
 
                     while i < terms.len() {
+                        // #todo if term is an array, spread it!
+                        // #insight spread will work nicely with for->list
                         let child = render_expr(&terms[i])?;
                         body.push_str(&format_value(&child));
                         i += 1;

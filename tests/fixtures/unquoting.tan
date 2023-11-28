@@ -1,0 +1,13 @@
+(do
+    (let center-x 100.0)
+    (let center-y 100.0)
+    (let canvas-width 1000.0)
+    (let canvas-height 1000.0)
+    (let radius 50.0)
+    (let ring-width 4.0)
+    '(svg {:width $canvas-width} [$canvas-height $radius]
+        (g {:stroke-width $ring-width}
+            (circle {:cx $center-x })
+        )
+    )
+)
