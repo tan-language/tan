@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use crate::{context::Context, eval::eval};
+
 use super::Expr;
 
 impl Expr {
@@ -80,6 +82,58 @@ impl Expr {
         F: Fn(Self) -> Self,
     {
         todo!()
+    }
+
+    // #todo hack, move elsewhere
+    // #todo ultra nasty code, remove all clones.
+    pub fn quot(self, context: &mut Context) -> Self {
+        match self.extract() {
+            (Expr::List(terms), ann) => {
+                if terms.is_empty() {
+                    self
+                } else {
+                    if let Some(sym) = terms[0].unpack().as_symbol() {
+                        if sym == "unquot" {
+                            debug_assert!(terms.len() == 2);
+                            // #todo remove the unwrap!
+                            eval(&terms[1], context).unwrap()
+                        } else {
+                            let terms =
+                                terms.into_iter().map(|t| t.clone().quot(context)).collect();
+                            let list = Expr::maybe_annotated(Expr::List(terms), ann);
+                            list
+                        }
+                    } else {
+                        let terms = terms.into_iter().map(|t| t.clone().quot(context)).collect();
+                        let list = Expr::maybe_annotated(Expr::List(terms), ann);
+                        list
+                    }
+                }
+            }
+            (Expr::Array(terms), ann) => {
+                // #todo investigate this clone!!!!
+                let terms: Vec<Expr> = terms
+                    .borrow()
+                    .clone()
+                    .into_iter()
+                    .map(|t| t.quot(context))
+                    .collect();
+                let array = Expr::maybe_annotated(Expr::array(terms), ann);
+                array
+            }
+            (Expr::Dict(dict), ann) => {
+                // #todo investigate this clone!!!!
+                let dict: HashMap<String, Expr> = dict
+                    .borrow()
+                    .clone()
+                    .into_iter()
+                    .map(|(key, value)| (key, value.quot(context)))
+                    .collect();
+                let dict = Expr::maybe_annotated(Expr::dict(dict), ann);
+                dict
+            }
+            _ => self,
+        }
     }
 
     /// Transforms the expression by recursively applying the `f` mapping
