@@ -1,1 +1,1 @@
-(svg {:width 1000} [1000 50] (g {:stroke-width 4} (circle {:cx 100})))
+(svg {:width 1000} [1000 50] (g {:stroke-width 4} [50 51 52 53 54 55 56 57 58 59] (circle {:cx 100})))

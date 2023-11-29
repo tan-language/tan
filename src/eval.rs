@@ -490,6 +490,87 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             Ok(Expr::One)
                         }
+                        // #todo consider the name `for*` or something similar?
+                        "for->list" => {
+                            // #insight
+                            // `while` is a generalization of `if`
+                            // `for` is a generalization of `let`
+                            // `for` is related with `do`
+                            // `for` is monadic
+
+                            // (for (x 10) (writeln x))
+
+                            // #todo solve duplication between for and for->list
+                            // #todo reuse code from let
+                            // #todo the resolver should handle this.
+
+                            if tail.len() < 2 {
+                                // #todo add more structural checks.
+                                // #todo proper error!
+                                return Err(Error::invalid_arguments(
+                                    "missing for arguments",
+                                    expr.range(),
+                                ));
+                            }
+
+                            let mut values = Vec::new();
+
+                            let binding = tail.first().unwrap();
+                            let body = &tail[1..];
+
+                            // #todo should check both for list and array.
+                            let Some(binding_parts) = binding.as_list() else {
+                                // #todo proper error!
+                                return Err(Error::invalid_arguments(
+                                    "invalid for binding",
+                                    binding.range(),
+                                ));
+                            };
+
+                            let [var, value] = &binding_parts[..] else {
+                                return Err(Error::invalid_arguments(
+                                    "invalid for binding",
+                                    binding.range(),
+                                ));
+                            };
+
+                            let Some(var) = var.as_symbol() else {
+                                // #todo proper error!
+                                return Err(Error::invalid_arguments(
+                                    "invalid for binding, malformed variable",
+                                    var.range(),
+                                ));
+                            };
+
+                            // #insight for the ListIterator
+                            let value = eval(value, context)?;
+
+                            // #todo also handle (Range start end step)
+                            // #todo maybe step should be external to Range, or use SteppedRange, or (Step-By (Range T))
+                            let Some(iterator) = try_iterator_from(&value) else {
+                                // #todo proper error!
+                                return Err(Error::invalid_arguments(
+                                    "invalid for binding, the value is not iterable",
+                                    value.range(),
+                                ));
+                            };
+
+                            let prev_scope = context.scope.clone();
+                            context.scope = Rc::new(Scope::new(prev_scope.clone()));
+
+                            let mut iterator = iterator.borrow_mut();
+
+                            while let Some(value) = iterator.next() {
+                                context.scope.insert(var, value);
+                                for expr in body {
+                                    values.push(eval(expr, context)?);
+                                }
+                            }
+
+                            context.scope = prev_scope;
+
+                            Ok(Expr::array(values))
+                        }
                         "while" => {
                             // #insight
                             // `while` is a generalization of `if`
