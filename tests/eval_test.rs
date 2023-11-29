@@ -169,6 +169,18 @@ fn eval_handles_unquoting() {
 }
 
 #[test]
+fn eval_handles_recursive_unquoting() {
+    let result = eval_file("unquoting-recursive.tan");
+
+    assert!(result.is_ok());
+
+    let value = format!("{}", result.unwrap());
+    let expected_value = read_file("unquoting-recursive.value.tan");
+
+    assert_eq!(value, expected_value);
+}
+
+#[test]
 fn do_creates_new_lexical_scope() {
     let mut context = Context::new();
     let result = eval_string(

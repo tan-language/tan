@@ -37,29 +37,31 @@ fn eval_args(args: &[Expr], context: &mut Context) -> Result<Vec<Expr>, Error> {
         .collect::<Result<Vec<_>, _>>()
 }
 
-fn eval_quote(expr: Expr, context: &mut Context) -> Expr {
-    // #insight unpack is OK, no extract needed.
-    match expr.unpack() {
-        Expr::List(terms) => {
-            if terms.is_empty() {
-                expr
-            } else {
-                if let Some(sym) = terms[0].unpack().as_symbol() {
-                    if sym == "unquot" {
-                        debug_assert!(terms.len() == 2);
-                        // #todo remove the unwrap!
-                        eval(&terms[1], context).unwrap()
-                    } else {
-                        expr
-                    }
-                } else {
-                    expr
-                }
-            }
-        }
-        _ => expr,
-    }
-}
+// fn eval_quote(expr: Expr, context: &mut Context) -> Expr {
+//     // #insight unpack is OK, no extract needed.
+//     println!("fquot --> {}", expr.unpack());
+//     match expr.unpack() {
+//         Expr::List(terms) => {
+//             if terms.is_empty() {
+//                 expr
+//             } else {
+//                 if let Some(sym) = terms[0].unpack().as_symbol() {
+//                     if sym == "unquot" {
+//                         debug_assert!(terms.len() == 2);
+//                         // #todo remove the unwrap!
+//                         println!("evan unquot ::: {}", &terms[1].unpack());
+//                         eval(&terms[1], context).unwrap()
+//                     } else {
+//                         expr
+//                     }
+//                 } else {
+//                     expr
+//                 }
+//             }
+//         }
+//         _ => expr,
+//     }
+// }
 
 // #todo needs better conversion to Expr::Annotated
 
@@ -407,11 +409,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             };
 
                             // #todo transform_mut is not the correct traversal, it's depth first it should be breadth first.
-
-                            Ok(value
-                                .clone()
-                                // .quot(context))
-                                .transform_mut(&mut |expr| eval_quote(expr, context)))
+                            // #todo expr.quote() is a temp hack.
+                            Ok(value.clone().quot(context))
                         }
                         // #todo check racket.
                         // #todo implement for->list, for->map, for->fold, etc.
