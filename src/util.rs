@@ -23,6 +23,7 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
             | "if"
             | "cond"
             | "for"
+            | "for->list" // #todo reconsider the name!
             | "while"
             | "for-each" // #todo extract as seq function
             | "map"
