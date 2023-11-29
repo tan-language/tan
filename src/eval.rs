@@ -406,8 +406,11 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 ));
                             };
 
+                            // #todo transform_mut is not the correct traversal, it's depth first it should be breadth first.
+
                             Ok(value
                                 .clone()
+                                // .quot(context))
                                 .transform_mut(&mut |expr| eval_quote(expr, context)))
                         }
                         // #todo check racket.
