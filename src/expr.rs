@@ -75,7 +75,8 @@ pub type ExprFn = dyn Fn(&[Expr], &Context) -> Result<Expr, Error> + Send + Sync
 pub enum Expr {
     // --- Low-level ---
     // #todo hmm, not sure that Unit ~= 'One', I don't think there is a 'one' in the algebraic sense.
-    One,                          // Unit == List(Vec::new())
+    One, // Unit == List(Vec::new())
+    // Zero, // Nothing, Never
     Comment(String, CommentKind), // #todo consider renaming to Remark (REM)
     TextSeparator,                // for the formatter.
     Bool(bool),                   // #todo remove?

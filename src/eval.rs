@@ -646,6 +646,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 eval(false_clause, context)
                             } else {
                                 // #todo what should we return if there is no false-clause? Zero/Never?
+                                // #todo it should return Zero/Never/Nothing
+                                // #insight
+                                // Nothing disallows this:
+                                // (let flag (if predicate (+ 1 2))) ; compile error: cannot assign Nothing
                                 Ok(Expr::One.into())
                             }
                         }
