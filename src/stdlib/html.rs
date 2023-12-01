@@ -109,6 +109,9 @@ fn render_expr(expr: &Expr) -> Result<Expr, Error> {
                 )) // #todo
             }
         }
+        // #todo is there a better way to do this?
+        // #insight Nothing/Zero expressions should be skipped.
+        Expr::Zero => Ok(Expr::string("")),
         _ => Ok(Expr::string(format_value(expr))),
     }
 }
@@ -160,6 +163,9 @@ mod tests {
                 '(div "Component: " $name " is cool!")
             ))
 
+            (let show-header true)
+            (let show-footer false)
+
             (let expr #HTML
                 '(html {lang: "el"}
                     (head
@@ -167,9 +173,11 @@ mod tests {
                         (link {href: "https://www.example.com/icon.png"})
                     )
                     (body
+                        $(if show-header '(header "A nice header"))
                         "Hello " $name "! Num: " (b "cool " $(+ 1 2))
                         (br)(br)
                         $(component '(i "Stella"))
+                        $(if show-footer '(footer "A nice footer"))
                     )
                 )
             )
@@ -179,7 +187,7 @@ mod tests {
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
         let value = expr.as_string().unwrap();
-        let expected = r#"<html lang="el"><head><title>Hello</title><link href="https://www.example.com/icon.png" /></head><body>Hello George! Num: <b>cool 3</b><br /><br /><div>Component: <i>Stella</i> is cool!</div></body></html>"#;
+        let expected = r#"<html lang="el"><head><title>Hello</title><link href="https://www.example.com/icon.png" /></head><body><header>A nice header</header>Hello George! Num: <b>cool 3</b><br /><br /><div>Component: <i>Stella</i> is cool!</div></body></html>"#;
         assert_eq!(value, expected);
     }
 }
