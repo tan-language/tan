@@ -645,12 +645,11 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             } else if let Some(false_clause) = false_clause {
                                 eval(false_clause, context)
                             } else {
-                                // #todo what should we return if there is no false-clause? Zero/Never?
-                                // #todo it should return Zero/Never/Nothing
+                                // #insight In the Curry–Howard correspondence, an empty type corresponds to falsity.
                                 // #insight
-                                // Nothing disallows this:
+                                // Zero / Nothing disallows this:
                                 // (let flag (if predicate (+ 1 2))) ; compile error: cannot assign Nothing
-                                Ok(Expr::One.into())
+                                Ok(Expr::Zero)
                             }
                         }
                         // #todo is this different enough from `if`?
