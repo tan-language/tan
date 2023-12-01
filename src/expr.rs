@@ -74,9 +74,13 @@ pub type ExprFn = dyn Fn(&[Expr], &Context) -> Result<Expr, Error> + Send + Sync
 #[derive(Clone)]
 pub enum Expr {
     // --- Low-level ---
-    // #todo hmm, not sure that Unit ~= 'One', I don't think there is a 'one' in the algebraic sense.
-    One, // Unit == List(Vec::new())
-    // Zero, // Nothing, Never
+    // #todo Any <> Nothing or even Anything <> Nothing, better keep the shorter Any
+    // Any, // Anything, Top
+    // #insight In the Curry–Howard correspondence, an empty type corresponds to falsity.
+    // #insight the Bottom type is the dual to the Top type (Any)
+    Zero, // Nothing, Never, Bottom, the empty type
+    // #insight Unit == One, and it _is_ 'one' in the algebraic sense
+    One,                          // Unit == List(Vec::new())
     Comment(String, CommentKind), // #todo consider renaming to Remark (REM)
     TextSeparator,                // for the formatter.
     Bool(bool),                   // #todo remove?
@@ -124,6 +128,7 @@ pub enum Expr {
 impl fmt::Debug for Expr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let text = match self {
+            Expr::Zero => "⊥".to_owned(), // #todo maybe use an ASCII representation, e.g. `!` or `!!`
             Expr::One => "()".to_owned(),
             Expr::Comment(s, _) => format!("Comment({s})"),
             Expr::TextSeparator => "<TEXT-SEPARATOR>".to_owned(),
@@ -172,6 +177,7 @@ impl fmt::Display for Expr {
         // #todo optimize this!
         f.write_str(
             (match self {
+                Expr::Zero => "⊥".to_owned(),
                 Expr::One => "()".to_owned(),
                 Expr::Comment(s, _) => format!(r#"(rem "{s}")"#), // #todo what would be a good representation?
                 Expr::TextSeparator => "<TS>".to_owned(),
