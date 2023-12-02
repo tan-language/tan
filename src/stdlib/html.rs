@@ -177,7 +177,9 @@ mod tests {
                         "Hello " $name "! Num: " (b "cool " $(+ 1 2))
                         (br)(br)
                         $(component '(i "Stella"))
-                        $(if show-footer '(footer "A nice footer"))
+                        $(if show-footer
+                            '(footer "A nice footer")
+                        )
                     )
                 )
             )
