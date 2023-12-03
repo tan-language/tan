@@ -67,8 +67,48 @@ pub fn process_env_vars(_args: &[Expr], _context: &Context) -> Result<Expr, Erro
 // #todo spawn
 // #todo shell
 
-// #todo exec/shell should actually call the shell.
+// #todo
+// pub fn process_spawn(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+//     let [cmd] = args else {
+//         return Err(Error::invalid_arguments(
+//             "`exec` requires `cmd` argument",
+//             None,
+//         ));
+//     };
 
+//     let Expr::String(cmd_string) = cmd.unpack() else {
+//         return Err(Error::invalid_arguments(
+//             "`cmd` argument should be a String", // #todo mention `Stringable` or `Stringer`
+//             cmd.range(),
+//         ));
+//     };
+
+//     let mut args = cmd_string.split(" ");
+
+//     let Some(cmd) = args.next() else {
+//         return Err(Error::invalid_arguments(
+//             "`cmd` argument can't be empty",
+//             cmd.range(),
+//         ));
+//     };
+
+//     let Ok(output) = std::process::Command::new(cmd).args(args).output() else {
+//         // #todo should be runtime error.
+//         // #todo even more it should be a Tan error.
+//         return Err(Error::general("failed to execute cmd `{cmd}`"));
+//     };
+
+//     // #todo also return status and stderr.
+//     // #todo proper conversion of stdout output.
+//     // #todo could return dict {status, stdout, stderr}
+
+//     Ok(Expr::string(
+//         String::from_utf8(output.stdout).unwrap_or_default(),
+//     ))
+// }
+
+// #todo rename to shell? or exec shell?
+// #todo shortcut?
 /// Similar to C's system function:
 /// The command specified by string is passed to the host environment to be
 /// executed by the command processor.
@@ -87,18 +127,10 @@ pub fn process_exec(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
         ));
     };
 
-    let mut args = cmd_string.split(" ");
-
-    let Some(cmd) = args.next() else {
-        return Err(Error::invalid_arguments(
-            "`cmd` argument can't be empty",
-            cmd.range(),
-        ));
-    };
-
-    let args: Vec<&str> = args.collect();
-
-    let Ok(output) = std::process::Command::new(cmd).args(args).output() else {
+    let Ok(output) = std::process::Command::new("sh")
+        .args(["-c", cmd_string])
+        .output()
+    else {
         // #todo should be runtime error.
         // #todo even more it should be a Tan error.
         return Err(Error::general("failed to execute cmd `{cmd}`"));
