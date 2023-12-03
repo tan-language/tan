@@ -64,6 +64,13 @@ pub fn process_env_vars(_args: &[Expr], _context: &Context) -> Result<Expr, Erro
     Ok(Expr::dict(env_vars))
 }
 
+// https://stackoverflow.com/questions/21011330/how-do-i-invoke-a-system-command-and-capture-its-output
+
+// #todo use one spawn for both string and ProcessSpec?
+// #todo (process/spawn-cmd "ls -al") ; spawn-str, spawn-command, cmd, sh, shell, exec, run
+// #todo (process/spawn-child child-process) -> Process(-Handle) ; just `spawn`
+// #todo (Process env args id stdin, stdout stderr status current-dir)
+
 // #todo consider removing the `std` prefix from module paths, like haskell.
 // #todo find a better prefix than setup_
 // #todo use Rc/Arc consistently
