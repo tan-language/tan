@@ -64,6 +64,62 @@ pub fn process_env_vars(_args: &[Expr], _context: &Context) -> Result<Expr, Erro
     Ok(Expr::dict(env_vars))
 }
 
+// #todo spawn
+// #todo shell
+
+// #todo exec/shell should actually call the shell.
+
+/// Similar to C's system function:
+/// The command specified by string is passed to the host environment to be
+/// executed by the command processor.
+pub fn process_exec(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    let [cmd] = args else {
+        return Err(Error::invalid_arguments(
+            "`exec` requires `cmd` argument",
+            None,
+        ));
+    };
+
+    let Expr::String(cmd_string) = cmd.unpack() else {
+        return Err(Error::invalid_arguments(
+            "`cmd` argument should be a String", // #todo mention `Stringable` or `Stringer`
+            cmd.range(),
+        ));
+    };
+
+    let mut args = cmd_string.split(" ");
+
+    let Some(cmd) = args.next() else {
+        return Err(Error::invalid_arguments(
+            "`cmd` argument can't be empty",
+            cmd.range(),
+        ));
+    };
+
+    let args: Vec<&str> = args.collect();
+
+    let Ok(output) = std::process::Command::new(cmd).args(args).output() else {
+        // #todo should be runtime error.
+        // #todo even more it should be a Tan error.
+        return Err(Error::general("failed to execute cmd `{cmd}`"));
+    };
+
+    // #todo also return status and stderr.
+    // #todo proper conversion of stdout output.
+    // #todo could return dict {status, stdout, stderr}
+
+    Ok(Expr::string(
+        String::from_utf8(output.stdout).unwrap_or_default(),
+    ))
+}
+
+// https://stackoverflow.com/questions/21011330/how-do-i-invoke-a-system-command-and-capture-its-output
+
+// #todo use one spawn for both string and ProcessSpec?
+// #todo (process/spawn-cmd "ls -al") ; spawn-str, spawn-command, cmd, sh, shell, exec, run
+// #todo (process/spawn-child child-process) -> Process(-Handle) ; just `spawn`
+// #todo (Process env args id stdin, stdout stderr status current-dir)
+
 // #todo consider removing the `std` prefix from module paths, like haskell.
 // #todo find a better prefix than setup_
 // #todo use Rc/Arc consistently
@@ -84,6 +140,10 @@ pub fn setup_std_process(context: &mut Context) {
     // (let tan-path (process/env :TANPATH))
     scope.insert("env-vars", Expr::ForeignFunc(Arc::new(process_env_vars)));
     scope.insert("env-vars$$", Expr::ForeignFunc(Arc::new(process_env_vars))); // #todo is this needed?
+
+    // (let output (process/exec "ls -al"))
+    scope.insert("exec", Expr::ForeignFunc(Arc::new(process_exec)));
+    scope.insert("exec$$String", Expr::ForeignFunc(Arc::new(process_exec)));
 
     // #todo this is a hack.
     let module_path = format!("{}/std/process", context.root_path);
