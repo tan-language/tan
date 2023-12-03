@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::{rc::Rc, sync::Arc};
 
 use crate::error::Error;
@@ -39,19 +40,29 @@ pub fn process_exit(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 
 // #todo probably these FFI functions should just return an Expr, no Result.
 
-/// Return the process arguments.
+/// Return the process arguments as an array
 pub fn process_args(_args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let mut args = Vec::new();
 
     for arg in std::env::args() {
-        args.push(Expr::string(arg.clone()))
+        args.push(Expr::string(arg))
     }
 
     Ok(Expr::array(args))
 }
 
-// #todo args
-// #todo env
+// #todo consider renaming to just `env`?
+// #todo optionally support key/name argument to return the value of a specific env variable.
+/// Return the process environment variables as a Dict/Map.
+pub fn process_env_vars(_args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    let mut env_vars = HashMap::new();
+
+    for (key, value) in std::env::vars() {
+        env_vars.insert(key, Expr::string(value));
+    }
+
+    Ok(Expr::dict(env_vars))
+}
 
 // #todo consider removing the `std` prefix from module paths, like haskell.
 // #todo find a better prefix than setup_
@@ -69,6 +80,10 @@ pub fn setup_std_process(context: &mut Context) {
     // (let file (process/args 1))
     scope.insert("args", Expr::ForeignFunc(Arc::new(process_args)));
     scope.insert("args$$", Expr::ForeignFunc(Arc::new(process_args))); // #todo is this needed?
+
+    // (let tan-path (process/env :TANPATH))
+    scope.insert("env-vars", Expr::ForeignFunc(Arc::new(process_env_vars)));
+    scope.insert("env-vars$$", Expr::ForeignFunc(Arc::new(process_env_vars))); // #todo is this needed?
 
     // #todo this is a hack.
     let module_path = format!("{}/std/process", context.root_path);
