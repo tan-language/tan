@@ -106,6 +106,7 @@ pub fn process_exec(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 
     // #todo also return status and stderr.
     // #todo proper conversion of stdout output.
+    // #todo could return dict {status, stdout, stderr}
 
     Ok(Expr::string(
         String::from_utf8(output.stdout).unwrap_or_default(),
