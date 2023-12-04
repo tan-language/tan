@@ -182,3 +182,5 @@ pub fn setup_std_process(context: &mut Context) {
     // #todo introduce a helper for this.
     context.module_registry.insert(module_path, Rc::new(module));
 }
+
+// #todo add some tests, even without assertions, just to exercise these functions.
