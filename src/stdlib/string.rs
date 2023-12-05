@@ -38,10 +38,11 @@ pub fn string_pop(_args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 
 // #todo relation with range?
 // #todo pass range as argument?
+// #todo support negative index: -1 => length - 1
 pub fn string_slice(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [this, start, end] = args else {
         return Err(Error::invalid_arguments(
-            "`pop` requires `this`, start, end arguments",
+            "`slice` requires `this`, start, end arguments",
             None,
         ));
     };
@@ -199,6 +200,31 @@ pub fn string_split(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 
 // #todo have FFI functions without Context?
 
+pub fn string_starts_with(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    let [this, prefix] = args else {
+        return Err(Error::invalid_arguments(
+            "`starts-with` requires `this` and `prefix` arguments",
+            None,
+        ));
+    };
+
+    let Some(this) = this.as_string() else {
+        return Err(Error::invalid_arguments(
+            "`this` argument should be a String",
+            this.range(),
+        ));
+    };
+
+    let Some(prefix) = prefix.as_string() else {
+        return Err(Error::invalid_arguments(
+            "`prefix` argument should be a String",
+            prefix.range(),
+        ));
+    };
+
+    Ok(Expr::Bool(this.starts_with(prefix)))
+}
+
 pub fn string_ends_with(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     // #todo consider `suffix` instead of `postfix`.
     let [this, postfix] = args else {
@@ -291,6 +317,18 @@ mod tests {
         let expr = eval_string(input, &mut context).unwrap();
         let value = expr.as_string().unwrap();
         assert_eq!(value, "hello");
+    }
+
+    #[test]
+    fn starts_with_usage() {
+        let mut context = Context::new();
+        let input = r#"
+            (let text "hello George")
+            (starts-with? text "hello")
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = expr.as_bool().unwrap();
+        assert!(value);
     }
 
     #[test]

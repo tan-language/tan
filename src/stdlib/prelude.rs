@@ -11,6 +11,7 @@ use super::io::{read_string, write, writeln};
 use super::seq::{array_count, array_push};
 use super::string::{
     string_ends_with, string_get_length, string_replace, string_slice, string_split,
+    string_starts_with,
 };
 use super::{
     eq::{eq, gt, lt},
@@ -187,6 +188,11 @@ pub fn setup_std_prelude(context: &mut Context) {
     scope.insert(
         "get-length$$String",
         Expr::ForeignFunc(Arc::new(string_get_length)),
+    );
+
+    scope.insert(
+        "starts-with?",
+        Expr::ForeignFunc(Arc::new(string_starts_with)),
     );
 
     /*
