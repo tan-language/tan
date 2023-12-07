@@ -40,10 +40,13 @@ pub fn string_pop(_args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 // #todo pass range as argument?
 // #todo support negative index: -1 => length - 1
 // #insight negative index _may_ be problematic if the index is computed and returns negative by mistake.
+/// (slice str 2 5)
+/// (slice str 2)
+/// (slice str 2 -2) ; -2 is length - 2
 pub fn string_slice(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
-    let [this, start, end] = args else {
+    let [this, start, ..] = args else {
         return Err(Error::invalid_arguments(
-            "`slice` requires `this`, start, end arguments",
+            "`slice` requires `this` and start arguments",
             None,
         ));
     };
@@ -62,15 +65,19 @@ pub fn string_slice(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
         ));
     };
 
-    let Expr::Int(end) = end.unpack() else {
-        return Err(Error::invalid_arguments(
-            "`end` argument should be an Int",
-            this.range(),
-        ));
-    };
-
     let start = *start;
-    let end = *end;
+
+    let end = if let Some(end) = args.get(2) {
+        let Expr::Int(end) = end.unpack() else {
+            return Err(Error::invalid_arguments(
+                "`end` argument should be an Int",
+                this.range(),
+            ));
+        };
+        *end
+    } else {
+        s.len() as i64
+    };
 
     let start = start as usize;
     let end = if end < 0 {
@@ -328,6 +335,17 @@ mod tests {
         let expr = eval_string(input, &mut context).unwrap();
         let value = expr.as_string().unwrap();
         assert_eq!(value, "hello");
+    }
+
+    #[test]
+    fn slice_without_end_index() {
+        let mut context = Context::new();
+        let input = r#"
+            (slice "hello/world" 3)
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = expr.as_string().unwrap();
+        assert_eq!(value, "lo/world");
     }
 
     #[test]
