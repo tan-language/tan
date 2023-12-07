@@ -39,6 +39,7 @@ pub fn string_pop(_args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 // #todo relation with range?
 // #todo pass range as argument?
 // #todo support negative index: -1 => length - 1
+// #insight negative index _may_ be problematic if the index is computed and returns negative by mistake.
 pub fn string_slice(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [this, start, end] = args else {
         return Err(Error::invalid_arguments(
@@ -68,8 +69,18 @@ pub fn string_slice(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
         ));
     };
 
-    let start = *start as usize;
-    let end = *end as usize;
+    let start = *start;
+    let end = *end;
+
+    let start = start as usize;
+    let end = if end < 0 {
+        // #todo supporting negative index may hide errors if the index is computed
+        // #todo offer a link to only support negative values for constant index
+        // If the end argument is negative it indexes from the end of the string.
+        (s.len() as i64 + end) as usize
+    } else {
+        end as usize
+    };
 
     let string_slice = &s[start..end];
 
@@ -317,6 +328,17 @@ mod tests {
         let expr = eval_string(input, &mut context).unwrap();
         let value = expr.as_string().unwrap();
         assert_eq!(value, "hello");
+    }
+
+    #[test]
+    fn slice_with_negative_end_index() {
+        let mut context = Context::new();
+        let input = r#"
+            (slice "hello/world" 0 -3)
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = expr.as_string().unwrap();
+        assert_eq!(value, "hello/wo");
     }
 
     #[test]
