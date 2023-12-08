@@ -378,6 +378,25 @@ impl Expr {
         Some(s)
     }
 
+    pub fn as_key_symbol(&self) -> Option<&str> {
+        let Expr::KeySymbol(s) = self.unpack() else {
+            return None;
+        };
+        Some(s)
+    }
+
+    // #todo find a better name.
+    pub fn try_symbol(&self) -> Option<&str> {
+        // #todo try to optimize away the unpacks.
+        let expr = self.unpack();
+
+        match expr {
+            Expr::Symbol(s) => Some(s),
+            Expr::KeySymbol(s) => Some(s),
+            _ => None,
+        }
+    }
+
     // #todo add an extra function to extract all string-
 
     pub fn as_char(&self) -> Option<char> {
@@ -448,7 +467,7 @@ impl Expr {
             Expr::String(_) => Expr::symbol("String"),
             Expr::Array(_) => Expr::symbol("Array"), // #todo return parameterized type
             Expr::Dict(_) => Expr::symbol("Dict"),   // #todo return parameterized type
-            // #TODO add more here!
+            // #todo what about quoted Symbol?
             Expr::Symbol(name) => {
                 if let Some(value) = context.scope.get(name) {
                     value.dyn_type(context)
@@ -456,6 +475,8 @@ impl Expr {
                     Expr::symbol("Unknown")
                 }
             }
+            Expr::KeySymbol(..) => Expr::symbol("KeySymbol"),
+            // #todo add more here!
             _ => Expr::symbol("Unknown"),
         }
     }

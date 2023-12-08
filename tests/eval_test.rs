@@ -527,6 +527,25 @@ fn eval_or() {
 }
 
 #[test]
+fn eval_eq() {
+    let mut context = Context::new();
+    let result = eval_string("(= 1 1)", &mut context);
+    assert_matches!(result, Ok(Expr::Bool(b)) if b == true);
+
+    let mut context = Context::new();
+    let result = eval_string("(= 1 2)", &mut context);
+    assert_matches!(result, Ok(Expr::Bool(b)) if b == false);
+
+    let mut context = Context::new();
+    let result = eval_string(r#"(= "hello" "hello")"#, &mut context);
+    assert_matches!(result, Ok(Expr::Bool(b)) if b == true);
+
+    let mut context = Context::new();
+    let result = eval_string("(= :hello :hello)", &mut context);
+    assert_matches!(result, Ok(Expr::Bool(b)) if b == true);
+}
+
+#[test]
 fn eval_not() {
     let mut context = Context::new();
     let result = eval_string("(not true)", &mut context);

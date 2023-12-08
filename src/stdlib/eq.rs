@@ -77,7 +77,7 @@ pub fn eq_string(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 
     let Some(a) = a.as_string() else {
         return Err(Error::invalid_arguments(
-            &format!("`{a}` is not an String"),
+            &format!("`{a}` is not a String"),
             a.range(),
         ));
     };
@@ -85,6 +85,37 @@ pub fn eq_string(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let Some(b) = b.as_string() else {
         return Err(Error::invalid_arguments(
             &format!("`{b}` is not a String"),
+            b.range(),
+        ));
+    };
+
+    Ok(Expr::Bool(a == b))
+}
+
+// #insight handles both (quoted) Symbol and KeySymbol, they are the same thing anyway.
+pub fn eq_symbol(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
+    // #todo support overloading,
+    // #todo make equality a method of Expr?
+    // #todo support non-Int types
+    // #todo support multiple arguments.
+    let [a, b] = args else {
+        return Err(Error::invalid_arguments(
+            "`=` requires at least two arguments",
+            None,
+        ));
+    };
+
+    let Some(a) = a.try_symbol() else {
+        return Err(Error::invalid_arguments(
+            &format!("`{a}` is not a Symbol"),
+            a.range(),
+        ));
+    };
+
+    let Some(b) = b.try_symbol() else {
+        return Err(Error::invalid_arguments(
+            &format!("`{b}` is not a Symbol"),
             b.range(),
         ));
     };
@@ -174,7 +205,38 @@ pub fn not_eq_string(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 
     let Some(b) = b.as_string() else {
         return Err(Error::invalid_arguments(
-            &format!("`{b}` is not a Float"),
+            &format!("`{b}` is not a String"),
+            b.range(),
+        ));
+    };
+
+    Ok(Expr::Bool(a != b))
+}
+
+// #insight handles both (quoted) Symbol and KeySymbol, they are the same thing anyway.
+pub fn not_eq_symbol(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
+    // #todo support overloading,
+    // #todo make equality a method of Expr?
+    // #todo support non-Int types
+    // #todo support multiple arguments.
+    let [a, b] = args else {
+        return Err(Error::invalid_arguments(
+            "`!=` requires at least two arguments",
+            None,
+        ));
+    };
+
+    let Some(a) = a.try_symbol() else {
+        return Err(Error::invalid_arguments(
+            &format!("`{a}` is not a String"),
+            a.range(),
+        ));
+    };
+
+    let Some(b) = b.try_symbol() else {
+        return Err(Error::invalid_arguments(
+            &format!("`{b}` is not a Symbol"),
             b.range(),
         ));
     };
