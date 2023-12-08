@@ -20,6 +20,7 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
             | "or"
             | "not"
             | "let"
+            | "set!"
             | "if"
             | "cond"
             | "for"

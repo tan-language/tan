@@ -27,7 +27,7 @@ use self::{iterator::try_iterator_from, util::eval_module};
 // #todo Stack-trace is needed!
 // #todo https://clojure.org/reference/evaluation
 
-// #todo try to remove non-needed .into()s
+// #todo try to remove non-needed .into()s <--
 
 // #todo give more 'general' name.
 // #todo what about if a required argument is not passed to a function? currently we report undefined symbol.
@@ -794,7 +794,33 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo intentionally don't return a value, reconsider this?
                             Ok(Expr::array(results).into())
                         }
+                        "set!" => {
+                            // #todo find other name: poke, mut, mutate
+                            // #todo this is a temp hack
+                            // #todo write unit tests
+                            // #todo support mutating multiple variables.
+
+                            let [name, value] = tail else {
+                                return Err(Error::invalid_arguments(
+                                    "malformed `set!`",
+                                    expr.range(),
+                                ));
+                            };
+
+                            let Some(name) = name.try_string() else {
+                                return Err(Error::invalid_arguments(
+                                    "`set!` requires a symbol as the first argument",
+                                    name.range(),
+                                ));
+                            };
+
+                            context.scope.update(name, value.clone());
+
+                            // #todo what should this return? One/Unit (i.e. nothing useful) or the actual value?
+                            Ok(Expr::One)
+                        }
                         "scope-update" => {
+                            // #todo this name conflicts with scope.update()
                             // #todo consider a function that nests a new scope.
                             // #todo maybe it should be some kind of let? e.g. (`let-all` ?? or `let*` or `let..`)
                             // #todo this is a temp hack.
