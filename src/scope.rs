@@ -83,6 +83,8 @@ impl Scope {
         } else {
             if let Some(parent) = &self.parent {
                 parent.update(name, value);
+            } else {
+                // #todo should report an error here!
             }
         }
     }

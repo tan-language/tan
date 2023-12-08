@@ -814,6 +814,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 ));
                             };
 
+                            let value = eval(value, context)?;
+
                             context.scope.update(name, value.clone());
 
                             // #todo what should this return? One/Unit (i.e. nothing useful) or the actual value?
@@ -1122,7 +1124,6 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     }
                 }
                 _ => {
-                    dbg!(&head);
                     return Err(Error::not_invocable(
                         &format!("expression `{head}`"),
                         head.range(),
