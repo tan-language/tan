@@ -100,7 +100,11 @@ pub enum Expr {
     // #todo different name?
     // #todo support Expr as keys?
     Dict(Rc<RefCell<HashMap<String, Expr>>>),
-    IntRange(i64, i64, i64),   // start, end, step #todo use a struct here,
+    // #todo support `start..` and `..end` ranges.
+    // #todo open-ended range with step can look like this: `start../2`
+    // #todo have type render as (Range Int)
+    IntRange(i64, i64, i64), // start, end, step #todo use a struct here,
+    // #todo have type render as (Range Float)
     FloatRange(f64, f64, f64), // start, end, step #todo use a struct here,
     // Range(...),
     // #todo the Func should probably store the Module environment.
@@ -476,6 +480,8 @@ impl Expr {
                 }
             }
             Expr::KeySymbol(..) => Expr::symbol("KeySymbol"),
+            Expr::IntRange(..) => Expr::symbol("(Range Int)"),
+            Expr::FloatRange(..) => Expr::symbol("(Range Float)"),
             // #todo add more here!
             _ => Expr::symbol("Unknown"),
         }

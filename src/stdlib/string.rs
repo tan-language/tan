@@ -36,6 +36,8 @@ pub fn string_pop(_args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     todo!()
 }
 
+// #todo enforce range within string length
+// #todo rename to `cut`? (as in 'cut a slice')
 // #todo relation with range?
 // #todo pass range as argument?
 // #todo support negative index: -1 => length - 1
@@ -78,6 +80,52 @@ pub fn string_slice(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     } else {
         s.len() as i64
     };
+
+    let start = start as usize;
+    let end = if end < 0 {
+        // #todo supporting negative index may hide errors if the index is computed
+        // #todo offer a link to only support negative values for constant index
+        // If the end argument is negative it indexes from the end of the string.
+        (s.len() as i64 + end) as usize
+    } else {
+        end as usize
+    };
+
+    let string_slice = &s[start..end];
+
+    Ok(Expr::string(string_slice))
+}
+
+// #todo search `recognize_range`.
+// #todo this should reuse the plain string_slice method.
+/// Cuts a slice out fo a string, defined by a range.
+pub fn string_slice_range(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    let [this, start, ..] = args else {
+        return Err(Error::invalid_arguments(
+            "`slice` requires `this` and range arguments",
+            None,
+        ));
+    };
+
+    let Expr::String(s) = this.unpack() else {
+        return Err(Error::invalid_arguments(
+            "`this` argument should be a String",
+            this.range(),
+        ));
+    };
+
+    let Expr::IntRange(start, end, ..) = start.unpack() else {
+        return Err(Error::invalid_arguments(
+            "`range` argument should be a Range",
+            this.range(),
+        ));
+    };
+
+    // #todo support open-ended ranges.
+    // #todo extract the following.
+
+    let start = *start;
+    let end = *end;
 
     let start = start as usize;
     let end = if end < 0 {
@@ -357,6 +405,25 @@ mod tests {
         let expr = eval_string(input, &mut context).unwrap();
         let value = expr.as_string().unwrap();
         assert_eq!(value, "hello/wo");
+    }
+
+    #[test]
+    fn slice_with_range() {
+        let mut context = Context::new();
+        let input = r#"
+            (slice "hello/world" 2..5)
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = expr.as_string().unwrap();
+        assert_eq!(value, "llo");
+
+        let mut context = Context::new();
+        let input = r#"
+            (slice "hello/world" 2..-2)
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = expr.as_string().unwrap();
+        assert_eq!(value, "llo/wor");
     }
 
     #[test]

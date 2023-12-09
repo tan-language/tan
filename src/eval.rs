@@ -87,9 +87,12 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             let value = if let Some(Expr::Symbol(method)) = expr.annotation("method") {
                 // If the symbol is annotated with a `method`, it's in 'operator' position.
                 // `method` is just one of the variants of a multi-method-function.
+                // println!("--> {method}");
                 if let Some(value) = context.scope.get(method) {
                     value
                 } else {
+                    // #todo leave this trace on in some kind of debug mode.
+                    // println!("--> method-fallback");
                     // #todo ultra-hack, if the method is not found, try to lookup the function symbol, fall-through.
                     // #todo should do proper type analysis here.
 

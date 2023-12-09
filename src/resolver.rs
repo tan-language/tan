@@ -409,7 +409,7 @@ impl Default for Resolver {
 
 #[cfg(test)]
 mod tests {
-    use crate::{resolver::Resolver, api::parse_string, context::Context};
+    use crate::{api::parse_string, context::Context, resolver::Resolver};
 
     #[test]
     fn resolve_specializes_functions() {
