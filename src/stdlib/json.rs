@@ -29,9 +29,9 @@ fn json_value_to_expr(json: Value) -> Expr {
             Expr::dict(dict)
         }
         Value::String(s) => Expr::String(s),
-        Value::Number(n) => Expr::Float(n.as_f64().unwrap()), // #TODO handle Int, Float, remove unwrap!
+        Value::Number(n) => Expr::Float(n.as_f64().unwrap()), // #todo handle Int, Float, remove unwrap!
         Value::Bool(b) => Expr::Bool(b),
-        Value::Null => Expr::One, // #TODO is Unit the correct mapping?
+        Value::Null => Expr::One, // #todo is Unit the correct mapping?
     }
 }
 

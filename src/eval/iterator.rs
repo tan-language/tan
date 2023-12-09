@@ -100,7 +100,7 @@ impl<'a> ExprIterator for ArrayIterator2<'a> {
 // }
 
 // impl<'a> ExprIterator for DictIterator<'a> {
-//     // #TODO keep rust iterator instead.
+//     // #todo keep rust iterator instead.
 //     fn next(&mut self) -> Option<Expr> {
 //         // if self.current < self.items.len() {
 //         //     let value = self.items[self.current].clone(); // #todo argh, avoid this. should array have Rcs? SOS!!!
