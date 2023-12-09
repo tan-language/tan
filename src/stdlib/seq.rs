@@ -66,6 +66,8 @@ pub fn array_join(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 // #insight use the word Iterable instead of Sequence/Seq, more generic (can handle non-sequences, e.g. maps)
 // #insight could also use Countable
 
+// #todo match the corresponding function in String.
+// #todo rename to `get-length`?
 // #todo implement generically for iterables.
 pub fn array_count(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [array, ..] = args else {
@@ -80,6 +82,46 @@ pub fn array_count(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     };
 
     Ok(Expr::Int(array.len() as i64))
+}
+
+// #todo how to implement this?
+pub fn array_filter(_args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    todo!();
+
+    // // #todo
+    // let [seq, predicate_fn] = args else {
+    //     return Err(Error::invalid_arguments(
+    //         "requires `this` and `predicate-fn` arguments",
+    //         None,
+    //     ));
+    // };
+
+    // let Some(arr) = seq.as_array() else {
+    //     return Err(Error::invalid_arguments(
+    //         "`filter` requires a `Seq` as the first argument",
+    //         seq.range(),
+    //     ));
+    // };
+
+    // let prev_scope = context.scope.clone();
+    // // context.scope = Rc::new(Scope::new(prev_scope.clone()));
+
+    // let mut results: Vec<Expr> = Vec::new();
+
+    // for x in arr.iter() {
+    //     // #todo how to call a closure?
+
+    //     // // #todo array should have Ann<Expr> use Ann<Expr> everywhere, avoid the clones!
+    //     // context.scope.insert(sym, x.clone());
+    //     // let result = eval(body, context)?;
+    //     // // #todo replace the clone with custom expr::ref/copy?
+    //     // results.push(result.unpack().clone());
+    // }
+
+    // // context.scope = prev_scope.clone();
+
+    // // #todo intentionally don't return a value, reconsider this?
+    // Ok(Expr::array(results).into())
 }
 
 // #todo implement first, last
@@ -125,4 +167,7 @@ mod tests {
         let expected = "***";
         assert_eq!(value, expected);
     }
+
+    #[test]
+    fn array_filter_usage() {}
 }
