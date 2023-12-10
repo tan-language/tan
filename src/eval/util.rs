@@ -35,6 +35,7 @@ use super::eval;
 
 // #todo handle module_urls with https://, https://, ipfs://, etc, auto-download, like Deno.
 
+// #todo write unit tests!
 // #todo find another name, there is confusion with path_buf::canonicalize.
 pub fn canonicalize_module_path(
     path: impl AsRef<Path>,
