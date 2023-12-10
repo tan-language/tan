@@ -907,24 +907,58 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 return Err(Error::failed_use(&module_path, vec![]));
                             };
 
-                            // Import public names from module scope into the current scope.
+                            if let Some(arg) = tail.get(1) {
+                                // (use /math [pi tau]) ; pi
+                                // (use /math :only [pi tau]) ; math/pi
+                                // (use /math :exclude [pi])
+                                // (use /math :as "mathematics") ; mathematics/pi
 
-                            // #todo support (use "/path/to/module" *) or (use "/path/to/module" :embed)
-
-                            // #todo temp, needs cleanup!
-                            let bindings = module.scope.bindings.borrow().clone();
-                            for (name, value) in bindings {
-                                // #todo temp fix to not override the special var
-                                if name.starts_with("*") {
-                                    continue;
+                                if let Some(names) = arg.as_array() {
+                                    // #todo consider (use /math pi tau) -> nah.
+                                    // (use /math [pi tau]) ; pi, embed without namespace.
+                                    for name in names.iter() {
+                                        // #todo ONLY export public bindings
+                                        // #todo assign as top-level bindings!
+                                        let Some(name) = name.try_string() else {
+                                            return Err(Error::invalid_arguments(
+                                                "use explicit imports should be Stringables",
+                                                expr.range(),
+                                            ));
+                                        };
+                                        let Some(value) = module.scope.get(name) else {
+                                            return Err(Error::invalid_arguments(
+                                                &format!("undefined import `{name}`"),
+                                                expr.range(),
+                                            ));
+                                        };
+                                        context.scope.insert(name, value.clone());
+                                    }
+                                } else {
+                                    return Err(Error::invalid_arguments(
+                                        "malformed use expression",
+                                        expr.range(),
+                                    ));
                                 }
+                            } else {
+                                // Import public names from module scope into the current scope.
 
-                                // #todo ONLY export public bindings
+                                // #todo support (use "/path/to/module" *) or (use "/path/to/module" :embed)
 
-                                let name = format!("{}/{}", module.stem, name);
+                                // #todo temp, needs cleanup!
+                                let bindings = module.scope.bindings.borrow().clone();
+                                for (name, value) in bindings {
+                                    // #todo temp fix to not override the special var
+                                    if name.starts_with("*") {
+                                        continue;
+                                    }
 
-                                // #todo assign as top-level bindings!
-                                context.scope.insert(name, value.clone());
+                                    // #todo ONLY export public bindings
+
+                                    let name = format!("{}/{}", module.stem, name);
+
+                                    // #todo assign as top-level bindings!
+                                    context.scope.insert(name, value.clone());
+                                }
                             }
 
                             // #todo allow for embedding explicit symbols, non-namespaced!
