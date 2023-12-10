@@ -92,7 +92,7 @@ pub fn setup_lib_css_expr(context: &mut Context) {
     // #todo another name than dialect? (language, lang, flavor, dsl)
     // (use dialect/css-expr) (use dialect/css) (use dialect/html)
     // #todo this is a hack.
-    let module_path = format!("{}/dialect/css-expr", context.root_path);
+    let module_path = format!("{}/@std/dialect/css-expr", context.root_path);
     // #todo introduce a helper for this.
     context.module_registry.insert(module_path, Rc::new(module)); // #todo use Arc everywhere!
 }

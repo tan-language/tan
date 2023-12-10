@@ -20,7 +20,10 @@ use rand::Rng;
 pub fn random_int(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     if let Some(end) = args.first() {
         let Some(end) = end.as_int() else {
-            return Err(Error::invalid_arguments("expected Int argument", end.range()));
+            return Err(Error::invalid_arguments(
+                "expected Int argument",
+                end.range(),
+            ));
         };
 
         let mut rng = rand::thread_rng();
@@ -43,7 +46,7 @@ pub fn setup_std_rand(context: &mut Context) {
 
     // #todo this is a hack.
     // #todo what happens if there are multiple root_paths?
-    let module_path = format!("{}/std/rng", context.root_path);
+    let module_path = format!("{}/@std/std/rng", context.root_path);
     // #todo introduce a helper for this.
     context.module_registry.insert(module_path, Rc::new(module));
 }

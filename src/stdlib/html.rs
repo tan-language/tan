@@ -139,7 +139,7 @@ pub fn setup_std_html(context: &mut Context) {
     );
 
     // #todo this is a hack.
-    let module_path = format!("{}/std/html", context.root_path);
+    let module_path = format!("{}/@std/std/html", context.root_path);
     // #todo introduce a helper for this.
     context.module_registry.insert(module_path, Rc::new(module));
 }

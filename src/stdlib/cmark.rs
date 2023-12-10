@@ -43,7 +43,7 @@ pub fn setup_text_cmark(context: &mut Context) {
 
     // #todo find a good name/path for this library.
     // #todo this is a hack.
-    let module_path = format!("{}/text/cmark", context.root_path);
+    let module_path = format!("{}/@std/text/cmark", context.root_path);
     // #todo introduce a helper for this.
     context.module_registry.insert(module_path, Rc::new(module));
 }

@@ -16,7 +16,6 @@ use crate::{
 use super::eval;
 
 // #todo split read_module, eval(_module)
-
 // #todo not sure that dir as module is a good idea.
 
 // // #todo map module name to path
@@ -45,9 +44,28 @@ pub fn canonicalize_module_path(
 
     // #todo what is a good coding convention for 'system' variables?
     // #todo support read-only 'system' variables.
+    // #todo convert /xxx -> /@std/xxx
 
-    if path.starts_with("/") {
+    if path.starts_with("@") {
         path = format!("{}{path}", context.root_path);
+    // } else if path.starts_with("./") {
+    //     if let Some(base_path) = context.scope.get(CURRENT_MODULE_PATH) {
+    //         let Some(base_path) = base_path.as_string() else {
+    //             // #todo!
+    //             panic!("invalid current-module-path");
+    //         };
+
+    //         // Canonicalize the path using the current-module-path as the base path.
+    //         path = format!("{base_path}{}", path.strip_prefix(".").unwrap());
+    //     } else {
+    //         // #todo!
+    //         panic!("missing current-module-path");
+    //     }
+    } else if path.starts_with("/") {
+        path = format!("{}/@std{path}", context.root_path);
+    // } else {
+    //     path = format!("{}/@std/{path}", context.root_path);
+    // }
     } else {
         if let Some(base_path) = context.scope.get(CURRENT_MODULE_PATH) {
             let Some(base_path) = base_path.as_string() else {

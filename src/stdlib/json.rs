@@ -80,7 +80,7 @@ pub fn setup_codec_json(context: &mut Context) {
     scope.insert("read", Expr::ForeignFunc(Arc::new(json_read_string)));
 
     // #todo this is a hack.
-    let module_path = format!("{}/codec/json-codec", context.root_path);
+    let module_path = format!("{}/@std/codec/json-codec", context.root_path);
     // #todo introduce a helper for this.
     context.module_registry.insert(module_path, Rc::new(module));
 }
