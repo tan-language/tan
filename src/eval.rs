@@ -857,6 +857,9 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             Ok(Expr::One)
                         }
                         "use" => {
+                            // #insight modules are (currently) directories, _not_ files.
+
+                            // #todo support single-file modules (xxx.mod.tan, xxx.module.tan)
                             // #todo extract as function
                             // #insight this code is temporarily(?) moved from `resolver` here.
                             // #todo also introduce a dynamic version of `use`.
@@ -923,6 +926,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 // #todo assign as top-level bindings!
                                 context.scope.insert(name, value.clone());
                             }
+
+                            // #todo allow for embedding explicit symbols, non-namespaced!
 
                             // #todo what could we return here? the Expr::Module?
                             Ok(Expr::One.into())

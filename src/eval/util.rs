@@ -25,19 +25,13 @@ use super::eval;
 //     todo!()
 // }
 
-// #todo
-// Alternative module-path syntax:
-//
-// (use "@gmosx/playground/ray")
-// (use gmosx.playground.ray)
-//
-// (use "./sub/module")
-// (use this.sub.module)
-//
-// (use "@std/math" :only (pi tau))
-// (use "@std/math" :exclude (pi))
-// (use "@std/math" :as "math")
-// (use std.math (pi tau))
+// (use /math) ; #todo better (use math)
+// (use /math :only [pi tau])
+// (use /math :exclude [pi])
+// (use /math :as "mathematics")
+// (use /math [pi tau])
+// (use /@gmosx/my-lib) ; #todo better (use @gmosx/my-lib)
+// (use http://www.tan.org/modules/my-lib)
 
 // #todo handle module_urls with https://, https://, ipfs://, etc, auto-download, like Deno.
 
