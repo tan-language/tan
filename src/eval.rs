@@ -930,7 +930,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo allow for embedding explicit symbols, non-namespaced!
 
                             // #todo what could we return here? the Expr::Module?
-                            Ok(Expr::One.into())
+                            // Ok(Expr::Module(module))
+                            Ok(Expr::One)
                         }
                         "let" => {
                             // #todo this is already parsed statically by resolver, no need to duplicate the tests here?
