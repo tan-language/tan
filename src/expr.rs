@@ -362,8 +362,8 @@ impl Expr {
         todo!()
     }
 
-    // #todo find a better name.
-    pub fn try_string(&self) -> Option<&str> {
+    // #insight https://en.wiktionary.org/wiki/stringable
+    pub fn as_stringable(&self) -> Option<&str> {
         // #todo try to optimize away the unpacks.
         let expr = self.unpack();
 

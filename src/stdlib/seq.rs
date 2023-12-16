@@ -40,7 +40,7 @@ pub fn array_join(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 
     let separator = args.get(1);
     let separator = if separator.is_some() {
-        let Some(str) = separator.unwrap().try_string() else {
+        let Some(str) = separator.unwrap().as_stringable() else {
             return Err(Error::invalid_arguments(
                 "the `separator` should be a Stringable",
                 None,

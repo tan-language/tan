@@ -810,7 +810,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 ));
                             };
 
-                            let Some(name) = name.try_string() else {
+                            let Some(name) = name.as_stringable() else {
                                 return Err(Error::invalid_arguments(
                                     "`set!` requires a symbol as the first argument",
                                     name.range(),
@@ -883,7 +883,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             // #insight support both Strings and Symbols as module paths.
                             // #insight, notice the `try_string`.
-                            let Some(module_path) = term.try_string() else {
+                            let Some(module_path) = term.as_stringable() else {
                                 // let Some(module_path) = term.as_string() else {
                                 return Err(Error::invalid_arguments(
                                     "malformed use expression",
@@ -919,7 +919,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                     for name in names.iter() {
                                         // #todo ONLY export public bindings
                                         // #todo assign as top-level bindings!
-                                        let Some(name) = name.try_string() else {
+                                        let Some(name) = name.as_stringable() else {
                                             return Err(Error::invalid_arguments(
                                                 "use explicit imports should be Stringables",
                                                 expr.range(),
