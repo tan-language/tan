@@ -40,7 +40,7 @@ pub fn read_file_to_string(args: &[Expr], _context: &Context) -> Result<Expr, Er
 pub fn write_string_to_file(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [path, content] = args else {
         return Err(Error::invalid_arguments(
-            "`read_as_string` requires `path` and `content` arguments",
+            "`write-string-to-file` requires `path` and `content` arguments",
             None,
         ));
     };
@@ -114,6 +114,46 @@ fn walk_dir(dir_path: &Path) -> Vec<Expr> {
     }
 
     tree
+}
+
+// #todo
+pub fn list(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    let [path] = args else {
+        return Err(Error::invalid_arguments(
+            "`list` requires a `path` argument",
+            None,
+        ));
+    };
+
+    // #todo should be Stringable
+    let Some(path) = path.as_string() else {
+        return Err(Error::invalid_arguments(
+            "`path` argument should be a String",
+            path.range(),
+        ));
+    };
+
+    let mut list: Vec<Expr> = Vec::new();
+
+    // #todo ugh remove all unwraps!
+    for entry in fs::read_dir(path).unwrap() {
+        let entry_path = entry.unwrap().path();
+
+        // #todo should this also include dirs?
+        if !entry_path.is_dir() {
+            list.push(Expr::String(entry_path.to_str().unwrap().to_string()));
+        }
+
+        // if entry_path.is_dir() {
+        //     let dir_name = entry_path.to_str().unwrap().to_string();
+        //     tree.push(Expr::String(format!("{dir_name}/")));
+        //     tree.append(&mut walk_dir(&entry_path));
+        // } else {
+        //     tree.push(Expr::String(entry_path.to_str().unwrap().to_string()));
+        // }
+    }
+
+    Ok(Expr::List(list))
 }
 
 // #todo should return nested or flat structure?
@@ -230,6 +270,10 @@ pub fn setup_std_fs(context: &mut Context) {
         "write-string-to-file",
         Expr::ForeignFunc(Arc::new(write_string_to_file)),
     );
+
+    // #todo find better name.
+    scope.insert("list", Expr::ForeignFunc(Arc::new(list)));
+    scope.insert("list$$String", Expr::ForeignFunc(Arc::new(list)));
 
     // #todo find better name.
     scope.insert("list-as-tree", Expr::ForeignFunc(Arc::new(list_as_tree)));

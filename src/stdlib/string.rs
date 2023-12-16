@@ -317,10 +317,17 @@ pub fn string_ends_with(args: &[Expr], _context: &Context) -> Result<Expr, Error
     Ok(Expr::Bool(this.ends_with(postfix)))
 }
 
-// #todo could allow for multiple replacements (i.e. paris of rules)
+// #todo implement `replace-once`.
+
+// #todo support replace with array of rules or just use array spread.
+// #todo consider a separate function called `replace*` to support multiple arguments?
+// #todo or better consider compiler-optimization statically if there is only one replacement.
+// #todo IDE hint if a compiler-optimization is performed.
+// #todo could allow for multiple replacements (i.e. pairs of rules)
 // #todo different name? e.g. rewrite?
 pub fn string_replace(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
-    let [this, from, to] = args else {
+    // #insight _from, _to are only used to verify that there is at least one
+    let [this, _from, _to, ..] = args else {
         return Err(Error::invalid_arguments(
             "`replace` requires `this`, `from`, and `to` arguments",
             None,
@@ -334,21 +341,48 @@ pub fn string_replace(args: &[Expr], _context: &Context) -> Result<Expr, Error> 
         ));
     };
 
-    let Some(from) = from.as_string() else {
-        return Err(Error::invalid_arguments(
-            "`from` argument should be a String",
-            from.range(),
-        ));
-    };
+    let mut output: String = this.to_string();
 
-    let Some(to) = to.as_string() else {
-        return Err(Error::invalid_arguments(
-            "`to` argument should be a String",
-            to.range(),
-        ));
-    };
+    let mut i = 1;
+    while i < args.len() {
+        let from = &args[i];
+        let Some(from) = from.as_string() else {
+            return Err(Error::invalid_arguments(
+                "`from` argument should be a String",
+                from.range(),
+            ));
+        };
 
-    Ok(Expr::String(this.replace(from, to)))
+        let to = &args[i + 1];
+        let Some(to) = to.as_string() else {
+            return Err(Error::invalid_arguments(
+                "`to` argument should be a String",
+                to.range(),
+            ));
+        };
+
+        output = output.replace(from, to);
+
+        i += 2;
+    }
+
+    Ok(Expr::String(output))
+
+    // let Some(from) = from.as_string() else {
+    //     return Err(Error::invalid_arguments(
+    //         "`from` argument should be a String",
+    //         from.range(),
+    //     ));
+    // };
+
+    // let Some(to) = to.as_string() else {
+    //     return Err(Error::invalid_arguments(
+    //         "`to` argument should be a String",
+    //         to.range(),
+    //     ));
+    // };
+
+    // Ok(Expr::String(this.replace(from, to)))
 }
 
 #[cfg(test)]
@@ -476,5 +510,16 @@ mod tests {
         let value = format_value(expr);
         let expected = "Hello Alex";
         assert_eq!(value, expected);
+    }
+
+    #[test]
+    fn replace_multiple() {
+        let mut context = Context::new();
+        let input = r#"(replace "Hello George" "George" "Alex" "Hello" "Bye")"#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "Bye Alex";
+        assert_eq!(value, expected);
+        // #todo check error handling on odd parameters.
     }
 }

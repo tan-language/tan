@@ -5,6 +5,8 @@ use serde_json::Value;
 use crate::{context::Context, error::Error, expr::Expr, module::Module};
 
 // #todo text/json or codec/json?
+// #todo support json with comments.
+// #todo functions should not panic on invalid arguments!!
 
 /// Converts a JSON Value to a symbolic Expr.
 fn json_value_to_expr(json: Value) -> Expr {

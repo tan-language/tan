@@ -173,6 +173,8 @@ pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr
         return Err(vec![result.unwrap_err().into()]);
     };
 
+    // println!("~~ {module_path}");
+
     let module_name = strip_tan_extension(&module_path);
 
     // Lookup into the module_registry first.
