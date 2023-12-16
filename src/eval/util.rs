@@ -48,40 +48,43 @@ pub fn canonicalize_module_path(
 
     if path.starts_with("@") {
         path = format!("{}/{path}", context.root_path);
-    // } else if path.starts_with("./") {
-    //     if let Some(base_path) = context.scope.get(CURRENT_MODULE_PATH) {
-    //         let Some(base_path) = base_path.as_string() else {
-    //             // #todo!
-    //             panic!("invalid current-module-path");
-    //         };
-
-    //         // Canonicalize the path using the current-module-path as the base path.
-    //         path = format!("{base_path}{}", path.strip_prefix(".").unwrap());
-    //     } else {
-    //         // #todo!
-    //         panic!("missing current-module-path");
-    //     }
-    } else if path.starts_with("/") {
-        path = format!("{}/@std{path}", context.root_path);
-    // } else {
-    //     path = format!("{}/@std/{path}", context.root_path);
-    // }
-    } else {
+    } else if path.starts_with("./") {
         if let Some(base_path) = context.scope.get(CURRENT_MODULE_PATH) {
             let Some(base_path) = base_path.as_string() else {
                 // #todo!
-                panic!("Invalid current-module-path");
+                panic!("invalid current-module-path");
             };
 
             // Canonicalize the path using the current-module-path as the base path.
-            if path.starts_with("./") {
-                path = format!("{base_path}{}", path.strip_prefix(".").unwrap());
-            } else {
-                // #todo consider not supporting this, always require the "./"
-                path = format!("{base_path}/{}", path);
-            }
+            path = format!("{base_path}{}", path.strip_prefix(".").unwrap());
+        } else {
+            // #todo!
+            panic!("missing current-module-path");
         }
+    } else if path.starts_with("/") {
+        path = format!("{}/@std{path}", context.root_path);
+    } else if path.starts_with("file://") {
+        // #insight used by tan-run.
+        path = format!("{}", &path[7..]);
+    } else {
+        path = format!("{}/@std/{path}", context.root_path);
     }
+    // } else {
+    //     if let Some(base_path) = context.scope.get(CURRENT_MODULE_PATH) {
+    //         let Some(base_path) = base_path.as_string() else {
+    //             // #todo!
+    //             panic!("Invalid current-module-path");
+    //         };
+
+    //         // Canonicalize the path using the current-module-path as the base path.
+    //         if path.starts_with("./") {
+    //             path = format!("{base_path}{}", path.strip_prefix(".").unwrap());
+    //         } else {
+    //             // #todo consider not supporting this, always require the "./"
+    //             path = format!("{base_path}/{}", path);
+    //         }
+    //     }
+    // }
 
     // #todo move the canonicalize to the canonicalize_module_path function?
     let canonical_path = if let Ok(canonical_path) = PathBuf::from(&path).canonicalize() {
