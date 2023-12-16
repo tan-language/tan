@@ -47,7 +47,7 @@ pub fn canonicalize_module_path(
     // #todo convert /xxx -> /@std/xxx
 
     if path.starts_with("@") {
-        path = format!("{}{path}", context.root_path);
+        path = format!("{}/{path}", context.root_path);
     // } else if path.starts_with("./") {
     //     if let Some(base_path) = context.scope.get(CURRENT_MODULE_PATH) {
     //         let Some(base_path) = base_path.as_string() else {
