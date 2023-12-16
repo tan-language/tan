@@ -389,7 +389,8 @@ impl Expr {
         Some(s)
     }
 
-    // #todo find a better name.
+    // #todo can just make this the as_symbol impl.
+    // #todo find a better name, e.g. as_symbolic?
     pub fn try_symbol(&self) -> Option<&str> {
         // #todo try to optimize away the unpacks.
         let expr = self.unpack();
@@ -423,6 +424,18 @@ impl Expr {
         };
         Some(v.borrow())
     }
+
+    // // #todo try to find a better name.
+    // pub fn as_seq(&self) -> Option<&Vec<Expr>> {
+    //     // #todo try to optimize away the unpacks.
+    //     let expr = self.unpack();
+
+    //     match expr {
+    //         Expr::List(v) => Some(v),
+    //         Expr::Array(v) => Some(???), // #todo how to implement this?
+    //         _ => None,
+    //     }
+    // }
 
     pub fn as_array_mut(&self) -> Option<RefMut<'_, Vec<Expr>>> {
         let Expr::Array(v) = self.unpack() else {

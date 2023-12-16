@@ -441,8 +441,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             let binding = tail.first().unwrap();
                             let body = &tail[1..];
 
-                            // #todo should check both for list and array.
-                            let Some(binding_parts) = binding.as_list() else {
+                            // #todo should check both for list and array (i.e. as_iterable)
+                            let Some(binding_parts) = binding.as_array() else {
                                 // #todo proper error!
                                 return Err(Error::invalid_arguments(
                                     "invalid for binding",
@@ -450,6 +450,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 ));
                             };
 
+                            // #todo support _multiple_ bindings.
                             let [var, value] = &binding_parts[..] else {
                                 return Err(Error::invalid_arguments(
                                     "invalid for binding",
