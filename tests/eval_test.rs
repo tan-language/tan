@@ -277,6 +277,16 @@ fn eval_processes_function_definition_and_application() {
 }
 
 #[test]
+fn eval_handles_function_with_no_params() {
+    let result = eval_file("func-no-params.tan");
+    assert!(result.is_ok());
+
+    let value = format!("{}", result.unwrap());
+    let expected_value = read_file("func-no-params.value.tan");
+    assert_eq!(value, expected_value);
+}
+
+#[test]
 fn eval_processes_dict() {
     let result = eval_file("dict.tan");
 

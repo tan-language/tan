@@ -400,7 +400,9 @@ impl<'a> Parser<'a> {
 
                 if terms.is_empty() {
                     // #todo do we _really_ want this or just return a list?
-                    // `()` == One/Unit/Top
+                    // #insight this was causing a problem with Func with no params.
+                    // #todo maybe as_list should return empty list?
+                    // `()` == One/Unit   (unit is _not_ Top)
                     Some(Expr::One)
                 } else {
                     Some(Expr::List(terms))

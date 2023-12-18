@@ -2,6 +2,7 @@
 // #todo probably should move out from std lib into platform lib
 // #todo also perform attribute and body escaping
 // #todo add unit tests
+// #todo what about attributes without value? for the moment just use true, e.g. { :attr true }, can optimize to no-value attr on rendering
 
 use std::{rc::Rc, sync::Arc};
 

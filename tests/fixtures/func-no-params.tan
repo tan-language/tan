@@ -1,0 +1,6 @@
+; A function with no parameters (effects-only)
+(let effects-only (Func ()
+    "it works"
+))
+
+(effects-only)

@@ -1119,7 +1119,13 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             let body = &tail[1..];
 
-                            let Some(params) = params.as_list() else {
+                            // #todo move handling of Expr::One to as_list?
+
+                            let params = if let Some(params) = params.as_list() {
+                                params.clone()
+                            } else if params.is_one() {
+                                Vec::new()
+                            } else {
                                 return Err(Error::invalid_arguments(
                                     "malformed func parameters definition",
                                     params.range(),
@@ -1129,11 +1135,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #insight captures the static (lexical scope)
 
                             // #todo optimize!
-                            Ok(Expr::Func(
-                                params.clone(),
-                                body.into(),
-                                context.scope.clone(),
-                            ))
+                            Ok(Expr::Func(params, body.into(), context.scope.clone()))
                         }
                         // #todo macros should be handled at a separate, comptime, macroexpand pass.
                         // #todo actually two passes, macro_def, macro_expand

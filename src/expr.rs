@@ -320,6 +320,11 @@ impl Expr {
         }
     }
 
+    // #todo is_one/is_unit
+    pub fn is_one(&self) -> bool {
+        matches!(self.unpack(), Expr::One)
+    }
+
     // #todo consider #[inline]
     pub fn as_int(&self) -> Option<i64> {
         let Expr::Int(n) = self.unpack() else {
