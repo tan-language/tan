@@ -4,6 +4,7 @@
 // network/smtp
 
 // #insight network/http is better than protocol/http, more specific.
+// #insight use https://httpbin.org/ for testing.
 
 // #ref https://tokio.rs/tokio/topics/bridging
 // #ref https://crates.io/crates/reqwest
@@ -15,6 +16,32 @@
 use std::{collections::HashMap, rc::Rc, sync::Arc};
 
 use crate::{context::Context, error::Error, expr::Expr, module::Module};
+
+pub fn build_tan_response(
+    resp: reqwest::Result<reqwest::blocking::Response>,
+) -> Result<Expr, Error> {
+    let Ok(resp) = resp else {
+        // #todo should return Error::Io, ideally wrap the lower-level error.
+        // #todo return a better error.
+        // #todo more descriptive error needed here.
+        return Err(Error::general("failed http request"));
+    };
+
+    let status = resp.status().as_u16() as i64;
+
+    let Ok(body) = resp.text() else {
+        // #todo return a better error.
+        // #todo more descriptive error needed here.
+        return Err(Error::general("cannot read http response body"));
+    };
+
+    let mut tan_response = HashMap::new();
+    tan_response.insert("status".to_string(), Expr::Int(status));
+    tan_response.insert("body".to_string(), Expr::string(body));
+    // #todo also include response headers.
+
+    Ok(Expr::dict(tan_response))
+}
 
 pub fn http_get(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [url] = args else {
@@ -33,34 +60,15 @@ pub fn http_get(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 
     let resp = reqwest::blocking::get(url);
 
-    let Ok(resp) = resp else {
-        // #todo should return Error::Io, ideally wrap the lower-level error.
-        // #todo return a better error.
-        // #todo more descriptive error needed here.
-        return Err(Error::general("failed http request"));
-    };
-
-    let status = resp.status().as_u16() as i64;
-
-    let Ok(body) = resp.text() else {
-        // #todo return a better error.
-        // #todo more descriptive error needed here.
-        return Err(Error::general("cannot read http response body"));
-    };
-
-    let mut tan_response = HashMap::new();
-    tan_response.insert("status".to_string(), Expr::Int(status));
-    tan_response.insert("body".to_string(), Expr::string(body));
-    // #todo also include response headers.
-
-    Ok(Expr::dict(tan_response))
+    build_tan_response(resp)
 }
 
 // #todo implement me.
+// #todo support non-string bodies.
 pub fn http_post(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
-    let [url] = args else {
+    let [url, body] = args else {
         return Err(Error::invalid_arguments(
-            "`get` requires `url` argument",
+            "`post` requires `url` and `body` argument",
             None,
         ));
     };
@@ -72,29 +80,27 @@ pub fn http_post(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
         ));
     };
 
-    let resp = reqwest::blocking::get(url);
+    // #insight
+    // the following doesn't work:
+    // let Some(body) = body.as_stringable() else {
 
-    let Ok(resp) = resp else {
-        // #todo should return Error::Io, ideally wrap the lower-level error.
-        // #todo return a better error.
-        // #todo more descriptive error needed here.
-        return Err(Error::general("failed http request"));
+    // #todo support stringables and streaming.
+    let Expr::String(body) = body.unpack() else {
+        return Err(Error::invalid_arguments(
+            "`body` argument should be a Stringable",
+            body.range(),
+        ));
     };
 
-    let status = resp.status().as_u16() as i64;
+    let body = body.clone();
 
-    let Ok(body) = resp.text() else {
-        // #todo return a better error.
-        // #todo more descriptive error needed here.
-        return Err(Error::general("cannot read http response body"));
-    };
+    // #todo support streaming.
+    // #todo use async
 
-    let mut tan_response = HashMap::new();
-    tan_response.insert("status".to_string(), Expr::Int(status));
-    tan_response.insert("body".to_string(), Expr::string(body));
-    // #todo also include response headers.
+    let client = reqwest::blocking::Client::new();
+    let resp = client.post(url).body(body).send();
 
-    Ok(Expr::dict(tan_response))
+    build_tan_response(resp)
 }
 
 // (http/send :POST "https://api.site.com/create" )
@@ -110,6 +116,8 @@ pub fn setup_lib_http(context: &mut Context) {
 
     scope.insert("get", Expr::ForeignFunc(Arc::new(http_get)));
 
+    scope.insert("post", Expr::ForeignFunc(Arc::new(http_post)));
+
     // #todo another name than dialect? (language, lang, flavor, dsl)
     // (use dialect/css-expr) (use dialect/css) (use dialect/html)
     // #todo this is a hack.
@@ -117,3 +125,6 @@ pub fn setup_lib_http(context: &mut Context) {
     // #todo introduce a helper for this.
     context.module_registry.insert(module_path, Rc::new(module)); // #todo use Arc everywhere!
 }
+
+// #todo add a unit test that at least exercises these functions.
+// #todo use https://httpbin.org/ for testing.
