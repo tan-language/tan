@@ -9,6 +9,7 @@ pub mod io;
 pub mod json;
 pub mod lang;
 pub mod math;
+pub mod network;
 pub mod prelude;
 pub mod process;
 pub mod rng;
@@ -19,10 +20,12 @@ use crate::context::Context;
 
 use self::{
     cmark::setup_text_cmark, css_expr::setup_lib_css_expr, fs::setup_std_fs, html::setup_std_html,
-    json::setup_codec_json, prelude::setup_std_prelude, process::setup_std_process,
-    rng::setup_std_rand,
+    json::setup_codec_json, network::http::setup_lib_http, prelude::setup_std_prelude,
+    process::setup_std_process, rng::setup_std_rand,
 };
 
+// #todo consider extracting as a (temporary?) crate, e.g. tan-stdlib-native, tan-native-lib, tan-runtime
+// #todo find
 // #todo add unit test for the foreign-functions.
 
 // #todo consider extracting builtins.
@@ -54,6 +57,7 @@ pub fn setup_std(context: &mut Context) {
     setup_text_cmark(context);
     setup_lib_css_expr(context);
     setup_codec_json(context);
+    setup_lib_http(context);
 
     setup_std_prelude(context);
 }
