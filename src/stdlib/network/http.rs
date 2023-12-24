@@ -10,8 +10,9 @@
 
 // #todo in the future consider using the lower-level hyper library.
 // #todo in the future consider an async implementation, bring-in the tokio runtime.
+// #todo introduce StatusCode, canonical reason.
 
-use std::{rc::Rc, sync::Arc};
+use std::{collections::HashMap, rc::Rc, sync::Arc};
 
 use crate::{context::Context, error::Error, expr::Expr, module::Module};
 
@@ -39,15 +40,20 @@ pub fn http_get(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
         return Err(Error::general("failed http request"));
     };
 
+    let status = resp.status().as_u16() as i64;
+
     let Ok(body) = resp.text() else {
         // #todo return a better error.
         // #todo more descriptive error needed here.
         return Err(Error::general("cannot read http response body"));
     };
 
-    // #todo should return status, headers and body!
+    let mut tan_response = HashMap::new();
+    tan_response.insert("status".to_string(), Expr::Int(status));
+    tan_response.insert("body".to_string(), Expr::string(body));
+    // #todo also include response headers.
 
-    Ok(Expr::string(body))
+    Ok(Expr::dict(tan_response))
 }
 
 pub fn setup_lib_http(context: &mut Context) {
