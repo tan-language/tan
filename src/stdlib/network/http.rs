@@ -56,6 +56,51 @@ pub fn http_get(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(Expr::dict(tan_response))
 }
 
+// #todo implement me.
+pub fn http_post(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    let [url] = args else {
+        return Err(Error::invalid_arguments(
+            "`get` requires `url` argument",
+            None,
+        ));
+    };
+
+    let Some(url) = url.as_stringable() else {
+        return Err(Error::invalid_arguments(
+            "`url` argument should be a Stringable",
+            url.range(),
+        ));
+    };
+
+    let resp = reqwest::blocking::get(url);
+
+    let Ok(resp) = resp else {
+        // #todo should return Error::Io, ideally wrap the lower-level error.
+        // #todo return a better error.
+        // #todo more descriptive error needed here.
+        return Err(Error::general("failed http request"));
+    };
+
+    let status = resp.status().as_u16() as i64;
+
+    let Ok(body) = resp.text() else {
+        // #todo return a better error.
+        // #todo more descriptive error needed here.
+        return Err(Error::general("cannot read http response body"));
+    };
+
+    let mut tan_response = HashMap::new();
+    tan_response.insert("status".to_string(), Expr::Int(status));
+    tan_response.insert("body".to_string(), Expr::string(body));
+    // #todo also include response headers.
+
+    Ok(Expr::dict(tan_response))
+}
+
+// (http/send :POST "https://api.site.com/create" )
+// (let resp (http/post "https://api.site.com/create" "body" { :content-encoding "application/json" }))
+// (resp :status)
+
 pub fn setup_lib_http(context: &mut Context) {
     let module = Module::new("http", context.top_scope.clone());
 
