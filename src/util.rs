@@ -5,6 +5,7 @@
 // #todo better organize the util module.
 
 pub mod fmt;
+pub mod module_util;
 pub mod put_back_iterator;
 pub mod standard_names;
 

@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::scope::Scope;
+use crate::{expr::Expr, scope::Scope};
 
 // #idea ModuleLoader
 // #idea consider hashing to detect the same modules!
@@ -31,6 +31,10 @@ impl Module {
             stem: stem.into(),
             scope: Rc::new(Scope::new(parent_scope)),
         }
+    }
+
+    pub fn insert(&self, name: impl Into<String>, value: impl Into<Rc<Expr>>) -> Option<Rc<Expr>> {
+        self.scope.insert(name, value)
     }
 }
 

@@ -13,9 +13,9 @@
 // #todo in the future consider an async implementation, bring-in the tokio runtime.
 // #todo introduce StatusCode, canonical reason.
 
-use std::{collections::HashMap, rc::Rc, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 
-use crate::{context::Context, error::Error, expr::Expr, module::Module};
+use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
 
 pub fn build_tan_response(
     resp: reqwest::Result<reqwest::blocking::Response>,
@@ -108,22 +108,9 @@ pub fn http_post(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 // (resp :status)
 
 pub fn setup_lib_http(context: &mut Context) {
-    let module = Module::new("http", context.top_scope.clone());
-
-    let scope = &module.scope;
-
-    // (let http/get "https://tan-language.org");
-
-    scope.insert("get", Expr::ForeignFunc(Arc::new(http_get)));
-
-    scope.insert("post", Expr::ForeignFunc(Arc::new(http_post)));
-
-    // #todo another name than dialect? (language, lang, flavor, dsl)
-    // (use dialect/css-expr) (use dialect/css) (use dialect/html)
-    // #todo this is a hack.
-    let module_path = format!("{}/@std/network/http", context.root_path);
-    // #todo introduce a helper for this.
-    context.module_registry.insert(module_path, Rc::new(module)); // #todo use Arc everywhere!
+    let module = require_module("network/http", context);
+    module.insert("get", Expr::ForeignFunc(Arc::new(http_get)));
+    module.insert("post", Expr::ForeignFunc(Arc::new(http_post)));
 }
 
 // #todo add a unit test that at least exercises these functions.
