@@ -21,3 +21,20 @@ pub fn require_module<'a>(path: &str, context: &'a mut Context) -> &'a mut Rc<Mo
     context.module_registry.insert(url.clone(), Rc::new(module)); // #todo use Arc everywhere!
     context.module_registry.get_mut(&url).unwrap()
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::context::Context;
+
+    use super::require_module;
+
+    #[test]
+    fn require_module_usage() {
+        let mut context = Context::new();
+        let module = require_module("system/fs", &mut context);
+        assert_eq!(module.stem, "fs");
+
+        let module = require_module("math", &mut context);
+        assert_eq!(module.stem, "math3");
+    }
+}
