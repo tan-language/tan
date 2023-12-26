@@ -13,9 +13,10 @@
 // #todo in the future consider an async implementation, bring-in the tokio runtime.
 // #todo introduce StatusCode, canonical reason.
 
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, str::FromStr, sync::Arc};
 
 use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 
 pub fn build_tan_response(
     resp: reqwest::Result<reqwest::blocking::Response>,
@@ -63,10 +64,11 @@ pub fn http_get(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     build_tan_response(resp)
 }
 
-// #todo implement me.
+// #example (http/post "https://httpbin.org/post" "payload" {"user-agent" "tan" "x-tan-header" "it works"})
 // #todo support non-string bodies.
 pub fn http_post(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
-    let [url, body] = args else {
+    // #insight `_` does not work in the pattern.
+    let [url, body, ..] = args else {
         return Err(Error::invalid_arguments(
             "`post` requires `url` and `body` argument",
             None,
@@ -98,7 +100,35 @@ pub fn http_post(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     // #todo use async
 
     let client = reqwest::blocking::Client::new();
-    let resp = client.post(url).body(body).send();
+
+    let mut req = client.post(url);
+
+    if let Some(headers) = args.get(2) {
+        let Some(headers) = headers.as_dict() else {
+            return Err(Error::invalid_arguments(
+                "`headers` argument should be a Dict",
+                headers.range(),
+            ));
+        };
+        let mut req_headers = HeaderMap::new();
+        for (key, value) in headers.iter() {
+            let Some(value) = value.as_string() else {
+                return Err(Error::invalid_arguments(
+                    "`headers` values should be Stringable",
+                    value.range(),
+                ));
+            };
+            // #todo argh, remove the unwraps!
+            req_headers.insert(
+                HeaderName::from_str(key.as_str()).unwrap(),
+                HeaderValue::from_str(value).unwrap(),
+            );
+        }
+
+        req = req.headers(req_headers);
+    }
+
+    let resp = req.body(body).send();
 
     build_tan_response(resp)
 }
