@@ -30,7 +30,8 @@ impl Context {
         // #todo move this somewhere else.
         // #todo how to handle missing TAN_ROOT variable?
         // #todo expose as special tan variable? at least in 'dev' profile?
-        let root_path = std::env::var(ROOT_PATH_ENV_VAR).unwrap();
+        let root_path = std::env::var(ROOT_PATH_ENV_VAR)
+            .expect(&format!("env variable `{ROOT_PATH_ENV_VAR}` should be set"));
 
         let mut context = Self {
             root_path,

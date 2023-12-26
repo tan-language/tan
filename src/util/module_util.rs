@@ -4,6 +4,7 @@ use crate::{context::Context, module::Module};
 
 // #insight the module `name` is the last segment of the module `path`.
 
+// #todo add unit test.
 // #todo find better name?
 /// Returns a module from the registry. If the module does not exist this function
 /// creates it.
