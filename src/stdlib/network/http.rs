@@ -18,9 +18,39 @@ use std::{collections::HashMap, str::FromStr, sync::Arc};
 use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 
-pub fn build_tan_response(
-    resp: reqwest::Result<reqwest::blocking::Response>,
-) -> Result<Expr, Error> {
+/// Tries to extract a header from a function argument.
+fn extract_headers(arg: Option<&Expr>) -> Result<Option<HeaderMap>, Error> {
+    if let Some(headers) = arg {
+        let Some(headers) = headers.as_dict() else {
+            return Err(Error::invalid_arguments(
+                "`headers` argument should be a Dict",
+                headers.range(),
+            ));
+        };
+
+        let mut req_headers = HeaderMap::new();
+
+        for (key, value) in headers.iter() {
+            let Some(value) = value.as_string() else {
+                return Err(Error::invalid_arguments(
+                    "`headers` values should be Stringable",
+                    value.range(),
+                ));
+            };
+            // #todo argh, remove the unwraps!
+            req_headers.insert(
+                HeaderName::from_str(key.as_str()).unwrap(),
+                HeaderValue::from_str(value).unwrap(),
+            );
+        }
+
+        Ok(Some(req_headers))
+    } else {
+        Ok(None)
+    }
+}
+
+fn build_tan_response(resp: reqwest::Result<reqwest::blocking::Response>) -> Result<Expr, Error> {
     let Ok(resp) = resp else {
         // #todo should return Error::Io, ideally wrap the lower-level error.
         // #todo return a better error.
@@ -45,7 +75,7 @@ pub fn build_tan_response(
 }
 
 pub fn http_get(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
-    let [url] = args else {
+    let [url, ..] = args else {
         return Err(Error::invalid_arguments(
             "`get` requires `url` argument",
             None,
@@ -59,7 +89,15 @@ pub fn http_get(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
         ));
     };
 
-    let resp = reqwest::blocking::get(url);
+    let client = reqwest::blocking::Client::new();
+
+    let mut req = client.get(url);
+
+    if let Some(headers) = extract_headers(args.get(1))? {
+        req = req.headers(headers);
+    }
+
+    let resp = req.send();
 
     build_tan_response(resp)
 }
@@ -103,29 +141,8 @@ pub fn http_post(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 
     let mut req = client.post(url);
 
-    if let Some(headers) = args.get(2) {
-        let Some(headers) = headers.as_dict() else {
-            return Err(Error::invalid_arguments(
-                "`headers` argument should be a Dict",
-                headers.range(),
-            ));
-        };
-        let mut req_headers = HeaderMap::new();
-        for (key, value) in headers.iter() {
-            let Some(value) = value.as_string() else {
-                return Err(Error::invalid_arguments(
-                    "`headers` values should be Stringable",
-                    value.range(),
-                ));
-            };
-            // #todo argh, remove the unwraps!
-            req_headers.insert(
-                HeaderName::from_str(key.as_str()).unwrap(),
-                HeaderValue::from_str(value).unwrap(),
-            );
-        }
-
-        req = req.headers(req_headers);
+    if let Some(headers) = extract_headers(args.get(2))? {
+        req = req.headers(headers);
     }
 
     let resp = req.body(body).send();
