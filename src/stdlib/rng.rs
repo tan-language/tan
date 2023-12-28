@@ -1,6 +1,6 @@
-// #insight random is _not_ part of math!
+// #insight random is _not_ part of math! (are you sure?)
 
-// #todo move out of standard library into the common library.
+// #todo move out of standard library into the common library
 
 // #todo random_int, random_float
 // #todo should take a range trait.
@@ -10,6 +10,12 @@
 // #todo better module name: stochastic, rnd, rng? `rng` is interesting, nah 'rng' is not great.
 
 // #todo use OnceLock to cache the RNG
+
+// #todo better (?) api:
+// (use random)
+// (let n (random/int 5))
+// (let n (random/float 5))
+// (let n (random/num 5)) ; generic
 
 use std::{rc::Rc, sync::Arc};
 

@@ -10,7 +10,7 @@ use crate::{context::Context, eval::util::canonicalize_path, module::Module};
 /// creates it.
 pub fn require_module<'a>(path: &str, context: &'a mut Context) -> &'a mut Rc<Module> {
     // #todo better error handling here.
-    let name = path.split("/").last().expect("invalid module path");
+    let name = path.split('/').last().expect("invalid module path");
 
     let module = Module::new(name, context.top_scope.clone());
 

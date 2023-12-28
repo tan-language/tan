@@ -17,6 +17,6 @@ pub fn ann(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
         Ok(Expr::dict(ann.clone()))
     } else {
         // #todo what to return here?
-        Ok(Expr::One.into())
+        Ok(Expr::One)
     }
 }

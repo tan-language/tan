@@ -180,8 +180,8 @@ mod tests {
         "#;
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
-        let value = expr.as_bool().unwrap();
-        assert_eq!(value, true);
+        let contains_key = expr.as_bool().unwrap();
+        assert!(contains_key);
 
         let input = r#"
             (let dict {:name "George"})

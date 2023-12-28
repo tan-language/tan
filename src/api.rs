@@ -28,16 +28,16 @@ pub fn has_tan_extension(path: impl AsRef<Path>) -> bool {
     }
 }
 
-// #todo argh! optimize this!!
+// #todo optimize this!
 pub fn strip_tan_extension(path: impl Into<String>) -> String {
     let path = path.into();
 
     if let Some(path) = path.strip_suffix(&format!(".{TAN_FILE_EXTENSION}")) {
-        return path.to_owned();
+        path.to_owned()
     } else if let Some(path) = path.strip_suffix(&format!(".{TAN_FILE_EMOJI_EXTENSION}")) {
-        return path.to_owned();
+        path.to_owned()
     } else {
-        return path;
+        path
     }
 }
 
@@ -170,7 +170,7 @@ pub fn eval_string(input: impl AsRef<str>, context: &mut Context) -> Result<Expr
     // println!("--- {}", &exprs[0]);
     // dbg!(&exprs);
 
-    let mut last_value = Expr::One.into();
+    let mut last_value = Expr::One;
 
     for expr in exprs {
         let value = eval(&expr, context);
@@ -183,4 +183,19 @@ pub fn eval_string(input: impl AsRef<str>, context: &mut Context) -> Result<Expr
     }
 
     Ok(last_value)
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::api::strip_tan_extension;
+
+    #[test]
+    fn strip_tan_extension_usage() {
+        assert_eq!(strip_tan_extension("hello.tan"), "hello");
+        assert_eq!(
+            strip_tan_extension("deep/nesting/hello.tan"),
+            "deep/nesting/hello"
+        );
+        assert_eq!(strip_tan_extension("emoji/works.👅"), "emoji/works");
+    }
 }
