@@ -34,7 +34,7 @@ pub fn array_push(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 // #todo support separator param.
 /// (join names "\n")
 pub fn array_join(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
-    let Some(array) = args.get(0) else {
+    let Some(array) = args.first() else {
         return Err(Error::invalid_arguments("requires `array` argument", None));
     };
 
@@ -58,7 +58,7 @@ pub fn array_join(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
         ));
     };
 
-    let elements: Vec<String> = array.iter().map(|e| format_value(e)).collect();
+    let elements: Vec<String> = array.iter().map(format_value).collect();
 
     Ok(Expr::String(elements.join(separator)))
 }
