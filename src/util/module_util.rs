@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::{context::Context, module::Module};
+use crate::{context::Context, eval::util::canonicalize_path, module::Module};
 
 // #insight the module `name` is the last segment of the module `path`.
 
@@ -16,6 +16,9 @@ pub fn require_module<'a>(path: &str, context: &'a mut Context) -> &'a mut Rc<Mo
 
     // #todo this is a hack.
     let url = format!("{}/@std/{}", context.root_path, path);
+
+    // #todo rethink about this canonicalization.
+    let url = canonicalize_path(url);
 
     // #todo introduce a helper for this.
     context.module_registry.insert(url.clone(), Rc::new(module)); // #todo use Arc everywhere!
@@ -35,6 +38,6 @@ mod tests {
         assert_eq!(module.stem, "fs");
 
         let module = require_module("math", &mut context);
-        assert_eq!(module.stem, "math3");
+        assert_eq!(module.stem, "math");
     }
 }

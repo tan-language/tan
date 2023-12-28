@@ -1,8 +1,8 @@
 use std::fs;
 use std::path::Path;
-use std::{rc::Rc, sync::Arc};
+use std::sync::Arc;
 
-use crate::module::Module;
+use crate::util::module_util::require_module;
 use crate::{context::Context, error::Error, expr::Expr};
 
 // #todo do FFI functions really need an env?
@@ -239,58 +239,44 @@ pub fn create_directory(args: &[Expr], _context: &Context) -> Result<Expr, Error
 // #todo use Rc/Arc consistently
 // #todo some helpers are needed here, to streamline the code.
 
-pub fn setup_std_fs(context: &mut Context) {
-    let module = Module::new("fs", context.top_scope.clone());
-
-    let scope = &module.scope;
-
-    scope.insert(
+pub fn setup_lib_fs(context: &mut Context) {
+    let module = require_module("fs", context);
+    module.insert(
         "read-file-to-string",
         Expr::ForeignFunc(Arc::new(read_file_to_string)),
     );
-    scope.insert(
+    module.insert(
         "read-file-to-string$$String",
         Expr::ForeignFunc(Arc::new(read_file_to_string)),
     );
-
     // #todo consider just `write`.
-    scope.insert(
-        // #todo alternatives: "std:fs:write_string", "std:url:write_string", "str.url.write-string"
+    // #todo alternatives: "std:fs:write_string", "std:url:write_string", "str.url.write-string"
+    module.insert(
         "write-string-to-file",
         Expr::ForeignFunc(Arc::new(write_string_to_file)),
     );
-
-    scope.insert(
+    module.insert(
         "write-string-to-file$$String",
         Expr::ForeignFunc(Arc::new(write_string_to_file)),
     );
 
-    scope.insert(
-        // #todo alternatives: "std:fs:write_string", "std:url:write_string", "str.url.write-string"
-        "write-string-to-file",
-        Expr::ForeignFunc(Arc::new(write_string_to_file)),
-    );
+    // #todo find better name.
+    module.insert("list", Expr::ForeignFunc(Arc::new(list)));
+    module.insert("list$$String", Expr::ForeignFunc(Arc::new(list)));
 
     // #todo find better name.
-    scope.insert("list", Expr::ForeignFunc(Arc::new(list)));
-    scope.insert("list$$String", Expr::ForeignFunc(Arc::new(list)));
-
-    // #todo find better name.
-    scope.insert("list-as-tree", Expr::ForeignFunc(Arc::new(list_as_tree)));
-    scope.insert(
+    module.insert("list-as-tree", Expr::ForeignFunc(Arc::new(list_as_tree)));
+    module.insert(
         "list-as-tree$$String",
         Expr::ForeignFunc(Arc::new(list_as_tree)),
     );
 
-    scope.insert("copy", Expr::ForeignFunc(Arc::new(copy)));
+    module.insert("copy", Expr::ForeignFunc(Arc::new(copy)));
 
-    scope.insert(
+    module.insert(
         "create-directory",
         Expr::ForeignFunc(Arc::new(create_directory)),
     );
-
-    // #todo this is a hack.
-    let module_path = format!("{}/@std/std/fs", context.root_path);
-    // #todo introduce a helper for this.
-    context.module_registry.insert(module_path, Rc::new(module));
 }
+
+// #todo add unit tests.

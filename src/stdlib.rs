@@ -19,7 +19,7 @@ pub mod string;
 use crate::context::Context;
 
 use self::{
-    cmark::setup_text_cmark, css_expr::setup_lib_css_expr, fs::setup_std_fs, html::setup_std_html,
+    cmark::setup_text_cmark, css_expr::setup_lib_css_expr, fs::setup_lib_fs, html::setup_std_html,
     json::setup_codec_json, network::http::setup_lib_http, prelude::setup_std_prelude,
     process::setup_std_process, rng::setup_std_rand,
 };
@@ -50,7 +50,7 @@ use self::{
 // #todo some helpers are needed here, to streamline the code.
 
 pub fn setup_std(context: &mut Context) {
-    setup_std_fs(context);
+    setup_lib_fs(context);
     setup_std_process(context);
     setup_std_rand(context);
     setup_std_html(context);

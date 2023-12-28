@@ -86,14 +86,17 @@ pub fn canonicalize_module_path(
     //     }
     // }
 
-    // #todo move the canonicalize to the canonicalize_module_path function?
-    let canonical_path = if let Ok(canonical_path) = PathBuf::from(&path).canonicalize() {
+    let canonical_path = canonicalize_path(path);
+
+    Ok(canonical_path)
+}
+
+pub fn canonicalize_path(path: String) -> String {
+    if let Ok(canonical_path) = PathBuf::from(&path).canonicalize() {
         canonical_path.to_string_lossy().to_string()
     } else {
         path
-    };
-
-    Ok(canonical_path)
+    }
 }
 
 // #todo add unit test.
