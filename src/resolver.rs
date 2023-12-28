@@ -23,9 +23,7 @@ pub fn compute_signature(args: &[Expr]) -> String {
         signature.push(arg.static_type().to_string())
     }
 
-    let signature = signature.join("$$");
-
-    signature
+    signature.join("$$")
 }
 
 pub fn compute_dyn_signature(args: &[Expr], context: &Context) -> String {
@@ -35,9 +33,7 @@ pub fn compute_dyn_signature(args: &[Expr], context: &Context) -> String {
         signature.push(arg.dyn_type(context).to_string())
     }
 
-    let signature = signature.join("$$");
-
-    signature
+    signature.join("$$")
 }
 
 // -----------------------------------------------------------------------------
@@ -183,11 +179,14 @@ impl Resolver {
 
                             let result = eval(&value, context);
 
-                            if result.is_ok() {
-                                // #todo notify about overrides? use `set`?
-                                context.scope.insert(s, result.unwrap());
-                            } else {
-                                self.errors.push(result.unwrap_err());
+                            match result {
+                                Ok(value) => {
+                                    // #todo notify about overrides? use `set`?
+                                    context.scope.insert(s, value);
+                                }
+                                Err(error) => {
+                                    self.errors.push(error);
+                                }
                             }
                         }
 
@@ -205,7 +204,7 @@ impl Resolver {
 
                         // Import a directory as a module.
 
-                        let Some(term) = tail.get(0) else {
+                        let Some(term) = tail.first() else {
                             self.errors.push(Error::invalid_arguments(
                                 "malformed use expression",
                                 expr.range(),
@@ -230,15 +229,15 @@ impl Resolver {
                             // #todo precise formating is _required_ here!
                             // eprintln!("{}", format_errors(&errors));
                             // dbg!(errors);
-                            self.errors.push(Error::failed_use(&module_path, errors)); // #todo add note with information here!
-                                                                                       // #todo what to return here?
+                            self.errors.push(Error::failed_use(module_path, errors)); // #todo add note with information here!
+                                                                                      // #todo what to return here?
                             return Expr::One;
                         };
 
                         let Ok(Expr::Module(module)) = result else {
                             // #todo could use a panic here, this should never happen.
-                            self.errors.push(Error::failed_use(&module_path, vec![])); // #todo add note with information!
-                                                                                       // #todo what to return here?
+                            self.errors.push(Error::failed_use(module_path, vec![])); // #todo add note with information!
+                                                                                      // #todo what to return here?
                             return Expr::One;
                         };
 
@@ -250,7 +249,7 @@ impl Resolver {
                         let bindings = module.scope.bindings.borrow().clone();
                         for (name, value) in bindings {
                             // #todo temp fix to not override the special var
-                            if name.starts_with("*") {
+                            if name.starts_with('*') {
                                 continue;
                             }
 
@@ -263,7 +262,7 @@ impl Resolver {
                         }
 
                         // #todo what could we return here? the Expr::Module?
-                        Expr::One.into()
+                        Expr::One
                     } else if sym == "Func" {
                         // let mut resolved_tail = Vec::new();
                         // for term in tail {

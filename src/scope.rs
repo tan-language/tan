@@ -61,12 +61,10 @@ impl Scope {
 
         if let Some(value) = value {
             Some(value.clone())
+        } else if let Some(parent) = &self.parent {
+            parent.get(name)
         } else {
-            if let Some(parent) = &self.parent {
-                parent.get(name)
-            } else {
-                None
-            }
+            None
         }
     }
 
@@ -80,12 +78,10 @@ impl Scope {
 
         if let Some(binding) = binding {
             *binding = Rc::new(value.into());
+        } else if let Some(parent) = &self.parent {
+            parent.update(name, value);
         } else {
-            if let Some(parent) = &self.parent {
-                parent.update(name, value);
-            } else {
-                // #todo should report an error here!
-            }
+            // #todo should report an error here!
         }
     }
 }

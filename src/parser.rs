@@ -53,7 +53,7 @@ impl<'a> Parser<'a> {
     fn next_token(&mut self) -> Option<&'a Token> {
         let maybe_token = self.tokens.next();
 
-        if let Some(ref token) = maybe_token {
+        if let Some(token) = maybe_token {
             self.current_position = token.range().end;
         }
 
@@ -271,7 +271,7 @@ impl<'a> Parser<'a> {
                 if lexeme.contains('.') {
                     // #todo support radix for non-integers?
 
-                    if lexeme.ends_with("d") {
+                    if lexeme.ends_with('d') {
                         // numbers ending with a 'd' postfix are Dec (decimal) literals.
                         // #todo a proper regular expression to match decimals is needed.
 
@@ -367,7 +367,7 @@ impl<'a> Parser<'a> {
                 // #todo the actual quoting should be handled here?
                 // #todo what about interpolation?
 
-                Some(Expr::List(vec![Expr::symbol("quot").into(), target]))
+                Some(Expr::List(vec![Expr::symbol("quot"), target]))
             }
             TokenKind::Unquote => {
                 // #insight in the parser we just replace the unquoting sigil with an `unquot` function invocation
@@ -393,7 +393,7 @@ impl<'a> Parser<'a> {
                 // #todo the actual quoting should be handled here?
                 // #todo what about interpolation?
 
-                Some(Expr::List(vec![Expr::symbol("unquot").into(), target]))
+                Some(Expr::List(vec![Expr::symbol("unquot"), target]))
             }
             TokenKind::LeftParen => {
                 let terms = self.parse_many(TokenKind::RightParen, start_position)?;
