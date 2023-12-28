@@ -24,7 +24,7 @@ fn json_value_to_expr(json: Value) -> Expr {
             for (key, value) in obj {
                 // #todo should support more key types.
                 // #todo should convert k from camelCase, PascalCase, snake_case, etc.
-                let key = key.replace("_", "-");
+                let key = key.replace('_', "-");
                 // let key = Expr::KeySymbol(key);
                 dict.insert(key, json_value_to_expr(value));
             }

@@ -153,13 +153,10 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
 
                         // #todo super nasty, quotes should be resolved statically (at compile time)
                         // #todo hm, that clone, maybe `Rc` can fix this?
-                        Ok(Some(
-                            Expr::List(vec![
-                                Expr::Symbol("quot".to_owned()).into(),
-                                value.unpack().clone(),
-                            ])
-                            .into(),
-                        ))
+                        Ok(Some(Expr::List(vec![
+                            Expr::Symbol("quot".to_owned()),
+                            value.unpack().clone(),
+                        ])))
                     } else if sym == "Macro" {
                         // #todo this is duplicated in eval, think about this!!! probably should remove from eval.
 
@@ -194,7 +191,7 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                             }
                         }
 
-                        Ok(Some(Expr::List(terms).into()))
+                        Ok(Some(Expr::List(terms)))
                     }
                 }
                 _ => {

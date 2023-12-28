@@ -203,7 +203,7 @@ impl fmt::Display for Expr {
                         "({})",
                         terms
                             .iter()
-                            .map(|term| format!("{}", term.as_ref()))
+                            .map(|term| format!("{}", term))
                             .collect::<Vec<String>>()
                             .join(" ")
                     )
@@ -608,7 +608,7 @@ pub fn expr_to_position(expr: &Expr) -> Position {
     }
 
     // #todo fix me!
-    return Position::default();
+    Position::default()
 }
 
 pub fn range_to_expr(range: &Range) -> Expr {

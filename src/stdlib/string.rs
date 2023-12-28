@@ -488,8 +488,8 @@ mod tests {
             (ends-with? filename ".gif")
         "#;
         let expr = eval_string(input, &mut context).unwrap();
-        let value = expr.as_bool().unwrap();
-        assert_eq!(value, false);
+        let ends_with_gif = expr.as_bool().unwrap();
+        assert!(!ends_with_gif);
     }
 
     #[test]
