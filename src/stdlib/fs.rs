@@ -5,6 +5,8 @@ use std::sync::Arc;
 use crate::util::module_util::require_module;
 use crate::{context::Context, error::Error, expr::Expr};
 
+// #todo consider system/fs, host/fs, os/fs.
+
 // #todo do FFI functions really need an env?
 // #todo differentiate pure functions that do not change the env!
 
