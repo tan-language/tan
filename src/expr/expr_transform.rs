@@ -19,7 +19,7 @@ impl Expr {
         match self.extract() {
             (Expr::List(terms), ann) => {
                 // #todo investigate this clone!!!!
-                let terms = terms.into_iter().map(|t| t.clone().transform(f)).collect();
+                let terms = terms.iter().map(|t| t.clone().transform(f)).collect();
                 let list = Expr::maybe_annotated(Expr::List(terms), ann);
                 f(list)
             }
@@ -35,10 +35,7 @@ impl Expr {
         match self.extract() {
             (Expr::List(terms), ann) => {
                 // #todo investigate this clone!!!!
-                let terms = terms
-                    .into_iter()
-                    .map(|t| t.clone().transform_mut(f))
-                    .collect();
+                let terms = terms.iter().map(|t| t.clone().transform_mut(f)).collect();
                 let list = Expr::maybe_annotated(Expr::List(terms), ann);
                 f(list)
             }
@@ -91,23 +88,18 @@ impl Expr {
             (Expr::List(terms), ann) => {
                 if terms.is_empty() {
                     self
-                } else {
-                    if let Some(sym) = terms[0].unpack().as_symbol() {
-                        if sym == "unquot" {
-                            debug_assert!(terms.len() == 2);
-                            // #todo remove the unwrap!
-                            eval(&terms[1], context).unwrap()
-                        } else {
-                            let terms =
-                                terms.into_iter().map(|t| t.clone().quot(context)).collect();
-                            let list = Expr::maybe_annotated(Expr::List(terms), ann);
-                            list
-                        }
+                } else if let Some(sym) = terms[0].unpack().as_symbol() {
+                    if sym == "unquot" {
+                        debug_assert!(terms.len() == 2);
+                        // #todo remove the unwrap!
+                        eval(&terms[1], context).unwrap()
                     } else {
-                        let terms = terms.into_iter().map(|t| t.clone().quot(context)).collect();
-                        let list = Expr::maybe_annotated(Expr::List(terms), ann);
-                        list
+                        let terms = terms.iter().map(|t| t.clone().quot(context)).collect();
+                        Expr::maybe_annotated(Expr::List(terms), ann)
                     }
+                } else {
+                    let terms = terms.iter().map(|t| t.clone().quot(context)).collect();
+                    Expr::maybe_annotated(Expr::List(terms), ann)
                 }
             }
             (Expr::Array(terms), ann) => {
@@ -118,8 +110,8 @@ impl Expr {
                     .into_iter()
                     .map(|t| t.quot(context))
                     .collect();
-                let array = Expr::maybe_annotated(Expr::array(terms), ann);
-                array
+
+                Expr::maybe_annotated(Expr::array(terms), ann)
             }
             (Expr::Dict(dict), ann) => {
                 // #todo investigate this clone!!!!
@@ -129,8 +121,8 @@ impl Expr {
                     .into_iter()
                     .map(|(key, value)| (key, value.quot(context)))
                     .collect();
-                let dict = Expr::maybe_annotated(Expr::dict(dict), ann);
-                dict
+
+                Expr::maybe_annotated(Expr::dict(dict), ann)
             }
             _ => self,
         }
@@ -146,7 +138,7 @@ impl Expr {
             (Expr::List(terms), ann) => {
                 // #todo investigate this clone!!!!
                 let terms = terms
-                    .into_iter()
+                    .iter()
                     .filter_map(|t| t.clone().filter_transform(f))
                     .collect();
                 let list = Expr::maybe_annotated(Expr::List(terms), ann);

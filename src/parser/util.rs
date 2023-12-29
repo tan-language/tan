@@ -66,7 +66,7 @@ pub fn recognize_range(range_str: &str) -> Option<Expr> {
         return None;
     }
 
-    if start_end[0].contains(".") {
+    if start_end[0].contains('.') {
         let start: f64 = start_end[0].parse().ok()?;
         let end: f64 = start_end[1].parse().ok()?;
 

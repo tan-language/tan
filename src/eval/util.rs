@@ -46,7 +46,7 @@ pub fn canonicalize_module_path(
     // #todo support read-only 'system' variables.
     // #todo convert /xxx -> /@std/xxx
 
-    if path.starts_with("@") {
+    if path.starts_with('@') {
         path = format!("{}/{path}", context.root_path);
     } else if path.starts_with("./") {
         if let Some(base_path) = context.scope.get(CURRENT_MODULE_PATH) {
@@ -56,16 +56,16 @@ pub fn canonicalize_module_path(
             };
 
             // Canonicalize the path using the current-module-path as the base path.
-            path = format!("{base_path}{}", path.strip_prefix(".").unwrap());
+            path = format!("{base_path}{}", path.strip_prefix('.').unwrap());
         } else {
             // #todo!
             panic!("missing current-module-path");
         }
-    } else if path.starts_with("/") {
+    } else if path.starts_with('/') {
         path = format!("{}/@std{path}", context.root_path);
     } else if path.starts_with("file://") {
         // #insight used by tan-run.
-        path = format!("{}", &path[7..]);
+        path = path[7..].to_string();
     } else {
         path = format!("{}/@std/{path}", context.root_path);
     }
@@ -138,14 +138,14 @@ pub fn compute_module_file_paths(module_path: impl AsRef<Path>) -> std::io::Resu
                 module_file_paths.push(file_path.canonicalize()?.display().to_string());
             }
         }
-    } else if has_tan_extension(&module_path) {
+    } else if has_tan_extension(module_path) {
         module_file_paths.push(module_path.canonicalize()?.display().to_string());
     } else {
         return Err(std::io::Error::new(
             std::io::ErrorKind::InvalidInput,
             format!(
                 "`{}` is not a valid module, unrecognized extension",
-                module_path.display().to_string()
+                module_path.display()
             ),
         ));
     }
@@ -155,7 +155,7 @@ pub fn compute_module_file_paths(module_path: impl AsRef<Path>) -> std::io::Resu
             std::io::ErrorKind::NotFound,
             format!(
                 "no tan files found in directory `{}`",
-                module_path.display().to_string()
+                module_path.display()
             ),
         ));
     }
@@ -235,7 +235,7 @@ pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr
     for file_path in &file_paths {
         // #todo keep all inputs in magic variable in env, associate url/key with error.
 
-        let input = std::fs::read_to_string(&file_path);
+        let input = std::fs::read_to_string(file_path);
         let Ok(input) = input else {
             return Err(vec![input.unwrap_err().into()]);
         };

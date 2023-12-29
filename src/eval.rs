@@ -111,7 +111,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     .scope
                     .get(symbol)
                     .ok_or::<Error>(Error::undefined_symbol(
-                        &symbol,
+                        symbol,
                         &format!("symbol not defined: `{symbol}`"),
                         expr.range(),
                     ))?
@@ -152,7 +152,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                 eval(false_clause, context)
             } else {
                 // #todo what should we return if there is no false-clause? Zero/Never?
-                Ok(Expr::One.into())
+                Ok(Expr::One)
             }
         }
         Expr::List(list) => {
@@ -165,7 +165,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                 // check is needed in the evaluator to handle the case where the
                 // expression is constructed programmatically (e.g. self-modifying code,
                 // dynamically constructed expression, homoiconicity, etc).
-                return Ok(Expr::One.into());
+                return Ok(Expr::One);
             }
 
             // The unwrap here is safe.
@@ -219,9 +219,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 "method",
                                 Expr::Symbol(format!("{name}$${signature}")),
                             );
-                            let head = eval(&head, context)?;
-
-                            head
+                            eval(&head, context)?
                         } else {
                             eval(head, context)?
                         }
@@ -316,10 +314,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     let index = index as usize;
                     if let Some(value) = arr.borrow().get(index) {
                         // #todo replace the clone with the custom expr::copy/ref
-                        Ok(value.clone().into())
+                        Ok(value.clone())
                     } else {
                         // #todo introduce Maybe { Some, None }
-                        Ok(Expr::One.into())
+                        Ok(Expr::One)
                     }
                 }
                 Expr::Dict(dict) => {
@@ -900,12 +898,12 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 // eprintln!("{}", format_errors(&errors));
                                 // dbg!(errors);
                                 // #todo add note with information here!
-                                return Err(Error::failed_use(&module_path, errors));
+                                return Err(Error::failed_use(module_path, errors));
                             };
 
                             let Ok(Expr::Module(module)) = result else {
                                 // #todo could use a panic here, this should never happen.
-                                return Err(Error::failed_use(&module_path, vec![]));
+                                return Err(Error::failed_use(module_path, vec![]));
                             };
 
                             if let Some(arg) = tail.get(1) {
@@ -949,7 +947,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 let bindings = module.scope.bindings.borrow().clone();
                                 for (name, value) in bindings {
                                     // #todo temp fix to not override the special var
-                                    if name.starts_with("*") {
+                                    if name.starts_with('*') {
                                         continue;
                                     }
 
@@ -1005,7 +1003,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             }
 
                             // #todo return last value!
-                            Ok(Expr::One.into())
+                            Ok(Expr::One)
                         }
                         "not" => {
                             // #todo make a function
@@ -1078,7 +1076,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         "Char" => {
                             // #todo report more than 1 arguments.
 
-                            let Some(arg) = tail.get(0) else {
+                            let Some(arg) = tail.first() else {
                                 return Err(Error::invalid_arguments(
                                     "malformed Char constructor, missing argument",
                                     expr.range(),
@@ -1102,11 +1100,11 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             let c = c.chars().next().unwrap();
 
-                            Ok(Expr::Char(c).into())
+                            Ok(Expr::Char(c))
                         }
                         "List" => {
                             let args = eval_args(tail, context)?;
-                            Ok(Expr::List(args).into())
+                            Ok(Expr::List(args))
                         }
                         "Func" => {
                             let Some(params) = tail.first() else {

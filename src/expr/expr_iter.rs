@@ -32,7 +32,7 @@ impl<'a> Iterator for ExprIter<'a> {
 
     // #todo this does not traverse Array, Dict, etc.
     fn next(&mut self) -> Option<Self::Item> {
-        let Some(expr) = self.children.get(0) else {
+        let Some(expr) = self.children.first() else {
             return match self.parent.take() {
                 Some(parent) => {
                     // continue with the parent expr
