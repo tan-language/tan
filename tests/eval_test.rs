@@ -80,7 +80,7 @@ fn eval_processes_keyword_symbols() {
 
 #[test]
 fn eval_processes_empty_list() {
-    let expr = Expr::List(Vec::new()).into();
+    let expr = Expr::List(Vec::new());
 
     let mut context = Context::new();
     let value = eval(&expr, &mut context).unwrap();
@@ -466,7 +466,7 @@ fn module_cannot_access_private_members_of_other_modules() {
     context
         .scope
         .insert("*current-module-path*", Expr::string("tests/fixtures"));
-    let result = eval_module(format!("./main.tan"), &mut context);
+    let result = eval_module("./main.tan", &mut context);
 
     assert!(result.is_err());
 
@@ -511,63 +511,63 @@ fn for_let_regression() {
 fn eval_and() {
     let mut context = Context::new();
     let result = eval_string("(and true false)", &mut context);
-    assert_matches!(result, Ok(Expr::Bool(b)) if b == false);
+    assert_matches!(result, Ok(Expr::Bool(b)) if !b);
 
     let result = eval_string("(and false false false true)", &mut context);
-    assert_matches!(result, Ok(Expr::Bool(b)) if b == false);
+    assert_matches!(result, Ok(Expr::Bool(b)) if !b);
 
     let result = eval_string("(and true true (= 1 1))", &mut context);
-    assert_matches!(result, Ok(Expr::Bool(b)) if b == true);
+    assert_matches!(result, Ok(Expr::Bool(b)) if b);
 
     let result = eval_string("(and true)", &mut context);
-    assert_matches!(result, Ok(Expr::Bool(b)) if b == true);
+    assert_matches!(result, Ok(Expr::Bool(b)) if b);
 }
 
 #[test]
 fn eval_or() {
     let mut context = Context::new();
     let result = eval_string("(or true false)", &mut context);
-    assert_matches!(result, Ok(Expr::Bool(b)) if b == true);
+    assert_matches!(result, Ok(Expr::Bool(b)) if b);
 
     let result = eval_string("(or false false false true)", &mut context);
-    assert_matches!(result, Ok(Expr::Bool(b)) if b == true);
+    assert_matches!(result, Ok(Expr::Bool(b)) if b);
 
     let result = eval_string("(or false false false)", &mut context);
-    assert_matches!(result, Ok(Expr::Bool(b)) if b == false);
+    assert_matches!(result, Ok(Expr::Bool(b)) if !b);
 }
 
 #[test]
 fn eval_eq() {
     let mut context = Context::new();
     let result = eval_string("(= 1 1)", &mut context);
-    assert_matches!(result, Ok(Expr::Bool(b)) if b == true);
+    assert_matches!(result, Ok(Expr::Bool(b)) if b);
 
     let mut context = Context::new();
     let result = eval_string("(= 1 2)", &mut context);
-    assert_matches!(result, Ok(Expr::Bool(b)) if b == false);
+    assert_matches!(result, Ok(Expr::Bool(b)) if !b);
 
     let mut context = Context::new();
     let result = eval_string(r#"(= "hello" "hello")"#, &mut context);
-    assert_matches!(result, Ok(Expr::Bool(b)) if b == true);
+    assert_matches!(result, Ok(Expr::Bool(b)) if b);
 
     let mut context = Context::new();
     let result = eval_string("(= :hello :hello)", &mut context);
-    assert_matches!(result, Ok(Expr::Bool(b)) if b == true);
+    assert_matches!(result, Ok(Expr::Bool(b)) if b);
 }
 
 #[test]
 fn eval_not() {
     let mut context = Context::new();
     let result = eval_string("(not true)", &mut context);
-    assert_matches!(result, Ok(Expr::Bool(b)) if b == false);
+    assert_matches!(result, Ok(Expr::Bool(b)) if !b);
 
     let mut context = Context::new();
     let result = eval_string("(not false)", &mut context);
-    assert_matches!(result, Ok(Expr::Bool(b)) if b == true);
+    assert_matches!(result, Ok(Expr::Bool(b)) if b);
 
     let mut context = Context::new();
     let result = eval_string("(not (= 1 1))", &mut context);
-    assert_matches!(result, Ok(Expr::Bool(b)) if b == false);
+    assert_matches!(result, Ok(Expr::Bool(b)) if !b);
 }
 
 #[test]

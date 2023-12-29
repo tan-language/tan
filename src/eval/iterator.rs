@@ -144,7 +144,7 @@ pub fn try_iterator_from<'a>(expr: &'a Expr) -> Option<Rc<RefCell<dyn ExprIterat
         // #todo consolidate handling of List and Array.
         Expr::List(items) => Some(Rc::new(RefCell::new(ArrayIterator {
             current: 0,
-            items: &items,
+            items,
             step: 1,
         }))),
         Expr::Array(items) => {

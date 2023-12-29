@@ -85,7 +85,7 @@ impl fmt::Display for ErrorKind {
             ErrorKind::UnterminatedString => "unterminated string".to_owned(),
             ErrorKind::UnterminatedAnnotation => "unterminated annotation".to_owned(),
             ErrorKind::InvalidQuote => "invalid quote".to_owned(),
-            ErrorKind::UnexpectedToken => format!("unexpected token"),
+            ErrorKind::UnexpectedToken => "unexpected token".to_owned(),
             ErrorKind::UnterminatedList => "unterminated list".to_owned(),
             ErrorKind::MalformedAnnotation => "malformed annotation".to_owned(),
             ErrorKind::MalformedRange => "malformed range".to_owned(),
@@ -205,16 +205,14 @@ impl Error {
 
     // #todo make errors Option.
     pub fn failed_use(url: &str, errors: Vec<Error>) -> Self {
-        let error = Self::new(ErrorKind::FailedUse(url.to_owned(), errors));
         // #todo url is _not_ the error.file_path, we need the caller module path.
         // error.file_path = url.to_owned();
-        error
+        Self::new(ErrorKind::FailedUse(url.to_owned(), errors))
     }
 
     // placeholder error!
     pub fn general(text: &str) -> Self {
-        let error = Self::new(ErrorKind::General(text.to_owned()));
-        error
+        Self::new(ErrorKind::General(text.to_owned()))
     }
 
     pub fn kind(&self) -> &ErrorKind {
