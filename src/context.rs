@@ -25,13 +25,20 @@ pub struct Context {
     pub top_scope: Rc<Scope>, // #todo find better name, e.g. prelude_scope?
 }
 
+impl Default for Context {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Context {
+    // #todo consider removing new and just use default?
     pub fn new() -> Self {
         // #todo move this somewhere else.
         // #todo how to handle missing TAN_ROOT variable?
         // #todo expose as special tan variable? at least in 'dev' profile?
         let root_path = std::env::var(ROOT_PATH_ENV_VAR)
-            .expect(&format!("env variable `{ROOT_PATH_ENV_VAR}` should be set"));
+            .unwrap_or_else(|_| panic!("env variable `{ROOT_PATH_ENV_VAR}` should be set"));
 
         let mut context = Self {
             root_path,

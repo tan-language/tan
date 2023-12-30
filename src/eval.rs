@@ -37,32 +37,6 @@ fn eval_args(args: &[Expr], context: &mut Context) -> Result<Vec<Expr>, Error> {
         .collect::<Result<Vec<_>, _>>()
 }
 
-// fn eval_quote(expr: Expr, context: &mut Context) -> Expr {
-//     // #insight unpack is OK, no extract needed.
-//     println!("fquot --> {}", expr.unpack());
-//     match expr.unpack() {
-//         Expr::List(terms) => {
-//             if terms.is_empty() {
-//                 expr
-//             } else {
-//                 if let Some(sym) = terms[0].unpack().as_symbol() {
-//                     if sym == "unquot" {
-//                         debug_assert!(terms.len() == 2);
-//                         // #todo remove the unwrap!
-//                         println!("evan unquot ::: {}", &terms[1].unpack());
-//                         eval(&terms[1], context).unwrap()
-//                     } else {
-//                         expr
-//                     }
-//                 } else {
-//                     expr
-//                 }
-//             }
-//         }
-//         _ => expr,
-//     }
-// }
-
 // #todo needs better conversion to Expr::Annotated
 
 /// Evaluates via expression rewriting. The expression `expr` evaluates to
@@ -213,7 +187,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             head
                         } else if let Expr::ForeignFunc(_) = value.unpack() {
-                            let signature = compute_dyn_signature(&args, &context);
+                            let signature = compute_dyn_signature(&args, context);
                             let head = annotate(
                                 head.clone(),
                                 "method",
@@ -330,10 +304,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     // #insight no need to unpack, format_value sees-through.
                     let key = format_value(&args[0]);
                     if let Some(value) = dict.borrow().get(&key) {
-                        Ok(value.clone().into())
+                        Ok(value.clone())
                     } else {
                         // #todo introduce Maybe { Some, None }
-                        Ok(Expr::One.into())
+                        Ok(Expr::One)
                     }
                 }
                 // #todo add handling of 'high-level', compound expressions here.
@@ -348,7 +322,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         // #todo use the `optimize`/`raise` function, here to prepare high-level expression for evaluation, to avoid duplication.
                         "do" => {
                             // #todo do should be 'monadic', propagate Eff (effect) wrapper.
-                            let mut value = Expr::One.into();
+                            let mut value = Expr::One;
 
                             // #todo extract this.
 
@@ -593,7 +567,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 ));
                             };
 
-                            let mut value = Expr::One.into();
+                            let mut value = Expr::One;
 
                             loop {
                                 let predicate = eval(predicate, context)?;
@@ -616,7 +590,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         }
                         "if" => {
                             // #todo this is a temp hack!
-                            let Some(predicate) = tail.get(0) else {
+                            let Some(predicate) = tail.first() else {
                                 return Err(Error::invalid_arguments(
                                     "malformed if predicate",
                                     expr.range(),
@@ -748,7 +722,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             context.scope = prev_scope;
 
                             // #todo intentionally don't return a value, reconsider this?
-                            Ok(Expr::One.into())
+                            Ok(Expr::One)
                         }
                         // #todo extract
                         // #todo functions implemented here have dynamic dispatch!
@@ -794,7 +768,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             context.scope = prev_scope.clone();
 
                             // #todo intentionally don't return a value, reconsider this?
-                            Ok(Expr::array(results).into())
+                            Ok(Expr::array(results))
                         }
                         "set!" => {
                             // #todo find other name: poke, mut, mutate
@@ -871,7 +845,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             // Import a directory as a module.
 
-                            let Some(term) = tail.get(0) else {
+                            let Some(term) = tail.first() else {
                                 return Err(Error::invalid_arguments(
                                     "malformed use expression",
                                     expr.range(),
@@ -1159,20 +1133,16 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo optimize!
                             Ok(Expr::Macro(params.clone(), body.into()))
                         }
-                        _ => {
-                            return Err(Error::not_invocable(
-                                &format!("symbol `{head}`"),
-                                head.range(),
-                            ));
-                        }
+                        _ => Err(Error::not_invocable(
+                            &format!("symbol `{head}`"),
+                            head.range(),
+                        )),
                     }
                 }
-                _ => {
-                    return Err(Error::not_invocable(
-                        &format!("expression `{head}`"),
-                        head.range(),
-                    ));
-                }
+                _ => Err(Error::not_invocable(
+                    &format!("expression `{head}`"),
+                    head.range(),
+                )),
             }
         }
         Expr::Array(items) => {
