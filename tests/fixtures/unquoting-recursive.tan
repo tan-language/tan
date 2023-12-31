@@ -1,6 +1,6 @@
 (do
     (let ring-width 4.0)
     '(g {:stroke-width $ring-width}
-        $(for->list (i [0.0 1.0 2.0]) '(* 2.0 $(+ i 2.0)))
+        $(for->list [i [0.0 1.0 2.0]] '(* 2.0 $(+ i 2.0)))
     )
 )

@@ -7,8 +7,8 @@
     (let ring-width 4.0)
     '(svg {:width $canvas-width} [$canvas-height $radius]
         (g {:stroke-width $ring-width}
-            $(for->list (i 0.0..10.0) (+ i radius))
-            (circle {:cx $center-x })
+        $(for->list [i 0.0..10.0] (+ i radius))
+            (circle {:cx $center-x})
         )
     )
 )

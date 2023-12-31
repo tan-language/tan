@@ -486,7 +486,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 // #todo add more structural checks.
                                 // #todo proper error!
                                 return Err(Error::invalid_arguments(
-                                    "missing for arguments",
+                                    "missing for->list arguments",
                                     expr.range(),
                                 ));
                             }
@@ -496,18 +496,19 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             let binding = tail.first().unwrap();
                             let body = &tail[1..];
 
+                            // #todo should be as_array to match `for`.
                             // #todo should check both for list and array.
-                            let Some(binding_parts) = binding.as_list() else {
+                            let Some(binding_parts) = binding.as_array() else {
                                 // #todo proper error!
                                 return Err(Error::invalid_arguments(
-                                    "invalid for binding",
+                                    "invalid for->list binding, not an array",
                                     binding.range(),
                                 ));
                             };
 
                             let [var, value] = &binding_parts[..] else {
                                 return Err(Error::invalid_arguments(
-                                    "invalid for binding",
+                                    "invalid for->list binding",
                                     binding.range(),
                                 ));
                             };
@@ -515,7 +516,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             let Some(var) = var.as_symbol() else {
                                 // #todo proper error!
                                 return Err(Error::invalid_arguments(
-                                    "invalid for binding, malformed variable",
+                                    "invalid for->list binding, malformed variable",
                                     var.range(),
                                 ));
                             };
