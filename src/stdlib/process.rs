@@ -1,8 +1,9 @@
 use std::collections::HashMap;
-use std::{rc::Rc, sync::Arc};
+use std::sync::Arc;
 
 use crate::error::Error;
-use crate::{context::Context, expr::Expr, module::Module};
+use crate::util::module_util::require_module;
+use crate::{context::Context, expr::Expr};
 
 // https://doc.rust-lang.org/std/env/index.html
 
@@ -157,30 +158,23 @@ pub fn process_exec(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 // #todo use Rc/Arc consistently
 // #todo some helpers are needed here, to streamline the code.
 
-pub fn setup_std_process(context: &mut Context) {
-    let module = Module::new("process", context.top_scope.clone());
+pub fn setup_lib_process(context: &mut Context) {
+    let module = require_module("process", context);
 
-    let scope = &module.scope;
-
-    scope.insert("exit", Expr::ForeignFunc(Arc::new(process_exit)));
-    scope.insert("exit$$", Expr::ForeignFunc(Arc::new(process_exit))); // #todo is this needed?
+    module.insert("exit", Expr::ForeignFunc(Arc::new(process_exit)));
+    module.insert("exit$$", Expr::ForeignFunc(Arc::new(process_exit))); // #todo is this needed?
 
     // (let file (process/args 1))
-    scope.insert("args", Expr::ForeignFunc(Arc::new(process_args)));
-    scope.insert("args$$", Expr::ForeignFunc(Arc::new(process_args))); // #todo is this needed?
+    module.insert("args", Expr::ForeignFunc(Arc::new(process_args)));
+    module.insert("args$$", Expr::ForeignFunc(Arc::new(process_args))); // #todo is this needed?
 
     // (let tan-path (process/env :TANPATH))
-    scope.insert("env-vars", Expr::ForeignFunc(Arc::new(process_env_vars)));
-    scope.insert("env-vars$$", Expr::ForeignFunc(Arc::new(process_env_vars))); // #todo is this needed?
+    module.insert("env-vars", Expr::ForeignFunc(Arc::new(process_env_vars)));
+    module.insert("env-vars$$", Expr::ForeignFunc(Arc::new(process_env_vars))); // #todo is this needed?
 
     // (let output (process/exec "ls -al"))
-    scope.insert("exec", Expr::ForeignFunc(Arc::new(process_exec)));
-    scope.insert("exec$$String", Expr::ForeignFunc(Arc::new(process_exec)));
-
-    // #todo this is a hack.
-    let module_path = format!("{}/@std/std/process", context.root_path);
-    // #todo introduce a helper for this.
-    context.module_registry.insert(module_path, Rc::new(module));
+    module.insert("exec", Expr::ForeignFunc(Arc::new(process_exec)));
+    module.insert("exec$$String", Expr::ForeignFunc(Arc::new(process_exec)));
 }
 
 // #todo add some tests, even without assertions, just to exercise these functions.
