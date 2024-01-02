@@ -4,6 +4,8 @@ use crate::{
     expr::{expr_clone, format_value, Expr},
 };
 
+// #todo implement some of those functions: https://www.programiz.com/python-programming/methods/dictionary
+
 // #insight use `contains-key` so that `contains` refers to the value, consistent with other collections.
 // #todo consider other names: has, has-key, contains-key, includes, etc.
 // #todo consider appending a `?`
@@ -39,7 +41,7 @@ pub fn dict_contains_key(args: &[Expr], _context: &Context) -> Result<Expr, Erro
 pub fn dict_insert(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     let [dict, key, value] = args else {
         return Err(Error::invalid_arguments(
-            "requires `this` and `item` argument",
+            "requires `this`, `key`, and `value` arguments",
             None,
         ));
     };
@@ -69,6 +71,47 @@ pub fn dict_insert(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     items.insert(key.clone(), value.unpack().clone()); // #todo hmm this clone!
 
     // #todo what to return?
+    Ok(Expr::One)
+}
+
+// #todo how is this related with HTTP PATCH?
+// #todo alternative names: `merge`, `patch`, `extend` (from Rust)
+// #todo I think `extend` is better, more descriptive.
+// #todo have draining and non-draining versions (drain other.) (consuming is better than draining)
+// #todo have mutating and non-mutating versions.
+pub fn dict_update_mut(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    let [this, other] = args else {
+        return Err(Error::invalid_arguments(
+            "requires `this` and `other` argument",
+            None,
+        ));
+    };
+
+    let Some(mut this_items) = this.as_dict_mut() else {
+        return Err(Error::invalid_arguments(
+            "`this` argument should be a Dict",
+            this.range(),
+        ));
+    };
+
+    let Some(other_items) = other.as_dict() else {
+        return Err(Error::invalid_arguments(
+            "`other` argument should be a Dict",
+            other.range(),
+        ));
+    };
+
+    // #todo expensive clone
+    // let it = other_items.clone().into_iter();
+    // this_items.extend(it);
+
+    // #todo still expensive
+    for (key, value) in other_items.iter() {
+        this_items.insert(key.clone(), value.clone());
+    }
+
+    // #todo what to return?
+    // Ok(this.clone()) // #todo this is expensive, just use Rc/Arc everywhere.
     Ok(Expr::One)
 }
 
@@ -156,7 +199,13 @@ pub fn dict_get_values(args: &[Expr], _context: &Context) -> Result<Expr, Error>
 
 #[cfg(test)]
 mod tests {
-    use crate::{api::eval_string, context::Context, expr::format_value};
+    use assert_matches::assert_matches;
+
+    use crate::{
+        api::eval_string,
+        context::Context,
+        expr::{format_value, Expr},
+    };
 
     #[test]
     fn dict_insert_usage() {
@@ -170,6 +219,25 @@ mod tests {
         let value = format_value(expr);
         let expected = r#"{:given-name "Georgios"}"#;
         assert_eq!(value, expected);
+    }
+
+    #[test]
+    fn dict_update_mut() {
+        let input = r#"
+            (let dict1 {:given-name "George" :nationality "Greek"})
+            (let dict2 {:family-name "Moschovitis"})
+            (update! dict1 dict2)
+            dict1
+        "#;
+        let mut context = Context::new();
+        let expr = eval_string(input, &mut context).unwrap();
+        let dict = expr.as_dict().unwrap();
+
+        assert_matches!(dict.get("given-name"), Some(Expr::String(s)) if s == "George");
+        assert_matches!(dict.get("family-name"), Some(Expr::String(s)) if s == "Moschovitis");
+        assert_matches!(dict.get("nationality"), Some(Expr::String(s)) if s == "Greek");
+
+        assert_eq!(dict.len(), 3);
     }
 
     #[test]

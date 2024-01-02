@@ -2,6 +2,8 @@ use std::fmt;
 
 use crate::range::Range;
 
+// #todo emit the correct file of the error!
+
 // #todo use `CompositeError` or similar to bundle multiple errors, and maintain consistent interface while avoiding allocations?
 
 // #insight The implementation is based on https://doc.rust-lang.org/std/io/struct.Error.html
