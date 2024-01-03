@@ -12,7 +12,7 @@ use super::eq::{
     eq_float, eq_string, eq_symbol, not_eq, not_eq_float, not_eq_string, not_eq_symbol,
 };
 use super::io::{read_string, write, writeln};
-use super::seq::{array_count, array_push};
+use super::seq::{array_count, array_push, array_sort_mut};
 use super::string::{
     string_ends_with, string_get_length, string_replace, string_slice, string_slice_range,
     string_split, string_starts_with,
@@ -153,6 +153,7 @@ pub fn setup_std_prelude(context: &mut Context) {
     scope.insert("push", Expr::ForeignFunc(Arc::new(array_push)));
     scope.insert("join", Expr::ForeignFunc(Arc::new(array_join)));
     scope.insert("count", Expr::ForeignFunc(Arc::new(array_count)));
+    scope.insert("sort!", Expr::ForeignFunc(Arc::new(array_sort_mut)));
 
     // dict
 

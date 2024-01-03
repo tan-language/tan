@@ -6,6 +6,10 @@ use crate::{
 
 // #todo rearrange the functions in some logical order, can be alphabetical.
 
+// #todo (compare str1 str2) ; => Ordering
+// #todo (to-lowercase str) or (lowercased str)
+// #todo (to-uppercase str) or (uppercased str)
+
 // #todo better name: `size`?
 // #insight `count` is not a good name for length/len, better to be used as verb
 pub fn string_get_length(args: &[Expr], _context: &Context) -> Result<Expr, Error> {

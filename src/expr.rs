@@ -108,6 +108,7 @@ pub enum Expr {
     FloatRange(f64, f64, f64), // start, end, step #todo use a struct here,
     // Range(...),
     // #todo the Func should probably store the Module environment.
+    // #todo explain the Func parameters.
     Func(Vec<Expr>, Vec<Expr>, Rc<Scope>), // #todo maybe should have explicit do block?
     Macro(Vec<Expr>, Vec<Expr>),           // #todo maybe should have explicit do block?
     // #todo the ForeignFunc should probably store the Module environment.

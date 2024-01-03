@@ -4,6 +4,8 @@ use crate::{
     expr::{format_value, Expr},
 };
 
+// #todo implement sort! and sort
+
 // #todo implement generically for all iterables/countables, etc.
 
 // #todo version that returns a new sequence
@@ -126,6 +128,33 @@ pub fn array_filter(_args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 
 // #todo implement first, last
 
+// #todo implement sort!, sort, sort-by!, sort-by
+// #todo need to introduce Comparable trait and (cmp ...) or (compare ...)
+// #todo need to introduce Ordering trait
+// (sort [9 2 7] (Func (a b) (- a b)))
+// (sort [9 2 7] (-> [a b] (- a b)))
+pub fn array_sort_mut(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    let [array, _func] = args else {
+        return Err(Error::invalid_arguments(
+            "requires `array` and `func` arguments",
+            None,
+        ));
+    };
+
+    let Some(mut array_items) = array.as_array_mut() else {
+        return Err(Error::invalid_arguments(
+            "`array` argument should be a Array",
+            array.range(),
+        ));
+    };
+
+    // #todo temp placeholder.
+    array_items.sort_by(|_x, _y| std::cmp::Ordering::Less);
+
+    // Ok(Expr::array(array_items.clone()))
+    Ok(array.clone())
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{api::eval_string, context::Context, expr::format_value};
@@ -170,4 +199,18 @@ mod tests {
 
     #[test]
     fn array_filter_usage() {}
+
+    #[test]
+    fn array_sort_mut_usage() {
+        let input = r#"
+            (let arr [5 1 6 4 3])
+            (sort! arr (Func (x y) (- x y)))
+        "#;
+        let mut context = Context::new();
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        dbg!(&value);
+        // let expected = "george, chris, alex";
+        // assert_eq!(value, expected);
+    }
 }

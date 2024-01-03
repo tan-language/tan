@@ -158,6 +158,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                     if let Some(value) = context.scope.get(name) {
                         if let Expr::Func(params, ..) = value.unpack() {
+                            // #todo extract utility function to invoke a function.
                             // #todo ultra-hack to kill shared ref to `env`.
                             let params = params.clone();
 
@@ -728,6 +729,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         // #todo extract
                         // #todo functions implemented here have dynamic dispatch!
                         // #todo show usage in comments
+                        // (map [1 2 3] x (+ x 1)) ; => [2 3 4]
                         "map" => {
                             // #todo this is a temp hack!
                             let [seq, var, body] = tail else {
