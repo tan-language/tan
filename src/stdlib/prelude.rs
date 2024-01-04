@@ -14,8 +14,8 @@ use super::eq::{
 use super::io::{read_string, write, writeln};
 use super::seq::{array_count, array_push, array_sort_mut};
 use super::string::{
-    string_ends_with, string_get_length, string_replace, string_slice, string_slice_range,
-    string_split, string_starts_with,
+    string_compare, string_ends_with, string_get_length, string_replace, string_slice,
+    string_slice_range, string_split, string_starts_with,
 };
 use super::{
     eq::{eq, gt, lt},
@@ -144,6 +144,10 @@ pub fn setup_std_prelude(context: &mut Context) {
     scope.insert(
         "compare$$Int$$Int",
         annotate_type(Expr::ForeignFunc(Arc::new(arithmetic::int_compare)), "Int"),
+    );
+    scope.insert(
+        "compare$$String$$String",
+        annotate_type(Expr::ForeignFunc(Arc::new(string_compare)), "String"),
     );
 
     // io

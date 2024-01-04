@@ -389,6 +389,44 @@ pub fn string_replace(args: &[Expr], _context: &Context) -> Result<Expr, Error> 
     // Ok(Expr::String(this.replace(from, to)))
 }
 
+// #todo should this get renamed to `stringable_compare`?
+// #todo should be associated with `Ordering` and `Comparable`.
+pub fn string_compare(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    // #todo support multiple arguments.
+    let [a, b] = args else {
+        return Err(Error::invalid_arguments(
+            "requires at least two arguments",
+            None,
+        ));
+    };
+
+    // #todo is this check required if we perform type inference before calling
+    // this function?
+
+    let Some(a) = a.as_stringable() else {
+        return Err(Error::invalid_arguments(
+            &format!("{a} is not a String"),
+            a.range(),
+        ));
+    };
+
+    let Some(b) = b.as_stringable() else {
+        return Err(Error::invalid_arguments(
+            &format!("{b} is not a String"),
+            b.range(),
+        ));
+    };
+
+    // #todo temp hack until Tan has enums?
+    let ordering = match a.cmp(b) {
+        std::cmp::Ordering::Less => -1,
+        std::cmp::Ordering::Equal => 0,
+        std::cmp::Ordering::Greater => 1,
+    };
+
+    Ok(Expr::Int(ordering))
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{api::eval_string, context::Context, expr::format_value};
@@ -525,5 +563,25 @@ mod tests {
         let expected = "Bye Alex";
         assert_eq!(value, expected);
         // #todo check error handling on odd parameters.
+    }
+
+    #[test]
+    fn string_compare_usage() {
+        let mut context = Context::new();
+
+        let expr = eval_string(r#"(compare "2024-01-01" "2024-01-04")"#, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "-1";
+        assert_eq!(value, expected);
+
+        let expr = eval_string(r#"(compare "2024-01-04" "2024-01-04")"#, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "0";
+        assert_eq!(value, expected);
+
+        let expr = eval_string(r#"(compare "2024-01-04" "2024-01-01")"#, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "1";
+        assert_eq!(value, expected);
     }
 }
