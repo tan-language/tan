@@ -134,6 +134,18 @@ pub fn setup_std_prelude(context: &mut Context) {
     scope.insert(">", Expr::ForeignFunc(Arc::new(gt)));
     scope.insert("<", Expr::ForeignFunc(Arc::new(lt)));
 
+    // #todo `eq` and `Comparable` are related.
+    // #todo consider to make sorter: `cmp`.
+
+    scope.insert(
+        "compare",
+        Expr::ForeignFunc(Arc::new(arithmetic::int_compare)),
+    );
+    scope.insert(
+        "compare$$Int$$Int",
+        annotate_type(Expr::ForeignFunc(Arc::new(arithmetic::int_compare)), "Int"),
+    );
+
     // io
 
     // #todo grab those from /std/io module

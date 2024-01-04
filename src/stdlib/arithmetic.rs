@@ -3,6 +3,8 @@ use rust_decimal_macros::dec;
 
 use crate::{context::Context, error::Error, expr::Expr};
 
+// #todo rename rust implementations to {type}_{func}.
+
 // #insight
 // Named `arithmetic` as those operators can apply to non-numbers, e.g. Time, Date
 
@@ -244,4 +246,63 @@ pub fn powi_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     };
 
     Ok(Expr::Float(n.powi(e as i32)))
+}
+
+// #todo should be associated with `Ordering` and `Comparable`.
+pub fn int_compare(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+    // #todo support multiple arguments.
+    let [a, b] = args else {
+        return Err(Error::invalid_arguments(
+            "requires at least two arguments",
+            None,
+        ));
+    };
+
+    let Some(a) = a.as_int() else {
+        return Err(Error::invalid_arguments(
+            &format!("{a} is not an Int"),
+            a.range(),
+        ));
+    };
+
+    let Some(b) = b.as_int() else {
+        return Err(Error::invalid_arguments(
+            &format!("{b} is not an Int"),
+            b.range(),
+        ));
+    };
+
+    // #todo temp hack until Tan has enums?
+    let ordering = match a.cmp(&b) {
+        std::cmp::Ordering::Less => -1,
+        std::cmp::Ordering::Equal => 0,
+        std::cmp::Ordering::Greater => 1,
+    };
+
+    Ok(Expr::Int(ordering))
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{api::eval_string, context::Context, expr::format_value};
+
+    #[test]
+    fn int_compare_usage() {
+        let mut context = Context::new();
+
+        let expr = eval_string("(compare 5 6)", &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "-1";
+        assert_eq!(value, expected);
+
+        let expr = eval_string("(compare 5 5)", &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "0";
+        assert_eq!(value, expected);
+
+        let expr = eval_string("(compare 9 5)", &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "1";
+        assert_eq!(value, expected);
+    }
 }
