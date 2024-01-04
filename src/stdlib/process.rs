@@ -23,7 +23,7 @@ use crate::{context::Context, expr::Expr};
 // (let debug (args "debug"))
 
 /// Terminates the current process with the specified exit code.
-pub fn process_exit(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn process_exit(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     if let Some(code) = args.first() {
         let Some(code) = code.as_int() else {
             return Err(Error::invalid_arguments(
@@ -42,7 +42,7 @@ pub fn process_exit(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 // #todo probably these FFI functions should just return an Expr, no Result.
 
 /// Return the process arguments as an array
-pub fn process_args(_args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn process_args(_args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let mut args = Vec::new();
 
     for arg in std::env::args() {
@@ -55,7 +55,7 @@ pub fn process_args(_args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 // #todo consider renaming to just `env`?
 // #todo optionally support key/name argument to return the value of a specific env variable.
 /// Return the process environment variables as a Dict/Map.
-pub fn process_env_vars(_args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn process_env_vars(_args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let mut env_vars = HashMap::new();
 
     for (key, value) in std::env::vars() {
@@ -69,7 +69,7 @@ pub fn process_env_vars(_args: &[Expr], _context: &Context) -> Result<Expr, Erro
 // #todo shell
 
 // #todo
-// pub fn process_spawn(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+// pub fn process_spawn(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 //     let [cmd] = args else {
 //         return Err(Error::invalid_arguments(
 //             "`exec` requires `cmd` argument",
@@ -113,7 +113,7 @@ pub fn process_env_vars(_args: &[Expr], _context: &Context) -> Result<Expr, Erro
 /// Similar to C's system function:
 /// The command specified by string is passed to the host environment to be
 /// executed by the command processor.
-pub fn process_exec(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn process_exec(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [cmd] = args else {
         return Err(Error::invalid_arguments(
             "`exec` requires `cmd` argument",

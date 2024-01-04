@@ -68,7 +68,7 @@ fn render_css_expr(expr: &Expr) -> Result<Expr, Error> {
 }
 
 // #todo name `css_from_css_expr` ?
-pub fn css_expr_to_css(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn css_expr_to_css(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     if let Some(expr) = args.first() {
         render_css_expr(expr)
     } else {

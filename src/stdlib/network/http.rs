@@ -74,7 +74,7 @@ fn build_tan_response(resp: reqwest::Result<reqwest::blocking::Response>) -> Res
     Ok(Expr::dict(tan_response))
 }
 
-pub fn http_get(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn http_get(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [url, ..] = args else {
         return Err(Error::invalid_arguments(
             "`get` requires `url` argument",
@@ -104,7 +104,7 @@ pub fn http_get(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 
 // #example (http/post "https://httpbin.org/post" "payload" {"user-agent" "tan" "x-tan-header" "it works"})
 // #todo support non-string bodies.
-pub fn http_post(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn http_post(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #insight `_` does not work in the pattern.
     let [url, body, ..] = args else {
         return Err(Error::invalid_arguments(

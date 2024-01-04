@@ -12,7 +12,7 @@ use crate::{
 
 // #todo better name: `size`?
 // #insight `count` is not a good name for length/len, better to be used as verb
-pub fn string_get_length(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn string_get_length(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [this] = args else {
         return Err(Error::invalid_arguments(
             "`chars` requires `this` argument",
@@ -33,7 +33,7 @@ pub fn string_get_length(args: &[Expr], _context: &Context) -> Result<Expr, Erro
 // #todo how to implement a mutating function?
 // #todo return (Maybe Char) or (Maybe Rune), handle case of empty string.
 /// Removes the last character from the string buffer and returns it.
-pub fn string_pop(_args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn string_pop(_args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo handle the string mutation!
     // #todo handle empty string case!!
 
@@ -49,7 +49,7 @@ pub fn string_pop(_args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 /// (slice str 2 5)
 /// (slice str 2)
 /// (slice str 2 -2) ; -2 is length - 2
-pub fn string_slice(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn string_slice(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [this, start, ..] = args else {
         return Err(Error::invalid_arguments(
             "`slice` requires `this` and start arguments",
@@ -103,7 +103,7 @@ pub fn string_slice(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 // #todo search `recognize_range`.
 // #todo this should reuse the plain string_slice method.
 /// Cuts a slice out fo a string, defined by a range.
-pub fn string_slice_range(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn string_slice_range(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [this, start, ..] = args else {
         return Err(Error::invalid_arguments(
             "`slice` requires `this` and range arguments",
@@ -147,7 +147,7 @@ pub fn string_slice_range(args: &[Expr], _context: &Context) -> Result<Expr, Err
 }
 
 /// Returns a char iterable for the chars in the string.
-pub fn string_chars(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn string_chars(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [this] = args else {
         return Err(Error::invalid_arguments(
             "`chars` requires `this` argument",
@@ -171,7 +171,7 @@ pub fn string_chars(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(Expr::array(exprs))
 }
 
-pub fn string_constructor_from_chars(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn string_constructor_from_chars(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [chars] = args else {
         return Err(Error::invalid_arguments("requires `chars` argument", None));
     };
@@ -200,7 +200,7 @@ pub fn string_constructor_from_chars(args: &[Expr], _context: &Context) -> Resul
 
 // #todo overload for string and char!
 
-pub fn char_uppercased(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn char_uppercased(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [this] = args else {
         return Err(Error::invalid_arguments(
             "`uppercased` requires `this` argument",
@@ -225,7 +225,7 @@ pub fn char_uppercased(args: &[Expr], _context: &Context) -> Result<Expr, Error>
 // #todo 'join' and 'format' versions?
 
 // #todo find another name, this is too common: `fmt`? `stringf`?
-pub fn format(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn format(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let output = args.iter().fold(String::new(), |mut str, x| {
         str.push_str(&format_value(x));
         str
@@ -239,7 +239,7 @@ pub fn format(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 // macro annotation: (this: String, separator: String) -> String
 // (Func (this separator) ..)
 // (Func (#String this #String separator) String)
-pub fn string_split(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn string_split(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [this, separator] = args else {
         return Err(Error::invalid_arguments(
             "`split` requires `this` and `separator` arguments",
@@ -270,7 +270,7 @@ pub fn string_split(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 
 // #todo have FFI functions without Context?
 
-pub fn string_starts_with(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn string_starts_with(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [this, prefix] = args else {
         return Err(Error::invalid_arguments(
             "`starts-with` requires `this` and `prefix` arguments",
@@ -295,7 +295,7 @@ pub fn string_starts_with(args: &[Expr], _context: &Context) -> Result<Expr, Err
     Ok(Expr::Bool(this.starts_with(prefix)))
 }
 
-pub fn string_ends_with(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn string_ends_with(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo consider `suffix` instead of `postfix`.
     let [this, postfix] = args else {
         return Err(Error::invalid_arguments(
@@ -329,7 +329,7 @@ pub fn string_ends_with(args: &[Expr], _context: &Context) -> Result<Expr, Error
 // #todo IDE hint if a compiler-optimization is performed.
 // #todo could allow for multiple replacements (i.e. pairs of rules)
 // #todo different name? e.g. rewrite?
-pub fn string_replace(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn string_replace(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #insight _from, _to are only used to verify that there is at least one
     let [this, _from, _to, ..] = args else {
         return Err(Error::invalid_arguments(
@@ -391,7 +391,7 @@ pub fn string_replace(args: &[Expr], _context: &Context) -> Result<Expr, Error> 
 
 // #todo should this get renamed to `stringable_compare`?
 // #todo should be associated with `Ordering` and `Comparable`.
-pub fn string_compare(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn string_compare(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo support multiple arguments.
     let [a, b] = args else {
         return Err(Error::invalid_arguments(

@@ -18,7 +18,7 @@ use crate::{context::Context, error::Error, expr::Expr};
 /// ```tan
 /// (let content (read-file-to-string "index.html"))
 /// ```
-pub fn read_file_to_string(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn read_file_to_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [path] = args else {
         return Err(Error::invalid_arguments(
             "`read_as_string` requires a `path` argument",
@@ -39,7 +39,7 @@ pub fn read_file_to_string(args: &[Expr], _context: &Context) -> Result<Expr, Er
 }
 
 // #todo decide on the parameters order.
-pub fn write_string_to_file(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn write_string_to_file(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [path, content] = args else {
         return Err(Error::invalid_arguments(
             "`write-string-to-file` requires `path` and `content` arguments",
@@ -119,7 +119,7 @@ fn walk_dir(dir_path: &Path) -> Vec<Expr> {
 }
 
 // #todo
-pub fn list(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn list(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [path] = args else {
         return Err(Error::invalid_arguments(
             "`list` requires a `path` argument",
@@ -162,7 +162,7 @@ pub fn list(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 // #todo find a better name: walk-as-tree, build-tree
 // #todo implement as generator/iterator, or (and?) with callback.
 // (let tree (fs/list-as-tree "./source/"))
-pub fn list_as_tree(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn list_as_tree(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [path] = args else {
         return Err(Error::invalid_arguments(
             "`list_as_tree` requires a `path` argument",
@@ -186,7 +186,7 @@ pub fn list_as_tree(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 // #todo delete (or remove?)
 
 // #todo support paths
-pub fn copy(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn copy(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [source, target] = args else {
         return Err(Error::invalid_arguments(
             "`copy` requires `source` and `target` arguments",
@@ -215,7 +215,7 @@ pub fn copy(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 }
 
 // #todo consider `make-directory`? (make in process, create in system)
-pub fn create_directory(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn create_directory(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [path] = args else {
         return Err(Error::invalid_arguments(
             "`create-directory` requires a `path` argument",

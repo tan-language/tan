@@ -9,7 +9,7 @@ use crate::{
 // #insight use `contains-key` so that `contains` refers to the value, consistent with other collections.
 // #todo consider other names: has, has-key, contains-key, includes, etc.
 // #todo consider appending a `?`
-pub fn dict_contains_key(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn dict_contains_key(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [dict, key] = args else {
         return Err(Error::invalid_arguments(
             "requires `this` and `key` argument",
@@ -38,7 +38,7 @@ pub fn dict_contains_key(args: &[Expr], _context: &Context) -> Result<Expr, Erro
 // #todo version that returns a new sequence
 // #todo also consider set, put
 // #todo item or element? -> I think for collections item is better.
-pub fn dict_insert(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn dict_insert(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [dict, key, value] = args else {
         return Err(Error::invalid_arguments(
             "requires `this`, `key`, and `value` arguments",
@@ -79,7 +79,7 @@ pub fn dict_insert(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 // #todo I think `extend` is better, more descriptive.
 // #todo have draining and non-draining versions (drain other.) (consuming is better than draining)
 // #todo have mutating and non-mutating versions.
-pub fn dict_update_mut(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn dict_update_mut(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [this, other] = args else {
         return Err(Error::invalid_arguments(
             "requires `this` and `other` argument",
@@ -119,7 +119,7 @@ pub fn dict_update_mut(args: &[Expr], _context: &Context) -> Result<Expr, Error>
 // #todo (dict :key <default>) could accept a default value.
 // #todo this should be a special form, not evaluate the default value if not needed (short-circuit).
 // #todo consider making default optional.
-pub fn dict_get_or(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn dict_get_or(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [dict, key, default_value] = args else {
         return Err(Error::invalid_arguments(
             "requires `this` and `key` argument",
@@ -163,7 +163,7 @@ pub fn dict_get_or(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 // #todo consider name `keys-of` to avoid clash with variable keys? -> get-keys
 // #todo document the above in a decision file
 // #todo keys is problematic if it's in the prelude!
-pub fn dict_get_keys(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn dict_get_keys(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [dict] = args else {
         return Err(Error::invalid_arguments("requires `this` argument", None));
     };
@@ -180,7 +180,7 @@ pub fn dict_get_keys(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(Expr::array(keys))
 }
 
-pub fn dict_get_values(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn dict_get_values(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [dict] = args else {
         return Err(Error::invalid_arguments("requires `this` argument", None));
     };

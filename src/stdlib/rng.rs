@@ -23,7 +23,7 @@ use crate::{context::Context, error::Error, expr::Expr, module::Module};
 use rand::Rng;
 
 /// (random 100) returns a random integer in the range 0..100
-pub fn random_int(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn random_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     if let Some(end) = args.first() {
         let Some(end) = end.as_int() else {
             return Err(Error::invalid_arguments(

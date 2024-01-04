@@ -37,6 +37,53 @@ fn eval_args(args: &[Expr], context: &mut Context) -> Result<Vec<Expr>, Error> {
         .collect::<Result<Vec<_>, _>>()
 }
 
+// #todo rename to eval_func?
+// #todo use this function in eval, later.
+pub fn invoke_func(func: &Expr, args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+    let Expr::Func(params, body, func_scope) = func.unpack() else {
+        // #todo what to do here?
+        return Err(Error::invalid_arguments(
+            "`func` should be a Func",
+            func.range(),
+        ));
+    };
+
+    // Evaluate the arguments before calling the function.
+    let args = eval_args(args, context)?;
+
+    // #todo ultra-hack to kill shared ref to `env`.
+    let params = params.clone();
+
+    // Dynamic scoping, #todo convert to lexical.
+
+    let prev_scope = context.scope.clone();
+    context.scope = Rc::new(Scope::new(func_scope.clone())); // #insight notice we use func_scope here!
+
+    for (param, arg) in params.iter().zip(args) {
+        let Some(param) = param.as_symbol() else {
+            return Err(Error::invalid_arguments(
+                "parameter is not a symbol",
+                param.range(),
+            ));
+        };
+
+        context.scope.insert(param, arg);
+    }
+
+    // #todo this code is the same as in the (do ..) block, extract.
+
+    // #todo do should be 'monadic', propagate Eff (effect) wrapper.
+    let mut value = Expr::One;
+
+    for expr in body {
+        value = eval(expr, context)?;
+    }
+
+    context.scope = prev_scope;
+
+    Ok(value)
+}
+
 // #todo needs better conversion to Expr::Annotated
 
 /// Evaluates via expression rewriting. The expression `expr` evaluates to

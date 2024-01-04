@@ -40,7 +40,7 @@ fn json_value_to_expr(json: Value) -> Expr {
 // #todo implement write/encode.
 
 // #todo find a better name.
-pub fn json_read_string(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn json_read_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo try to coerce to String.
 
     let [this] = args else {

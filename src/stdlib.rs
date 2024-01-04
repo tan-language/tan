@@ -1,5 +1,6 @@
 pub mod arithmetic;
 pub mod cmark;
+pub mod cmp;
 pub mod css_expr;
 pub mod dict;
 pub mod eq;

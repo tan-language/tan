@@ -118,7 +118,7 @@ fn render_expr(expr: &Expr) -> Result<Expr, Error> {
 }
 
 // #todo find a better name.
-pub fn html_from_expr(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn html_from_expr(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     if let Some(expr) = args.first() {
         render_expr(expr)
     } else {

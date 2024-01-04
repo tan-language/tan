@@ -18,7 +18,7 @@ use crate::{context::Context, error::Error, expr::Expr};
 // #fixme (+ 1.2 1.4 1.5) does not work, falls back to Int (more than 2 arguments)
 
 // #todo autogen with a macro!
-pub fn add_int(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn add_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let mut xs = Vec::new();
 
     for arg in args {
@@ -43,7 +43,7 @@ fn add_int_impl(xs: Vec<i64>) -> i64 {
     xs.iter().sum()
 }
 
-pub fn add_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn add_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let mut sum = 0.0;
 
     for arg in args {
@@ -60,7 +60,7 @@ pub fn add_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 }
 
 #[cfg(feature = "dec")]
-pub fn add_dec(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn add_dec(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let mut sum = dec!(0.0);
 
     for arg in args {
@@ -79,7 +79,7 @@ pub fn add_dec(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 // #todo keep separate, optimized version with just 2 arguments!
 // #todo should support varargs.
 // #todo should return the error without range and range should be added by caller.
-pub fn sub_int(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn sub_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo support multiple arguments.
     let [a, b] = args else {
         return Err(Error::invalid_arguments(
@@ -105,7 +105,7 @@ pub fn sub_int(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(Expr::Int(a - b))
 }
 
-pub fn sub_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn sub_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo support multiple arguments.
     let [a, b] = args else {
         return Err(Error::invalid_arguments(
@@ -131,7 +131,7 @@ pub fn sub_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(Expr::Float(a - b))
 }
 
-pub fn mul_int(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn mul_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo optimize!
     let mut product = 1;
 
@@ -148,7 +148,7 @@ pub fn mul_int(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(Expr::Int(product))
 }
 
-pub fn mul_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn mul_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo optimize!
     let mut product = 1.0;
 
@@ -166,7 +166,7 @@ pub fn mul_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 }
 
 // #todo support int/float.
-pub fn div_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn div_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo optimize!
     let mut quotient = f64::NAN;
 
@@ -191,7 +191,7 @@ pub fn div_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(Expr::Float(quotient))
 }
 
-pub fn sin_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn sin_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let Some(n) = args.first() else {
         return Err(Error::invalid_arguments("missing argument", None));
     };
@@ -206,7 +206,7 @@ pub fn sin_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(Expr::Float(n.sin()))
 }
 
-pub fn cos_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn cos_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let Some(n) = args.first() else {
         return Err(Error::invalid_arguments("missing argument", None));
     };
@@ -222,7 +222,7 @@ pub fn cos_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 }
 
 // #todo support varargs?
-pub fn powi_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn powi_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [n, e] = args else {
         return Err(Error::invalid_arguments(
             "- requires at least two arguments",
@@ -249,7 +249,7 @@ pub fn powi_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 }
 
 // #todo should be associated with `Ordering` and `Comparable`.
-pub fn int_compare(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn int_compare(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo support multiple arguments.
     let [a, b] = args else {
         return Err(Error::invalid_arguments(

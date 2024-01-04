@@ -59,10 +59,11 @@ use crate::{
 
 // #todo consider &mut Context <--
 // #todo consider &mut and & Context, different types!
+// #todo consider version with no Context
 // #todo find a better name for the type-alias
 // #insight the `+ Send + Sync + 'static` suffix allows Expr to be Sync.
 /// A function that accepts a list of Exprs and returns an Expr.
-pub type ExprFn = dyn Fn(&[Expr], &Context) -> Result<Expr, Error> + Send + Sync + 'static;
+pub type ExprFn = dyn Fn(&[Expr], &mut Context) -> Result<Expr, Error> + Send + Sync + 'static;
 
 // #todo use normal structs instead of tuple-structs?
 
@@ -108,9 +109,10 @@ pub enum Expr {
     FloatRange(f64, f64, f64), // start, end, step #todo use a struct here,
     // Range(...),
     // #todo the Func should probably store the Module environment.
-    // #todo explain the Func parameters.
+    /// Func(params, body, func_scope)
     Func(Vec<Expr>, Vec<Expr>, Rc<Scope>), // #todo maybe should have explicit do block?
-    Macro(Vec<Expr>, Vec<Expr>),           // #todo maybe should have explicit do block?
+    /// Macro(params, body)
+    Macro(Vec<Expr>, Vec<Expr>), // #todo maybe should have explicit do block?
     // #todo the ForeignFunc should probably store the Module environment.
     // #todo introduce a ForeignFuncMut for mutating scope? what would be a better name?
     ForeignFunc(Arc<ExprFn>), // #todo for some reason, Box is not working here!

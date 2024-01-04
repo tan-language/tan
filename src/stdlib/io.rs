@@ -9,7 +9,7 @@ use crate::{
 
 // #todo put example usage here!
 // #todo should take a &mut Context
-pub fn read_string(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn read_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo support all `Stringable`s
 
     // #todo temp ultra-hack.
@@ -49,7 +49,7 @@ pub fn read_string(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 // #todo (write ...) should take one string parameter and an optional stream/port parameter, like scheme
 // #todo it could also get an Array/Seq parameter and join it, like JavaScript console.log
 /// Writes one or more expressions to the STDOUT sink/stream.
-pub fn write(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn write(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let output = args.iter().fold(String::new(), |mut str, x| {
         str.push_str(&format_value(x));
         str
@@ -70,7 +70,7 @@ pub fn write(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(Expr::One)
 }
 
-pub fn writeln(args: &[Expr], context: &Context) -> Result<Expr, Error> {
+pub fn writeln(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     // #todo nasty implementation!
     write(args, context)?;
     write(&[Expr::string("\n")], context)

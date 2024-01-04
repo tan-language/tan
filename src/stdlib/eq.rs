@@ -2,7 +2,7 @@ use crate::{context::Context, error::Error, expr::Expr};
 
 // #todo support all types!
 
-pub fn eq(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn eq(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
     // #todo support overloading,
     // #todo make equality a method of Expr?
@@ -32,7 +32,7 @@ pub fn eq(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(Expr::Bool(a == b))
 }
 
-pub fn eq_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn eq_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
     // #todo support overloading,
     // #todo make equality a method of Expr?
@@ -62,7 +62,7 @@ pub fn eq_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(Expr::Bool(a == b))
 }
 
-pub fn eq_string(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn eq_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
     // #todo support overloading,
     // #todo make equality a method of Expr?
@@ -93,7 +93,7 @@ pub fn eq_string(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 }
 
 // #insight handles both (quoted) Symbol and KeySymbol, they are the same thing anyway.
-pub fn eq_symbol(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn eq_symbol(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
     // #todo support overloading,
     // #todo make equality a method of Expr?
@@ -123,7 +123,7 @@ pub fn eq_symbol(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(Expr::Bool(a == b))
 }
 
-pub fn not_eq(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn not_eq(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
     // #todo support overloading,
     // #todo make equality a method of Expr?
@@ -153,7 +153,7 @@ pub fn not_eq(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(Expr::Bool(a != b))
 }
 
-pub fn not_eq_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn not_eq_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
     // #todo support overloading,
     // #todo make equality a method of Expr?
@@ -183,7 +183,7 @@ pub fn not_eq_float(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(Expr::Bool(a != b))
 }
 
-pub fn not_eq_string(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn not_eq_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
     // #todo support overloading,
     // #todo make equality a method of Expr?
@@ -214,7 +214,7 @@ pub fn not_eq_string(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 }
 
 // #insight handles both (quoted) Symbol and KeySymbol, they are the same thing anyway.
-pub fn not_eq_symbol(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn not_eq_symbol(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
     // #todo support overloading,
     // #todo make equality a method of Expr?
@@ -244,7 +244,7 @@ pub fn not_eq_symbol(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(Expr::Bool(a != b))
 }
 
-pub fn gt(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn gt(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo support multiple arguments.
     let [a, b] = args else {
         return Err(Error::invalid_arguments(
@@ -270,7 +270,7 @@ pub fn gt(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     Ok(Expr::Bool(a > b))
 }
 
-pub fn lt(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn lt(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo support multiple arguments.
     let [a, b] = args else {
         return Err(Error::invalid_arguments(

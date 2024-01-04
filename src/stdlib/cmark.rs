@@ -7,7 +7,7 @@ use crate::{context::Context, error::Error, expr::Expr, module::Module};
 // #todo find a better name for this module.
 // #todo this should be extracted to a separate crate, and/or a dynamic library.
 
-pub fn html_from_common_mark(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn html_from_common_mark(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     if let Some(expr) = args.first() {
         let Some(markup) = expr.as_string() else {
             return Err(Error::invalid_arguments(
