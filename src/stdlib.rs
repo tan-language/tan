@@ -21,7 +21,7 @@ use crate::context::Context;
 
 use self::{
     cmark::setup_text_cmark, css_expr::setup_lib_css_expr, fs::setup_lib_fs, html::setup_std_html,
-    json::setup_codec_json, network::http::setup_lib_http, prelude::setup_std_prelude,
+    json::setup_lib_codec_json, network::http::setup_lib_http, prelude::setup_std_prelude,
     process::setup_lib_process, rng::setup_std_rand,
 };
 
@@ -57,7 +57,7 @@ pub fn setup_std(context: &mut Context) {
     setup_std_html(context);
     setup_text_cmark(context);
     setup_lib_css_expr(context);
-    setup_codec_json(context);
+    setup_lib_codec_json(context);
     setup_lib_http(context);
 
     setup_std_prelude(context);
