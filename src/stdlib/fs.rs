@@ -238,6 +238,29 @@ pub fn create_directory(args: &[Expr], _context: &mut Context) -> Result<Expr, E
     Ok(Expr::One)
 }
 
+// #todo find a better name.
+pub fn fs_canonicalize(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [path] = args else {
+        return Err(Error::invalid_arguments(
+            "`canonicalize` requires a `path` argument",
+            None,
+        ));
+    };
+
+    let Some(path) = path.as_string() else {
+        return Err(Error::invalid_arguments(
+            "`path` argument should be a String",
+            path.range(),
+        ));
+    };
+
+    let path = fs::canonicalize(path)?;
+
+    // #todo should return a `Path` value.
+
+    Ok(Expr::string(path.to_string_lossy()))
+}
+
 // #todo use Rc/Arc consistently
 // #todo some helpers are needed here, to streamline the code.
 
@@ -279,6 +302,8 @@ pub fn setup_lib_fs(context: &mut Context) {
         "create-directory",
         Expr::ForeignFunc(Arc::new(create_directory)),
     );
+
+    module.insert("canonicalize", Expr::ForeignFunc(Arc::new(fs_canonicalize)));
 }
 
 // #todo add unit tests.
