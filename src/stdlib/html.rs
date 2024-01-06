@@ -4,6 +4,9 @@
 // #todo add unit tests
 // #todo what about attributes without value? for the moment just use true, e.g. { :attr true }, can optimize to no-value attr on rendering
 
+// #todo translate (ul.nasty ..) to (ul {class: "nasty"})
+// #todo translate (ul#nasty ..) to (ul {id: "nasty"})
+
 use std::{rc::Rc, sync::Arc};
 
 use crate::{

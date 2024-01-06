@@ -238,7 +238,8 @@ pub fn create_directory(args: &[Expr], _context: &mut Context) -> Result<Expr, E
     Ok(Expr::One)
 }
 
-// #todo find a better name.
+// #todo add some kind of unit test for this.
+// #todo find a better name, maybe canonicalize-path or normalize-path.
 pub fn fs_canonicalize(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [path] = args else {
         return Err(Error::invalid_arguments(

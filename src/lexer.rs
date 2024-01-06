@@ -24,9 +24,11 @@ use self::{
 // #todo try to use `let mut reader = BufReader::new(source.as_bytes());` like an older version
 
 /// Returns true if ch is considered whitespace.
-/// The `,` character is considered whitespace, in the Lisp tradition.
 fn is_whitespace(ch: char) -> bool {
-    ch.is_whitespace() || ch == ','
+    // #insight
+    // do _not_ consider `,` as a separator, it can be useful in names,
+    // for example in *.css.tan files.
+    ch.is_whitespace() // || ch == ','
 }
 
 fn is_delimiter(ch: char) -> bool {

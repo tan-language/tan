@@ -289,7 +289,7 @@ mod tests {
     fn dict_get_keys() {
         // #todo `:role :admin` looks weird, not that `role: :admin` looks much better though
         let input = r#"
-            (let dict {:name "George", :role :admin})
+            (let dict {:name "George" :role :admin})
             (get-keys dict)
         "#;
         let mut context = Context::new();
@@ -308,7 +308,7 @@ mod tests {
     #[test]
     fn dict_get_values() {
         let input = r#"
-            (let dict {:name "George", :role :admin}) ; `:role :admin` is confusing!
+            (let dict {:name "George" :role :admin}) ; `:role :admin` is confusing!
             (get-values dict)
         "#;
         let mut context = Context::new();
