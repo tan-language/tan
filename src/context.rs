@@ -2,7 +2,7 @@
 
 use std::{collections::HashMap, rc::Rc};
 
-use crate::{expr::Expr, module::Module, scope::Scope, stdlib::setup_std};
+use crate::{expr::Expr, module::Module, scope::Scope, stdlib::setup_lib};
 
 // #insight Context is the instance of a Tan 'machine'.
 
@@ -51,7 +51,7 @@ impl Context {
         // #todo should setup_std externally!
         // #todo refactor the remaining!
 
-        setup_std(&mut context);
+        setup_lib(&mut context);
 
         // Setup prelude as the ultimate scope.
 

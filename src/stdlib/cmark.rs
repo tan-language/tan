@@ -27,7 +27,7 @@ pub fn html_from_common_mark(args: &[Expr], _context: &mut Context) -> Result<Ex
     }
 }
 
-pub fn setup_text_cmark(context: &mut Context) {
+pub fn setup_lib_text_cmark(context: &mut Context) {
     let module = Module::new("cmark", context.top_scope.clone());
 
     let scope = &module.scope;

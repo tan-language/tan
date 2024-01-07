@@ -24,7 +24,7 @@ use super::{
 };
 
 // #todo instead of evaluating in prelude maybe it's better to use the functions from the actual modules?
-pub fn setup_std_prelude(context: &mut Context) {
+pub fn setup_lib_prelude(context: &mut Context) {
     let module = Module::new("prelude", context.top_scope.clone());
 
     let scope = &module.scope;

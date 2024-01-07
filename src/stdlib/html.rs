@@ -132,7 +132,7 @@ pub fn html_from_expr(args: &[Expr], _context: &mut Context) -> Result<Expr, Err
     }
 }
 
-pub fn setup_std_html(context: &mut Context) {
+pub fn setup_lib_html(context: &mut Context) {
     let module = Module::new("html", context.top_scope.clone());
 
     let scope = &module.scope;
