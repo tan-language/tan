@@ -15,11 +15,13 @@
 // (use random)
 // (let n (random/int 5))
 // (let n (random/float 5))
-// (let n (random/num 5)) ; generic
+// (let n (random/num 5)) ; generic<
 
-use std::{rc::Rc, sync::Arc};
+// #todo add support for seeding.
 
-use crate::{context::Context, error::Error, expr::Expr, module::Module};
+use std::sync::Arc;
+
+use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
 use rand::Rng;
 
 /// (random 100) returns a random integer in the range 0..100
@@ -43,16 +45,12 @@ pub fn random_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
     }
 }
 
-pub fn setup_std_rand(context: &mut Context) {
-    let module = Module::new("rng", context.top_scope.clone());
+pub fn setup_lib_rand(context: &mut Context) {
+    // #todo what is a good path? should avoid math?
+    let module = require_module("rng", context);
 
-    let scope = &module.scope;
-
-    scope.insert("random", Expr::ForeignFunc(Arc::new(random_int)));
-
-    // #todo this is a hack.
-    // #todo what happens if there are multiple root_paths?
-    let module_path = format!("{}/@std/std/rng", context.root_path);
-    // #todo introduce a helper for this.
-    context.module_registry.insert(module_path, Rc::new(module));
+    // #todo better name?
+    module.insert("random", Expr::ForeignFunc(Arc::new(random_int)));
 }
+
+// #todo add unit tests.
