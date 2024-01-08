@@ -7,13 +7,13 @@
 // #todo translate (ul.nasty ..) to (ul {class: "nasty"})
 // #todo translate (ul#nasty ..) to (ul {id: "nasty"})
 
-use std::{rc::Rc, sync::Arc};
+use std::sync::Arc;
 
 use crate::{
     context::Context,
     error::Error,
     expr::{format_value, Expr},
-    module::Module,
+    util::module_util::require_module,
 };
 
 // #todo investigate the interaction between expr/string interpolation '$' and quoting, make string interpolation work in quoted expr.
@@ -133,19 +133,12 @@ pub fn html_from_expr(args: &[Expr], _context: &mut Context) -> Result<Expr, Err
 }
 
 pub fn setup_lib_html(context: &mut Context) {
-    let module = Module::new("html", context.top_scope.clone());
+    let module = require_module("html", context);
 
-    let scope = &module.scope;
-
-    scope.insert(
+    module.insert(
         "html-from-expr",
         Expr::ForeignFunc(Arc::new(html_from_expr)),
     );
-
-    // #todo this is a hack.
-    let module_path = format!("{}/@std/std/html", context.root_path);
-    // #todo introduce a helper for this.
-    context.module_registry.insert(module_path, Rc::new(module));
 }
 
 #[cfg(test)]
@@ -159,7 +152,7 @@ mod tests {
         // #todo extract as fixture.
         // #insight we intentionally use html tags with a single attribute, in this test, as ordering is currently not preserved.
         let input = r#"
-            (use "/std/html")
+            (use "html")
 
             (let name "George")
 
