@@ -3,13 +3,13 @@
 // #todo conside `css-expr` name: https://docs.racket-lang.org/css-expr/
 // #todo consider naming this a 'dialect' or 'dsl' or 'language' instead of text?
 
-use std::{rc::Rc, sync::Arc};
+use std::sync::Arc;
 
 use crate::{
     context::Context,
     error::Error,
     expr::{format_value, Expr},
-    module::Module,
+    util::module_util::require_module,
 };
 
 // #todo is this evaluating something?
@@ -82,19 +82,12 @@ pub fn css_expr_to_css(args: &[Expr], _context: &mut Context) -> Result<Expr, Er
 // #todo consider naming the library just `css`?
 // #todo consider setup_mod_css or setup_module_css
 pub fn setup_lib_css_expr(context: &mut Context) {
-    let module = Module::new("css-expr", context.top_scope.clone());
-
-    let scope = &module.scope;
-
-    // (let css (css-expr/to-css expr))
-    scope.insert("to-css", Expr::ForeignFunc(Arc::new(css_expr_to_css)));
-
     // #todo another name than dialect? (language, lang, flavor, dsl)
     // (use dialect/css-expr) (use dialect/css) (use dialect/html)
-    // #todo this is a hack.
-    let module_path = format!("{}/@std/dialect/css-expr", context.root_path);
-    // #todo introduce a helper for this.
-    context.module_registry.insert(module_path, Rc::new(module)); // #todo use Arc everywhere!
+    let module = require_module("dialect/css-expr", context);
+
+    // (let css (css-expr/to-css expr))
+    module.insert("to-css", Expr::ForeignFunc(Arc::new(css_expr_to_css)));
 }
 
 #[cfg(test)]
