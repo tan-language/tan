@@ -9,9 +9,7 @@ use super::arithmetic;
 use super::dict::{
     dict_contains_key, dict_get_keys, dict_get_or, dict_get_values, dict_insert, dict_update_mut,
 };
-use super::eq::{
-    eq_float, eq_string, eq_symbol, not_eq, not_eq_float, not_eq_string, not_eq_symbol,
-};
+use super::eq::setup_lib_eq;
 use super::io::{read_string, write, writeln};
 use super::seq::{array_count, array_push, array_sort_mut};
 use super::string::{
@@ -19,7 +17,6 @@ use super::string::{
     string_slice_range, string_split, string_starts_with,
 };
 use super::{
-    eq::{eq, gt, lt},
     seq::array_join,
     string::{char_uppercased, format, string_chars, string_constructor_from_chars},
 };
@@ -99,40 +96,6 @@ pub fn setup_lib_prelude(context: &mut Context) {
         "**",
         annotate_type(Expr::ForeignFunc(Arc::new(arithmetic::powi_float)), "Float"),
     );
-
-    // eq
-
-    module.insert("=", Expr::ForeignFunc(Arc::new(eq)));
-    module.insert("=$$Int$$Int", Expr::ForeignFunc(Arc::new(eq)));
-    module.insert("=$$Float$$Float", Expr::ForeignFunc(Arc::new(eq_float)));
-    module.insert("=$$String$$String", Expr::ForeignFunc(Arc::new(eq_string)));
-    // module.insert("=$$Symbol$$Symbol", Expr::ForeignFunc(Arc::new(eq_symbol)));
-    module.insert(
-        "=$$KeySymbol$$KeySymbol",
-        Expr::ForeignFunc(Arc::new(eq_symbol)),
-    );
-
-    module.insert("!=", Expr::ForeignFunc(Arc::new(not_eq)));
-    module.insert("!=$$Int$$Int", Expr::ForeignFunc(Arc::new(not_eq)));
-    module.insert(
-        "!=$$Float$$Float",
-        Expr::ForeignFunc(Arc::new(not_eq_float)),
-    );
-    module.insert(
-        "!=$$String$$String",
-        Expr::ForeignFunc(Arc::new(not_eq_string)),
-    );
-    module.insert(
-        "!=$$Symbol$$Symbol",
-        Expr::ForeignFunc(Arc::new(not_eq_symbol)),
-    );
-    module.insert(
-        "!=$$KeySymbol$$KeySymbol",
-        Expr::ForeignFunc(Arc::new(not_eq_symbol)),
-    );
-
-    module.insert(">", Expr::ForeignFunc(Arc::new(gt)));
-    module.insert("<", Expr::ForeignFunc(Arc::new(lt)));
 
     // cmp
 
@@ -246,5 +209,5 @@ pub fn setup_lib_prelude(context: &mut Context) {
     // #todo: consider 'ends-with' without '?'.
     module.insert("ends-with?", Expr::ForeignFunc(Arc::new(string_ends_with)));
 
-    // setup_lib_eq(context);
+    setup_lib_eq(context);
 }
