@@ -1,4 +1,6 @@
-use crate::{context::Context, error::Error, expr::Expr};
+use std::sync::Arc;
+
+use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
 
 // #todo support all types!
 
@@ -294,4 +296,42 @@ pub fn lt(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     };
 
     Ok(Expr::Bool(a < b))
+}
+
+// #todo should we have an explicit module for these functions?
+
+pub fn setup_lib_eq(context: &mut Context) {
+    let module = require_module("std/prelude", context);
+
+    module.insert("=", Expr::ForeignFunc(Arc::new(eq)));
+    module.insert("=$$Int$$Int", Expr::ForeignFunc(Arc::new(eq)));
+    module.insert("=$$Float$$Float", Expr::ForeignFunc(Arc::new(eq_float)));
+    module.insert("=$$String$$String", Expr::ForeignFunc(Arc::new(eq_string)));
+    // module.insert("=$$Symbol$$Symbol", Expr::ForeignFunc(Arc::new(eq_symbol)));
+    module.insert(
+        "=$$KeySymbol$$KeySymbol",
+        Expr::ForeignFunc(Arc::new(eq_symbol)),
+    );
+
+    module.insert("!=", Expr::ForeignFunc(Arc::new(not_eq)));
+    module.insert("!=$$Int$$Int", Expr::ForeignFunc(Arc::new(not_eq)));
+    module.insert(
+        "!=$$Float$$Float",
+        Expr::ForeignFunc(Arc::new(not_eq_float)),
+    );
+    module.insert(
+        "!=$$String$$String",
+        Expr::ForeignFunc(Arc::new(not_eq_string)),
+    );
+    module.insert(
+        "!=$$Symbol$$Symbol",
+        Expr::ForeignFunc(Arc::new(not_eq_symbol)),
+    );
+    module.insert(
+        "!=$$KeySymbol$$KeySymbol",
+        Expr::ForeignFunc(Arc::new(not_eq_symbol)),
+    );
+
+    module.insert(">", Expr::ForeignFunc(Arc::new(gt)));
+    module.insert("<", Expr::ForeignFunc(Arc::new(lt)));
 }

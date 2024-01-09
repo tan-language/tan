@@ -2,7 +2,9 @@
 
 use std::{collections::HashMap, rc::Rc};
 
-use crate::{expr::Expr, module::Module, scope::Scope, stdlib::setup_lib};
+use crate::{
+    eval::util::canonicalize_path, expr::Expr, module::Module, scope::Scope, stdlib::setup_lib,
+};
 
 // #insight Context is the instance of a Tan 'machine'.
 
@@ -55,8 +57,13 @@ impl Context {
 
         // Setup prelude as the ultimate scope.
 
-        let prelude_path = format!("{}/std/prelude", context.root_path);
-        let prelude = context.module_registry.get(&prelude_path).unwrap();
+        // let prelude_path = format!("{}/std/prelude", context.root_path);
+        // let prelude = context.module_registry.get(&prelude_path).unwrap();
+
+        // #todo could use a non-mut version of require_module.
+        let prelude = context
+            .get_module("prelude")
+            .expect("prelude should be defined");
 
         // #todo reuse `use` code here or extract helper!
         let bindings = prelude.scope.bindings.borrow().clone();
@@ -69,5 +76,18 @@ impl Context {
         context.scope = Rc::new(Scope::new(context.top_scope.clone()));
 
         context
+    }
+
+    // #todo get_module_mut
+    // #todo require_module
+    pub fn get_module(&self, path: &str) -> Option<&Rc<Module>> {
+        // #todo this is a hack.
+        // #todo extract as function.
+        let url = format!("{}/@std/{}", self.root_path, path);
+
+        // #todo rethink about this canonicalization.
+        let url = canonicalize_path(url);
+
+        self.module_registry.get(&url)
     }
 }
