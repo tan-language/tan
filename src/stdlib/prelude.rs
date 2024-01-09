@@ -26,8 +26,6 @@ use super::{
 
 // #todo instead of evaluating in prelude maybe it's better to use the functions from the actual modules?
 pub fn setup_lib_prelude(context: &mut Context) {
-    // setup_lib_eq(context);
-
     // #todo maybe context.require_module(path) instead?
     let module = require_module("prelude", context);
 
@@ -247,4 +245,6 @@ pub fn setup_lib_prelude(context: &mut Context) {
      */
     // #todo: consider 'ends-with' without '?'.
     module.insert("ends-with?", Expr::ForeignFunc(Arc::new(string_ends_with)));
+
+    // setup_lib_eq(context);
 }

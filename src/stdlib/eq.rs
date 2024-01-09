@@ -301,7 +301,7 @@ pub fn lt(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 // #todo should we have an explicit module for these functions?
 
 pub fn setup_lib_eq(context: &mut Context) {
-    let module = require_module("std/prelude", context);
+    let module = require_module("prelude", context);
 
     module.insert("=", Expr::ForeignFunc(Arc::new(eq)));
     module.insert("=$$Int$$Int", Expr::ForeignFunc(Arc::new(eq)));

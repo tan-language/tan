@@ -91,6 +91,7 @@ pub fn canonicalize_module_path(
     Ok(canonical_path)
 }
 
+// #todo why does it consume path? this is problematic.
 pub fn canonicalize_path(path: String) -> String {
     if let Ok(canonical_path) = PathBuf::from(&path).canonicalize() {
         canonical_path.to_string_lossy().to_string()

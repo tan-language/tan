@@ -90,4 +90,15 @@ impl Context {
 
         self.module_registry.get(&url)
     }
+
+    pub fn get_module_mut(&mut self, path: &str) -> Option<&mut Rc<Module>> {
+        // #todo this is a hack.
+        // #todo extract as function.
+        let url = format!("{}/@std/{}", self.root_path, path);
+
+        // #todo rethink about this canonicalization.
+        let url = canonicalize_path(url);
+
+        self.module_registry.get_mut(&url)
+    }
 }
