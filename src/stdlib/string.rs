@@ -1,7 +1,10 @@
+use std::sync::Arc;
+
 use crate::{
     context::Context,
     error::Error,
     expr::{format_value, Expr},
+    util::module_util::require_module,
 };
 
 // #todo rearrange the functions in some logical order, can be alphabetical.
@@ -389,6 +392,7 @@ pub fn string_replace(args: &[Expr], _context: &mut Context) -> Result<Expr, Err
     // Ok(Expr::String(this.replace(from, to)))
 }
 
+// #todo move to cmp.rs?
 // #todo should this get renamed to `stringable_compare`?
 // #todo should be associated with `Ordering` and `Comparable`.
 pub fn string_compare(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
@@ -425,6 +429,65 @@ pub fn string_compare(args: &[Expr], _context: &mut Context) -> Result<Expr, Err
     };
 
     Ok(Expr::Int(ordering))
+}
+
+pub fn setup_lib_string(context: &mut Context) {
+    let module = require_module("prelude", context);
+    module.insert(
+        "String",
+        Expr::ForeignFunc(Arc::new(string_constructor_from_chars)),
+    );
+    // env.insert("String$$Array", Expr::ForeignFunc(Arc::new(string_constructor_from_chars)));
+
+    module.insert("chars", Expr::ForeignFunc(Arc::new(string_chars)));
+    module.insert("chars$$String", Expr::ForeignFunc(Arc::new(string_chars)));
+
+    module.insert("uppercased", Expr::ForeignFunc(Arc::new(char_uppercased)));
+    module.insert(
+        "uppercases$$Char",
+        Expr::ForeignFunc(Arc::new(char_uppercased)),
+    );
+
+    module.insert("format", Expr::ForeignFunc(Arc::new(format)));
+
+    module.insert("split", Expr::ForeignFunc(Arc::new(string_split)));
+
+    module.insert("replace", Expr::ForeignFunc(Arc::new(string_replace)));
+
+    // #todo slice is to general works both as noun and verb, try to find an explicit verb? e.g. `cut` or `carve`
+    // #todo alternatively use something like `get-slice` or `cut-slice` or `carve-slice`.
+    module.insert("slice", Expr::ForeignFunc(Arc::new(string_slice)));
+    module.insert(
+        "slice$$String$$Int$$Int",
+        Expr::ForeignFunc(Arc::new(string_slice)),
+    );
+    module.insert(
+        "slice$$String$$(Range Int)",
+        Expr::ForeignFunc(Arc::new(string_slice_range)),
+    );
+
+    // #todo find a bette name, `size`?
+    // #insight `count` is _not_ a good name, reserve it for verb/action.
+    module.insert("get-length", Expr::ForeignFunc(Arc::new(string_get_length)));
+    module.insert(
+        "get-length$$String",
+        Expr::ForeignFunc(Arc::new(string_get_length)),
+    );
+
+    module.insert(
+        "starts-with?",
+        Expr::ForeignFunc(Arc::new(string_starts_with)),
+    );
+
+    /*
+    (if (ends-with filename ".png")
+    (if (ends-with? filename ".png")
+        (handle-image filename)
+        (handle filename)
+    )
+     */
+    // #todo: consider 'ends-with' without '?'.
+    module.insert("ends-with?", Expr::ForeignFunc(Arc::new(string_ends_with)));
 }
 
 #[cfg(test)]

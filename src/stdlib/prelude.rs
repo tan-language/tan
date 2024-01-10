@@ -12,15 +12,9 @@ use super::dict::{
 };
 use super::eq::setup_lib_eq;
 use super::io::{read_string, write, writeln};
+use super::seq::array_join;
 use super::seq::{array_count, array_push, array_sort_mut};
-use super::string::{
-    string_ends_with, string_get_length, string_replace, string_slice, string_slice_range,
-    string_split, string_starts_with,
-};
-use super::{
-    seq::array_join,
-    string::{char_uppercased, format, string_chars, string_constructor_from_chars},
-};
+use super::string::setup_lib_string;
 
 // #todo instead of evaluating in prelude maybe it's better to use the functions from the actual modules?
 pub fn setup_lib_prelude(context: &mut Context) {
@@ -132,66 +126,7 @@ pub fn setup_lib_prelude(context: &mut Context) {
     module.insert("get-keys", Expr::ForeignFunc(Arc::new(dict_get_keys)));
     module.insert("get-values", Expr::ForeignFunc(Arc::new(dict_get_values)));
 
-    // string
-
-    // #todo define string functions in string.rs
-
-    module.insert(
-        "String",
-        Expr::ForeignFunc(Arc::new(string_constructor_from_chars)),
-    );
-    // env.insert("String$$Array", Expr::ForeignFunc(Arc::new(string_constructor_from_chars)));
-
-    module.insert("chars", Expr::ForeignFunc(Arc::new(string_chars)));
-    module.insert("chars$$String", Expr::ForeignFunc(Arc::new(string_chars)));
-
-    module.insert("uppercased", Expr::ForeignFunc(Arc::new(char_uppercased)));
-    module.insert(
-        "uppercases$$Char",
-        Expr::ForeignFunc(Arc::new(char_uppercased)),
-    );
-
-    module.insert("format", Expr::ForeignFunc(Arc::new(format)));
-
-    module.insert("split", Expr::ForeignFunc(Arc::new(string_split)));
-
-    module.insert("replace", Expr::ForeignFunc(Arc::new(string_replace)));
-
-    // #todo slice is to general works both as noun and verb, try to find an explicit verb? e.g. `cut` or `carve`
-    // #todo alternatively use something like `get-slice` or `cut-slice` or `carve-slice`.
-    module.insert("slice", Expr::ForeignFunc(Arc::new(string_slice)));
-    module.insert(
-        "slice$$String$$Int$$Int",
-        Expr::ForeignFunc(Arc::new(string_slice)),
-    );
-    module.insert(
-        "slice$$String$$(Range Int)",
-        Expr::ForeignFunc(Arc::new(string_slice_range)),
-    );
-
-    // #todo find a bette name, `size`?
-    // #insight `count` is _not_ a good name, reserve it for verb/action.
-    module.insert("get-length", Expr::ForeignFunc(Arc::new(string_get_length)));
-    module.insert(
-        "get-length$$String",
-        Expr::ForeignFunc(Arc::new(string_get_length)),
-    );
-
-    module.insert(
-        "starts-with?",
-        Expr::ForeignFunc(Arc::new(string_starts_with)),
-    );
-
-    /*
-    (if (ends-with filename ".png")
-    (if (ends-with? filename ".png")
-        (handle-image filename)
-        (handle filename)
-    )
-     */
-    // #todo: consider 'ends-with' without '?'.
-    module.insert("ends-with?", Expr::ForeignFunc(Arc::new(string_ends_with)));
-
     setup_lib_eq(context);
     setup_lib_cmp(context);
+    setup_lib_string(context);
 }
