@@ -77,7 +77,7 @@ pub fn add_dec(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 }
 
 // #todo keep separate, optimized version with just 2 arguments!
-// #todo should support varargs.
+// #todo should support variable args.
 // #todo should return the error without range and range should be added by caller.
 pub fn sub_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo support multiple arguments.
@@ -221,7 +221,7 @@ pub fn cos_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(Expr::Float(n.cos()))
 }
 
-// #todo support varargs?
+// #todo support variable args?
 pub fn powi_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [n, e] = args else {
         return Err(Error::invalid_arguments(

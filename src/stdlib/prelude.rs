@@ -6,6 +6,7 @@ use crate::{context::Context, expr::Expr};
 
 // #todo remove granular imports
 use super::arithmetic;
+use super::cmp::setup_lib_cmp;
 use super::dict::{
     dict_contains_key, dict_get_keys, dict_get_or, dict_get_values, dict_insert, dict_update_mut,
 };
@@ -13,8 +14,8 @@ use super::eq::setup_lib_eq;
 use super::io::{read_string, write, writeln};
 use super::seq::{array_count, array_push, array_sort_mut};
 use super::string::{
-    string_compare, string_ends_with, string_get_length, string_replace, string_slice,
-    string_slice_range, string_split, string_starts_with,
+    string_ends_with, string_get_length, string_replace, string_slice, string_slice_range,
+    string_split, string_starts_with,
 };
 use super::{
     seq::array_join,
@@ -95,24 +96,6 @@ pub fn setup_lib_prelude(context: &mut Context) {
     module.insert(
         "**",
         annotate_type(Expr::ForeignFunc(Arc::new(arithmetic::powi_float)), "Float"),
-    );
-
-    // cmp
-
-    // #todo `eq` and `Comparable` are related.
-    // #todo consider to make sorter: `cmp`.
-
-    module.insert(
-        "compare",
-        Expr::ForeignFunc(Arc::new(arithmetic::int_compare)),
-    );
-    module.insert(
-        "compare$$Int$$Int",
-        annotate_type(Expr::ForeignFunc(Arc::new(arithmetic::int_compare)), "Int"),
-    );
-    module.insert(
-        "compare$$String$$String",
-        annotate_type(Expr::ForeignFunc(Arc::new(string_compare)), "String"),
     );
 
     // io
@@ -210,4 +193,5 @@ pub fn setup_lib_prelude(context: &mut Context) {
     module.insert("ends-with?", Expr::ForeignFunc(Arc::new(string_ends_with)));
 
     setup_lib_eq(context);
+    setup_lib_cmp(context);
 }
