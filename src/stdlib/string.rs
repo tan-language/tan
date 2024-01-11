@@ -433,6 +433,7 @@ pub fn string_compare(args: &[Expr], _context: &mut Context) -> Result<Expr, Err
 
 pub fn setup_lib_string(context: &mut Context) {
     let module = require_module("prelude", context);
+
     module.insert(
         "String",
         Expr::ForeignFunc(Arc::new(string_constructor_from_chars)),

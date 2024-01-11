@@ -11,7 +11,7 @@ use super::dict::{
     dict_contains_key, dict_get_keys, dict_get_or, dict_get_values, dict_insert, dict_update_mut,
 };
 use super::eq::setup_lib_eq;
-use super::io::{read_string, write, writeln};
+use super::io::setup_lib_io;
 use super::seq::array_join;
 use super::seq::{array_count, array_push, array_sort_mut};
 use super::string::setup_lib_string;
@@ -92,19 +92,6 @@ pub fn setup_lib_prelude(context: &mut Context) {
         annotate_type(Expr::ForeignFunc(Arc::new(arithmetic::powi_float)), "Float"),
     );
 
-    // io
-
-    // #todo grab those from /std/io module
-
-    module.insert("read", Expr::ForeignFunc(Arc::new(read_string)));
-    module.insert("read$$String", Expr::ForeignFunc(Arc::new(read_string)));
-
-    module.insert("write", Expr::ForeignFunc(Arc::new(write)));
-    module.insert("write$$String", Expr::ForeignFunc(Arc::new(write)));
-
-    module.insert("writeln", Expr::ForeignFunc(Arc::new(writeln)));
-    module.insert("writeln$$String", Expr::ForeignFunc(Arc::new(writeln)));
-
     // seq
 
     // #todo add type qualifiers!
@@ -128,5 +115,6 @@ pub fn setup_lib_prelude(context: &mut Context) {
 
     setup_lib_eq(context);
     setup_lib_cmp(context);
+    setup_lib_io(context);
     setup_lib_string(context);
 }

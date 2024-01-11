@@ -1,8 +1,11 @@
+use std::sync::Arc;
+
 use crate::{
     api::resolve_string,
     context::Context,
     error::Error,
     expr::{format_value, Expr},
+    util::module_util::require_module,
 };
 
 // #todo also register as a non-prelude module.
@@ -74,4 +77,17 @@ pub fn writeln(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     // #todo nasty implementation!
     write(args, context)?;
     write(&[Expr::string("\n")], context)
+}
+
+pub fn setup_lib_io(context: &mut Context) {
+    let module = require_module("prelude", context);
+
+    module.insert("read", Expr::ForeignFunc(Arc::new(read_string)));
+    module.insert("read$$String", Expr::ForeignFunc(Arc::new(read_string)));
+
+    module.insert("write", Expr::ForeignFunc(Arc::new(write)));
+    module.insert("write$$String", Expr::ForeignFunc(Arc::new(write)));
+
+    module.insert("writeln", Expr::ForeignFunc(Arc::new(writeln)));
+    module.insert("writeln$$String", Expr::ForeignFunc(Arc::new(writeln)));
 }
