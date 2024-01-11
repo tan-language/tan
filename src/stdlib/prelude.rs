@@ -10,8 +10,7 @@ use super::cmp::setup_lib_cmp;
 use super::dict::setup_lib_dict;
 use super::eq::setup_lib_eq;
 use super::io::setup_lib_io;
-use super::seq::array_join;
-use super::seq::{array_count, array_push, array_sort_mut};
+use super::seq::setup_lib_seq;
 use super::string::setup_lib_string;
 
 // #todo instead of evaluating in prelude maybe it's better to use the functions from the actual modules?
@@ -90,17 +89,10 @@ pub fn setup_lib_prelude(context: &mut Context) {
         annotate_type(Expr::ForeignFunc(Arc::new(arithmetic::powi_float)), "Float"),
     );
 
-    // seq
-
-    // #todo add type qualifiers!
-    module.insert("push", Expr::ForeignFunc(Arc::new(array_push)));
-    module.insert("join", Expr::ForeignFunc(Arc::new(array_join)));
-    module.insert("count", Expr::ForeignFunc(Arc::new(array_count)));
-    module.insert("sort!", Expr::ForeignFunc(Arc::new(array_sort_mut)));
-
     setup_lib_eq(context);
     setup_lib_cmp(context);
     setup_lib_io(context);
     setup_lib_string(context);
+    setup_lib_seq(context);
     setup_lib_dict(context);
 }

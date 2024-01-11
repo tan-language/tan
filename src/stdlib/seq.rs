@@ -1,8 +1,11 @@
+use std::sync::Arc;
+
 use crate::{
     context::Context,
     error::Error,
     eval::invoke_func,
     expr::{format_value, Expr},
+    util::module_util::require_module,
 };
 
 use super::cmp::rust_ordering_from_tan_ordering;
@@ -164,6 +167,16 @@ pub fn array_sort_mut(args: &[Expr], context: &mut Context) -> Result<Expr, Erro
 
     // Ok(Expr::array(array_items.clone()))
     Ok(array.clone())
+}
+
+pub fn setup_lib_seq(context: &mut Context) {
+    let module = require_module("prelude", context);
+
+    // #todo add type qualifiers!
+    module.insert("push", Expr::ForeignFunc(Arc::new(array_push)));
+    module.insert("join", Expr::ForeignFunc(Arc::new(array_join)));
+    module.insert("count", Expr::ForeignFunc(Arc::new(array_count)));
+    module.insert("sort!", Expr::ForeignFunc(Arc::new(array_sort_mut)));
 }
 
 #[cfg(test)]
