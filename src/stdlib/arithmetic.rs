@@ -1,7 +1,14 @@
+use std::sync::Arc;
+
 #[cfg(feature = "dec")]
 use rust_decimal_macros::dec;
 
-use crate::{context::Context, error::Error, expr::Expr};
+use crate::{
+    context::Context,
+    error::Error,
+    expr::{annotate_type, Expr},
+    util::module_util::require_module,
+};
 
 // #todo rename rust implementations to {type}_{func}.
 
@@ -280,6 +287,79 @@ pub fn int_compare(args: &[Expr], _context: &mut Context) -> Result<Expr, Error>
     };
 
     Ok(Expr::Int(ordering))
+}
+
+pub fn setup_lib_arithmetic(context: &mut Context) {
+    let module = require_module("prelude", context);
+
+    // #todo forget the mangling, implement with a dispatcher function, multi-function.
+    module.insert(
+        "+",
+        annotate_type(Expr::ForeignFunc(Arc::new(add_int)), "Int"),
+    );
+    module.insert(
+        "+$$Int$$Int",
+        annotate_type(Expr::ForeignFunc(Arc::new(add_int)), "Int"),
+    );
+    module.insert(
+        "+$$Float$$Float",
+        // #todo add the proper type: (Func Float Float Float)
+        // #todo even better: (Func (Many Float) Float)
+        annotate_type(Expr::ForeignFunc(Arc::new(add_float)), "Float"),
+    );
+    #[cfg(feature = "dec")]
+    module.insert(
+        "+$$Dec$$Dec",
+        // #todo add the proper type: (Func Dec Dec Dec)
+        // #todo even better: (Func (Many Dec) Dec)
+        annotate_type(Expr::ForeignFunc(Arc::new(add_dec)), "Dec"),
+    );
+    module.insert("-", Expr::ForeignFunc(Arc::new(sub_int)));
+    module.insert(
+        "-$$Int$$Int",
+        annotate_type(Expr::ForeignFunc(Arc::new(sub_int)), "Int"),
+    );
+    module.insert(
+        "-$$Float$$Float",
+        annotate_type(Expr::ForeignFunc(Arc::new(sub_float)), "Float"),
+    );
+    module.insert("*", Expr::ForeignFunc(Arc::new(mul_int)));
+    module.insert(
+        "*$$Int$$Int",
+        annotate_type(Expr::ForeignFunc(Arc::new(mul_int)), "Int"),
+    );
+    module.insert(
+        "*$$Float$$Float",
+        // #todo add the proper type: (Func Float Float Float)
+        // #todo even better: (Func (Many Float) Float)
+        annotate_type(Expr::ForeignFunc(Arc::new(mul_float)), "Float"),
+    );
+    module.insert(
+        "/",
+        annotate_type(Expr::ForeignFunc(Arc::new(div_float)), "Float"),
+    );
+    // #todo ultra-hack
+    module.insert(
+        "/$$Float$$Float",
+        annotate_type(Expr::ForeignFunc(Arc::new(div_float)), "Float"),
+    );
+    // #todo ultra-hack
+    module.insert(
+        "/$$Float$$Float$$Float",
+        annotate_type(Expr::ForeignFunc(Arc::new(div_float)), "Float"),
+    );
+    module.insert(
+        "sin",
+        annotate_type(Expr::ForeignFunc(Arc::new(sin_float)), "Float"),
+    );
+    module.insert(
+        "cos",
+        annotate_type(Expr::ForeignFunc(Arc::new(cos_float)), "Float"),
+    );
+    module.insert(
+        "**",
+        annotate_type(Expr::ForeignFunc(Arc::new(powi_float)), "Float"),
+    );
 }
 
 #[cfg(test)]
