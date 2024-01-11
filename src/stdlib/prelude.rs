@@ -7,9 +7,7 @@ use crate::{context::Context, expr::Expr};
 // #todo remove granular imports
 use super::arithmetic;
 use super::cmp::setup_lib_cmp;
-use super::dict::{
-    dict_contains_key, dict_get_keys, dict_get_or, dict_get_values, dict_insert, dict_update_mut,
-};
+use super::dict::setup_lib_dict;
 use super::eq::setup_lib_eq;
 use super::io::setup_lib_io;
 use super::seq::array_join;
@@ -100,21 +98,9 @@ pub fn setup_lib_prelude(context: &mut Context) {
     module.insert("count", Expr::ForeignFunc(Arc::new(array_count)));
     module.insert("sort!", Expr::ForeignFunc(Arc::new(array_sort_mut)));
 
-    // dict
-
-    // #todo add type qualifiers!
-    module.insert(
-        "contains-key",
-        Expr::ForeignFunc(Arc::new(dict_contains_key)),
-    );
-    module.insert("insert", Expr::ForeignFunc(Arc::new(dict_insert)));
-    module.insert("update!", Expr::ForeignFunc(Arc::new(dict_update_mut)));
-    module.insert("get-or", Expr::ForeignFunc(Arc::new(dict_get_or)));
-    module.insert("get-keys", Expr::ForeignFunc(Arc::new(dict_get_keys)));
-    module.insert("get-values", Expr::ForeignFunc(Arc::new(dict_get_values)));
-
     setup_lib_eq(context);
     setup_lib_cmp(context);
     setup_lib_io(context);
     setup_lib_string(context);
+    setup_lib_dict(context);
 }

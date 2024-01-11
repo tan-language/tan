@@ -1,7 +1,10 @@
+use std::sync::Arc;
+
 use crate::{
     context::Context,
     error::Error,
     expr::{expr_clone, format_value, Expr},
+    util::module_util::require_module,
 };
 
 // #todo implement some of those functions: https://www.programiz.com/python-programming/methods/dictionary
@@ -195,6 +198,21 @@ pub fn dict_get_values(args: &[Expr], _context: &mut Context) -> Result<Expr, Er
     let keys: Vec<_> = items.values().map(expr_clone).collect();
 
     Ok(Expr::array(keys))
+}
+
+pub fn setup_lib_dict(context: &mut Context) {
+    let module = require_module("prelude", context);
+
+    // #todo add type qualifiers!
+    module.insert(
+        "contains-key",
+        Expr::ForeignFunc(Arc::new(dict_contains_key)),
+    );
+    module.insert("insert", Expr::ForeignFunc(Arc::new(dict_insert)));
+    module.insert("update!", Expr::ForeignFunc(Arc::new(dict_update_mut)));
+    module.insert("get-or", Expr::ForeignFunc(Arc::new(dict_get_or)));
+    module.insert("get-keys", Expr::ForeignFunc(Arc::new(dict_get_keys)));
+    module.insert("get-values", Expr::ForeignFunc(Arc::new(dict_get_values)));
 }
 
 #[cfg(test)]
