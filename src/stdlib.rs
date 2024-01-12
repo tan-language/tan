@@ -1,4 +1,5 @@
 pub mod arithmetic;
+pub mod chrono;
 pub mod cmark;
 pub mod cmp;
 pub mod css_expr;
@@ -20,9 +21,10 @@ pub mod string;
 use crate::context::Context;
 
 use self::{
-    cmark::setup_lib_text_cmark, css_expr::setup_lib_css_expr, fs::setup_lib_fs,
-    html::setup_lib_html, json::setup_lib_codec_json, network::http::setup_lib_http,
-    prelude::setup_lib_prelude, process::setup_lib_process, rng::setup_lib_rand,
+    chrono::setup_lib_chrono, cmark::setup_lib_text_cmark, css_expr::setup_lib_css_expr,
+    fs::setup_lib_fs, html::setup_lib_html, json::setup_lib_codec_json,
+    network::http::setup_lib_http, prelude::setup_lib_prelude, process::setup_lib_process,
+    rng::setup_lib_rand,
 };
 
 // #todo consider extracting as a (temporary?) crate, e.g. tan-stdlib-native, tan-native-lib, tan-runtime
@@ -59,6 +61,7 @@ pub fn setup_lib(context: &mut Context) {
     setup_lib_css_expr(context);
     setup_lib_codec_json(context);
     setup_lib_http(context);
+    setup_lib_chrono(context);
 
     setup_lib_prelude(context);
 }
