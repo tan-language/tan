@@ -41,14 +41,31 @@ pub fn process_exit(args: &[Expr], _context: &mut Context) -> Result<Expr, Error
 
 // #todo probably these FFI functions should just return an Expr, no Result.
 
-/// Return the process arguments as an array
-pub fn process_args(_args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+// #insight not used yet.
+/// Return the process arguments as an array, includes the foreign ('host') arguments.
+pub fn process_foreign_args(_args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let mut args = Vec::new();
 
     for arg in std::env::args() {
         args.push(Expr::string(arg))
     }
 
+    Ok(Expr::array(args))
+}
+
+/// Return the process arguments as an array
+pub fn process_args(_args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+    // #todo warn in arguments passed!
+
+    let process_args = context.top_scope.get("**process-args**").unwrap();
+    let process_args = process_args.as_array().unwrap();
+
+    // #todo consider a ref expression!
+    // #todo #hack #nasty crappy temp solution.
+    let mut args = Vec::new();
+    for arg in process_args.iter() {
+        args.push(arg.clone());
+    }
     Ok(Expr::array(args))
 }
 
