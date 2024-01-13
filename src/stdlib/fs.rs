@@ -182,6 +182,27 @@ pub fn list_as_tree(args: &[Expr], _context: &mut Context) -> Result<Expr, Error
     Ok(tree)
 }
 
+/// Checks if a path exists.
+pub fn fs_exists(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [path] = args else {
+        return Err(Error::invalid_arguments(
+            "`exists?` requires a `path` argument",
+            None,
+        ));
+    };
+
+    let Some(path) = path.as_string() else {
+        return Err(Error::invalid_arguments(
+            "`path` argument should be a String",
+            path.range(),
+        ));
+    };
+
+    let exists = std::fs::metadata(path).is_ok();
+
+    Ok(Expr::Bool(exists))
+}
+
 // #todo move
 // #todo delete (or remove?)
 
@@ -296,6 +317,9 @@ pub fn setup_lib_fs(context: &mut Context) {
         "list-as-tree$$String",
         Expr::ForeignFunc(Arc::new(list_as_tree)),
     );
+
+    module.insert("exists?", Expr::ForeignFunc(Arc::new(fs_exists)));
+    module.insert("exists?$$String", Expr::ForeignFunc(Arc::new(fs_exists)));
 
     module.insert("copy", Expr::ForeignFunc(Arc::new(copy)));
 

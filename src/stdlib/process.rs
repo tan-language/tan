@@ -56,6 +56,7 @@ pub fn process_foreign_args(_args: &[Expr], _context: &mut Context) -> Result<Ex
 /// Return the process arguments as an array
 pub fn process_args(_args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     // #todo warn in arguments passed!
+    // #todo add unit-test
 
     let process_args = context.top_scope.get("**process-args**").unwrap();
     let process_args = process_args.as_array().unwrap();
