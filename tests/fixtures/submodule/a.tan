@@ -1,4 +1,4 @@
-(let afunc (Func (s)
+(let afunc (Func [s]
     (writeln "A: " s)
 ))
 
