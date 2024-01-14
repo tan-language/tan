@@ -1143,9 +1143,11 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             // #todo move handling of Expr::One to as_list?
 
-                            let params = if let Some(params) = params.as_list() {
+                            // #todo should check both for list and array (i.e. as_iterable)
+                            let params = if let Some(params) = params.as_array() {
                                 params.clone()
                             } else if params.is_one() {
+                                // #insight is_one as in is_unit
                                 Vec::new()
                             } else {
                                 return Err(Error::invalid_arguments(

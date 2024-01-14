@@ -229,7 +229,7 @@ mod tests {
         let mut context = Context::new();
 
         let input = r#"
-            (sort! [5 1 6 4 3] (Func (x y) (- x y)))
+            (sort! [5 1 6 4 3] (Func [x y] (- x y)))
         "#;
         let expr = eval_string(input, &mut context).unwrap();
         let value = format_value(expr);
@@ -237,7 +237,7 @@ mod tests {
         assert_eq!(value, expected);
 
         let input = r#"
-            (sort! [5 1 6 4 3] (Func (x y) (- y x)))
+            (sort! [5 1 6 4 3] (Func [x y] (- y x)))
         "#;
         let expr = eval_string(input, &mut context).unwrap();
         let value = format_value(expr);
