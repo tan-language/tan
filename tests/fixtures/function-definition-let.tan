@@ -1,6 +1,6 @@
 ; Regression test: a function definition that uses a parameter in let.
 
-(let uppercased-string (Func (s)
+(let uppercased-string (Func [s]
     (do
         (let cs (chars s))
         (writeln s)

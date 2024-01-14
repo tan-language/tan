@@ -1,5 +1,5 @@
 ; A function with no parameters (effects-only)
-(let effects-only (Func ()
+(let effects-only (Func []
     "it works"
 ))
 

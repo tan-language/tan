@@ -137,7 +137,7 @@ pub fn array_filter(_args: &[Expr], _context: &mut Context) -> Result<Expr, Erro
 // #todo implement sort!, sort, sort-by!, sort-by
 // #todo need to introduce Comparable trait and (cmp ...) or (compare ...)
 // #todo need to introduce Ordering trait
-// (sort [9 2 7] (Func (a b) (- a b)))
+// (sort [9 2 7] (Func [a b] (- a b)))
 // (sort [9 2 7] (-> [a b] (- a b)))
 pub fn array_sort_mut(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     let [array, func] = args else {
@@ -229,7 +229,7 @@ mod tests {
         let mut context = Context::new();
 
         let input = r#"
-            (sort! [5 1 6 4 3] (Func (x y) (- x y)))
+            (sort! [5 1 6 4 3] (Func [x y] (- x y)))
         "#;
         let expr = eval_string(input, &mut context).unwrap();
         let value = format_value(expr);
@@ -237,7 +237,7 @@ mod tests {
         assert_eq!(value, expected);
 
         let input = r#"
-            (sort! [5 1 6 4 3] (Func (x y) (- y x)))
+            (sort! [5 1 6 4 3] (Func [x y] (- y x)))
         "#;
         let expr = eval_string(input, &mut context).unwrap();
         let value = format_value(expr);

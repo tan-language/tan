@@ -1,5 +1,5 @@
 (do
-    (let f (Func (x)
+    (let f (Func [x]
         (let a (+ 1 x)
              b (+ 2 x)
         )
