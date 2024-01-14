@@ -2,6 +2,7 @@ use std::fs;
 use std::path::Path;
 use std::sync::Arc;
 
+use crate::error::ErrorKind;
 use crate::util::module_util::require_module;
 use crate::{context::Context, error::Error, expr::Expr};
 
@@ -26,6 +27,8 @@ pub fn read_file_to_string(args: &[Expr], _context: &mut Context) -> Result<Expr
         ));
     };
 
+    let path_range = path.range();
+
     let Some(path) = path.as_string() else {
         return Err(Error::invalid_arguments(
             "`path` argument should be a String",
@@ -33,9 +36,16 @@ pub fn read_file_to_string(args: &[Expr], _context: &mut Context) -> Result<Expr
         ));
     };
 
-    let contents = fs::read_to_string(path)?;
+    // #todo investigate if there is an error crate for annotating errors.
 
-    Ok(Expr::String(contents))
+    match fs::read_to_string(path) {
+        Ok(contents) => Ok(Expr::String(contents)),
+        Err(io_error) => {
+            let mut error = Error::new(ErrorKind::Io(io_error));
+            error.push_note(&format!("while reading `{path}`"), path_range);
+            Err(error)
+        }
+    }
 }
 
 // #todo decide on the parameters order.
