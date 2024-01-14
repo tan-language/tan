@@ -156,7 +156,7 @@ mod tests {
 
             (let name "George")
 
-            (let component (Func (name)
+            (let component (Func [name]
                 '(div "Component: " $name " is cool!")
             ))
 

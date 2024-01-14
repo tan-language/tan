@@ -3,10 +3,10 @@
         (List 'if condition then else)
     ))
 
-    (let fact (Func (x)
+    (let fact (Func [x]
         (my_if (= x 0)
             1
-            (* (fact (- x 1)) x)
+    ks        (* (fact (- x 1)) x)
         )
     ))
 

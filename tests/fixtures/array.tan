@@ -1,6 +1,6 @@
-(let f (Func (x) (+ 1 x)))
+(let f (Func [x] (+ 1 x)))
 
-(let g (Func (x) (+ 2 x)))
+(let g (Func [x] (+ 2 x)))
 
 (let arr [(f 1) (f 2) (g 3)])
 

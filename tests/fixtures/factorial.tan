@@ -1,6 +1,6 @@
 (do
     ; Computes `x!`, the factorial of `x`.
-    (let fact (Func (x)
+    (let fact (Func [x]
         (if (= x 0)
             1
             (* (fact (- x 1)) x)

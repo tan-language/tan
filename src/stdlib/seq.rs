@@ -137,7 +137,7 @@ pub fn array_filter(_args: &[Expr], _context: &mut Context) -> Result<Expr, Erro
 // #todo implement sort!, sort, sort-by!, sort-by
 // #todo need to introduce Comparable trait and (cmp ...) or (compare ...)
 // #todo need to introduce Ordering trait
-// (sort [9 2 7] (Func (a b) (- a b)))
+// (sort [9 2 7] (Func [a b] (- a b)))
 // (sort [9 2 7] (-> [a b] (- a b)))
 pub fn array_sort_mut(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     let [array, func] = args else {
