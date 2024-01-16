@@ -153,8 +153,11 @@ pub fn list(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 
         // #todo should this also include dirs?
         if !entry_path.is_dir() {
+            // #todo annotate with File-Path-String
             list.push(Expr::String(entry_path.to_str().unwrap().to_string()));
         }
+
+        // #todo #fix this skips the directories, also add dirs!
 
         // if entry_path.is_dir() {
         //     let dir_name = entry_path.to_str().unwrap().to_string();

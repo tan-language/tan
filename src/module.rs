@@ -6,6 +6,7 @@ use crate::{expr::Expr, scope::Scope};
 // #idea consider hashing to detect the same modules!
 
 // #todo keep and define `path`, `name`, `prefix`.
+// #todo keep path/url, compute stem/name.
 
 #[derive(Debug, Clone)]
 pub struct Module {
