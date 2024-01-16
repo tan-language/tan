@@ -1,4 +1,4 @@
-// #Insight
+// #insight
 // What we call reserved_symbol is maybe similar to lisp's 'special form'?
 
 // #todo consider using `name` instead of `symbol`?

@@ -14,10 +14,10 @@ use crate::{
 
 use self::{iterator::try_iterator_from, util::eval_module};
 
-// #Insight
+// #insight
 // _Not_ a pure evaluator, performs side-effects.
 
-// #Insight
+// #insight
 // I don't like the name `interpreter`.
 
 // #todo move excessive error-checking/linting to the resolve/typecheck pass.
@@ -386,7 +386,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             Ok(value)
                         }
                         "ann" => {
-                            // #Insight implemented as special-form because it applies to Ann<Expr>.
+                            // #insight implemented as special-form because it applies to Ann<Expr>.
                             // #todo try to implement as ForeignFn
 
                             if tail.len() != 1 {

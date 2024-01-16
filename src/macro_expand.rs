@@ -9,7 +9,7 @@ use crate::{
     util::is_reserved_symbol,
 };
 
-// #Insight it mutates the env which is used in eval also!
+// #insight it mutates the env which is used in eval also!
 
 // #todo `elision`, `elide` sounds better than `prune`?
 // #todo rename to `prune_expand`?
@@ -45,7 +45,7 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                 Expr::Macro(params, body) => {
                     // This is the actual macro-expansion
 
-                    // #Insight
+                    // #insight
                     // Macro arguments are lazily evaluated.
 
                     let args = tail;

@@ -23,7 +23,7 @@ use crate::range::Range;
 // #todo maybe use Ann instead of Ranged?
 // #todo maybe use Expr for the errors?
 
-// #Insight Eval always returns one error, actually no it can call read/parse/ that can return many errors!
+// #insight Eval always returns one error, actually no it can call read/parse/ that can return many errors!
 
 // Example of a good error:
 //

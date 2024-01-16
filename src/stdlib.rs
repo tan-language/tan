@@ -45,7 +45,7 @@ use self::{
 // #todo primitives, builtins
 // #todo cannot be implemented with Expr::ForeignFunc as the args are pre-evaluated.
 
-// #Insight special-form != primitive ? special form requires special case in the interpreter?
+// #insight special-form != primitive ? special form requires special case in the interpreter?
 
 // #todo consider removing the `std` prefix from module paths, like haskell.
 // #todo find a better prefix than setup_

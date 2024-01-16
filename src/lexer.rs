@@ -46,18 +46,18 @@ fn is_range(input: &str) -> bool {
 
 // #todo stateful lexer vs buffer
 
-// #Insight
+// #insight
 // Rust's `Peekable` iterator is not used, as multiple-lookahead is
 // required to scan e.g. signed-numbers. Additionally, the 'put_back' interface
 // seems more intuitive and ergonomic.
 
-// #Insight
+// #insight
 // The lexer does not need synchronization to recover from errors.
 
-// #Insight
+// #insight
 // Don't try to make the lexer just a function.
 
-// #Insight
+// #insight
 // Numeric tokens parsing is postponed to a later stage (parse):
 //   - there is more semantic information (e.g. annotations)
 //   - joint synchronization in parsing phase allows to find more errors
@@ -183,7 +183,7 @@ impl<'a> Lexer<'a> {
             };
 
             if is_eol(ch) {
-                // #Insight we put back the trailing EOL to help with range
+                // #insight we put back the trailing EOL to help with range
                 // and MultiLineWhitespace computation.
                 self.put_back_char(ch);
                 break;
@@ -336,7 +336,7 @@ impl<'a> Lexer<'a> {
         let lexeme = self.scan_lexeme();
 
         // Ignore `_`, it is considered a number separator.
-        // #Insight do _not_ consider `,` as number separator, bad idea!
+        // #insight do _not_ consider `,` as number separator, bad idea!
         lexeme.replace('_', "")
     }
 
@@ -385,7 +385,7 @@ impl<'a> Lexer<'a> {
                     tokens.push(Token::new(TokenKind::RightBrace, self.current_range()));
                 }
                 ';' => {
-                    // #Insight
+                    // #insight
                     // We only support `;` line comments and not `--` line comments
                     // The `--` line comments don't play well with the use of `-`
                     // as word separator in names.

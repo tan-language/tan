@@ -125,7 +125,7 @@ fn parse_reports_quote_errors() {
     assert_eq!(range.start.index, 0);
     assert_eq!(range.end.index, 1);
 
-    // #Insight we should allow consecutive quotes, emit a linter warning instead!
+    // #insight we should allow consecutive quotes, emit a linter warning instead!
 
     // // Consecutive quotes
 

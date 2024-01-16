@@ -11,7 +11,7 @@ impl Expr {
     }
 }
 
-// #Insight
+// #insight
 // The iterator is implemented as a separate struct, for flexibility.
 
 // #todo support in-order, pre-order, post-order

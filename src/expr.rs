@@ -36,13 +36,13 @@ use crate::{
 // #todo List, MaybeList, Call
 // #todo Expr::Range()
 
-// #Insight
+// #insight
 // AST = Expr = Value = Object
 
-// #Insight
+// #insight
 // The use of Vec in the Expr enum, keeps the nested expressions in the heap.
 
-// #Insight
+// #insight
 // No need for a Zero/Never/Nothing Expr variant?
 
 // #todo (do ...) blocks should also have lexical scope.

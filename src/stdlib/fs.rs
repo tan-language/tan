@@ -11,6 +11,8 @@ use crate::{context::Context, error::Error, expr::Expr};
 // #todo do FFI functions really need an env?
 // #todo differentiate pure functions that do not change the env!
 
+// #todo consider relationship with a `shell` package.
+
 // File < Resource
 // #todo extract file-system-related functionality to `fs` or even the more general `rs` == resource space.
 // #todo consider mapping `:` to `__` and use #[allow(snake_case)]
@@ -153,18 +155,16 @@ pub fn list(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 
         // #todo should this also include dirs?
         if !entry_path.is_dir() {
-            // #todo annotate with File-Path-String
+            // #todo annotate with `File-Path`
             list.push(Expr::String(entry_path.to_str().unwrap().to_string()));
         }
 
         // #todo #fix this skips the directories, also add dirs!
-
-        // if entry_path.is_dir() {
+        // #todo add trailing slash to dirs and push them to the list?
+        // else {
+        //     // #todo annotate with `Dir-Path``
         //     let dir_name = entry_path.to_str().unwrap().to_string();
-        //     tree.push(Expr::String(format!("{dir_name}/")));
-        //     tree.append(&mut walk_dir(&entry_path));
-        // } else {
-        //     tree.push(Expr::String(entry_path.to_str().unwrap().to_string()));
+        //     list.push(Expr::String(format!("{dir_name}/")));
         // }
     }
 

@@ -12,7 +12,7 @@ use crate::{
 // #todo split into multiple passes?
 // #todo it currently includes the optimize pass, split!
 
-// #Insight resolve_type and resolve_invocable should be combined, cannot be separate passes.
+// #insight resolve_type and resolve_invocable should be combined, cannot be separate passes.
 
 // #todo signature should also encode the return type!!
 // #todo how to handle VARARG functions ?!?!
@@ -295,7 +295,7 @@ impl Resolver {
                         //     head.clone()
                         // };
 
-                        // // #Insight head should get resolved after the tail.
+                        // // #insight head should get resolved after the tail.
                         // let head = self.resolve_expr(head, env);
 
                         // let mut list = vec![head.clone()];
@@ -365,7 +365,7 @@ impl Resolver {
                             head.clone()
                         };
 
-                        // #Insight head should get resolved after the tail.
+                        // #insight head should get resolved after the tail.
                         let head = self.resolve_expr(head, context);
 
                         let mut list = vec![head.clone()];
