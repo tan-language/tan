@@ -28,6 +28,7 @@ pub fn tan_date_from_rust_date(rust_date: NaiveDate) -> Expr {
     // #todo support annotation with multiple types/traits, e.g. both Date + Map.
 
     let expr = Expr::dict(dict);
+
     annotate_type(expr, "Date")
 }
 
@@ -65,6 +66,28 @@ pub fn chrono_date(args: &[Expr], _context: &mut Context) -> Result<Expr, Error>
     } else {
         chrono_date_from_string(args, _context)
     }
+}
+
+pub fn chrono_date_to_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [this] = args else {
+        return Err(Error::invalid_arguments("requires `this` argument", None));
+    };
+
+    // #todo check dyn_type.
+
+    let Some(dict) = this.as_dict() else {
+        return Err(Error::invalid_arguments(
+            "`this` argument should be a Date",
+            this.range(),
+        ));
+    };
+
+    // #todo error checking!
+    // #todo zero-pad
+
+    let str = format!("{}-{}-{}", dict["year"], dict["month"], dict["day"]);
+
+    Ok(Expr::string(str))
 }
 
 pub fn setup_lib_chrono(context: &mut Context) {
