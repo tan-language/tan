@@ -481,6 +481,7 @@ impl Expr {
 
     // #todo how about return &Expr to avoid clones?
     pub fn dyn_type(&self, context: &Context) -> Expr {
+        // #todo make constant out of "type".
         if let Some(typ) = self.annotation("type") {
             return typ.clone();
         }
@@ -516,14 +517,15 @@ impl Expr {
 
 #[must_use]
 pub fn annotate(mut expr: Expr, name: impl Into<String>, ann_expr: Expr) -> Expr {
+    let name = name.into();
     match expr {
         Expr::Annotated(_, ref mut ann) => {
-            ann.insert(name.into(), ann_expr);
+            ann.insert(name, ann_expr);
             expr
         }
         expr => {
             let mut ann = HashMap::new();
-            ann.insert(name.into(), ann_expr);
+            ann.insert(name, ann_expr);
             Expr::Annotated(Box::new(expr), ann)
         }
     }
