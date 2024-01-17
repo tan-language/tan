@@ -73,3 +73,23 @@ pub fn setup_lib_chrono(context: &mut Context) {
     module.insert("Date", Expr::ForeignFunc(Arc::new(chrono_date)));
     // #todo add more functions
 }
+
+#[cfg(test)]
+mod tests {
+    use assert_matches::assert_matches;
+
+    use crate::{context::Context, expr::Expr};
+
+    use super::chrono_date;
+
+    #[test]
+    fn chrono_date_usage() {
+        let mut context = Context::new();
+        let args = [Expr::string("2024-01-17")];
+        let date = chrono_date(&args, &mut context).unwrap();
+        let dict = date.as_dict().unwrap();
+        assert_matches!(dict.get("year").unwrap(), Expr::Int(year) if *year == 2024);
+        assert_matches!(dict.get("month").unwrap(), Expr::Int(month) if *month == 1);
+        assert_matches!(dict.get("day").unwrap(), Expr::Int(day) if *day == 17);
+    }
+}
