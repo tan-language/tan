@@ -481,6 +481,7 @@ impl Expr {
 
     // #todo how about return &Expr to avoid clones?
     pub fn dyn_type(&self, context: &Context) -> Expr {
+        // #todo make constant out of "type".
         if let Some(typ) = self.annotation("type") {
             return typ.clone();
         }

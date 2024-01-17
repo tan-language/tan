@@ -2,7 +2,12 @@ use std::{collections::HashMap, sync::Arc};
 
 use chrono::{Datelike, NaiveDate, Utc};
 
-use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
+use crate::{
+    context::Context,
+    error::Error,
+    expr::{annotate_type, Expr},
+    util::module_util::require_module,
+};
 
 // #todo what is a better name for DateTime.
 // #todo does it make sense to support a Date? maybe we could only support a 'DateTime'
@@ -20,7 +25,10 @@ pub fn tan_date_from_rust_date(rust_date: NaiveDate) -> Expr {
     );
     dict.insert("day".to_string(), Expr::Int((rust_date.day0() + 1) as i64));
 
-    Expr::dict(dict)
+    // #todo support annotation with multiple types/traits, e.g. both Date + Map.
+
+    let expr = Expr::dict(dict);
+    annotate_type(expr, "Date")
 }
 
 pub fn chrono_date_now(_args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
