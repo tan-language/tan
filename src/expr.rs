@@ -479,6 +479,8 @@ impl Expr {
         self.annotation("type").unwrap_or(&Expr::One)
     }
 
+    // #todo we need a version that returns just a string.
+
     // #todo how about return &Expr to avoid clones?
     pub fn dyn_type(&self, context: &Context) -> Expr {
         // #todo make constant out of "type".
