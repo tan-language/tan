@@ -17,6 +17,7 @@ pub mod process;
 pub mod rng;
 pub mod seq;
 pub mod string;
+pub mod testing;
 
 use crate::context::Context;
 
@@ -62,6 +63,7 @@ pub fn setup_lib(context: &mut Context) {
     setup_lib_codec_json(context);
     setup_lib_http(context);
     setup_lib_chrono(context);
+    setup_lib_testing(context);
 
     setup_lib_prelude(context);
 }
