@@ -5,7 +5,11 @@
 
 // #todo assert
 // #todo assert-eq
+// #todo assert-not-eq
 // #todo assert-is-matching
+// #todo assert-is-error
+// #todo assert-is-panic
+
 // #todo support optional message?
 
 use std::sync::Arc;
@@ -25,7 +29,23 @@ pub fn assert_eq(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     };
 
     // #insight args are pre-evaluated, no need for eval_args.
-    func(args, context)
+    let result = func(args, context);
+
+    let Ok(result) = result else {
+        return result;
+    };
+
+    let Expr::Bool(b) = result else {
+        panic!("unexpected error");
+    };
+
+    if !b {
+        return Err(Error::general("assertion failed"));
+    }
+
+    // #todo how to report the assertion? no panic in test mode.
+
+    Ok(result)
 }
 
 pub fn setup_lib_testing(context: &mut Context) {
