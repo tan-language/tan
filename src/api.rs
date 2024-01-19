@@ -162,6 +162,7 @@ pub fn resolve_string(
     Ok(resolved_exprs)
 }
 
+// #todo a version where no context is passed, call it `exec_string` or `run_string`?
 // #todo this implements in essence a do block. Maybe no value should be returned?
 /// Evaluates a Tan expression encoded as a text string.
 pub fn eval_string(input: impl AsRef<str>, context: &mut Context) -> Result<Expr, Vec<Error>> {
