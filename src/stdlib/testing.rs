@@ -2,6 +2,7 @@
 // #todo also provide 'debug' version of assert that is stripped in prod builds
 // #todo easier to implement with Tan code?
 // #todo no need for #test annotation, at least initially, just scan for *.test.tan extension and explicitly call the test functions
+// #todo have a separate module with 'runtime' asserts, e.g. called just `asserts`.
 
 // #todo assert
 // #todo assert-eq
@@ -40,6 +41,7 @@ pub fn assert_eq(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     };
 
     if !b {
+        // #todo give exact details about that failed!
         return Err(Error::general("assertion failed"));
     }
 
