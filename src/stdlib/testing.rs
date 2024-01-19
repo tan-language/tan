@@ -12,22 +12,26 @@ use std::sync::Arc;
 
 use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
 
-pub fn assert_eq(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
-    let [left, right] = args else {
-        return Err(Error::invalid_arguments(
-            "requires `left` and `right` arguments",
-            None,
-        ));
+pub fn assert_eq(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+    // #todo need to implement method dispatching here!
+
+    // #todo for the moment only supports int!
+    let name = "=$$Int$$Int";
+
+    let func = context.scope.get(name).unwrap();
+    let func = func.unpack();
+    let Expr::ForeignFunc(func) = func else {
+        panic!("unexpected error");
     };
 
-    // #todo
-    Ok(Expr::Bool(false))
+    // #insight args are pre-evaluated, no need for eval_args.
+    func(args, context)
 }
 
 pub fn setup_lib_testing(context: &mut Context) {
     let module = require_module("testing", context);
 
-    module.insert("assert_eq", Expr::ForeignFunc(Arc::new(assert_eq)));
+    module.insert("assert-eq", Expr::ForeignFunc(Arc::new(assert_eq)));
 }
 
 #[cfg(test)]

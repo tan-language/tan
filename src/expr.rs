@@ -466,6 +466,14 @@ impl Expr {
         Some(dict.borrow_mut())
     }
 
+    // #todo consider #[inline]
+    pub fn as_func(&self) -> Option<i64> {
+        let Expr::Int(n) = self.unpack() else {
+            return None;
+        };
+        Some(*n)
+    }
+
     // // static vs dyn type.
     // pub fn static_type(&self) -> Expr {
     //     match self {

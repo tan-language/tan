@@ -29,15 +29,16 @@ use self::{iterator::try_iterator_from, util::eval_module};
 
 // #todo try to remove non-needed .into()s <--
 
-// #todo give more 'general' name.
+// #todo give more 'general' name -> `eval_all` or `eval_vec`?
 // #todo what about if a required argument is not passed to a function? currently we report undefined symbol.
-fn eval_args(args: &[Expr], context: &mut Context) -> Result<Vec<Expr>, Error> {
+pub fn eval_args(args: &[Expr], context: &mut Context) -> Result<Vec<Expr>, Error> {
     args.iter()
         .map(|x| eval(x, context))
         .collect::<Result<Vec<_>, _>>()
 }
 
 // #todo rename to eval_func?
+// #todo a version where the arguments are pre-evaluated.
 // #todo use this function in eval, later.
 pub fn invoke_func(func: &Expr, args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     let Expr::Func(params, body, func_scope) = func.unpack() else {
@@ -295,6 +296,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     Ok(value)
                 }
                 Expr::ForeignFunc(foreign_function) => {
+                    // #todo extract as `invoke_foreign_function`
                     // #todo do NOT pre-evaluate args for ForeignFunc, allow to implement 'macros'.
                     // Foreign Functions do NOT change the environment, hmm...
                     // #todo use RefCell / interior mutability instead, to allow for changing the environment (with Mutation Effect)
