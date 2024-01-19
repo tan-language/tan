@@ -273,6 +273,33 @@ pub fn string_split(args: &[Expr], _context: &mut Context) -> Result<Expr, Error
 
 // #todo have FFI functions without Context?
 
+// #todo string_is_matching
+
+pub fn string_contains(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [this, string] = args else {
+        return Err(Error::invalid_arguments(
+            "`contains` requires `this` and `string` arguments",
+            None,
+        ));
+    };
+
+    let Some(this) = this.as_string() else {
+        return Err(Error::invalid_arguments(
+            "`this` argument should be a String",
+            this.range(),
+        ));
+    };
+
+    let Some(string) = string.as_string() else {
+        return Err(Error::invalid_arguments(
+            "`string` argument should be a String",
+            string.range(),
+        ));
+    };
+
+    Ok(Expr::Bool(this.contains(string)))
+}
+
 pub fn string_starts_with(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [this, prefix] = args else {
         return Err(Error::invalid_arguments(
@@ -474,6 +501,8 @@ pub fn setup_lib_string(context: &mut Context) {
         "get-length$$String",
         Expr::ForeignFunc(Arc::new(string_get_length)),
     );
+
+    module.insert("contains?", Expr::ForeignFunc(Arc::new(string_contains)));
 
     module.insert(
         "starts-with?",
