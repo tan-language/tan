@@ -197,8 +197,6 @@ pub fn eval_module(
         }
     };
 
-    println!("---- {module_stem}");
-
     // Lookup into the module_registry first.
 
     let module = if context.module_registry.contains_key(&module_name) {
