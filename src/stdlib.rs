@@ -1,6 +1,6 @@
 pub mod arithmetic;
 pub mod chrono;
-pub mod cmark;
+pub mod cmark; // #tod rename to common mark?
 pub mod cmp;
 pub mod css_expr;
 pub mod dict;
@@ -52,6 +52,9 @@ use self::{
 // #todo find a better prefix than setup_
 // #todo use Rc/Arc consistently
 // #todo some helpers are needed here, to streamline the code.
+
+// #todo only setup non-prelude libs on demand!
+// #todo call the foreign setup from the actual tan module file.
 
 pub fn setup_lib(context: &mut Context) {
     setup_lib_fs(context);

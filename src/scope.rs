@@ -22,7 +22,7 @@ use crate::expr::Expr;
 
 // #insight annotations are defined _statically_, they are static
 
-// #insight only named (binded) values can be annotated, annotations to literals are resolved/handled statically
+// #insight only named (bound) values can be annotated, annotations to literals are resolved/handled statically
 
 // #href https://stackoverflow.com/questions/12599965/lexical-environment-and-function-scope
 
@@ -49,7 +49,7 @@ impl Scope {
         }
     }
 
-    // #todo do the impl Intos slow down?
+    // #todo do the `impl Into`s slow down?
     pub fn insert(&self, name: impl Into<String>, value: impl Into<Rc<Expr>>) -> Option<Rc<Expr>> {
         self.bindings.borrow_mut().insert(name.into(), value.into())
     }

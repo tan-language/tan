@@ -151,7 +151,7 @@ pub fn chrono_date_add_days(args: &[Expr], _context: &mut Context) -> Result<Exp
         ));
     };
 
-    let rust_date = rust_date_from_tan_date(&this);
+    let rust_date = rust_date_from_tan_date(this);
 
     let new_rust_date = rust_date + Duration::days(days);
 

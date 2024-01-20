@@ -4,6 +4,8 @@ use comrak::{markdown_to_html, Options};
 
 use crate::{context::Context, error::Error, expr::Expr, module::Module};
 
+// #todo enable comrak extensions.
+// #todo rename to `text/common-mark`?
 // #todo find a better name for this module.
 // #todo this should be extracted to a separate crate, and/or a dynamic library.
 
