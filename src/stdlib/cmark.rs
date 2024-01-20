@@ -1,8 +1,8 @@
-use std::{rc::Rc, sync::Arc};
+use std::sync::Arc;
 
 use comrak::{markdown_to_html, Options};
 
-use crate::{context::Context, error::Error, expr::Expr, module::Module};
+use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
 
 // #todo rename to `text/common-mark`?
 // #todo find a better name for this module.
@@ -45,26 +45,17 @@ pub fn html_from_common_mark(args: &[Expr], _context: &mut Context) -> Result<Ex
 }
 
 pub fn setup_lib_text_cmark(context: &mut Context) {
-    // #todo convert to require_module.
-
-    let module = Module::new("cmark", context.top_scope.clone());
-
-    let scope = &module.scope;
+    // #todo find a good name/path for this library.
+    let module = require_module("text/cmark", context);
 
     // (let html cmark/to-html expr)
     // (let html cmark/expr-to-html expr)
     // (let html cmark/expr->html expr)
     // (let html cmark/to-html markup)
-    scope.insert(
+    module.insert(
         "to-html",
         Expr::ForeignFunc(Arc::new(html_from_common_mark)),
     );
-
-    // #todo find a good name/path for this library.
-    // #todo this is a hack.
-    let module_path = format!("{}/@std/text/cmark", context.root_path);
-    // #todo introduce a helper for this.
-    context.module_registry.insert(module_path, Rc::new(module));
 }
 
 #[cfg(test)]
