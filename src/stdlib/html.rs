@@ -12,6 +12,7 @@ use std::sync::Arc;
 use crate::{
     context::Context,
     error::Error,
+    eval::util::eval_module,
     expr::{format_value, Expr},
     util::module_util::require_module,
 };
@@ -139,6 +140,9 @@ pub fn setup_lib_html(context: &mut Context) {
         "html-from-expr",
         Expr::ForeignFunc(Arc::new(html_from_expr)),
     );
+
+    // #todo handle error
+    let _ = eval_module("html", context, true);
 }
 
 #[cfg(test)]

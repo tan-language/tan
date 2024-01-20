@@ -227,6 +227,7 @@ pub fn char_uppercased(args: &[Expr], _context: &mut Context) -> Result<Expr, Er
 // #todo make this a String constructor?
 // #todo 'join' and 'format' versions?
 
+// #todo use (to-string ..) instead of format-value
 // #todo find another name, this is too common: `fmt`? `stringf`?
 pub fn format(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let output = args.iter().fold(String::new(), |mut str, x| {

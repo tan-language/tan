@@ -466,7 +466,7 @@ fn module_cannot_access_private_members_of_other_modules() {
     context
         .scope
         .insert("*current-module-path*", Expr::string("tests/fixtures"));
-    let result = eval_module("./main.tan", &mut context);
+    let result = eval_module("./main.tan", &mut context, false);
 
     assert!(result.is_err());
 

@@ -171,7 +171,11 @@ pub fn compute_module_file_paths(module_path: impl AsRef<Path>) -> std::io::Resu
 // #todo split into multiple functions.
 
 /// Evaluates a language module.
-pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr, Vec<Error>> {
+pub fn eval_module(
+    path: impl AsRef<Path>,
+    context: &mut Context,
+    force: bool,
+) -> Result<Expr, Vec<Error>> {
     // #todo support import_map style rewriting
 
     let result = canonicalize_module_path(&path, context);
@@ -184,15 +188,7 @@ pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr
 
     let module_name = strip_tan_extension(&module_path);
 
-    // Lookup into the module_registry first.
-
-    if let Some(module) = context.module_registry.get(&module_name) {
-        return Ok(Expr::Module(module.clone()));
-    }
-
-    // The module is not registered, try to load it.
-
-    // #insight module step is used as prefix
+    // #insight module stem is used as prefix
     let module_stem = {
         if let Some(stem) = path.as_ref().file_stem() {
             stem.to_string_lossy().to_string()
@@ -201,7 +197,21 @@ pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr
         }
     };
 
-    let module = Module::new(module_stem, context.top_scope.clone());
+    println!("---- {module_stem}");
+
+    // Lookup into the module_registry first.
+
+    let module = if context.module_registry.contains_key(&module_name) {
+        let module = context.module_registry.get(&module_name).unwrap().clone();
+        if !force {
+            // #insight if not in force mode, just returned the evaluated (cached) module.
+            return Ok(Expr::Module(module));
+        }
+        module
+    } else {
+        // The module is not registered, try to load it.
+        Rc::new(Module::new(module_stem, context.top_scope.clone()))
+    };
 
     let prev_scope = context.scope.clone();
     context.scope = module.scope.clone();
@@ -266,9 +276,7 @@ pub fn eval_module(path: impl AsRef<Path>, context: &mut Context) -> Result<Expr
     }
 
     context.scope = prev_scope;
-
-    let module = Rc::new(module);
     context.module_registry.insert(module_name, module.clone());
 
-    Ok(Expr::Module(module))
+    Ok(Expr::Module(module.clone()))
 }

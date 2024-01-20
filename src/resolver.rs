@@ -223,7 +223,7 @@ impl Resolver {
                         };
 
                         // #todo make sure paths are relative to the current file.
-                        let result = eval_module(module_path, context);
+                        let result = eval_module(module_path, context, false);
 
                         if let Err(errors) = result {
                             // #todo precise formating is _required_ here!
