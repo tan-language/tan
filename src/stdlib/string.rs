@@ -33,6 +33,23 @@ pub fn string_get_length(args: &[Expr], _context: &mut Context) -> Result<Expr, 
     Ok(Expr::Int(s.len() as i64))
 }
 
+// #todo trim-start
+// #todo trim-end
+
+pub fn string_trim(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [this] = args else {
+        return Err(Error::invalid_arguments("requires `this` argument", None));
+    };
+
+    let Expr::String(s) = this.unpack() else {
+        return Err(Error::invalid_arguments(
+            "`this` argument should be a String",
+            this.range(),
+        ));
+    };
+
+    Ok(Expr::string(s.trim()))
+}
 // #todo how to implement a mutating function?
 // #todo return (Maybe Char) or (Maybe Rune), handle case of empty string.
 /// Removes the last character from the string buffer and returns it.
@@ -502,6 +519,9 @@ pub fn setup_lib_string(context: &mut Context) {
         "get-length$$String",
         Expr::ForeignFunc(Arc::new(string_get_length)),
     );
+
+    // #todo write tan unit test
+    module.insert("trim", Expr::ForeignFunc(Arc::new(string_trim)));
 
     module.insert("contains?", Expr::ForeignFunc(Arc::new(string_contains)));
 
