@@ -10,7 +10,8 @@ use crate::{
 
 use super::cmp::rust_ordering_from_tan_ordering;
 
-// #todo implement sort! and sort
+// #todo implement sort! and sort (or sort, to-sorted)
+// #todo add put/insert at index
 
 // #todo implement generically for all iterables/countables, etc.
 

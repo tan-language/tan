@@ -41,7 +41,7 @@ pub fn dict_contains_key(args: &[Expr], _context: &mut Context) -> Result<Expr, 
 // #todo version that returns a new sequence
 // #todo also consider set, put
 // #todo item or element? -> I think for collections item is better.
-pub fn dict_insert(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn dict_put(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [dict, key, value] = args else {
         return Err(Error::invalid_arguments(
             "requires `this`, `key`, and `value` arguments",
@@ -208,7 +208,7 @@ pub fn setup_lib_dict(context: &mut Context) {
         "contains-key",
         Expr::ForeignFunc(Arc::new(dict_contains_key)),
     );
-    module.insert("insert", Expr::ForeignFunc(Arc::new(dict_insert)));
+    module.insert("put", Expr::ForeignFunc(Arc::new(dict_put)));
     module.insert("update!", Expr::ForeignFunc(Arc::new(dict_update_mut)));
     module.insert("get-or", Expr::ForeignFunc(Arc::new(dict_get_or)));
     module.insert("get-keys", Expr::ForeignFunc(Arc::new(dict_get_keys)));
@@ -226,10 +226,10 @@ mod tests {
     };
 
     #[test]
-    fn dict_insert_usage() {
+    fn dict_put_usage() {
         let input = r#"
             (let dict {})
-            (insert dict :given-name "Georgios")
+            (put dict :given-name "Georgios")
             dict
         "#;
         let mut context = Context::new();
