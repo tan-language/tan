@@ -2,6 +2,22 @@
 
 Tan is a uniform language for Humans and Machines.
 
+## Example
+
+Here is an example of Tan:
+
+```tan
+; Computes the fibonacci function.
+(let fib (Func [x]
+    (if (< x 3)
+        1
+        (+ (fib (- x 1)) (fib (- x 2)))
+    )
+))
+
+(writeln (fib 10))
+```
+
 ## Status
 
 This is an _experimental_ project, not intended for production use.
