@@ -72,6 +72,7 @@ pub fn array_join(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
     Ok(Expr::String(elements.join(separator)))
 }
 
+// #todo do we really want to support the no-argument case?
 /// (skip items 5) ; skips the first 5 elements
 /// (skip items) ; skips the first element
 pub fn array_skip(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
@@ -84,10 +85,10 @@ pub fn array_skip(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
 
     let n = args.get(1);
     let n = if n.is_some() {
-        let Some(str) = n.unwrap().as_int() else {
+        let Some(n) = n.unwrap().as_int() else {
             return Err(Error::invalid_arguments("`n` should be an Int", None));
         };
-        str
+        n
     } else {
         1
     };
@@ -252,6 +253,29 @@ mod tests {
         let expr = eval_string(input, &mut context).unwrap();
         let value = format_value(expr);
         let expected = "***";
+        assert_eq!(value, expected);
+    }
+
+    #[test]
+    fn array_skip_usage() {
+        let input = r#"
+            (let arr [1 2 3 4 5])
+            (skip arr 2)
+        "#;
+        let mut context = Context::new();
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "[3 4 5]";
+        assert_eq!(value, expected);
+
+        let input = r#"
+            (let arr [1 2 3 4])
+            (skip arr)
+        "#;
+        let mut context = Context::new();
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "[2 3 4]";
         assert_eq!(value, expected);
     }
 
