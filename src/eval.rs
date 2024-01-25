@@ -722,7 +722,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                                 let Some(predicate) = predicate.as_bool() else {
                                     return Err(Error::invalid_arguments(
-                                        "the if predicate is not a boolean value",
+                                        "the cond predicate is not a boolean value",
                                         predicate.range(),
                                     ));
                                 };
