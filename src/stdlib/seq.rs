@@ -39,8 +39,8 @@ pub fn array_push(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
     Ok(Expr::One)
 }
 
+// #todo can we find a more specific name?
 // #todo hm, it joins as strings, not very general, should move to string?
-// #todo support separator param.
 /// (join names "\n")
 pub fn array_join(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let Some(array) = args.first() else {
@@ -70,6 +70,38 @@ pub fn array_join(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
     let elements: Vec<String> = array.iter().map(format_value).collect();
 
     Ok(Expr::String(elements.join(separator)))
+}
+
+/// (skip items 5) ; skips the first 5 elements
+/// (skip items) ; skips the first element
+pub fn array_skip(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    // #insight
+    // An alternative name could be `drop` but for the moment we reserve this for
+    // the memory operation. Additionally, skip is a bit more descriptive.
+    let Some(array) = args.first() else {
+        return Err(Error::invalid_arguments("requires `array` argument", None));
+    };
+
+    let n = args.get(1);
+    let n = if n.is_some() {
+        let Some(str) = n.unwrap().as_int() else {
+            return Err(Error::invalid_arguments("`n` should be an Int", None));
+        };
+        str
+    } else {
+        1
+    };
+
+    let Some(array) = array.as_array() else {
+        return Err(Error::invalid_arguments(
+            "`array` argument should be a Array",
+            array.range(),
+        ));
+    };
+
+    let elements: Vec<Expr> = array.iter().skip(n as usize).cloned().collect();
+
+    Ok(Expr::array(elements))
 }
 
 // #insight use the word Iterable instead of Sequence/Seq, more generic (can handle non-sequences, e.g. maps)
@@ -176,6 +208,7 @@ pub fn setup_lib_seq(context: &mut Context) {
     // #todo add type qualifiers!
     module.insert("push", Expr::ForeignFunc(Arc::new(array_push)));
     module.insert("join", Expr::ForeignFunc(Arc::new(array_join)));
+    module.insert("skip", Expr::ForeignFunc(Arc::new(array_skip)));
     module.insert("count", Expr::ForeignFunc(Arc::new(array_count)));
     module.insert("sort!", Expr::ForeignFunc(Arc::new(array_sort_mut)));
 }
