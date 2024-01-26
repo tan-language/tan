@@ -141,6 +141,10 @@ pub fn setup_lib_html(context: &mut Context) {
         Expr::ForeignFunc(Arc::new(html_from_expr)),
     );
 
+    // #insight
+    // This is currently an experiment to add additional methods implemented
+    // in tan.
+
     // #todo handle error
     let _ = eval_module("html", context, true);
 }

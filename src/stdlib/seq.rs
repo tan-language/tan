@@ -126,7 +126,23 @@ pub fn array_count(args: &[Expr], _context: &mut Context) -> Result<Expr, Error>
     Ok(Expr::Int(array.len() as i64))
 }
 
-// #todo how to implement this?
+// #todo implement with tan code!
+pub fn array_is_empty(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [array, ..] = args else {
+        return Err(Error::invalid_arguments("requires `array` argument", None));
+    };
+
+    let Some(array) = array.as_array() else {
+        return Err(Error::invalid_arguments(
+            "`array` argument should be a Array",
+            array.range(),
+        ));
+    };
+
+    Ok(Expr::Bool(array.len() == 0))
+}
+
+// #todo how to implement this? -> implement with tan code!
 pub fn array_filter(_args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     todo!();
 
@@ -204,6 +220,7 @@ pub fn array_sort_mut(args: &[Expr], context: &mut Context) -> Result<Expr, Erro
 }
 
 pub fn setup_lib_seq(context: &mut Context) {
+    // #todo should put in `seq` module and then into `prelude`.
     let module = require_module("prelude", context);
 
     // #todo add type qualifiers!
@@ -211,7 +228,17 @@ pub fn setup_lib_seq(context: &mut Context) {
     module.insert("join", Expr::ForeignFunc(Arc::new(array_join)));
     module.insert("skip", Expr::ForeignFunc(Arc::new(array_skip)));
     module.insert("count", Expr::ForeignFunc(Arc::new(array_count)));
+    module.insert("is-empty?", Expr::ForeignFunc(Arc::new(array_is_empty)));
     module.insert("sort!", Expr::ForeignFunc(Arc::new(array_sort_mut)));
+
+    // let module = require_module("seq", context);
+
+    // println!("--- YO!");
+    // // #insight eval additional code implemented in Tan.
+    // if let Err(errors) = eval_module("seq", context, true) {
+    //     // #todo improve formatting here.
+    //     eprintln!("{errors:?}");
+    // }
 }
 
 #[cfg(test)]
