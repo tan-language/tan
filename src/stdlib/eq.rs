@@ -108,14 +108,14 @@ pub fn eq_symbol(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
         ));
     };
 
-    let Some(a) = a.try_symbol() else {
+    let Some(a) = a.as_symbolic() else {
         return Err(Error::invalid_arguments(
             &format!("`{a}` is not a Symbol"),
             a.range(),
         ));
     };
 
-    let Some(b) = b.try_symbol() else {
+    let Some(b) = b.as_symbolic() else {
         return Err(Error::invalid_arguments(
             &format!("`{b}` is not a Symbol"),
             b.range(),
@@ -229,14 +229,14 @@ pub fn not_eq_symbol(args: &[Expr], _context: &mut Context) -> Result<Expr, Erro
         ));
     };
 
-    let Some(a) = a.try_symbol() else {
+    let Some(a) = a.as_symbolic() else {
         return Err(Error::invalid_arguments(
             &format!("`{a}` is not a String"),
             a.range(),
         ));
     };
 
-    let Some(b) = b.try_symbol() else {
+    let Some(b) = b.as_symbolic() else {
         return Err(Error::invalid_arguments(
             &format!("`{b}` is not a Symbol"),
             b.range(),

@@ -398,8 +398,8 @@ impl Expr {
     }
 
     // #todo can just make this the as_symbol impl.
-    // #todo find a better name, e.g. as_symbolic?
-    pub fn try_symbol(&self) -> Option<&str> {
+    /// Tries to extract Symbol or KeySymbol.
+    pub fn as_symbolic(&self) -> Option<&str> {
         // #todo try to optimize away the unpacks.
         let expr = self.unpack();
 

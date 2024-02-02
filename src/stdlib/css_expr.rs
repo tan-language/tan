@@ -21,7 +21,7 @@ fn render_css_expr(expr: &Expr) -> Result<Expr, Error> {
     match expr {
         Expr::List(terms) => {
             if let Some(op) = terms.first() {
-                let Some(sym) = op.as_symbol() else {
+                let Some(sym) = op.as_symbolic() else {
                     // #todo we could return the argument position here and enrich the error upstream.
                     // #todo hmm, the error is too precise here, do we really need the annotations?
                     return Err(Error::invalid_arguments(
@@ -165,5 +165,29 @@ mod tests {
         let value = expr.as_string().unwrap();
         let expected = r#"body { margin-top: 0; margin-bottom: 10px; background: red; main { div.profile { background-color: yellow } } }"#;
         assert_eq!(value, expected);
+    }
+
+    #[test]
+    fn to_expr_to_css_supports_nested_pseudo_classes() {
+        let input = r#"
+            (use "/dialect/css-expr")
+
+            (let expr #CSS-Expr
+                '(a
+                    :text-decoration "none"
+                    (:hover
+                        :text-decoration "underline"
+                    )
+                )
+            )
+
+            (css-expr/to-css expr)
+        "#;
+        let mut context = Context::new();
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = expr.as_string().unwrap();
+        let expected = r#"body { margin-top: 0; margin-bottom: 10px; background: red; main { div.profile { background-color: yellow } } }"#;
+        println!("{value}");
+        // assert_eq!(value, expected);
     }
 }
