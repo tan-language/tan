@@ -12,6 +12,18 @@ use crate::{
     util::module_util::require_module,
 };
 
+// #todo maybe move to expr.rs as an alternative `as_stringable`?
+fn try_string_from_expr(expr: &Expr) -> Option<String> {
+    let expr = expr.unpack();
+
+    match expr {
+        Expr::Symbol(s) => Some(s.clone()),
+        Expr::KeySymbol(s) => Some(format!(":{s}")),
+        Expr::String(s) => Some(s.clone()),
+        _ => None,
+    }
+}
+
 // #todo is this evaluating something?
 // #todo consider always adding the trailing `;`?
 
@@ -21,7 +33,7 @@ fn render_css_expr(expr: &Expr) -> Result<Expr, Error> {
     match expr {
         Expr::List(terms) => {
             if let Some(op) = terms.first() {
-                let Some(sym) = op.as_symbolic() else {
+                let Some(sym) = try_string_from_expr(op) else {
                     // #todo we could return the argument position here and enrich the error upstream.
                     // #todo hmm, the error is too precise here, do we really need the annotations?
                     return Err(Error::invalid_arguments(
@@ -186,8 +198,7 @@ mod tests {
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
         let value = expr.as_string().unwrap();
-        let expected = r#"body { margin-top: 0; margin-bottom: 10px; background: red; main { div.profile { background-color: yellow } } }"#;
-        println!("{value}");
-        // assert_eq!(value, expected);
+        let expected = r#"a { text-decoration: none; :hover { text-decoration: underline } }"#;
+        assert_eq!(value, expected);
     }
 }
