@@ -168,7 +168,7 @@ pub fn list(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
         // }
     }
 
-    Ok(Expr::List(list))
+    Ok(Expr::array(list))
 }
 
 // #todo should return nested or flat structure?
