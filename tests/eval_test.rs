@@ -3,7 +3,6 @@ mod common;
 use assert_matches::assert_matches;
 
 use tan::{
-    api::eval_string,
     context::Context,
     error::{Error, ErrorKind},
     eval::{eval, util::eval_module},
@@ -11,7 +10,7 @@ use tan::{
     util::fmt::format_float,
 };
 
-use crate::common::{eval_file, read_file};
+use crate::common::{eval_file, eval_input, read_file};
 
 // #todo add more tests, especially for error-reporting.
 
@@ -72,8 +71,7 @@ fn eval_processes_conditionals() {
 
 #[test]
 fn eval_processes_keyword_symbols() {
-    let mut context = Context::new();
-    let result = eval_string(":key", &mut context).unwrap();
+    let result = eval_input(":key").unwrap();
 
     assert_matches!(result.unpack(), Expr::KeySymbol(x) if x == "key");
 }
@@ -90,8 +88,7 @@ fn eval_processes_empty_list() {
 
 #[test]
 fn eval_processes_let() {
-    let mut context = Context::new();
-    let result = eval_string("(do (let a (+ 1 2 3)) a)", &mut context);
+    let result = eval_input("(do (let a (+ 1 2 3)) a)");
     dbg!(&result);
 
     // #todo add asserts!
@@ -99,25 +96,22 @@ fn eval_processes_let() {
 
 #[test]
 fn eval_processes_booleans() {
-    let mut context = Context::new();
-    let value = eval_string("(do (let flag true) flag)", &mut context).unwrap();
+    let value = eval_input("(do (let flag true) flag)").unwrap();
     assert_matches!(value.unpack(), Expr::Bool(x) if *x);
 
-    let value = eval_string("(do (let flag false) flag)", &mut context).unwrap();
+    let value = eval_input("(do (let flag false) flag)").unwrap();
     assert_matches!(value.unpack(), Expr::Bool(x) if !x);
 }
 
 #[test]
 fn eval_processes_chars() {
-    let mut context = Context::new();
-    let value = eval_string(r#"(let ch (Char "r")) ch"#, &mut context).unwrap();
+    let value = eval_input(r#"(let ch (Char "r")) ch"#).unwrap();
     assert_matches!(value.unpack(), Expr::Char(c) if *c == 'r');
 }
 
 #[test]
 fn eval_reports_let_errors() {
-    let mut context = Context::new();
-    let result = eval_string("(do (let if (+ 1 2 3)) a)", &mut context);
+    let result = eval_input("(do (let if (+ 1 2 3)) a)");
 
     assert!(result.is_err());
 
@@ -182,8 +176,7 @@ fn eval_handles_recursive_unquoting() {
 
 #[test]
 fn do_creates_new_lexical_scope() {
-    let mut context = Context::new();
-    let result = eval_string(
+    let result = eval_input(
         "
     (do
         (let a 1)
@@ -192,7 +185,6 @@ fn do_creates_new_lexical_scope() {
         )
         a
     )",
-        &mut context,
     );
     assert!(result.is_ok());
 
@@ -204,15 +196,13 @@ fn do_creates_new_lexical_scope() {
 
 #[test]
 fn ensure_a_infinite_recursion_is_fixed() {
-    let mut context = Context::new();
-    let result = eval_string(
+    let result = eval_input(
         "
     (do
         (let a 1)
         (let a (+ a 2))
         a
     )",
-        &mut context,
     );
     assert!(result.is_ok());
 
@@ -224,8 +214,7 @@ fn ensure_a_infinite_recursion_is_fixed() {
 
 #[test]
 fn quot_handles_lists() {
-    let mut context = Context::new();
-    let result = eval_string("'(let a 1)", &mut context);
+    let result = eval_input("'(let a 1)");
     assert!(result.is_ok());
 
     let value = format!("{}", result.unwrap());
@@ -233,9 +222,8 @@ fn quot_handles_lists() {
 
     assert_eq!(value, expected_value);
 
-    // #todo argh! cannot quote if expressions (and more)
-    let mut context = Context::new();
-    let result = eval_string("'(if \"a\" b 1)", &mut context);
+    // #todo cannot quote if expressions (and more)
+    let result = eval_input("'(if \"a\" b 1)");
     assert!(result.is_ok());
 
     let value = format!("{}", result.unwrap());
@@ -246,9 +234,8 @@ fn quot_handles_lists() {
 
 #[test]
 fn quot_handles_interpolation() {
-    let mut context = Context::new();
     let input = "'(hello world (+ 1 0) $(+ 1 2))";
-    let result = eval_string(input, &mut context);
+    let result = eval_input(input);
     assert!(result.is_ok());
 
     let value = format!("{}", result.unwrap());
@@ -509,72 +496,61 @@ fn for_let_regression() {
 
 #[test]
 fn eval_and() {
-    let mut context = Context::new();
-    let result = eval_string("(and true false)", &mut context);
+    let result = eval_input("(and true false)");
     assert_matches!(result, Ok(Expr::Bool(b)) if !b);
 
-    let result = eval_string("(and false false false true)", &mut context);
+    let result = eval_input("(and false false false true)");
     assert_matches!(result, Ok(Expr::Bool(b)) if !b);
 
-    let result = eval_string("(and true true (= 1 1))", &mut context);
+    let result = eval_input("(and true true (= 1 1))");
     assert_matches!(result, Ok(Expr::Bool(b)) if b);
 
-    let result = eval_string("(and true)", &mut context);
+    let result = eval_input("(and true)");
     assert_matches!(result, Ok(Expr::Bool(b)) if b);
 }
 
 #[test]
 fn eval_or() {
-    let mut context = Context::new();
-    let result = eval_string("(or true false)", &mut context);
+    let result = eval_input("(or true false)");
     assert_matches!(result, Ok(Expr::Bool(b)) if b);
 
-    let result = eval_string("(or false false false true)", &mut context);
+    let result = eval_input("(or false false false true)");
     assert_matches!(result, Ok(Expr::Bool(b)) if b);
 
-    let result = eval_string("(or false false false)", &mut context);
+    let result = eval_input("(or false false false)");
     assert_matches!(result, Ok(Expr::Bool(b)) if !b);
 }
 
 #[test]
 fn eval_eq() {
-    let mut context = Context::new();
-    let result = eval_string("(= 1 1)", &mut context);
+    let result = eval_input("(= 1 1)");
     assert_matches!(result, Ok(Expr::Bool(b)) if b);
 
-    let mut context = Context::new();
-    let result = eval_string("(= 1 2)", &mut context);
+    let result = eval_input("(= 1 2)");
     assert_matches!(result, Ok(Expr::Bool(b)) if !b);
 
-    let mut context = Context::new();
-    let result = eval_string(r#"(= "hello" "hello")"#, &mut context);
+    let result = eval_input(r#"(= "hello" "hello")"#);
     assert_matches!(result, Ok(Expr::Bool(b)) if b);
 
-    let mut context = Context::new();
-    let result = eval_string("(= :hello :hello)", &mut context);
+    let result = eval_input("(= :hello :hello)");
     assert_matches!(result, Ok(Expr::Bool(b)) if b);
 }
 
 #[test]
 fn eval_not() {
-    let mut context = Context::new();
-    let result = eval_string("(not true)", &mut context);
+    let result = eval_input("(not true)");
     assert_matches!(result, Ok(Expr::Bool(b)) if !b);
 
-    let mut context = Context::new();
-    let result = eval_string("(not false)", &mut context);
+    let result = eval_input("(not false)");
     assert_matches!(result, Ok(Expr::Bool(b)) if b);
 
-    let mut context = Context::new();
-    let result = eval_string("(not (= 1 1))", &mut context);
+    let result = eval_input("(not (= 1 1))");
     assert_matches!(result, Ok(Expr::Bool(b)) if !b);
 }
 
 #[test]
 fn eval_cond() {
-    let mut context = Context::new();
-
-    let expr = eval_string(
+    let expr = eval_input(
         r#"
         (do
             (let rank 3)
@@ -585,13 +561,12 @@ fn eval_cond() {
             )
         )
     "#,
-        &mut context,
     )
     .unwrap();
 
     assert_matches!(expr.unpack(), Expr::KeySymbol(sym) if sym == "low");
 
-    let expr = eval_string(
+    let expr = eval_input(
         r#"
         (do
             (let rank 3)
@@ -602,13 +577,12 @@ fn eval_cond() {
             )
         )
     "#,
-        &mut context,
     )
     .unwrap();
 
     assert_matches!(expr.unpack(), Expr::KeySymbol(sym) if sym == "low");
 
-    let expr = eval_string(
+    let expr = eval_input(
         r#"
         (do
             (let rank 15)
@@ -619,7 +593,6 @@ fn eval_cond() {
             )
         )
     "#,
-        &mut context,
     )
     .unwrap();
 
