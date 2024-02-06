@@ -203,6 +203,8 @@ pub fn dict_get_values(args: &[Expr], _context: &mut Context) -> Result<Expr, Er
 pub fn setup_lib_dict(context: &mut Context) {
     let module = require_module("prelude", context);
 
+    // #todo add something like `get-or-init`` or `update-with-default` or `get-and-update`
+
     // #todo add type qualifiers!
     module.insert(
         "contains-key",

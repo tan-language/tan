@@ -1,17 +1,12 @@
 //! Common testing-support functions and utilities.
 
 use tan::{
-    api::{eval_string, parse_string, resolve_string},
+    api::{eval_string, lex_string, parse_string, resolve_string},
     context::Context,
     error::Error,
     expr::Expr,
-    lexer::{token::Token, Lexer},
+    lexer::token::Token,
 };
-
-pub fn lex_string(input: &str) -> Result<Vec<Token>, Vec<Error>> {
-    let mut lexer = Lexer::new(input);
-    lexer.lex()
-}
 
 pub fn read_file(filename: &str) -> String {
     std::fs::read_to_string(format!("tests/fixtures/{filename}")).unwrap()
