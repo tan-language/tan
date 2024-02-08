@@ -129,14 +129,13 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         ))?
                 }
             } else {
-                context
-                    .scope
-                    .get(symbol)
-                    .ok_or::<Error>(Error::undefined_symbol(
+                context.scope.get(symbol).ok_or_else::<Error, _>(|| {
+                    Error::undefined_symbol(
                         symbol,
                         &format!("symbol not defined: `{symbol}`"),
                         expr.range(),
-                    ))?
+                    )
+                })?
             };
 
             // #todo hm, can we somehow work with references?
