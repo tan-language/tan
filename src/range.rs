@@ -19,3 +19,23 @@ pub struct Position {
     pub line: usize,
     pub col: usize,
 }
+
+impl Position {
+    // #warning
+    // These helpers are NOT used yet! Need to decide how to handle index.
+    pub fn move_to_next_col(&mut self) {
+        self.index += 1;
+        self.col += 1;
+    }
+
+    pub fn move_to_prev_col(&mut self) {
+        self.index -= 1;
+        self.col -= 1;
+    }
+
+    pub fn move_to_next_line(&mut self) {
+        // #todo what about index?
+        self.line += 1;
+        self.col = 0;
+    }
+}

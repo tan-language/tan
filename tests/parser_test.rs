@@ -201,6 +201,26 @@ fn parse_handles_annotations() {
 }
 
 #[test]
+fn parse_keeps_correct_range_annotations() {
+    // Test that the parser keeps the range information passed by the lexer.
+
+    let input = "(+ a b)";
+    let expr = parse_string(input).unwrap();
+
+    let Expr::List(exprs) = expr.unpack() else {
+        panic!("assertion failed: invalid form")
+    };
+
+    let expr = &exprs[1];
+
+    let range = expr.range().unwrap();
+
+    assert_eq!(range.start.index, 3);
+    assert_eq!(range.start.line, 0);
+    assert_eq!(range.start.col, 3);
+}
+
+#[test]
 fn parse_handles_multiline_whitespace() {
     let input = "(+ 1 2) \n\n(+ 3 4)";
     let tokens = lex_tokens(input);

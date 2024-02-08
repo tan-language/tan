@@ -169,8 +169,9 @@ impl fmt::Debug for Expr {
             Expr::Let => "let".to_owned(),
             // #todo properly format do, let, if, etc.
             Expr::If(_, _, _) => "if".to_owned(),
-            // #insight intentionally pass through the formatting.
+            // #todo uncomment only for debugging purposes!
             // Expr::Annotated(expr, ann) => format!("ANN({expr:?}, {ann:?})"),
+            // #insight intentionally ignore annotations in formatting the formatting.
             Expr::Annotated(expr, _ann) => format!("Ann({expr:?})"), // #skip annotations.
             Expr::Module(module) => format!("Module({})", module.stem),
         };
@@ -594,7 +595,7 @@ pub fn position_to_expr(position: &Position) -> Expr {
     let mut map: HashMap<String, Expr> = HashMap::new();
     map.insert("index".to_owned(), Expr::Int(position.index as i64));
     map.insert("line".to_owned(), Expr::Int(position.line as i64));
-    map.insert("col".to_owned(), Expr::Int(position.line as i64));
+    map.insert("col".to_owned(), Expr::Int(position.col as i64));
     Expr::dict(map)
 }
 
