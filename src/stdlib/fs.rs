@@ -78,6 +78,7 @@ pub fn write_string_to_file(args: &[Expr], _context: &mut Context) -> Result<Exp
     Ok(Expr::One)
 }
 
+// #todo use walkdir crate instead!
 // #todo improve
 // #todo follow symlinks
 // #todo include dot-files
@@ -106,7 +107,6 @@ pub fn write_string_to_file(args: &[Expr], _context: &mut Context) -> Result<Exp
 //             tree.push(Expr::String(entry_path.to_str().unwrap().to_string()));
 //         }
 //     }
-
 //     tree
 // }
 
