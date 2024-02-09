@@ -259,6 +259,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
             match head.unpack() {
                 Expr::Func(params, body, func_scope) => {
+                    // #todo use invoke_func here?
                     // Evaluate the arguments before calling the function.
                     let args = eval_args(tail, context)?;
 
