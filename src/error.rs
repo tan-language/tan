@@ -121,6 +121,7 @@ impl ErrorKind {
 // `note` is a synonym for `annotation`.
 
 // #todo add ErrorNoteKind?
+// #todo keep the source expr instead of range.
 #[derive(Debug)]
 pub struct ErrorNote {
     /// The text of the note
@@ -142,6 +143,9 @@ impl ErrorNote {
 
 // #todo find better pseudo-name.
 const INPUT_PSEUDO_FILE_PATH: &str = "<input>";
+
+// #todo keep source expression instead of file_path/range.
+// #todo allow for multiple hints.
 
 #[derive(Debug)]
 pub struct Error {
