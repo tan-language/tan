@@ -146,6 +146,7 @@ const INPUT_PSEUDO_FILE_PATH: &str = "<input>";
 
 // #todo keep source expression instead of file_path/range.
 // #todo allow for multiple hints.
+// #todo support child/sub errors.
 
 #[derive(Debug)]
 pub struct Error {

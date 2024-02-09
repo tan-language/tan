@@ -184,8 +184,6 @@ pub fn eval_module(
         return Err(vec![result.unwrap_err().into()]);
     };
 
-    // println!("~~ {module_path}");
-
     let module_name = strip_tan_extension(&module_path);
 
     // #insight module stem is used as prefix
