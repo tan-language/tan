@@ -12,7 +12,6 @@ use crate::{
     optimize::optimize,
     parser::Parser,
     prune::prune,
-    // resolver::Resolver,
 };
 
 pub const TAN_FILE_EXTENSION: &str = "tan";
@@ -88,8 +87,6 @@ pub fn resolve_string(
     context: &mut Context,
 ) -> Result<Vec<Expr>, Vec<Error>> {
     let exprs = parse_string_all(input)?;
-
-    // dbg!(&exprs);
 
     // #todo also resolve static-use (normal use) here!
 
@@ -167,9 +164,6 @@ pub fn resolve_string(
 /// Evaluates a Tan expression encoded as a text string.
 pub fn eval_string(input: impl AsRef<str>, context: &mut Context) -> Result<Expr, Vec<Error>> {
     let exprs = resolve_string(input, context)?;
-
-    // println!("--- {}", &exprs[0]);
-    // dbg!(&exprs);
 
     let mut last_value = Expr::One;
 
