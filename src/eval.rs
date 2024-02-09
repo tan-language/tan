@@ -46,6 +46,8 @@ pub fn invoke_func(func: &Expr, args: &[Expr], context: &mut Context) -> Result<
         return Err(Error::invalid_arguments("should be a Func", func.range()));
     };
 
+    // #todo should set the current-module somehow?
+
     // Evaluate the arguments before calling the function.
     let args = eval_args(args, context)?;
 
