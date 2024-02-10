@@ -120,10 +120,19 @@ impl ErrorKind {
 // #insight
 // `note` is a synonym for `annotation`.
 
+#[derive(Eq, PartialEq, Debug)]
+pub enum ErrorNoteVariant {
+    Note,
+    Help,
+    Hint,
+}
+
 // #todo add ErrorNoteKind?
 // #todo keep the source expr instead of range.
 #[derive(Debug)]
 pub struct ErrorNote {
+    /// The variant (type) of the note.
+    pub variant: ErrorNoteVariant,
     /// The text of the note
     pub text: String,
     /// The range of the error, within the source.
@@ -133,6 +142,7 @@ pub struct ErrorNote {
 impl ErrorNote {
     pub fn new(text: &str, range: Option<Range>) -> Self {
         Self {
+            variant: ErrorNoteVariant::Note,
             text: text.to_owned(),
             range,
         }
@@ -141,6 +151,7 @@ impl ErrorNote {
 
 // #insight We keep the file url (instead of the module url) for more precise error reporting.
 
+// #todo move this to another place.
 // #todo find better pseudo-name.
 const INPUT_PSEUDO_FILE_PATH: &str = "<input>";
 
