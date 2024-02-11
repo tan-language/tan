@@ -76,6 +76,8 @@ pub fn invoke_func(func: &Expr, args: &[Expr], context: &mut Context) -> Result<
     let mut value = Expr::One;
 
     for expr in body {
+        // #todo what happens on `return` statement! should exit this loop and not evaluate the rest!
+        // #todo should inspect the error and add the file_path?
         value = eval(expr, context)?;
     }
 

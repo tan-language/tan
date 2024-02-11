@@ -68,6 +68,7 @@ pub type ExprFn = dyn Fn(&[Expr], &mut Context) -> Result<Expr, Error> + Send + 
 // #todo use normal structs instead of tuple-structs?
 
 // #todo add Expr::Date
+// #todo add Expr::Panic (catched by the runtime, should support unwind)
 
 /// A symbolic expression. This is the 'universal' data type in the language,
 /// all values are expressions (and expressions are values). Evaluation is expression

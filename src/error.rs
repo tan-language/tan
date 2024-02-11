@@ -159,6 +159,9 @@ const INPUT_PSEUDO_FILE_PATH: &str = "<input>";
 // #todo allow for multiple hints.
 // #todo support child/sub errors.
 
+// #insight
+// This is a general error, used by all the stages of the compiler.
+
 #[derive(Debug)]
 pub struct Error {
     /// The variant of the error.
