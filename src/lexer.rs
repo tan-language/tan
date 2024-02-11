@@ -18,7 +18,7 @@ use self::{
 // #todo lex_all, lex_single
 // #todo introduce SemanticToken, with extra semantic information, _after_ parsing.
 // #todo use annotations before number literals to set the type?
-// #todo use (doc_comment ...) for doc-comments.
+// #todo use (doc-comment ...) for doc-comments.
 // #todo no need to keep iterator as state in Lexer!
 // #todo accept IntoIterator
 // #todo try to use `let mut reader = BufReader::new(source.as_bytes());` like an older version

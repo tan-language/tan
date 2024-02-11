@@ -184,6 +184,7 @@ pub fn eval_module(
         return Err(vec![result.unwrap_err().into()]);
     };
 
+    // #todo is this really needed?
     let module_name = strip_tan_extension(&module_path);
 
     // #insight module stem is used as prefix

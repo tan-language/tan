@@ -180,6 +180,8 @@ pub fn eval_string(input: impl AsRef<str>, context: &mut Context) -> Result<Expr
     Ok(last_value)
 }
 
+// #todo implement run() and run_string() (encapsulate Context)
+
 #[cfg(test)]
 mod tests {
     use crate::api::strip_tan_extension;
