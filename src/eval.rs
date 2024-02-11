@@ -1099,7 +1099,6 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         }
                         "Func" => {
                             let Some(params) = tail.first() else {
-                                // #todo seems the range is not reported correctly here!!!
                                 return Err(Error::invalid_arguments(
                                     "malformed func definition, missing function parameters",
                                     expr.range(),

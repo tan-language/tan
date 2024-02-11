@@ -1,10 +1,8 @@
-use std::{collections::HashMap, rc::Rc, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 
 use serde_json::Value;
 
-use crate::{
-    context::Context, error::Error, expr::Expr, module::Module, util::module_util::require_module,
-};
+use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
 
 // #todo text/json or codec/json?
 // #todo support json with comments.
@@ -68,25 +66,6 @@ pub fn json_read_string(args: &[Expr], _context: &mut Context) -> Result<Expr, E
     };
 
     Ok(json_value_to_expr(value))
-}
-
-pub fn setup_lib_codec_json2(context: &mut Context) {
-    let module = Module::new("json-codec", context.top_scope.clone());
-
-    let scope = &module.scope;
-
-    // #todo find a good path and name.
-    // #todo codec or serder? codec is more general.
-    // #todo use `encode`/`decode` instead of `write`/`read`
-
-    // (use /codec/json-codec)
-    // (let value (/json-codec/read json))
-    scope.insert("read", Expr::ForeignFunc(Arc::new(json_read_string)));
-
-    // #todo this is a hack.
-    let module_path = format!("{}/@std/codec/json-codec", context.root_path);
-    // #todo introduce a helper for this.
-    context.module_registry.insert(module_path, Rc::new(module));
 }
 
 pub fn setup_lib_codec_json(context: &mut Context) {
