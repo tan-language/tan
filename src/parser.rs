@@ -4,7 +4,7 @@ pub mod util;
 use rust_decimal::prelude::*;
 
 use crate::{
-    error::{Error, ErrorKind},
+    error::{Error, ErrorVariant},
     expr::{annotate, annotate_range, Expr},
     lexer::{
         token::{Token, TokenKind},
@@ -82,7 +82,7 @@ impl<'a> Parser<'a> {
             let mut lexer = Lexer::new(&input);
 
             let Ok(tokens) = lexer.lex() else {
-                let mut error = Error::new(ErrorKind::MalformedAnnotation);
+                let mut error = Error::new(ErrorVariant::MalformedAnnotation);
                 error.push_note(
                     &format!(
                         "Lexical error in annotation `{}`",
@@ -100,7 +100,7 @@ impl<'a> Parser<'a> {
             let ann_expr = parser.parse();
 
             if let Err(mut errors) = ann_expr {
-                let mut error = Error::new(ErrorKind::MalformedAnnotation);
+                let mut error = Error::new(ErrorVariant::MalformedAnnotation);
                 error.push_note(
                     &format!("Parse error in annotation `{}`", annotation_token.lexeme()),
                     Some(annotation_token.range()),
@@ -120,7 +120,7 @@ impl<'a> Parser<'a> {
             match &ann_expr {
                 Expr::Symbol(sym) => {
                     if sym.is_empty() {
-                        let mut error = Error::new(ErrorKind::MalformedAnnotation);
+                        let mut error = Error::new(ErrorVariant::MalformedAnnotation);
                         error.push_note(
                             &format!(
                                 "Invalid single-symbol annotation`{}`",
@@ -148,7 +148,7 @@ impl<'a> Parser<'a> {
                     if let Some(Expr::Symbol(sym)) = list.first().map(|x| x.unpack()) {
                         expr = annotate(expr, sym.clone(), ann_expr.clone());
                     } else {
-                        let mut error = Error::new(ErrorKind::MalformedAnnotation);
+                        let mut error = Error::new(ErrorVariant::MalformedAnnotation);
                         error.push_note(
                             &format!(
                                 "First term must be a symbol `{}`",
@@ -162,7 +162,7 @@ impl<'a> Parser<'a> {
                     }
                 }
                 _ => {
-                    let mut error = Error::new(ErrorKind::MalformedAnnotation);
+                    let mut error = Error::new(ErrorVariant::MalformedAnnotation);
                     error.push_note(
                         &format!(
                             "An annotation should be either a symbol or a list `{}`",
@@ -216,7 +216,7 @@ impl<'a> Parser<'a> {
                         // #insight no transformation performed here.
                         Ok(_) => Some(Expr::String(lexeme.clone())),
                         Err(errs) => {
-                            let mut error = Error::new(ErrorKind::MalformedRange);
+                            let mut error = Error::new(ErrorVariant::MalformedRange);
                             for err in errs {
                                 error.push_note(&err.to_string(), Some(range.clone()));
                             }
@@ -254,7 +254,7 @@ impl<'a> Parser<'a> {
                     match recognize_range(lexeme) {
                         Some(r) => Some(r),
                         None => {
-                            let error = Error::new(ErrorKind::MalformedRange);
+                            let error = Error::new(ErrorVariant::MalformedRange);
                             self.errors.push(error);
                             None
                         }
@@ -281,7 +281,7 @@ impl<'a> Parser<'a> {
                             match Decimal::from_str(lexeme) {
                                 Ok(num) => Some(Expr::Dec(num)),
                                 Err(dec_error) => {
-                                    let mut error = Error::new(ErrorKind::MalformedFloat); // #todo introduce MalformedDec?
+                                    let mut error = Error::new(ErrorVariant::MalformedFloat); // #todo introduce MalformedDec?
                                     error.push_note(&format!("{dec_error}"), Some(range));
                                     self.errors.push(error);
                                     None
@@ -297,7 +297,7 @@ impl<'a> Parser<'a> {
                         match lexeme.parse::<f64>() {
                             Ok(num) => Some(Expr::Float(num)),
                             Err(pf_error) => {
-                                let mut error = Error::new(ErrorKind::MalformedFloat);
+                                let mut error = Error::new(ErrorVariant::MalformedFloat);
                                 error.push_note(&format!("{pf_error}"), Some(range));
                                 self.errors.push(error);
                                 None
@@ -323,7 +323,7 @@ impl<'a> Parser<'a> {
                     match i64::from_str_radix(&lexeme, radix) {
                         Ok(n) => Some(Expr::Int(n)),
                         Err(pi_error) => {
-                            let mut error = Error::new(ErrorKind::MalformedInt);
+                            let mut error = Error::new(ErrorVariant::MalformedInt);
                             error.push_note(&format!("{pi_error}"), Some(range));
                             self.errors.push(error);
                             None
@@ -350,14 +350,14 @@ impl<'a> Parser<'a> {
                 let Ok(quot_expr) = self.parse_expr() else {
                     // Parsing the quoted expression failed.
                     // Continue parsing to detect more errors.
-                    let mut error = Error::new(ErrorKind::InvalidQuote);
+                    let mut error = Error::new(ErrorVariant::InvalidQuote);
                     error.push_note("Cannot parse quoted expression", Some(token.range()));
                     self.errors.push(error);
                     return Ok(None);
                 };
 
                 let Some(target) = quot_expr else {
-                    let mut error = Error::new(ErrorKind::InvalidQuote);
+                    let mut error = Error::new(ErrorVariant::InvalidQuote);
                     error.push_note("Invalid quoted expression", Some(token.range()));
                     self.errors.push(error);
                     // It is recoverable error.
@@ -376,14 +376,14 @@ impl<'a> Parser<'a> {
                 let Ok(quot_expr) = self.parse_expr() else {
                     // Parsing the quoted expression failed.
                     // Continue parsing to detect more errors.
-                    let mut error = Error::new(ErrorKind::InvalidQuote);
+                    let mut error = Error::new(ErrorVariant::InvalidQuote);
                     error.push_note("Cannot parse unquoted expression", Some(token.range()));
                     self.errors.push(error);
                     return Ok(None);
                 };
 
                 let Some(target) = quot_expr else {
-                    let mut error = Error::new(ErrorKind::InvalidQuote);
+                    let mut error = Error::new(ErrorVariant::InvalidQuote);
                     error.push_note("Invalid unquoted expression", Some(token.range()));
                     self.errors.push(error);
                     // It is recoverable error.
@@ -474,7 +474,7 @@ impl<'a> Parser<'a> {
             }
             TokenKind::RightParen | TokenKind::RightBracket | TokenKind::RightBrace => {
                 // #todo custom error for this?
-                let mut error = Error::new(ErrorKind::UnexpectedToken);
+                let mut error = Error::new(ErrorVariant::UnexpectedToken);
                 error.push_note(
                     &format!("Not expecting token `{}`", token.lexeme()),
                     Some(token.range()),
@@ -505,7 +505,7 @@ impl<'a> Parser<'a> {
         loop {
             let Some(token) = self.next_token() else {
                 let range = start_position..self.current_position;
-                let mut error = Error::new(ErrorKind::UnterminatedList);
+                let mut error = Error::new(ErrorVariant::UnterminatedList);
                 error.push_note("List not terminated", Some(range));
                 self.errors.push(error);
                 return Err(Break {});

@@ -2,7 +2,7 @@ mod common;
 
 use assert_matches::assert_matches;
 use tan::{
-    error::ErrorKind,
+    error::ErrorVariant,
     lexer::{token::TokenKind, Lexer},
 };
 
@@ -164,7 +164,7 @@ fn lex_reports_unexpected_eof() {
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
 
-    assert_matches!(err[0].kind(), ErrorKind::UnexpectedEnd);
+    assert_matches!(err[0].kind(), ErrorVariant::UnexpectedEnd);
 }
 
 #[test]
@@ -179,7 +179,7 @@ fn lex_reports_unterminated_strings() {
     let err = result.unwrap_err();
     let err = &err[0];
 
-    assert_matches!(err.kind(), ErrorKind::UnterminatedString);
+    assert_matches!(err.kind(), ErrorVariant::UnterminatedString);
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
 
@@ -207,7 +207,7 @@ fn lex_reports_unterminated_annotations() {
     let err = result.unwrap_err();
     let err = &err[0];
 
-    assert_matches!(err.kind(), ErrorKind::UnterminatedAnnotation);
+    assert_matches!(err.kind(), ErrorVariant::UnterminatedAnnotation);
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
 

@@ -4,7 +4,7 @@ use assert_matches::assert_matches;
 
 use tan::{
     api::{parse_string, parse_string_all},
-    error::ErrorKind,
+    error::ErrorVariant,
     expr::Expr,
     lexer::{token::Token, Lexer},
     parser::Parser,
@@ -383,7 +383,7 @@ fn parse_reports_number_errors() {
 
     let err = &err[0];
 
-    assert_matches!(err.kind(), ErrorKind::MalformedInt);
+    assert_matches!(err.kind(), ErrorVariant::MalformedInt);
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
 

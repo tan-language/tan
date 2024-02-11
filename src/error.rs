@@ -48,7 +48,7 @@ use crate::range::Range;
 // error: could not compile `playground` (bin "playground") due to previous error
 
 #[derive(Debug)]
-pub enum ErrorKind {
+pub enum ErrorVariant {
     // Lexical errors
     UnexpectedEnd,
     MalformedInt,
@@ -78,36 +78,36 @@ pub enum ErrorKind {
     General(String), // #todo find a better name!
 }
 
-impl fmt::Display for ErrorKind {
+impl fmt::Display for ErrorVariant {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let err = match self {
-            ErrorKind::UnexpectedEnd => "unexpected end of input".to_owned(),
-            ErrorKind::MalformedInt => "malformed integer number".to_owned(),
-            ErrorKind::MalformedFloat => "malformed float number".to_owned(),
-            ErrorKind::UnterminatedString => "unterminated string".to_owned(),
-            ErrorKind::UnterminatedAnnotation => "unterminated annotation".to_owned(),
-            ErrorKind::InvalidQuote => "invalid quote".to_owned(),
-            ErrorKind::UnexpectedToken => "unexpected token".to_owned(),
-            ErrorKind::UnterminatedList => "unterminated list".to_owned(),
-            ErrorKind::MalformedAnnotation => "malformed annotation".to_owned(),
-            ErrorKind::MalformedRange => "malformed range".to_owned(),
-            ErrorKind::MalformedStringTemplate => "malformed string template".to_owned(),
-            ErrorKind::UndefinedSymbol(sym) => format!("`{sym}` is undefined"),
-            ErrorKind::UndefinedFunction(sym, signature) => {
+            ErrorVariant::UnexpectedEnd => "unexpected end of input".to_owned(),
+            ErrorVariant::MalformedInt => "malformed integer number".to_owned(),
+            ErrorVariant::MalformedFloat => "malformed float number".to_owned(),
+            ErrorVariant::UnterminatedString => "unterminated string".to_owned(),
+            ErrorVariant::UnterminatedAnnotation => "unterminated annotation".to_owned(),
+            ErrorVariant::InvalidQuote => "invalid quote".to_owned(),
+            ErrorVariant::UnexpectedToken => "unexpected token".to_owned(),
+            ErrorVariant::UnterminatedList => "unterminated list".to_owned(),
+            ErrorVariant::MalformedAnnotation => "malformed annotation".to_owned(),
+            ErrorVariant::MalformedRange => "malformed range".to_owned(),
+            ErrorVariant::MalformedStringTemplate => "malformed string template".to_owned(),
+            ErrorVariant::UndefinedSymbol(sym) => format!("`{sym}` is undefined"),
+            ErrorVariant::UndefinedFunction(sym, signature) => {
                 format!("function `{sym}` with signature `{signature}` is undefined")
             }
-            ErrorKind::Io(io_err) => format!("i/o error: {io_err}"),
-            ErrorKind::FailedUse(url, _) => format!("failed use `{url}`"),
-            ErrorKind::InvalidArguments => "invalid arguments".to_owned(),
-            ErrorKind::NotInvocable => "not invocable".to_owned(),
-            ErrorKind::General(text) => text.clone(),
+            ErrorVariant::Io(io_err) => format!("i/o error: {io_err}"),
+            ErrorVariant::FailedUse(url, _) => format!("failed use `{url}`"),
+            ErrorVariant::InvalidArguments => "invalid arguments".to_owned(),
+            ErrorVariant::NotInvocable => "not invocable".to_owned(),
+            ErrorVariant::General(text) => text.clone(),
         };
 
         write!(f, "{err}")
     }
 }
 
-impl ErrorKind {
+impl ErrorVariant {
     // #insight
     // We could use a derive macro to generate those, but being explicit is
     // more readable.
@@ -161,13 +161,12 @@ const INPUT_PSEUDO_FILE_PATH: &str = "<input>";
 
 #[derive(Debug)]
 pub struct Error {
-    /// The kind of the error.
-    pub kind: ErrorKind,
+    /// The variant of the error.
+    pub variant: ErrorVariant,
     /// The source text where the error occurred. Typically this field is filled
     /// at a second stage.
     pub file_path: String,
     pub notes: Vec<ErrorNote>,
-    pub hint: Option<String>,
 }
 
 impl std::error::Error for Error {}
@@ -175,22 +174,21 @@ impl std::error::Error for Error {}
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // #todo write more information!
-        write!(f, "{}", self.kind)
+        write!(f, "{}", self.variant)
     }
 }
 
 impl Error {
-    pub fn new(kind: ErrorKind) -> Self {
+    pub fn new(kind: ErrorVariant) -> Self {
         Self {
-            kind,
+            variant: kind,
             file_path: INPUT_PSEUDO_FILE_PATH.to_owned(),
             notes: Vec::new(),
-            hint: None,
         }
     }
 
     pub fn invalid_arguments(note: &str, range: Option<Range>) -> Self {
-        let mut error = Self::new(ErrorKind::InvalidArguments);
+        let mut error = Self::new(ErrorVariant::InvalidArguments);
         error.push_note(note, range);
         error
     }
@@ -201,7 +199,7 @@ impl Error {
         note: &str,
         range: Option<Range>,
     ) -> Self {
-        let mut error = Self::new(ErrorKind::UndefinedFunction(
+        let mut error = Self::new(ErrorVariant::UndefinedFunction(
             symbol.to_owned(),
             method.to_owned(),
         ));
@@ -210,13 +208,13 @@ impl Error {
     }
 
     pub fn undefined_symbol(symbol: &str, note: &str, range: Option<Range>) -> Self {
-        let mut error = Self::new(ErrorKind::UndefinedSymbol(symbol.to_owned()));
+        let mut error = Self::new(ErrorVariant::UndefinedSymbol(symbol.to_owned()));
         error.push_note(note, range);
         error
     }
 
     pub fn not_invocable(note: &str, range: Option<Range>) -> Self {
-        let mut error = Self::new(ErrorKind::NotInvocable);
+        let mut error = Self::new(ErrorVariant::NotInvocable);
         error.push_note(note, range);
         error
     }
@@ -225,20 +223,20 @@ impl Error {
     pub fn failed_use(url: &str, errors: Vec<Error>) -> Self {
         // #todo url is _not_ the error.file_path, we need the caller module path.
         // error.file_path = url.to_owned();
-        Self::new(ErrorKind::FailedUse(url.to_owned(), errors))
+        Self::new(ErrorVariant::FailedUse(url.to_owned(), errors))
     }
 
     // placeholder error!
     pub fn general(text: &str) -> Self {
-        Self::new(ErrorKind::General(text.to_owned()))
+        Self::new(ErrorVariant::General(text.to_owned()))
     }
 
-    pub fn kind(&self) -> &ErrorKind {
-        &self.kind
+    pub fn kind(&self) -> &ErrorVariant {
+        &self.variant
     }
 
     pub fn code(&self) -> u32 {
-        self.kind.code()
+        self.variant.code()
     }
 
     // pub fn file_url(&self) -> &String {
@@ -270,6 +268,6 @@ impl From<std::io::Error> for Error {
     fn from(value: std::io::Error) -> Self {
         // #todo more detailed notes.
         // error.push_note(&format!("I/O error: {value:?}"), None);
-        Error::new(ErrorKind::Io(value))
+        Error::new(ErrorVariant::Io(value))
     }
 }

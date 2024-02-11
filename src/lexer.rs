@@ -4,7 +4,7 @@ pub mod token;
 use std::str::Chars;
 
 use crate::{
-    error::{Error, ErrorKind},
+    error::{Error, ErrorVariant},
     range::{Position, Range},
 };
 
@@ -204,7 +204,7 @@ impl<'a> Lexer<'a> {
 
         loop {
             let Some(ch) = self.next_char() else {
-                let mut error = Error::new(ErrorKind::UnterminatedString);
+                let mut error = Error::new(ErrorVariant::UnterminatedString);
                 error.push_note(
                     "string is missing the closing `\"` character",
                     Some(self.current_range()),
@@ -254,7 +254,7 @@ impl<'a> Lexer<'a> {
 
         loop {
             let Some(ch) = self.next_char() else {
-                let mut error = Error::new(ErrorKind::UnterminatedString);
+                let mut error = Error::new(ErrorVariant::UnterminatedString);
                 error.push_note("Text string is not closed", Some(self.current_range())); // #todo refine the text.
                 self.errors.push(error);
                 return None;
@@ -271,7 +271,7 @@ impl<'a> Lexer<'a> {
             } else if is_eol(ch) {
                 for _ in 0..indent {
                     let Some(ch1) = self.next_char() else {
-                        let mut error = Error::new(ErrorKind::UnterminatedString);
+                        let mut error = Error::new(ErrorVariant::UnterminatedString);
                         error.push_note("Text string is not closed", Some(self.current_range())); // #todo refine the text.
                         self.errors.push(error);
                         return None;
@@ -324,7 +324,7 @@ impl<'a> Lexer<'a> {
         if nesting == 0 {
             Some(ann)
         } else {
-            let mut error = Error::new(ErrorKind::UnterminatedAnnotation);
+            let mut error = Error::new(ErrorVariant::UnterminatedAnnotation);
             error.push_note("Annotation is not closed", Some(self.current_range())); // #todo refine the text.
             self.errors.push(error);
 
@@ -411,7 +411,7 @@ impl<'a> Lexer<'a> {
                 }
                 '"' => {
                     let Some(ch1) = self.next_char() else {
-                        let mut error = Error::new(ErrorKind::UnterminatedString);
+                        let mut error = Error::new(ErrorVariant::UnterminatedString);
                         error.push_note("String is not closed", Some(self.current_range())); // #todo refine the text.
                         self.errors.push(error);
                         break 'outer;
@@ -426,7 +426,8 @@ impl<'a> Lexer<'a> {
 
                                 loop {
                                     let Some(ch3) = self.next_char() else {
-                                        let mut error = Error::new(ErrorKind::UnterminatedString);
+                                        let mut error =
+                                            Error::new(ErrorVariant::UnterminatedString);
                                         error.push_note(
                                             "Text string is not closed",
                                             Some(self.current_range()),
@@ -466,7 +467,7 @@ impl<'a> Lexer<'a> {
                 }
                 '-' => {
                     let Some(ch1) = self.next_char() else {
-                        let mut error = Error::new(ErrorKind::UnexpectedEnd);
+                        let mut error = Error::new(ErrorVariant::UnexpectedEnd);
                         error.push_note("Text string is not closed", Some(self.current_range())); // #todo refine the text.
                         self.errors.push(error);
                         break 'outer;

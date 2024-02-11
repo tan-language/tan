@@ -4,7 +4,7 @@ use assert_matches::assert_matches;
 
 use tan::{
     context::Context,
-    error::{Error, ErrorKind},
+    error::{Error, ErrorVariant},
     eval::{eval, util::eval_module},
     expr::{format_value, Expr},
     util::fmt::format_float,
@@ -55,7 +55,7 @@ fn do_reports_intermediate_errors() {
     // emitting undefined-symbol happened after removing resolver but it may
     // actually be better.
     // assert_matches!(err, Error{ kind: ErrorKind::UndefinedFunction(s, _), .. } if s == "write33");
-    assert_matches!(err, Error{ kind: ErrorKind::UndefinedSymbol(s), .. } if s == "write33");
+    assert_matches!(err, Error{ variant: ErrorVariant::UndefinedSymbol(s), .. } if s == "write33");
 }
 
 #[test]
@@ -125,7 +125,7 @@ fn eval_reports_let_errors() {
     assert_matches!(
         err,
         Error {
-            kind: ErrorKind::InvalidArguments,
+            variant: ErrorVariant::InvalidArguments,
             ..
         }
     );
@@ -458,7 +458,7 @@ fn module_cannot_access_private_members_of_other_modules() {
     assert!(result.is_err());
 
     let err = result.unwrap_err();
-    assert_matches!(&err[0].kind, ErrorKind::UndefinedSymbol(sym) if sym == "submodule/afunc");
+    assert_matches!(&err[0].variant, ErrorVariant::UndefinedSymbol(sym) if sym == "submodule/afunc");
 }
 
 #[test]
