@@ -417,6 +417,8 @@ impl<'a> Lexer<'a> {
                         break 'outer;
                     };
 
+                    // #todo consider using ``` instead of """, like commonmark.
+                    // #todo what is a good name? Text? IndentedString?
                     // Check for `"""` triple-quote multi-line string delimiter.
                     if ch1 == '"' {
                         if let Some(ch2) = self.next_char() {
@@ -450,6 +452,10 @@ impl<'a> Lexer<'a> {
                                 let Some(lexeme) = self.scan_text(indent) else {
                                     break;
                                 };
+                                // #todo
+                                // custom token needed or some kind of annotation so that tools like
+                                // the formatter can apply custom formatting? or the formatter can just check
+                                // if the range starts with '"""'?
                                 tokens.push(Token::string(lexeme, self.current_range()));
 
                                 continue;
