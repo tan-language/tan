@@ -10,7 +10,10 @@ use crate::{
     error::Error,
     expr::Expr,
     module::Module,
-    util::standard_names::{CURRENT_FILE_PATH, CURRENT_MODULE_PATH},
+    util::{
+        constants::INPUT_PSEUDO_FILE_PATH,
+        standard_names::{CURRENT_FILE_PATH, CURRENT_MODULE_PATH},
+    },
 };
 
 use super::eval;
@@ -268,7 +271,11 @@ pub fn eval_module(
         for expr in exprs {
             if let Err(mut error) = eval(&expr, context) {
                 // #todo add a unit test to check that the file_path is added here!
-                error.file_path = file_path.clone();
+                // #todo just make error.file_path optional and avoid this hack here!!!
+                if error.file_path == INPUT_PSEUDO_FILE_PATH {
+                    error.file_path = file_path.clone();
+                }
+
                 // #todo better error here!
                 return Err(vec![error]);
             }

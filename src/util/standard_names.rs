@@ -5,3 +5,4 @@
 pub const CURRENT_MODULE_PATH: &str = "*current-module-path*";
 
 pub const CURRENT_FILE_PATH: &str = "*current-file-path*";
+

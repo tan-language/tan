@@ -110,10 +110,14 @@ pub enum Expr {
     FloatRange(f64, f64, f64), // start, end, step #todo use a struct here,
     // Range(...),
     // #todo the Func should probably store the Module environment.
+    // #todo maybe should have explicit do block?
     /// Func(params, body, func_scope)
-    Func(Vec<Expr>, Vec<Expr>, Rc<Scope>), // #todo maybe should have explicit do block?
+    Func(Vec<Expr>, Vec<Expr>, Rc<Scope>, String),
+    // #todo add file_path to Macro
+    // #todo maybe should have explicit do block?
     /// Macro(params, body)
-    Macro(Vec<Expr>, Vec<Expr>), // #todo maybe should have explicit do block?
+    Macro(Vec<Expr>, Vec<Expr>),
+    // #todo add file_path to ForeignFunc
     // #todo the ForeignFunc should probably store the Module environment.
     // #todo introduce a ForeignFuncMut for mutating scope? what would be a better name?
     ForeignFunc(Arc<ExprFn>), // #todo for some reason, Box is not working here!

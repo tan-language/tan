@@ -9,7 +9,7 @@ use crate::{
     expr::{annotate, expr_clone, format_value, Expr},
     resolver::compute_dyn_signature,
     scope::Scope,
-    util::is_reserved_symbol,
+    util::{is_reserved_symbol, standard_names::CURRENT_FILE_PATH},
 };
 
 use self::{iterator::try_iterator_from, util::eval_module};
@@ -41,7 +41,7 @@ pub fn eval_args(args: &[Expr], context: &mut Context) -> Result<Vec<Expr>, Erro
 // #todo a version where the arguments are pre-evaluated.
 // #todo use this function in eval, later.
 pub fn invoke_func(func: &Expr, args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
-    let Expr::Func(params, body, func_scope) = func.unpack() else {
+    let Expr::Func(params, body, func_scope, file_path) = func.unpack() else {
         // #todo what to do here?
         return Err(Error::invalid_arguments("should be a Func", func.range()));
     };
@@ -78,7 +78,18 @@ pub fn invoke_func(func: &Expr, args: &[Expr], context: &mut Context) -> Result<
     for expr in body {
         // #todo what happens on `return` statement! should exit this loop and not evaluate the rest!
         // #todo should inspect the error and add the file_path?
-        value = eval(expr, context)?;
+
+        match eval(expr, context) {
+            Ok(v) => value = v,
+            Err(mut error) => {
+                // #todo find better ways for reporting the file, this is a temp solution.
+
+                // annotate errors thrown by function evaluation with the
+                // function file_path, for more precise error reporting.
+                error.file_path = file_path.clone();
+                return Err(error);
+            }
+        }
     }
 
     context.scope = prev_scope;
@@ -1125,7 +1136,20 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #insight captures the static (lexical scope)
 
                             // #todo optimize!
-                            Ok(Expr::Func(params, body.into(), context.scope.clone()))
+                            let file_path = context
+                                .get_special(CURRENT_FILE_PATH)
+                                .unwrap()
+                                .as_string()
+                                .unwrap()
+                                .to_string();
+
+                            // #todo optimize
+                            Ok(Expr::Func(
+                                params,
+                                body.into(),
+                                context.scope.clone(),
+                                file_path,
+                            ))
                         }
                         // #todo macros should be handled at a separate, comptime, macroexpand pass.
                         // #todo actually two passes, macro_def, macro_expand

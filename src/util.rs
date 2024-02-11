@@ -4,6 +4,7 @@
 // #todo consider using `name` instead of `symbol`?
 // #todo better organize the util module.
 
+pub mod constants;
 pub mod fmt;
 pub mod module_util;
 pub mod put_back_iterator;

@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::range::Range;
+use crate::{range::Range, util::constants::INPUT_PSEUDO_FILE_PATH};
 
 // #todo emit the correct file of the error!
 
@@ -150,10 +150,6 @@ impl ErrorNote {
 }
 
 // #insight We keep the file url (instead of the module url) for more precise error reporting.
-
-// #todo move this to another place.
-// #todo find better pseudo-name.
-const INPUT_PSEUDO_FILE_PATH: &str = "<input>";
 
 // #todo keep source expression instead of file_path/range.
 // #todo allow for multiple hints.
