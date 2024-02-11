@@ -10,7 +10,7 @@ use crate::{
     error::Error,
     expr::Expr,
     module::Module,
-    util::standard_names::CURRENT_MODULE_PATH,
+    util::standard_names::{CURRENT_FILE_PATH, CURRENT_MODULE_PATH},
 };
 
 use super::eval;
@@ -242,6 +242,9 @@ pub fn eval_module(
 
     for file_path in &file_paths {
         // #todo keep all inputs in magic variable in env, associate url/key with error.
+
+        // #todo add CURRENT_FILE_PATH to scope? no -> tan code will be able to access the special variables.
+        context.insert_special(CURRENT_FILE_PATH, Expr::string(file_path));
 
         let input = std::fs::read_to_string(file_path);
         let Ok(input) = input else {

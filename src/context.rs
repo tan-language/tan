@@ -22,7 +22,7 @@ pub struct Context {
     // #todo consider the name `module_map`
     pub root_path: String,
     pub module_registry: HashMap<String, Rc<Module>>,
-    pub specials: HashMap<String, Rc<Expr>>, // not used yet
+    pub specials: HashMap<&'static str, Rc<Expr>>, // not used yet
     pub scope: Rc<Scope>,
     pub top_scope: Rc<Scope>, // #todo find better name, e.g. prelude_scope?
 }
@@ -100,5 +100,13 @@ impl Context {
         let url = canonicalize_path(url);
 
         self.module_registry.get_mut(&url)
+    }
+
+    pub fn insert_special(&mut self, key: &'static str, value: Expr) {
+        self.specials.insert(key, Rc::new(value));
+    }
+
+    pub fn get_special(&self, key: &'static str) -> Option<Rc<Expr>> {
+        self.specials.get(key).cloned()
     }
 }
