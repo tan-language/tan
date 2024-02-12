@@ -22,17 +22,57 @@ pub fn read_string(args: &[Expr], context: &mut Context) -> Result<Expr, Error> 
             ));
         };
 
+        // #todo should create a throwaway context instead?
+
         // #todo think carefully which eval function to use.
         // let result = eval_string(input, &mut context);
         let result = resolve_string(input_str, context);
 
         // #todo have a version of read_string tht returns ALL expressions?
         // #todo should return Expr::List(exprs) or a do block?
-        if let Ok(expr) = result {
+        if let Ok(exprs) = result {
             // #todo temp fix
             // #todo think carefully here!
-            let expr = expr.first().unwrap().clone(); // #todo double-argh!
+            let expr = exprs.first().unwrap().clone(); // #todo double-argh!
             Ok(expr)
+        } else {
+            // #todo something more clever needed here!
+            // #todo use an aggregate Error, something like Error::failed_use()
+            dbg!(&result);
+            Err(Error::general("cannot read string, eval failed"))
+        }
+    } else {
+        Err(Error::invalid_arguments("expected one argument", None))
+    }
+}
+
+// #todo temp solution, think about read_string vs read_string_all
+// #todo maybe read_string should get an opts parameter?
+// #todo implement (eval-string ..)
+// #todo put example usage here!
+pub fn read_string_all(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+    // #todo support all `Stringable`s
+
+    if let Some(input) = args.first() {
+        let Some(input_str) = input.as_string() else {
+            return Err(Error::invalid_arguments(
+                "expected String argument",
+                input.range(),
+            ));
+        };
+
+        // #todo should create a throwaway context instead?
+
+        // #todo think carefully which eval function to use.
+        // let result = eval_string(input, &mut context);
+        let result = resolve_string(input_str, context);
+
+        // #todo have a version of read_string tht returns ALL expressions?
+        // #todo should return Expr::List(exprs) or a do block?
+        if let Ok(exprs) = result {
+            // #todo temp fix
+            // #todo think carefully here!
+            Ok(Expr::array(exprs))
         } else {
             // #todo something more clever needed here!
             // #todo use an aggregate Error, something like Error::failed_use()
@@ -80,8 +120,13 @@ pub fn writeln(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
 pub fn setup_lib_io(context: &mut Context) {
     let module = require_module("prelude", context);
 
+    // #todo separate read/read-string.
+
     module.insert("read", Expr::ForeignFunc(Arc::new(read_string)));
     module.insert("read$$String", Expr::ForeignFunc(Arc::new(read_string)));
+
+    module.insert("read-string-all", Expr::ForeignFunc(Arc::new(read_string_all)));
+    module.insert("read-string-all$$String", Expr::ForeignFunc(Arc::new(read_string_all)));
 
     module.insert("write", Expr::ForeignFunc(Arc::new(write)));
     module.insert("write$$String", Expr::ForeignFunc(Arc::new(write)));
