@@ -75,6 +75,7 @@ pub enum ErrorVariant {
 
     // Runtime errors
     Io(std::io::Error),
+    Panic(String),
     General(String), // #todo find a better name!
 }
 
@@ -101,6 +102,7 @@ impl fmt::Display for ErrorVariant {
             ErrorVariant::InvalidArguments => "invalid arguments".to_owned(),
             ErrorVariant::NotInvocable => "not invocable".to_owned(),
             ErrorVariant::General(text) => text.clone(),
+            ErrorVariant::Panic(_) => "panic".to_owned(),
         };
 
         write!(f, "{err}")

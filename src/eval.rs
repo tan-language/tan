@@ -97,6 +97,48 @@ pub fn invoke_func(func: &Expr, args: &[Expr], context: &mut Context) -> Result<
     Ok(value)
 }
 
+// #todo could be made a ForeignFunc actually, not performance sensitive.
+// #todo extract to special_forms or something.
+// #todo note that we pass op, this is a macro?
+pub fn eval_panic(op: &Expr, args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+    // #todo make message optional!
+
+    // #todo the op.range() annotation could be applied externally.
+    let [msg] = args else {
+        return Err(Error::invalid_arguments(
+            "requires `msg` argument",
+            op.range(),
+        ));
+    };
+
+    let Some(msg) = msg.as_stringable() else {
+        return Err(Error::invalid_arguments(
+            "`msg` argument should be a Stringable",
+            msg.range(),
+        ));
+    };
+
+    // #todo encode location.
+
+    let file_path = context
+        .get_special(CURRENT_FILE_PATH)
+        .unwrap()
+        .as_string()
+        .unwrap()
+        .to_string();
+
+    // #todo add panic constructor.
+    let mut error = Error {
+        variant: crate::error::ErrorVariant::Panic(msg.to_string()),
+        file_path: file_path.clone(),
+        notes: vec![],
+    };
+
+    error.push_note(msg, op.range());
+
+    Err(error)
+}
+
 // #todo needs better conversion to Expr::Annotated
 
 /// Evaluates via expression rewriting. The expression `expr` evaluates to
@@ -384,6 +426,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 Ok(Expr::dict(HashMap::new()))
                             }
                         }
+                        "panic!" => eval_panic(&head, tail, context),
                         "eval" => {
                             // #todo also support eval-all/eval-many? (auto wrap with do?)
                             let [expr] = tail else {
