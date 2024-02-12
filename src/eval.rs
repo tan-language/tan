@@ -303,6 +303,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         eval(head, context)?
                     }
                 } else {
+                    // #todo !?!?
                     eval(head, context)?
                 }
             } else {
