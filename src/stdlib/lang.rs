@@ -1,5 +1,11 @@
-use crate::{context::Context, error::Error, expr::Expr};
+use std::sync::Arc;
 
+use crate::{
+    api::resolve_string, context::Context, error::Error, eval::eval, expr::Expr,
+    util::module_util::require_module,
+};
+
+// #todo where is this used?
 // #todo extract *_impl function.
 pub fn ann(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     if args.len() != 1 {
@@ -19,4 +25,61 @@ pub fn ann(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
         // #todo what to return here?
         Ok(Expr::One)
     }
+}
+
+pub fn eval_string(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+    // #todo support all `Stringable`s
+
+    if let Some(input) = args.first() {
+        let Some(input_str) = input.as_string() else {
+            return Err(Error::invalid_arguments(
+                "expected String argument",
+                input.range(),
+            ));
+        };
+
+        // #todo should create a throwaway context instead?
+
+        // #todo think carefully which eval function to use.
+        // let result = eval_string(input, &mut context);
+        let result = resolve_string(input_str, context);
+
+        if let Ok(exprs) = result {
+            // #todo what would be the correct initialization?
+            let mut value = Expr::One;
+            for expr in exprs {
+                value = eval(&expr, context)?;
+                // if let Err(mut error) = eval(&expr, context) {
+                //     // #todo add a unit test to check that the file_path is added here!
+                //     // #todo just make error.file_path optional and avoid this hack here!!!
+                //     // if error.file_path == INPUT_PSEUDO_FILE_PATH {
+                //     //     error.file_path = file_path.clone();
+                //     // }
+
+                //     // #todo better error here!
+                //     return Err(error);
+                // }
+            }
+            Ok(value)
+        } else {
+            // #todo something more clever needed here!
+            // #todo use an aggregate Error, something like Error::failed_use()
+            dbg!(&result);
+            Err(Error::general("cannot read string, eval failed"))
+        }
+    } else {
+        Err(Error::invalid_arguments("expected one argument", None))
+    }
+}
+
+pub fn setup_lib_lang(context: &mut Context) {
+    let module = require_module("prelude", context);
+
+    // #todo separate read/read-string.
+
+    module.insert("eval-string", Expr::ForeignFunc(Arc::new(eval_string)));
+    module.insert(
+        "eval-string$$String",
+        Expr::ForeignFunc(Arc::new(eval_string)),
+    );
 }
