@@ -385,6 +385,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             }
                         }
                         "eval" => {
+                            // #todo also support eval-all/eval-many? (auto wrap with do?)
                             let [expr] = tail else {
                                 return Err(Error::invalid_arguments(
                                     "missing expression to be evaluated",

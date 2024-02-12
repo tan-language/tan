@@ -11,12 +11,8 @@ use crate::{
 // #todo also register as a non-prelude module.
 
 // #todo put example usage here!
-// #todo should take a &mut Context
-pub fn read_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn read_string(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     // #todo support all `Stringable`s
-
-    // #todo temp ultra-hack.
-    let mut context = Context::new();
 
     if let Some(input) = args.first() {
         let Some(input_str) = input.as_string() else {
@@ -28,8 +24,10 @@ pub fn read_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error>
 
         // #todo think carefully which eval function to use.
         // let result = eval_string(input, &mut context);
-        let result = resolve_string(input_str, &mut context);
+        let result = resolve_string(input_str, context);
 
+        // #todo have a version of read_string tht returns ALL expressions?
+        // #todo should return Expr::List(exprs) or a do block?
         if let Ok(expr) = result {
             // #todo temp fix
             // #todo think carefully here!
