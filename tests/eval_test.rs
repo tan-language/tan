@@ -608,3 +608,10 @@ fn should_eval_panic() {
     let error = error.first().unwrap();
     assert_matches!(error.variant, ErrorVariant::Panic(..));
 }
+
+#[test]
+fn should_eval_return() {
+    let result = eval_file("return.tan");
+    let value = result.unwrap().as_int().unwrap();
+    assert_eq!(value, 3);
+}

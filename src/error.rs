@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::{range::Range, util::constants::INPUT_PSEUDO_FILE_PATH};
+use crate::{expr::Expr, range::Range, util::constants::INPUT_PSEUDO_FILE_PATH};
 
 // #todo emit the correct file of the error!
 
@@ -47,6 +47,7 @@ use crate::{range::Range, util::constants::INPUT_PSEUDO_FILE_PATH};
 // For more information about this error, try `cc --explain E0716`.
 // error: could not compile `playground` (bin "playground") due to previous error
 
+// #todo consider renaming back Variant -> Kind.
 #[derive(Debug)]
 pub enum ErrorVariant {
     // Lexical errors
@@ -75,8 +76,20 @@ pub enum ErrorVariant {
 
     // Runtime errors
     Io(std::io::Error),
-    Panic(String),
     General(String), // #todo find a better name!
+
+    // Panic
+    Panic(String),
+
+    // Control-Flow
+
+    // #todo #hack this is a temp hackish solution!
+    // #todo the Error is abused, maybe should use Exprs instead?
+    // Returned by ..return
+    ReturnCF(Expr),
+    // GotoCF(Expr),
+    // BreakCF(Expr),
+    // ContinueCF(Expr),
 }
 
 impl fmt::Display for ErrorVariant {
@@ -103,6 +116,7 @@ impl fmt::Display for ErrorVariant {
             ErrorVariant::NotInvocable => "not invocable".to_owned(),
             ErrorVariant::General(text) => text.clone(),
             ErrorVariant::Panic(_) => "panic".to_owned(),
+            ErrorVariant::ReturnCF(_) => "return".to_owned(),
         };
 
         write!(f, "{err}")
@@ -232,7 +246,11 @@ impl Error {
         Self::new(ErrorVariant::General(text.to_owned()))
     }
 
-    pub fn kind(&self) -> &ErrorVariant {
+    pub fn return_cf(value: Expr) -> Self {
+        Self::new(ErrorVariant::ReturnCF(value))
+    }
+
+    pub fn variant(&self) -> &ErrorVariant {
         &self.variant
     }
 

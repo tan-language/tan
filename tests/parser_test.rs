@@ -383,7 +383,7 @@ fn parse_reports_number_errors() {
 
     let err = &err[0];
 
-    assert_matches!(err.kind(), ErrorVariant::MalformedInt);
+    assert_matches!(err.variant(), ErrorVariant::MalformedInt);
 
     // eprintln!("{}", format_pretty_error(&err, input, None));
 

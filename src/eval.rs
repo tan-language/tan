@@ -5,7 +5,7 @@ use std::{collections::HashMap, rc::Rc};
 
 use crate::{
     context::Context,
-    error::Error,
+    error::{Error, ErrorVariant},
     expr::{annotate, expr_clone, format_value, Expr},
     resolver::compute_dyn_signature,
     scope::Scope,
@@ -82,12 +82,22 @@ pub fn invoke_func(func: &Expr, args: &[Expr], context: &mut Context) -> Result<
         match eval(expr, context) {
             Ok(v) => value = v,
             Err(mut error) => {
-                // #todo find better ways for reporting the file, this is a temp solution.
+                match error.variant {
+                    ErrorVariant::ReturnCF(v) => {
+                        // A return 'statement' encountered, stop evaluating more
+                        // expressions and return the value.
+                        value = v;
+                        break;
+                    }
+                    _ => {
+                        // #todo find better ways for reporting the file, this is a temp solution.
 
-                // annotate errors thrown by function evaluation with the
-                // function file_path, for more precise error reporting.
-                error.file_path = file_path.clone();
-                return Err(error);
+                        // annotate errors thrown by function evaluation with the
+                        // function file_path, for more precise error reporting.
+                        error.file_path = file_path.clone();
+                        return Err(error);
+                    }
+                }
             }
         }
     }
@@ -441,6 +451,21 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             let expr = eval(expr, context)?;
 
                             eval(&expr, context)
+                        }
+                        "return" => {
+                            // #insight always return a value, use () for One/Unit/Void
+                            // #todo should allow multiple values?
+                            // #todo add check one value.
+                            let [return_value] = tail else {
+                                return Err(Error::invalid_arguments(
+                                    "missing return value",
+                                    expr.range(),
+                                ));
+                            };
+
+                            let value = eval(return_value, context)?;
+
+                            Err(Error::return_cf(value))
                         }
                         "quot" => {
                             // #insight not obvious how to move to static/comptime phase.
