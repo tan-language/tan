@@ -600,3 +600,11 @@ fn eval_cond() {
 
     // #todo add extra tests to check for malformed conds.
 }
+
+#[test]
+fn should_eval_panic() {
+    let result = eval_file("panic.tan");
+    let error = result.unwrap_err();
+    let error = error.first().unwrap();
+    assert_matches!(error.variant, ErrorVariant::Panic(..));
+}
