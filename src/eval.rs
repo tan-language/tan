@@ -467,6 +467,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             Err(Error::return_cf(value))
                         }
+                        // #todo is there a way to avoid having continue in the language?
+                        // #todo consider a different name?
+                        // #todo consider continue without parentheses?
+                        "continue" => Err(Error::continue_cf()),
                         "quot" => {
                             // #insight not obvious how to move to static/comptime phase.
                             // #todo doesn't quote all exprs, e.g. the if expression.
@@ -555,8 +559,15 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             while let Some(value) = iterator.next() {
                                 context.scope.insert(var, value);
                                 for expr in body {
-                                    // #insight plain `for` is useful only for the side-effects.
-                                    let _ = eval(expr, context)?;
+                                    if let Err(Error {
+                                        variant: ErrorVariant::ContinueCF,
+                                        ..
+                                    }) = eval(expr, context)
+                                    {
+                                        break;
+                                    }
+                                    // #insight plain `for` is useful only for the side-effects, ignore the value.
+                                    // #todo maybe it should return the last value?
                                 }
                             }
 

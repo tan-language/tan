@@ -85,11 +85,12 @@ pub enum ErrorVariant {
 
     // #todo #hack this is a temp hackish solution!
     // #todo the Error is abused, maybe should use Exprs instead?
+    // #todo consider using named return value(s) instead of the return keyword? (assignment is implicit return?)
     // Returned by ..return
     ReturnCF(Expr),
-    // GotoCF(Expr),
+    ContinueCF,
     // BreakCF(Expr),
-    // ContinueCF(Expr),
+    // GotoCF(Expr),
 }
 
 impl fmt::Display for ErrorVariant {
@@ -117,6 +118,7 @@ impl fmt::Display for ErrorVariant {
             ErrorVariant::General(text) => text.clone(),
             ErrorVariant::Panic(_) => "panic".to_owned(),
             ErrorVariant::ReturnCF(_) => "return".to_owned(),
+            ErrorVariant::ContinueCF => "continue".to_owned(),
         };
 
         write!(f, "{err}")
@@ -194,9 +196,9 @@ impl fmt::Display for Error {
 }
 
 impl Error {
-    pub fn new(kind: ErrorVariant) -> Self {
+    pub fn new(variant: ErrorVariant) -> Self {
         Self {
-            variant: kind,
+            variant,
             file_path: INPUT_PSEUDO_FILE_PATH.to_owned(),
             notes: Vec::new(),
         }
@@ -248,6 +250,10 @@ impl Error {
 
     pub fn return_cf(value: Expr) -> Self {
         Self::new(ErrorVariant::ReturnCF(value))
+    }
+
+    pub fn continue_cf() -> Self {
+        Self::new(ErrorVariant::ContinueCF)
     }
 
     pub fn variant(&self) -> &ErrorVariant {

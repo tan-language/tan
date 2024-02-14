@@ -615,3 +615,10 @@ fn should_eval_return() {
     let value = result.unwrap().as_int().unwrap();
     assert_eq!(value, 3);
 }
+
+#[test]
+fn should_eval_continue() {
+    let result = eval_file("continue.tan");
+    let value = result.unwrap().as_int().unwrap();
+    assert_eq!(value, 40);
+}
