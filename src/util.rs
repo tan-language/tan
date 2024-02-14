@@ -27,6 +27,7 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
             | "cond"
             | "return"
             | "continue"
+            | "break"
             | "for"
             | "for->list" // #todo reconsider the name!
             | "while"

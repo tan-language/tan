@@ -617,6 +617,13 @@ fn should_eval_return() {
 }
 
 #[test]
+fn should_eval_break() {
+    let result = eval_file("break.tan");
+    let value = result.unwrap().as_int().unwrap();
+    assert_eq!(value, 10);
+}
+
+#[test]
 fn should_eval_continue() {
     let result = eval_file("continue.tan");
     let value = result.unwrap().as_int().unwrap();

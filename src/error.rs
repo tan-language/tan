@@ -82,6 +82,9 @@ pub enum ErrorVariant {
     Panic(String),
 
     // Control-Flow
+    // #todo try to avoid having return, break, continue in the language
+    // #todo or at least add linter warnings to avoid them
+    // #insight return, break, continue can improve readability though
 
     // #todo #hack this is a temp hackish solution!
     // #todo the Error is abused, maybe should use Exprs instead?
@@ -90,9 +93,11 @@ pub enum ErrorVariant {
     // Returned by ..return
     ReturnCF(Expr),
     // #todo add custom reporting if used outside of a loop (not catched in eval_for)
+    // Signals a break statement in a loop.
+    BreakCF(Expr),
+    // #todo add custom reporting if used outside of a loop (not catched in eval_for)
     // Signals a continue statement in a loop.
     ContinueCF,
-    // BreakCF(Expr),
     // GotoCF(Expr),
 }
 
@@ -122,6 +127,7 @@ impl fmt::Display for ErrorVariant {
             ErrorVariant::Panic(_) => "panic".to_owned(),
             ErrorVariant::ReturnCF(_) => "return".to_owned(),
             ErrorVariant::ContinueCF => "continue".to_owned(),
+            ErrorVariant::BreakCF(_) => "break".to_owned(),
         };
 
         write!(f, "{err}")
@@ -253,6 +259,10 @@ impl Error {
 
     pub fn return_cf(value: Expr) -> Self {
         Self::new(ErrorVariant::ReturnCF(value))
+    }
+
+    pub fn break_cf(value: Expr) -> Self {
+        Self::new(ErrorVariant::BreakCF(value))
     }
 
     pub fn continue_cf() -> Self {

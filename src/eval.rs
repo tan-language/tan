@@ -472,6 +472,14 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         // #todo consider continue without parentheses?
                         // #todo maybe should return some kind of Nothing/Never/Zero value?
                         "continue" => Err(Error::continue_cf()),
+                        // #todo is there a way to avoid having break in the language?
+                        // #todo consider break without parentheses?
+                        // #todo maybe should return some kind of Nothing/Never/Zero value?
+                        "break" => {
+                            let value = tail.first().unwrap_or(&Expr::One);
+                            let value = eval(value, context)?;
+                            Err(Error::break_cf(value))
+                        }
                         "quot" => {
                             // #insight not obvious how to move to static/comptime phase.
                             // #todo doesn't quote all exprs, e.g. the if expression.
@@ -557,16 +565,35 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             let mut iterator = iterator.borrow_mut();
 
-                            while let Some(value) = iterator.next() {
+                            'outer_loop: while let Some(value) = iterator.next() {
                                 context.scope.insert(var, value);
-                                for expr in body {
-                                    if let Err(Error {
-                                        variant: ErrorVariant::ContinueCF,
-                                        ..
-                                    }) = eval(expr, context)
-                                    {
-                                        break;
+                                'inner_loop: for expr in body {
+                                    match eval(expr, context) {
+                                        Err(Error {
+                                            variant: ErrorVariant::BreakCF(_value),
+                                            ..
+                                        }) => {
+                                            // #todo for the moment we ignore break with value, should think some more about it.
+                                            break 'outer_loop;
+                                        }
+                                        Err(Error {
+                                            variant: ErrorVariant::ContinueCF,
+                                            ..
+                                        }) => {
+                                            break 'inner_loop;
+                                        }
+                                        _ => {
+                                            // #insight plain `for` is useful only for the side-effects, ignore the value.
+                                            // #todo maybe it should return the last value?
+                                        }
                                     }
+                                    // if let Err(Error {
+                                    //     variant: ErrorVariant::ContinueCF,
+                                    //     ..
+                                    // }) = eval(expr, context)
+                                    // {
+                                    //     break;
+                                    // }
                                     // #insight plain `for` is useful only for the side-effects, ignore the value.
                                     // #todo maybe it should return the last value?
                                 }
