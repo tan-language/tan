@@ -453,18 +453,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             eval(&expr, context)
                         }
                         "return" => {
-                            // #insight always return a value, use () for One/Unit/Void
-                            // #todo should allow multiple values?
-                            // #todo add check one value.
-                            let [return_value] = tail else {
-                                return Err(Error::invalid_arguments(
-                                    "missing return value",
-                                    expr.range(),
-                                ));
-                            };
-
-                            let value = eval(return_value, context)?;
-
+                            let value = tail.first().unwrap_or(&Expr::One);
+                            let value = eval(value, context)?;
                             Err(Error::return_cf(value))
                         }
                         // #todo is there a way to avoid having continue in the language?
