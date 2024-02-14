@@ -470,6 +470,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         // #todo is there a way to avoid having continue in the language?
                         // #todo consider a different name?
                         // #todo consider continue without parentheses?
+                        // #todo maybe should return some kind of Nothing/Never/Zero value?
                         "continue" => Err(Error::continue_cf()),
                         "quot" => {
                             // #insight not obvious how to move to static/comptime phase.

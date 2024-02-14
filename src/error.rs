@@ -86,8 +86,11 @@ pub enum ErrorVariant {
     // #todo #hack this is a temp hackish solution!
     // #todo the Error is abused, maybe should use Exprs instead?
     // #todo consider using named return value(s) instead of the return keyword? (assignment is implicit return?)
+    // #todo add custom reporting if used outside of a function (not catched in eval_func).
     // Returned by ..return
     ReturnCF(Expr),
+    // #todo add custom reporting if used outside of a loop (not catched in eval_for)
+    // Signals a continue statement in a loop.
     ContinueCF,
     // BreakCF(Expr),
     // GotoCF(Expr),
