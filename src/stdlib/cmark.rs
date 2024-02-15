@@ -19,21 +19,41 @@ pub fn html_from_common_mark(args: &[Expr], _context: &mut Context) -> Result<Ex
             ));
         };
 
+        // #todo consider renaming :unsafe to :allow-html?
+        // Accepts an optional ..options parameter
+        // :unsafe
+        let options = args.get(1);
+
         // #see here are the Comrak options: https://docs.rs/comrak/latest/comrak/struct.ExtensionOptions.html
         // #todo consider allowing granular setting of options? probably no.
         // #todo cache the generation of options.
 
-        let mut options = Options::default();
-        options.extension.strikethrough = true;
-        options.extension.table = true;
-        options.extension.autolink = true;
-        options.extension.tasklist = true;
-        options.extension.superscript = true;
-        options.extension.footnotes = true;
+        let mut comrak_options = Options::default();
+        comrak_options.extension.strikethrough = true;
+        comrak_options.extension.table = true;
+        comrak_options.extension.autolink = true;
+        comrak_options.extension.tasklist = true;
+        comrak_options.extension.superscript = true;
+        comrak_options.extension.footnotes = true;
         // #todo extract shortcodes support to separate module, e.g. `text/shortcodes`
         // options.extension.shortcodes = true; // #insight needs feature `shortcodes`
+        if options.is_some() {
+            let Some(options) = options.unwrap().as_dict() else {
+                return Err(Error::invalid_arguments(
+                    "options argument should be a dict",
+                    None,
+                ));
+            };
 
-        let html = markdown_to_html(markup, &options);
+            if options.contains_key("unsafe") {
+                // #todo actually check that :unsafe is true
+                // #todo add unit test
+                // #insight this allows 'raw' html
+                comrak_options.render.unsafe_ = true;
+            }
+        }
+
+        let html = markdown_to_html(markup, &comrak_options);
 
         Ok(Expr::String(html))
     } else {
@@ -52,6 +72,7 @@ pub fn setup_lib_text_cmark(context: &mut Context) {
     // (let html cmark/expr-to-html expr)
     // (let html cmark/expr->html expr)
     // (let html cmark/to-html markup)
+    // (let html cmark/to-html markup {:unsafe true})
     module.insert(
         "to-html",
         Expr::ForeignFunc(Arc::new(html_from_common_mark)),

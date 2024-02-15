@@ -237,8 +237,22 @@ impl fmt::Display for Expr {
                         .join(" ");
                     format!("{{{exprs}}}")
                 }
-                Expr::IntRange(start, end, step) => format!("{start}..{end}/{step}"),
-                Expr::FloatRange(start, end, step) => format!("{start}..{end}/{step}"), // #todo consider using `:` or `,` instead of `/`?
+                Expr::IntRange(start, end, step) => {
+                    if *step == 1 {
+                        format!("{start}..{end}")
+                    } else {
+                        // #todo consider using `:` or `,` instead of `/`?
+                        format!("{start}..{end}/{step}")
+                    }
+                }
+                Expr::FloatRange(start, end, step) => {
+                    if *step == 1.0 {
+                        format!("{start}..{end}")
+                    } else {
+                        // #todo consider using `:` or `,` instead of `/`?
+                        format!("{start}..{end}/{step}")
+                    }
+                }
                 Expr::Func(..) => "#<func>".to_owned(),
                 Expr::Macro(..) => "#<func>".to_owned(),
                 Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
