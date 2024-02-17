@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{rc::Rc, sync::Arc};
 
 use crate::{
     api::resolve_string,
@@ -6,6 +6,7 @@ use crate::{
     error::Error,
     eval::{eval, util::eval_file},
     expr::Expr,
+    scope::Scope,
     util::module_util::require_module,
 };
 
@@ -45,7 +46,12 @@ pub fn load_file(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
 
     // #todo similar code in eval "use", refactor!
 
-    match eval_file(path, context) {
+    // #think: do we need a nested scope? I think not! should be an option or multiple functions
+
+    // let prev_scope = context.scope.clone();
+    // context.scope = Rc::new(Scope::new(prev_scope.clone()));
+
+    let result = match eval_file(path, context) {
         Ok(value) => Ok(value),
         Err(errors) => {
             // #todo precise formating is _required_ here!
@@ -55,7 +61,11 @@ pub fn load_file(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
             // #todo add custom error here, e.g. failed_file_load
             Err(Error::failed_use(path, errors))
         }
-    }
+    };
+
+    // context.scope = prev_scope;
+
+    result
 }
 
 pub fn eval_string(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
