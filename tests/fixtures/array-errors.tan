@@ -1,0 +1,5 @@
+(let test-function (Func [x]
+    [1 2 (whoami 3)]
+))
+
+(test-function 4)

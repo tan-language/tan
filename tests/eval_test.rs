@@ -641,3 +641,9 @@ fn eval_should_report_undefined_symbol_errors() {
     let result = eval_file("undefined.tan");
     assert!(result.is_err());
 }
+
+#[test]
+fn eval_should_report_errors_in_args() {
+    let result = eval_file("array-errors.tan");
+    assert!(result.is_err());
+}

@@ -302,6 +302,7 @@ pub fn eval_module(
     };
 
     // #todo return Expr::Module, add module metadata: name, path, exports, etc.
+    // #todo collect errors from all module files!
 
     for file_path in &file_paths {
         let _ = eval_file(file_path, context)?;

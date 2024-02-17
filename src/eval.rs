@@ -32,9 +32,17 @@ use self::{iterator::try_iterator_from, util::eval_module};
 // #todo give more 'general' name -> `eval_all` or `eval_vec`?
 // #todo what about if a required argument is not passed to a function? currently we report undefined symbol.
 pub fn eval_args(args: &[Expr], context: &mut Context) -> Result<Vec<Expr>, Error> {
-    args.iter()
-        .map(|x| eval(x, context))
-        .collect::<Result<Vec<_>, _>>()
+    // #todo should report ALL errors!
+
+    // args.iter()
+    //     .map(|x| eval(x, context))
+    //     .collect::<Result<Vec<_>, _>>()
+
+    let mut values = Vec::with_capacity(args.len());
+    for arg in args {
+        values.push(eval(arg, context)?);
+    }
+    Ok(values)
 }
 
 // #todo rename to eval_func?
@@ -54,7 +62,9 @@ pub fn invoke_func(func: &Expr, args: &[Expr], context: &mut Context) -> Result<
     // #todo ultra-hack to kill shared ref to `env`.
     let params = params.clone();
 
-    // Dynamic scoping, #todo convert to lexical.
+    // #insight
+    // actually we implement static (lexical) scoping here, as we base the new
+    // scope on the lexical function scope.
 
     let prev_scope = context.scope.clone();
     context.scope = Rc::new(Scope::new(func_scope.clone())); // #insight notice we use func_scope here!
@@ -91,7 +101,6 @@ pub fn invoke_func(func: &Expr, args: &[Expr], context: &mut Context) -> Result<
                     }
                     _ => {
                         // #todo find better ways for reporting the file, this is a temp solution.
-
                         // annotate errors thrown by function evaluation with the
                         // function file_path, for more precise error reporting.
                         error.file_path = file_path.clone();
@@ -102,6 +111,7 @@ pub fn invoke_func(func: &Expr, args: &[Expr], context: &mut Context) -> Result<
         }
     }
 
+    // #todo what happens to this if an error is thrown??!!
     context.scope = prev_scope;
 
     Ok(value)
@@ -572,23 +582,21 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                         }) => {
                                             break 'inner_loop;
                                         }
+                                        Err(error) => {
+                                            // #todo add unit test to catch for-error regression.
+                                            // Propagate all other errors. This is very ..error-prone code, think how
+                                            // to refactor.
+                                            return Err(error);
+                                        }
                                         _ => {
                                             // #insight plain `for` is useful only for the side-effects, ignore the value.
                                             // #todo maybe it should return the last value?
                                         }
                                     }
-                                    // if let Err(Error {
-                                    //     variant: ErrorVariant::ContinueCF,
-                                    //     ..
-                                    // }) = eval(expr, context)
-                                    // {
-                                    //     break;
-                                    // }
-                                    // #insight plain `for` is useful only for the side-effects, ignore the value.
-                                    // #todo maybe it should return the last value?
                                 }
                             }
 
+                            // #todo what happens to this if an error is thrown?
                             context.scope = prev_scope;
 
                             Ok(Expr::One)
@@ -1313,6 +1321,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             Ok(expr.clone())
         }
     };
+    // #hint keep this for debugging.
     // if result.is_err() {
     //     println!("-----> {result:?}");
     //     println!("{}", std::backtrace::Backtrace::force_capture());
