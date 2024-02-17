@@ -247,6 +247,7 @@ pub fn eval_module(
         // #todo keep all inputs in magic variable in env, associate url/key with error.
 
         // #todo add CURRENT_FILE_PATH to scope? no -> tan code will be able to access the special variables.
+        let old_current_file_path = context.get_special(CURRENT_FILE_PATH);
         context.insert_special(CURRENT_FILE_PATH, Expr::string(file_path));
 
         let input = std::fs::read_to_string(file_path);
@@ -279,6 +280,11 @@ pub fn eval_module(
                 // #todo better error here!
                 return Err(vec![error]);
             }
+        }
+
+        if let Some(old_current_file_path) = old_current_file_path {
+            // #insight we should revert the previous current file, in case of 'use'
+            context.insert_special(CURRENT_FILE_PATH, old_current_file_path.unpack().clone());
         }
     }
 

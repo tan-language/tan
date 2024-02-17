@@ -1,0 +1,6 @@
+(let dummy (Func []
+    ; trigger an error.
+    (+ 1 "george")
+))
+
+(dummy)

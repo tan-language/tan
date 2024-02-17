@@ -629,3 +629,9 @@ fn should_eval_continue() {
     let value = result.unwrap().as_int().unwrap();
     assert_eq!(value, 40);
 }
+
+#[test]
+fn eval_should_report_errors_in_function_incovations() {
+    let result = eval_file("func-error.tan");
+    assert!(result.is_err());
+}

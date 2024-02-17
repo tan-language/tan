@@ -154,7 +154,7 @@ pub fn eval_panic(op: &Expr, args: &[Expr], context: &mut Context) -> Result<Exp
 /// Evaluates via expression rewriting. The expression `expr` evaluates to
 /// a fixed point. In essence this is a 'tree-walk' interpreter.
 pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
-    match expr.unpack() {
+    let result = match expr.unpack() {
         // #todo are you sure?
         // Expr::Annotated(..) => eval(expr.unpack(), env),
         Expr::Symbol(symbol) => {
@@ -1312,5 +1312,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             // Unhandled expression variants evaluate to themselves.
             Ok(expr.clone())
         }
-    }
+    };
+    // if result.is_err() {
+    //     println!("-----> {result:?}");
+    //     println!("{}", std::backtrace::Backtrace::force_capture());
+    // }
+    result
 }
