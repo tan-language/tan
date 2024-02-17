@@ -51,7 +51,7 @@ pub fn load_file(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     // let prev_scope = context.scope.clone();
     // context.scope = Rc::new(Scope::new(prev_scope.clone()));
 
-    let result = match eval_file(path, context) {
+    match eval_file(path, context) {
         Ok(value) => Ok(value),
         Err(errors) => {
             // #todo precise formating is _required_ here!
@@ -61,11 +61,9 @@ pub fn load_file(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
             // #todo add custom error here, e.g. failed_file_load
             Err(Error::failed_use(path, errors))
         }
-    };
+    }
 
     // context.scope = prev_scope;
-
-    result
 }
 
 pub fn eval_string(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
