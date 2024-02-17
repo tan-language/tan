@@ -1,4 +1,4 @@
-use std::{rc::Rc, sync::Arc};
+use std::sync::Arc;
 
 use crate::{
     api::resolve_string,
@@ -6,7 +6,6 @@ use crate::{
     error::Error,
     eval::{eval, util::eval_file},
     expr::Expr,
-    scope::Scope,
     util::module_util::require_module,
 };
 
@@ -59,6 +58,8 @@ pub fn load_file(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
             // dbg!(errors);
             // #todo add note with information here!
             // #todo add custom error here, e.g. failed_file_load
+            // println!("/////// {errors:?}");
+            // println!("{}", std::backtrace::Backtrace::force_capture());
             Err(Error::failed_use(path, errors))
         }
     }

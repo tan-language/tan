@@ -201,12 +201,12 @@ pub fn eval_file(path: &str, context: &mut Context) -> Result<Expr, Vec<Error>> 
         return Err(errors);
     };
 
-    let mut value = Expr::One;
+    let mut result = Ok(Expr::One);
 
     for expr in exprs {
         // if let Err(mut error) = eval(&expr, context) {
         match eval(&expr, context) {
-            Ok(expr) => value = expr,
+            Ok(expr) => result = Ok(expr),
             Err(mut error) => {
                 // #todo add a unit test to check that the file_path is added here!
                 // #todo just make error.file_path optional and avoid this hack here!!!
@@ -215,7 +215,7 @@ pub fn eval_file(path: &str, context: &mut Context) -> Result<Expr, Vec<Error>> 
                 }
 
                 // #todo better error here!
-                return Err(vec![error]);
+                result = Err(vec![error]);
             }
         }
     }
@@ -225,7 +225,7 @@ pub fn eval_file(path: &str, context: &mut Context) -> Result<Expr, Vec<Error>> 
         context.insert_special(CURRENT_FILE_PATH, old_current_file_path.unpack().clone());
     }
 
-    Ok(value)
+    result
 }
 
 /// Evaluates a language module.
