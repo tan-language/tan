@@ -1,7 +1,11 @@
 use std::sync::Arc;
 
 use crate::{
-    api::resolve_string, context::Context, error::Error, eval::eval, expr::Expr,
+    api::resolve_string,
+    context::Context,
+    error::Error,
+    eval::{eval, util::eval_file},
+    expr::Expr,
     util::module_util::require_module,
 };
 
@@ -24,6 +28,33 @@ pub fn ann(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
     } else {
         // #todo what to return here?
         Ok(Expr::One)
+    }
+}
+
+pub fn load_file(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+    let [path] = args else {
+        return Err(Error::invalid_arguments("requires `path` argument", None));
+    };
+
+    let Some(path) = path.as_stringable() else {
+        return Err(Error::invalid_arguments(
+            "`path` argument should be a Stringable",
+            path.range(),
+        ));
+    };
+
+    // #todo similar code in eval "use", refactor!
+
+    match eval_file(path, context) {
+        Ok(value) => Ok(value),
+        Err(errors) => {
+            // #todo precise formating is _required_ here!
+            // eprintln!("{}", format_errors(&errors));
+            // dbg!(errors);
+            // #todo add note with information here!
+            // #todo add custom error here, e.g. failed_file_load
+            Err(Error::failed_use(path, errors))
+        }
     }
 }
 
@@ -82,4 +113,6 @@ pub fn setup_lib_lang(context: &mut Context) {
         "eval-string$$String",
         Expr::ForeignFunc(Arc::new(eval_string)),
     );
+
+    module.insert("load-file", Expr::ForeignFunc(Arc::new(load_file)));
 }
