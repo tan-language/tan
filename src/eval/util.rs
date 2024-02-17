@@ -173,6 +173,61 @@ pub fn compute_module_file_paths(module_path: impl AsRef<Path>) -> std::io::Resu
 // #insight It's also used in ..use
 // #todo split into multiple functions.
 
+// #todo maybe rename both to load_file, load_module?
+
+pub fn eval_file(path: &str, context: &mut Context) -> Result<Expr, Vec<Error>> {
+    // #todo keep all inputs in magic variable in env, associate url/key with error.
+
+    // #todo add CURRENT_FILE_PATH to scope? no -> tan code will be able to access the special variables.
+    let old_current_file_path = context.get_special(CURRENT_FILE_PATH);
+    context.insert_special(CURRENT_FILE_PATH, Expr::string(path));
+
+    let input = std::fs::read_to_string(path);
+    let Ok(input) = input else {
+        return Err(vec![input.unwrap_err().into()]);
+    };
+
+    let result = resolve_string(input, context);
+
+    let Ok(exprs) = result else {
+        let mut errors = result.unwrap_err();
+
+        for error in &mut errors {
+            error.file_path = path.to_string();
+        }
+
+        // #todo better error handling here!
+        // #todo maybe continue parsing/resolving to find more errors?
+        return Err(errors);
+    };
+
+    let mut value = Expr::One;
+
+    for expr in exprs {
+        // if let Err(mut error) = eval(&expr, context) {
+        match eval(&expr, context) {
+            Ok(expr) => value = expr,
+            Err(mut error) => {
+                // #todo add a unit test to check that the file_path is added here!
+                // #todo just make error.file_path optional and avoid this hack here!!!
+                if error.file_path == INPUT_PSEUDO_FILE_PATH {
+                    error.file_path = path.to_string();
+                }
+
+                // #todo better error here!
+                return Err(vec![error]);
+            }
+        }
+    }
+
+    if let Some(old_current_file_path) = old_current_file_path {
+        // #insight we should revert the previous current file, in case of 'use'
+        context.insert_special(CURRENT_FILE_PATH, old_current_file_path.unpack().clone());
+    }
+
+    Ok(value)
+}
+
 /// Evaluates a language module.
 pub fn eval_module(
     path: impl AsRef<Path>,
@@ -244,48 +299,7 @@ pub fn eval_module(
     // #todo return Expr::Module, add module metadata: name, path, exports, etc.
 
     for file_path in &file_paths {
-        // #todo keep all inputs in magic variable in env, associate url/key with error.
-
-        // #todo add CURRENT_FILE_PATH to scope? no -> tan code will be able to access the special variables.
-        let old_current_file_path = context.get_special(CURRENT_FILE_PATH);
-        context.insert_special(CURRENT_FILE_PATH, Expr::string(file_path));
-
-        let input = std::fs::read_to_string(file_path);
-        let Ok(input) = input else {
-            return Err(vec![input.unwrap_err().into()]);
-        };
-
-        let result = resolve_string(input, context);
-
-        let Ok(exprs) = result else {
-            let mut errors = result.unwrap_err();
-
-            for error in &mut errors {
-                error.file_path = file_path.clone();
-            }
-
-            // #todo better error handling here!
-            // #todo maybe continue parsing/resolving to find more errors?
-            return Err(errors);
-        };
-
-        for expr in exprs {
-            if let Err(mut error) = eval(&expr, context) {
-                // #todo add a unit test to check that the file_path is added here!
-                // #todo just make error.file_path optional and avoid this hack here!!!
-                if error.file_path == INPUT_PSEUDO_FILE_PATH {
-                    error.file_path = file_path.clone();
-                }
-
-                // #todo better error here!
-                return Err(vec![error]);
-            }
-        }
-
-        if let Some(old_current_file_path) = old_current_file_path {
-            // #insight we should revert the previous current file, in case of 'use'
-            context.insert_special(CURRENT_FILE_PATH, old_current_file_path.unpack().clone());
-        }
+        let _ = eval_file(file_path, context)?;
     }
 
     context.scope = prev_scope;
