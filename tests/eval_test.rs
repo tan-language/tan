@@ -635,3 +635,9 @@ fn eval_should_report_errors_in_function_incovations() {
     let result = eval_file("func-error.tan");
     assert!(result.is_err());
 }
+
+#[test]
+fn eval_should_report_undefined_symbol_errors() {
+    let result = eval_file("undefined.tan");
+    assert!(result.is_err());
+}
