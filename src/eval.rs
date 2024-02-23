@@ -1001,7 +1001,6 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             // #todo make sure paths are relative to the current file.
                             let result = eval_module(module_path, context, false);
-
                             if let Err(errors) = result {
                                 // #todo precise formating is _required_ here!
                                 // eprintln!("{}", format_errors(&errors));
@@ -1012,7 +1011,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             let Ok(Expr::Module(module)) = result else {
                                 // #todo could use a panic here, this should never happen.
-                                return Err(Error::failed_use(module_path, vec![]));
+                                panic!("invalid module for `{}`", module_path);
                             };
 
                             if let Some(arg) = tail.get(1) {
@@ -1043,7 +1042,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                     }
                                 } else {
                                     return Err(Error::invalid_arguments(
-                                        "malformed use expression",
+                                        "malformed use expression, no list of symbols provided",
                                         expr.range(),
                                     ));
                                 }

@@ -47,6 +47,8 @@ pub fn load_file(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
 
     // #think: do we need a nested scope? I think not! should be an option or multiple functions
 
+    // #todo I _think_this causes the crazy 'templates/layout' bug.
+
     // let prev_scope = context.scope.clone();
     // context.scope = Rc::new(Scope::new(prev_scope.clone()));
 
