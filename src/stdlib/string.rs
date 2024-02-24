@@ -241,6 +241,28 @@ pub fn char_uppercased(args: &[Expr], _context: &mut Context) -> Result<Expr, Er
     Ok(Expr::Char(uppercased))
 }
 
+// #insight
+// Originally the Swift-like `lowercased` was considered, `to-lower-case` was
+// preferred, as it's more consistent, allows for (let lowercased (to-lower-case str)),
+// and scales to other cases, e.g. `to-kebab-case`, `to-snake-case`, etc)
+pub fn string_to_lower_case(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [this] = args else {
+        return Err(Error::invalid_arguments("requires `this` argument", None));
+    };
+
+    // #todo consider as_stringable?
+    let Some(this) = this.as_string() else {
+        return Err(Error::invalid_arguments(
+            "`this` argument should be a String",
+            this.range(),
+        ));
+    };
+
+    let lowercased = this.to_lowercase();
+
+    Ok(Expr::String(lowercased))
+}
+
 // #todo make this a String constructor?
 // #todo 'join' and 'format' versions?
 
@@ -488,10 +510,20 @@ pub fn setup_lib_string(context: &mut Context) {
     module.insert("chars", Expr::ForeignFunc(Arc::new(string_chars)));
     module.insert("chars$$String", Expr::ForeignFunc(Arc::new(string_chars)));
 
+    // #todo rename to `to-uppercase`, more consistent?
     module.insert("uppercased", Expr::ForeignFunc(Arc::new(char_uppercased)));
     module.insert(
-        "uppercases$$Char",
+        "uppercased$$Char",
         Expr::ForeignFunc(Arc::new(char_uppercased)),
+    );
+
+    module.insert(
+        "to-lower-case",
+        Expr::ForeignFunc(Arc::new(string_to_lower_case)),
+    );
+    module.insert(
+        "to-lower-case$$String",
+        Expr::ForeignFunc(Arc::new(string_to_lower_case)),
     );
 
     module.insert("format", Expr::ForeignFunc(Arc::new(format)));
