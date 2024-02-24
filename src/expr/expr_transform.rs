@@ -92,7 +92,15 @@ impl Expr {
                     if sym == "unquot" {
                         debug_assert!(terms.len() == 2);
                         // #todo remove the unwrap!
-                        eval(&terms[1], context).unwrap()
+                        // #todo quote should return Result.
+                        match eval(&terms[1], context) {
+                            Ok(expr) => expr,
+                            Err(error) => {
+                                // #todo this is a temp (bad) solution.
+                                eprintln!("{error:?}");
+                                panic!("error in quoted expression: `{}`", &terms[1]);
+                            }
+                        }
                     } else {
                         let terms = terms.iter().map(|t| t.clone().quot(context)).collect();
                         Expr::maybe_annotated(Expr::List(terms), ann)
