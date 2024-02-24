@@ -1005,6 +1005,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 // #todo precise formating is _required_ here!
                                 // eprintln!("{}", format_errors(&errors));
                                 // dbg!(errors);
+                                // println!("~~~~~ {errors:?}");
                                 // #todo add note with information here!
                                 return Err(Error::failed_use(module_path, errors));
                             };
