@@ -555,7 +555,11 @@ pub fn setup_lib_string(context: &mut Context) {
     // #todo write tan unit test
     module.insert("trim", Expr::ForeignFunc(Arc::new(string_trim)));
 
-    module.insert("contains?", Expr::ForeignFunc(Arc::new(string_contains)));
+    // module.insert("contains?", Expr::ForeignFunc(Arc::new(string_contains)));
+    module.insert(
+        "contains?$$String$$String",
+        Expr::ForeignFunc(Arc::new(string_contains)),
+    );
 
     module.insert(
         "starts-with?",

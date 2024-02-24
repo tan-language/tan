@@ -246,7 +246,16 @@ pub fn setup_lib_seq(context: &mut Context) {
     module.insert("join", Expr::ForeignFunc(Arc::new(array_join)));
     module.insert("skip", Expr::ForeignFunc(Arc::new(array_skip)));
     module.insert("count", Expr::ForeignFunc(Arc::new(array_count)));
+    // #todo make contains? generic!
     module.insert("contains?", Expr::ForeignFunc(Arc::new(array_contains)));
+    module.insert(
+        "contains?$$Array$$Int",
+        Expr::ForeignFunc(Arc::new(array_contains)),
+    );
+    module.insert(
+        "contains?$$Array$$String",
+        Expr::ForeignFunc(Arc::new(array_contains)),
+    );
     module.insert("is-empty?", Expr::ForeignFunc(Arc::new(array_is_empty)));
     module.insert("sort!", Expr::ForeignFunc(Arc::new(array_sort_mut)));
 
