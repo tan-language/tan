@@ -135,6 +135,40 @@ pub enum Expr {
     Module(Rc<Module>),
 }
 
+// #todo think some more about this.
+impl PartialEq for Expr {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Comment(l0, l1), Self::Comment(r0, r1)) => l0 == r0 && l1 == r1,
+            (Self::Bool(l0), Self::Bool(r0)) => l0 == r0,
+            (Self::Int(l0), Self::Int(r0)) => l0 == r0,
+            (Self::Float(l0), Self::Float(r0)) => l0 == r0,
+            (Self::Dec(l0), Self::Dec(r0)) => l0 == r0,
+            (Self::Symbol(l0), Self::Symbol(r0)) => l0 == r0,
+            (Self::KeySymbol(l0), Self::KeySymbol(r0)) => l0 == r0,
+            (Self::Char(l0), Self::Char(r0)) => l0 == r0,
+            (Self::String(l0), Self::String(r0)) => l0 == r0,
+            (Self::List(l0), Self::List(r0)) => l0 == r0,
+            (Self::Array(l0), Self::Array(r0)) => l0 == r0,
+            (Self::Dict(l0), Self::Dict(r0)) => l0 == r0,
+            (Self::IntRange(l0, l1, l2), Self::IntRange(r0, r1, r2)) => {
+                l0 == r0 && l1 == r1 && l2 == r2
+            }
+            (Self::FloatRange(l0, l1, l2), Self::FloatRange(r0, r1, r2)) => {
+                l0 == r0 && l1 == r1 && l2 == r2
+            }
+            (Self::Func(..), Self::Func(..)) => false,
+            (Self::Macro(l0, l1), Self::Macro(r0, r1)) => l0 == r0 && l1 == r1,
+            (Self::ForeignFunc(..), Self::ForeignFunc(..)) => false,
+            (Self::If(l0, l1, l2), Self::If(r0, r1, r2)) => l0 == r0 && l1 == r1 && l2 == r2,
+            // #todo #think should unpack and ignore annotations?
+            (Self::Annotated(l0, l1), Self::Annotated(r0, r1)) => l0 == r0 && l1 == r1,
+            (Self::Module(..), Self::Module(..)) => false,
+            _ => core::mem::discriminant(self) == core::mem::discriminant(other),
+        }
+    }
+}
+
 // #todo what is the Expr default? One (Unit/Any) or Zero (Noting/Never)
 // #todo use Sexp notation here, duh.
 impl fmt::Debug for Expr {

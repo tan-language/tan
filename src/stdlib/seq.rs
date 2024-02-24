@@ -142,6 +142,24 @@ pub fn array_is_empty(args: &[Expr], _context: &mut Context) -> Result<Expr, Err
     Ok(Expr::Bool(array.len() == 0))
 }
 
+pub fn array_contains(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [array, element] = args else {
+        return Err(Error::invalid_arguments(
+            "requires `this` and `element` argument",
+            None,
+        ));
+    };
+
+    let Some(elements) = array.as_array_mut() else {
+        return Err(Error::invalid_arguments(
+            "`array` argument should be a Array",
+            array.range(),
+        ));
+    };
+
+    Ok(Expr::Bool(elements.contains(element.unpack())))
+}
+
 // #todo how to implement this? -> implement with tan code!
 pub fn array_filter(_args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     todo!();
@@ -228,6 +246,7 @@ pub fn setup_lib_seq(context: &mut Context) {
     module.insert("join", Expr::ForeignFunc(Arc::new(array_join)));
     module.insert("skip", Expr::ForeignFunc(Arc::new(array_skip)));
     module.insert("count", Expr::ForeignFunc(Arc::new(array_count)));
+    module.insert("contains?", Expr::ForeignFunc(Arc::new(array_contains)));
     module.insert("is-empty?", Expr::ForeignFunc(Arc::new(array_is_empty)));
     module.insert("sort!", Expr::ForeignFunc(Arc::new(array_sort_mut)));
 
