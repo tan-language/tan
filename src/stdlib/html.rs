@@ -235,7 +235,6 @@ mod tests {
                 ]
             ))
             (html/html-from-expr '(div $(helper) (b "Works")))
-            ; (html/html-from-expr '($(helper) (b "Works")))
         "#;
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
