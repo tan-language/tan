@@ -268,27 +268,38 @@ impl<'a> Lexer<'a> {
                 } else {
                     break;
                 }
-            } else if is_eol(ch) {
-                for _ in 0..indent {
-                    let Some(ch1) = self.next_char() else {
-                        let mut error = Error::new(ErrorVariant::UnterminatedString);
-                        error.push_note("Text string is not closed", Some(self.current_range())); // #todo refine the text.
-                        self.errors.push(error);
-                        return None;
-                    };
+            } else {
+                if quote_count > 0 {
+                    // Insert to the string 'non-text-delimiter' double quotes.
 
-                    if is_eol(ch1) {
-                        self.put_back_char(ch1);
-                        break;
+                    for _ in 0..quote_count {
+                        string.push('"');
                     }
 
-                    if !ch1.is_whitespace() {
-                        self.put_back_char(ch1);
-                        break;
+                    quote_count = 0;
+                }
+
+                if is_eol(ch) {
+                    for _ in 0..indent {
+                        let Some(ch1) = self.next_char() else {
+                            let mut error = Error::new(ErrorVariant::UnterminatedString);
+                            error
+                                .push_note("Text string is not closed", Some(self.current_range())); // #todo refine the text.
+                            self.errors.push(error);
+                            return None;
+                        };
+
+                        if is_eol(ch1) {
+                            self.put_back_char(ch1);
+                            break;
+                        }
+
+                        if !ch1.is_whitespace() {
+                            self.put_back_char(ch1);
+                            break;
+                        }
                     }
                 }
-            } else {
-                // #todo support single or double `"`.
             }
 
             string.push(ch);

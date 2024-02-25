@@ -168,6 +168,20 @@ fn lex_reports_unexpected_eof() {
 }
 
 #[test]
+fn lex_handles_multiline_strings_with_double_quotes() {
+    let input = r##"
+        (writeln
+            """
+            Hello "George"
+            How are you?
+            """
+        )"##;
+    let tokens = Lexer::new(input).lex().unwrap();
+    let string = &tokens[2];
+    assert_matches!(string.kind(), TokenKind::String(lexeme) if lexeme == "Hello \"George\"\nHow are you?\n");
+}
+
+#[test]
 fn lex_reports_unterminated_strings() {
     let input = r##"(write "Hello)"##;
     let tokens = Lexer::new(input).lex();
