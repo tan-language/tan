@@ -1322,15 +1322,15 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
         }
     };
     // #hint keep this for debugging.
-    if let Err(ref error) = result {
-        match error.variant {
-            // #ignore 'pseudo' errors (control-flow)
-            ErrorVariant::ContinueCF | ErrorVariant::BreakCF(..) | ErrorVariant::ReturnCF(..) => (),
-            _ => {
-                println!("-----> {error:?}");
-                // println!("{}", std::backtrace::Backtrace::force_capture());
-            }
-        }
-    }
+    // if let Err(ref error) = result {
+    //     match error.variant {
+    //         // #ignore 'pseudo' errors (control-flow)
+    //         ErrorVariant::ContinueCF | ErrorVariant::BreakCF(..) | ErrorVariant::ReturnCF(..) => (),
+    //         _ => {
+    //             println!("-----> {error:?}");
+    //             // println!("{}", std::backtrace::Backtrace::force_capture());
+    //         }
+    //     }
+    // }
     result
 }

@@ -35,10 +35,21 @@ use crate::{
 
 // #todo should take a list of expressions to handle '(!DOCTYPE "html")
 // #todo handle self-closing tags, e.g. <meta ... />, <link ... />
+// #todo should act on string, and only wrap in Expr::string(...) at the end.
 fn render_expr(expr: &Expr) -> Result<Expr, Error> {
     let expr = expr.unpack();
 
     match expr {
+        Expr::Array(terms) => {
+            // #todo this is a temp solution, investigate refactoring opportunities
+            let mut html = String::new();
+            let terms = terms.borrow();
+            for term in terms.iter() {
+                let expr = render_expr(term)?;
+                html.push_str(&format_value(&expr));
+            }
+            Ok(Expr::string(html))
+        }
         Expr::List(terms) => {
             if let Some(op) = terms.first() {
                 let Some(sym) = op.as_symbol() else {
@@ -207,6 +218,29 @@ mod tests {
         let expr = eval_string(input, &mut context).unwrap();
         let value = expr.as_string().unwrap();
         let expected = r#"<script src="https://example.com/script.js"></script>"#;
+        assert_eq!(value, expected);
+    }
+
+    #[test]
+    fn should_handle_array_of_exprs() {
+        let input = r#"
+            (use "html")
+            (let cool (Func []
+                '(b "Cool")
+            ))
+            (let helper (Func []
+                [
+                    (cool)
+                    '(i "Stuff")
+                ]
+            ))
+            (html/html-from-expr '(div $(helper) (b "Works")))
+            ; (html/html-from-expr '($(helper) (b "Works")))
+        "#;
+        let mut context = Context::new();
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = expr.as_string().unwrap();
+        let expected = r#"<div><b>Cool</b><i>Stuff</i><b>Works</b></div>"#;
         assert_eq!(value, expected);
     }
 }
