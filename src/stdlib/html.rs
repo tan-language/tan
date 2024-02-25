@@ -97,8 +97,9 @@ fn render_expr(expr: &Expr) -> Result<Expr, Error> {
 
                     // #todo eval body.
 
-                    if body.is_empty() {
-                        // #todo add exception for <script> tag.
+                    // #insight always close <script> tags.
+
+                    if body.is_empty() && sym != "script" {
                         Ok(Expr::string(format!("<{sym}{attributes} />")))
                     } else {
                         Ok(Expr::string(format!("<{sym}{attributes}>{body}</{sym}>")))
@@ -195,6 +196,17 @@ mod tests {
         let expr = eval_string(input, &mut context).unwrap();
         let value = expr.as_string().unwrap();
         let expected = r#"<html lang="el"><head><title>Hello</title><link href="https://www.example.com/icon.png" /></head><body><header>A nice header</header>Hello George! Num: <b>cool 3</b><br /><br /><div>Component: <i>Stella</i> is cool!</div></body></html>"#;
+        assert_eq!(value, expected);
+    }
+
+    #[test]
+    fn should_close_script_tags() {
+        let input =
+            r#"(use "html")(html/html-from-expr '(script {:src "https://example.com/script.js"}))"#;
+        let mut context = Context::new();
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = expr.as_string().unwrap();
+        let expected = r#"<script src="https://example.com/script.js"></script>"#;
         assert_eq!(value, expected);
     }
 }
