@@ -909,6 +909,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             Ok(Expr::array(results))
                         }
                         "set!" => {
+                            // #insight
+                            // this is not the same as let, it also traverses the scope stack to find bindings to
+                            // update in parent scopes.
+
                             // #todo find other name: poke, mut, mutate
                             // #todo this is a temp hack
                             // #todo write unit tests
