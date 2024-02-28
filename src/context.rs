@@ -118,21 +118,27 @@ impl Context {
     }
 
     // #todo do the `impl Into`s slow down?
-    pub fn insert(&self, name: impl Into<String>, value: impl Into<Rc<Expr>>) -> Option<Rc<Expr>> {
-        // #todo add support for dynamic scoping.
-        self.scope.insert(name, value)
+    #[inline]
+    pub fn insert(
+        &self,
+        name: impl Into<String>,
+        value: impl Into<Rc<Expr>>,
+        is_dynamically_scoped: bool,
+    ) -> Option<Rc<Expr>> {
+        if is_dynamically_scoped {
+            self.dynamic_scope.insert(name, value)
+        } else {
+            self.scope.insert(name, value)
+        }
     }
 
-    pub fn get(&self, name: impl AsRef<str>) -> Option<Rc<Expr>> {
-        // #todo add support for dynamic scoping.
-        self.scope.get(name)
-    }
-
-    // #todo only allow updating mutable bindings
-    // #todo should we even allow this?
-    /// Updates an existing binding, walks the environment.
-    pub fn update(&self, name: impl AsRef<str>, value: impl Into<Expr>) {
-        // #todo no update support for dynamic scoping.
-        self.scope.update(name, value)
+    #[inline]
+    pub fn get(&self, name: impl AsRef<str>, is_dynamically_scoped: bool) -> Option<Rc<Expr>> {
+        let name = name.as_ref();
+        if is_dynamically_scoped {
+            self.dynamic_scope.get(name)
+        } else {
+            self.scope.get(name)
+        }
     }
 }

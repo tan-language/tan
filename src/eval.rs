@@ -9,7 +9,7 @@ use crate::{
     expr::{annotate, expr_clone, format_value, Expr},
     resolver::compute_dyn_signature,
     scope::Scope,
-    util::{is_reserved_symbol, standard_names::CURRENT_FILE_PATH},
+    util::{is_dynamically_scoped, is_reserved_symbol, standard_names::CURRENT_FILE_PATH},
 };
 
 use self::{iterator::try_iterator_from, util::eval_module};
@@ -169,7 +169,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
         // Expr::Annotated(..) => eval(expr.unpack(), env),
         Expr::Symbol(symbol) => {
             // #todo differentiate between evaluating symbol in 'op' position.
-
+            // #todo combine/optimize check for reserved_symbol and dynamically_scoped, move as much as possible to static-time resolver.
             if is_reserved_symbol(symbol) {
                 return Ok(expr.clone());
             }
@@ -183,7 +183,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             let value = if let Some(Expr::Symbol(method)) = expr.annotation("method") {
                 // If the symbol is annotated with a `method`, it's in 'operator' position.
                 // `method` is just one of the variants of a multi-method-function.
-                // println!("--> {method}");
+                // #hint: currently dynamically_scope is not supported in this position.
                 if let Some(value) = context.scope.get(method) {
                     value
                 } else {
@@ -193,8 +193,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     // #todo should do proper type analysis here.
 
                     context
-                        .scope
-                        .get(symbol)
+                        .get(symbol, is_dynamically_scoped(symbol))
                         .ok_or::<Error>(Error::undefined_function(
                             symbol,
                             method,
@@ -203,13 +202,15 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         ))?
                 }
             } else {
-                context.scope.get(symbol).ok_or_else::<Error, _>(|| {
-                    Error::undefined_symbol(
-                        symbol,
-                        &format!("symbol not defined: `{symbol}`"),
-                        expr.range(),
-                    )
-                })?
+                context
+                    .get(symbol, is_dynamically_scoped(symbol))
+                    .ok_or_else::<Error, _>(|| {
+                        Error::undefined_symbol(
+                            symbol,
+                            &format!("symbol not defined: `{symbol}`"),
+                            expr.range(),
+                        )
+                    })?
             };
 
             // #todo hm, can we somehow work with references?
@@ -277,6 +278,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     // #todo super nasty hack!!!!
                     let args = eval_args(tail, context)?;
 
+                    // #todo we don't support dynamic scoping in this position, reconsider
                     if let Some(value) = context.scope.get(name) {
                         if let Expr::Func(params, ..) = value.unpack() {
                             // #todo extract utility function to invoke a function.
@@ -1104,8 +1106,6 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo name this parent_scope?
                             let prev_scope = context.dynamic_scope.clone();
                             context.dynamic_scope = Rc::new(Scope::new(prev_scope.clone()));
-
-                            // let mut args = tail.iter();
 
                             let Some(bindings) = bindings.as_array() else {
                                 return Err(Error::invalid_arguments(
