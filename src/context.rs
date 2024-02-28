@@ -115,4 +115,23 @@ impl Context {
     pub fn get_special(&self, key: &'static str) -> Option<Rc<Expr>> {
         self.specials.get(key).cloned()
     }
+
+    // #todo do the `impl Into`s slow down?
+    pub fn insert(&self, name: impl Into<String>, value: impl Into<Rc<Expr>>) -> Option<Rc<Expr>> {
+        // #todo add support for dynamic scoping.
+        self.static_scope.insert(name, value)
+    }
+
+    pub fn get(&self, name: impl AsRef<str>) -> Option<Rc<Expr>> {
+        // #todo add support for dynamic scoping.
+        self.static_scope.get(name)
+    }
+
+    // #todo only allow updating mutable bindings
+    // #todo should we even allow this?
+    /// Updates an existing binding, walks the environment.
+    pub fn update(&self, name: impl AsRef<str>, value: impl Into<Expr>) {
+        // #todo no update support for dynamic scoping.
+        self.static_scope.update(name, value)
+    }
 }
