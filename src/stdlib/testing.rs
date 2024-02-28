@@ -23,7 +23,7 @@ pub fn assert_eq(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     // #todo for the moment only supports int!
     let name = "=$$Int$$Int";
 
-    let func = context.scope.get(name).unwrap();
+    let func = context.static_scope.get(name).unwrap();
     let func = func.unpack();
     let Expr::ForeignFunc(func) = func else {
         panic!("unexpected error");

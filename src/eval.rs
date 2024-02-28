@@ -66,8 +66,8 @@ pub fn invoke_func(func: &Expr, args: &[Expr], context: &mut Context) -> Result<
     // actually we implement static (lexical) scoping here, as we base the new
     // scope on the lexical function scope.
 
-    let prev_scope = context.scope.clone();
-    context.scope = Rc::new(Scope::new(func_scope.clone())); // #insight notice we use func_scope here!
+    let prev_scope = context.static_scope.clone();
+    context.static_scope = Rc::new(Scope::new(func_scope.clone())); // #insight notice we use func_scope here!
 
     for (param, arg) in params.iter().zip(args) {
         let Some(param) = param.as_symbol() else {
@@ -77,7 +77,7 @@ pub fn invoke_func(func: &Expr, args: &[Expr], context: &mut Context) -> Result<
             ));
         };
 
-        context.scope.insert(param, arg);
+        context.static_scope.insert(param, arg);
     }
 
     // #todo this code is the same as in the (do ..) block, extract.
@@ -112,7 +112,7 @@ pub fn invoke_func(func: &Expr, args: &[Expr], context: &mut Context) -> Result<
     }
 
     // #todo what happens to this if an error is thrown??!!
-    context.scope = prev_scope;
+    context.static_scope = prev_scope;
 
     Ok(value)
 }
@@ -184,7 +184,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                 // If the symbol is annotated with a `method`, it's in 'operator' position.
                 // `method` is just one of the variants of a multi-method-function.
                 // println!("--> {method}");
-                if let Some(value) = context.scope.get(method) {
+                if let Some(value) = context.static_scope.get(method) {
                     value
                 } else {
                     // #todo leave this trace on in some kind of debug mode.
@@ -193,7 +193,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     // #todo should do proper type analysis here.
 
                     context
-                        .scope
+                        .static_scope
                         .get(symbol)
                         .ok_or::<Error>(Error::undefined_function(
                             symbol,
@@ -203,13 +203,16 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         ))?
                 }
             } else {
-                context.scope.get(symbol).ok_or_else::<Error, _>(|| {
-                    Error::undefined_symbol(
-                        symbol,
-                        &format!("symbol not defined: `{symbol}`"),
-                        expr.range(),
-                    )
-                })?
+                context
+                    .static_scope
+                    .get(symbol)
+                    .ok_or_else::<Error, _>(|| {
+                        Error::undefined_symbol(
+                            symbol,
+                            &format!("symbol not defined: `{symbol}`"),
+                            expr.range(),
+                        )
+                    })?
             };
 
             // #todo hm, can we somehow work with references?
@@ -277,14 +280,14 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     // #todo super nasty hack!!!!
                     let args = eval_args(tail, context)?;
 
-                    if let Some(value) = context.scope.get(name) {
+                    if let Some(value) = context.static_scope.get(name) {
                         if let Expr::Func(params, ..) = value.unpack() {
                             // #todo extract utility function to invoke a function.
                             // #todo ultra-hack to kill shared ref to `env`.
                             let params = params.clone();
 
-                            let prev_scope = context.scope.clone();
-                            context.scope = Rc::new(Scope::new(prev_scope.clone()));
+                            let prev_scope = context.static_scope.clone();
+                            context.static_scope = Rc::new(Scope::new(prev_scope.clone()));
 
                             for (param, arg) in params.iter().zip(&args) {
                                 let Some(param) = param.as_symbol() else {
@@ -294,7 +297,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                     ));
                                 };
 
-                                context.scope.insert(param, arg.clone());
+                                context.static_scope.insert(param, arg.clone());
                             }
 
                             let signature = compute_dyn_signature(&args, context);
@@ -305,7 +308,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             );
                             let head = eval(&head, context)?;
 
-                            context.scope = prev_scope;
+                            context.static_scope = prev_scope;
 
                             head
                         } else if let Expr::ForeignFunc(_) = value.unpack() {
@@ -415,14 +418,14 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             // #todo extract this.
 
-                            let prev_scope = context.scope.clone();
-                            context.scope = Rc::new(Scope::new(prev_scope.clone()));
+                            let prev_scope = context.static_scope.clone();
+                            context.static_scope = Rc::new(Scope::new(prev_scope.clone()));
 
                             for expr in tail {
                                 value = eval(expr, context)?;
                             }
 
-                            context.scope = prev_scope;
+                            context.static_scope = prev_scope;
 
                             Ok(value)
                         }
@@ -560,13 +563,13 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 ));
                             };
 
-                            let prev_scope = context.scope.clone();
-                            context.scope = Rc::new(Scope::new(prev_scope.clone()));
+                            let prev_scope = context.static_scope.clone();
+                            context.static_scope = Rc::new(Scope::new(prev_scope.clone()));
 
                             let mut iterator = iterator.borrow_mut();
 
                             'outer_loop: while let Some(value) = iterator.next() {
-                                context.scope.insert(var, value);
+                                context.static_scope.insert(var, value);
                                 'inner_loop: for expr in body {
                                     match eval(expr, context) {
                                         Err(Error {
@@ -597,7 +600,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             }
 
                             // #todo what happens to this if an error is thrown?
-                            context.scope = prev_scope;
+                            context.static_scope = prev_scope;
 
                             Ok(Expr::One)
                         }
@@ -667,19 +670,19 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 ));
                             };
 
-                            let prev_scope = context.scope.clone();
-                            context.scope = Rc::new(Scope::new(prev_scope.clone()));
+                            let prev_scope = context.static_scope.clone();
+                            context.static_scope = Rc::new(Scope::new(prev_scope.clone()));
 
                             let mut iterator = iterator.borrow_mut();
 
                             while let Some(value) = iterator.next() {
-                                context.scope.insert(var, value);
+                                context.static_scope.insert(var, value);
                                 for expr in body {
                                     values.push(eval(expr, context)?);
                                 }
                             }
 
-                            context.scope = prev_scope;
+                            context.static_scope = prev_scope;
 
                             Ok(Expr::array(values))
                         }
@@ -843,17 +846,17 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 ));
                             };
 
-                            let prev_scope = context.scope.clone();
-                            context.scope = Rc::new(Scope::new(prev_scope.clone()));
+                            let prev_scope = context.static_scope.clone();
+                            context.static_scope = Rc::new(Scope::new(prev_scope.clone()));
 
                             for x in arr.iter() {
                                 // #todo array should have Ann<Expr> use Ann<Expr> everywhere, avoid the clones!
                                 // #todo replace the clone with custom expr::ref/copy?
-                                context.scope.insert(sym, x.clone());
+                                context.static_scope.insert(sym, x.clone());
                                 eval(body, context)?;
                             }
 
-                            context.scope = prev_scope;
+                            context.static_scope = prev_scope;
 
                             // #todo intentionally don't return a value, reconsider this?
                             Ok(Expr::One)
@@ -887,20 +890,20 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 ));
                             };
 
-                            let prev_scope = context.scope.clone();
-                            context.scope = Rc::new(Scope::new(prev_scope.clone()));
+                            let prev_scope = context.static_scope.clone();
+                            context.static_scope = Rc::new(Scope::new(prev_scope.clone()));
 
                             let mut results: Vec<Expr> = Vec::new();
 
                             for x in arr.iter() {
                                 // #todo array should have Ann<Expr> use Ann<Expr> everywhere, avoid the clones!
-                                context.scope.insert(sym, x.clone());
+                                context.static_scope.insert(sym, x.clone());
                                 let result = eval(body, context)?;
                                 // #todo replace the clone with custom expr::ref/copy?
                                 results.push(result.unpack().clone());
                             }
 
-                            context.scope = prev_scope.clone();
+                            context.static_scope = prev_scope.clone();
 
                             // #todo intentionally don't return a value, reconsider this?
                             Ok(Expr::array(results))
@@ -927,7 +930,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             let value = eval(value, context)?;
 
-                            context.scope.update(name, value.clone());
+                            context.static_scope.update(name, value.clone());
 
                             // #todo what should this return? One/Unit (i.e. nothing useful) or the actual value?
                             Ok(Expr::One)
@@ -959,7 +962,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             for (name, value) in dict.iter() {
                                 // #todo remove clone.
-                                context.scope.insert(name, expr_clone(value));
+                                context.static_scope.insert(name, expr_clone(value));
                             }
 
                             Ok(Expr::One)
@@ -1039,7 +1042,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                                 expr.range(),
                                             ));
                                         };
-                                        context.scope.insert(name, value.clone());
+                                        context.static_scope.insert(name, value.clone());
                                     }
                                 } else {
                                     return Err(Error::invalid_arguments(
@@ -1065,7 +1068,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                     let name = format!("{}/{}", module.stem, name);
 
                                     // #todo assign as top-level bindings!
-                                    context.scope.insert(name, value.clone());
+                                    context.static_scope.insert(name, value.clone());
                                 }
                             }
 
@@ -1108,7 +1111,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 let value = eval(value, context)?;
 
                                 // #todo notify about overrides? use `set`?
-                                context.scope.insert(s, value);
+                                context.static_scope.insert(s, value);
                             }
 
                             // #todo return last value!
@@ -1254,7 +1257,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             Ok(Expr::Func(
                                 params,
                                 body.into(),
-                                context.scope.clone(),
+                                context.static_scope.clone(),
                                 file_path,
                             ))
                         }

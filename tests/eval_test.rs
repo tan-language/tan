@@ -451,7 +451,7 @@ fn eval_handles_closures() {
 fn module_cannot_access_private_members_of_other_modules() {
     let mut context = Context::new();
     context
-        .scope
+        .static_scope
         .insert("*current-module-path*", Expr::string("tests/fixtures"));
     let result = eval_module("./main.tan", &mut context, false);
 
