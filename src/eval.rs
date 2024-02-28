@@ -931,6 +931,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             let value = eval(value, context)?;
 
+                            // #todo should we check that the symbol actually exists?
                             context.scope.update(name, value.clone());
 
                             // #todo what should this return? One/Unit (i.e. nothing useful) or the actual value?
