@@ -559,7 +559,7 @@ impl Expr {
             Expr::Dict(_) => Expr::symbol("Dict"),   // #todo return parameterized type
             // #todo what about quoted Symbol?
             Expr::Symbol(name) => {
-                if let Some(value) = context.static_scope.get(name) {
+                if let Some(value) = context.scope.get(name) {
                     value.dyn_type(context)
                 } else {
                     Expr::symbol("Unknown")

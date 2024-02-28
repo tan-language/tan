@@ -23,9 +23,10 @@ pub struct Context {
     pub root_path: String,
     pub module_registry: HashMap<String, Rc<Module>>,
     pub specials: HashMap<&'static str, Rc<Expr>>, // not used yet
-    // The static scope.
-    pub static_scope: Rc<Scope>,
-    // The dynamic scope.
+    // #insight named just scope instead of static_scope, to match module.scope.
+    /// The static scope.
+    pub scope: Rc<Scope>,
+    /// The dynamic scope.
     pub dynamic_scope: Rc<Scope>,
     // #todo find better name, e.g. prelude_scope?
     // #todo what about `global_scope`? nah...
@@ -51,7 +52,7 @@ impl Context {
             root_path,
             module_registry: HashMap::new(),
             specials: HashMap::new(),
-            static_scope: Rc::new(Scope::default()),
+            scope: Rc::new(Scope::default()),
             dynamic_scope: Rc::new(Scope::default()),
             top_scope: Rc::new(Scope::default()),
         };
@@ -79,7 +80,7 @@ impl Context {
 
         // #todo nasty, temp hack, makes older api functions work, CLEANUP!
 
-        context.static_scope = Rc::new(Scope::new(context.top_scope.clone()));
+        context.scope = Rc::new(Scope::new(context.top_scope.clone()));
 
         context
     }
@@ -119,12 +120,12 @@ impl Context {
     // #todo do the `impl Into`s slow down?
     pub fn insert(&self, name: impl Into<String>, value: impl Into<Rc<Expr>>) -> Option<Rc<Expr>> {
         // #todo add support for dynamic scoping.
-        self.static_scope.insert(name, value)
+        self.scope.insert(name, value)
     }
 
     pub fn get(&self, name: impl AsRef<str>) -> Option<Rc<Expr>> {
         // #todo add support for dynamic scoping.
-        self.static_scope.get(name)
+        self.scope.get(name)
     }
 
     // #todo only allow updating mutable bindings
@@ -132,6 +133,6 @@ impl Context {
     /// Updates an existing binding, walks the environment.
     pub fn update(&self, name: impl AsRef<str>, value: impl Into<Expr>) {
         // #todo no update support for dynamic scoping.
-        self.static_scope.update(name, value)
+        self.scope.update(name, value)
     }
 }

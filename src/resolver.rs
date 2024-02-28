@@ -93,10 +93,10 @@ impl Resolver {
                 // #todo please note that multiple-dispatch is supposed to be dynamic!
 
                 let result = if let Some(Expr::Symbol(method)) = expr.annotation("method") {
-                    context.static_scope.get(method)
+                    context.scope.get(method)
                 } else {
                     // #todo ultra-hack just fall-back to 'function' name if method does not exist.
-                    context.static_scope.get(sym)
+                    context.scope.get(sym)
                 };
 
                 let Some(value) = result else {
@@ -182,7 +182,7 @@ impl Resolver {
                             match result {
                                 Ok(value) => {
                                     // #todo notify about overrides? use `set`?
-                                    context.static_scope.insert(s, value);
+                                    context.scope.insert(s, value);
                                 }
                                 Err(error) => {
                                     self.errors.push(error);
@@ -258,7 +258,7 @@ impl Resolver {
                             let name = format!("{}/{}", module.stem, name);
 
                             // #todo assign as top-level bindings!
-                            context.static_scope.insert(name, value.clone());
+                            context.scope.insert(name, value.clone());
                         }
 
                         // #todo what could we return here? the Expr::Module?

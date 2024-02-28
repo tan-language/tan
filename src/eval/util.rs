@@ -52,7 +52,7 @@ pub fn canonicalize_module_path(
     if path.starts_with('@') {
         path = format!("{}/{path}", context.root_path);
     } else if path.starts_with("./") {
-        if let Some(base_path) = context.static_scope.get(CURRENT_MODULE_PATH) {
+        if let Some(base_path) = context.scope.get(CURRENT_MODULE_PATH) {
             let Some(base_path) = base_path.as_string() else {
                 // #todo!
                 panic!("invalid current-module-path");
@@ -273,12 +273,12 @@ pub fn eval_module(
         Rc::new(Module::new(module_stem, context.top_scope.clone()))
     };
 
-    let prev_scope = context.static_scope.clone();
-    context.static_scope = module.scope.clone();
+    let prev_scope = context.scope.clone();
+    context.scope = module.scope.clone();
 
     if has_tan_extension(&module_path) {
         // #todo use context.insert_special!
-        context.static_scope.insert(
+        context.scope.insert(
             CURRENT_MODULE_PATH,
             Expr::string(
                 PathBuf::from(&module_path)
@@ -291,7 +291,7 @@ pub fn eval_module(
     } else {
         // #insight only update the current-module-path on 'proper' ('dir') modules.
         context
-            .static_scope
+            .scope
             .insert(CURRENT_MODULE_PATH, Expr::string(&module_path));
     }
 
@@ -308,7 +308,7 @@ pub fn eval_module(
         let _ = eval_file(file_path, context)?;
     }
 
-    context.static_scope = prev_scope;
+    context.scope = prev_scope;
     context.module_registry.insert(module_name, module.clone());
 
     Ok(Expr::Module(module.clone()))

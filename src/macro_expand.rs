@@ -55,8 +55,8 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                     // let params = params.clone();
                     // let body = body.clone();
 
-                    let prev_scope = context.static_scope.clone();
-                    context.static_scope = Rc::new(Scope::new(prev_scope.clone()));
+                    let prev_scope = context.scope.clone();
+                    context.scope = Rc::new(Scope::new(prev_scope.clone()));
 
                     for (param, arg) in params.iter().zip(args) {
                         let Expr::Symbol(param) = param.unpack() else {
@@ -66,7 +66,7 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                             ));
                         };
 
-                        context.static_scope.insert(param, arg.clone());
+                        context.scope.insert(param, arg.clone());
                     }
                     // #todo this code is the same as in the (do ..) block, extract.
 
@@ -77,7 +77,7 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                         value = eval(expr, context)?;
                     }
 
-                    context.static_scope = prev_scope;
+                    context.scope = prev_scope;
 
                     Ok(Some(value))
                 }
@@ -131,7 +131,7 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                             if let Expr::Macro(..) = binding_value.unpack() {
                                 // #todo put all the definitions in one pass.
                                 // Only define macros in this pass.
-                                context.static_scope.insert(s, binding_value);
+                                context.scope.insert(s, binding_value);
 
                                 // #todo verify with unit-test.
                                 // Macro definition is pruned.
