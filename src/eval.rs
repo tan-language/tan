@@ -1080,7 +1080,89 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // Ok(Expr::Module(module))
                             Ok(Expr::One)
                         }
+                        // #todo #hack temp hack
+                        // (let-ds [*q* 1]
+                        //     (writeln q)
+                        //     (writeln q)
+                        // )
+                        "let-ds" => {
+                            if tail.len() < 2 {
+                                // #todo add more structural checks.
+                                // #todo proper error!
+                                return Err(Error::invalid_arguments(
+                                    "missing for arguments",
+                                    expr.range(),
+                                ));
+                            }
+
+                            // #todo do should be 'monadic', propagate Eff (effect) wrapper.
+                            let mut value = Expr::One;
+
+                            let bindings = tail.first().unwrap();
+                            let body = &tail[1..];
+
+                            // #todo name this parent_scope?
+                            let prev_scope = context.dynamic_scope.clone();
+                            context.dynamic_scope = Rc::new(Scope::new(prev_scope.clone()));
+
+                            // let mut args = tail.iter();
+
+                            let Some(bindings) = bindings.as_array() else {
+                                return Err(Error::invalid_arguments(
+                                    "malformed let-ds bindings",
+                                    bindings.range(),
+                                ));
+                            };
+
+                            let bindings = bindings.clone();
+                            let mut bindings = bindings.iter();
+
+                            loop {
+                                let Some(name) = bindings.next() else {
+                                    break;
+                                };
+
+                                let Some(value) = bindings.next() else {
+                                    // #todo error?
+                                    break;
+                                };
+
+                                let Some(s) = name.as_symbol() else {
+                                    return Err(Error::invalid_arguments(
+                                        &format!("`{name}` is not a Symbol"),
+                                        name.range(),
+                                    ));
+                                };
+
+                                // #todo add a check for *..* name, especially in debug profile.
+
+                                // no *..* reserved_symbols
+                                // // #todo do we really want this? Maybe convert to a lint?
+                                // if is_reserved_symbol(s) {
+                                //     return Err(Error::invalid_arguments(
+                                //         &format!("let cannot shadow the reserved symbol `{s}`"),
+                                //         name.range(),
+                                //     ));
+                                // }
+
+                                let value = eval(value, context)?;
+
+                                // #todo notify about overrides? use `set`?
+                                context.dynamic_scope.insert(s, value);
+                            }
+
+                            for expr in body {
+                                value = eval(expr, context)?;
+                            }
+
+                            context.dynamic_scope = prev_scope;
+
+                            // #todo return last value!
+                            Ok(value)
+                        }
                         "let" => {
+                            // #todo there is currently no resolver, duh.
+                            // #todo actually some resolving is happening in macro_expand, e.g. checking for binding values.
                             // #todo this is already parsed statically by resolver, no need to duplicate the tests here?
                             // #todo also report some of these errors statically, maybe in a sema phase?
                             let mut args = tail.iter();
@@ -1102,6 +1184,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                     ));
                                 };
 
+                                // #todo also is_reserved_symbol is slow, optimize.
                                 // #todo do we really want this? Maybe convert to a lint?
                                 if is_reserved_symbol(s) {
                                     return Err(Error::invalid_arguments(
