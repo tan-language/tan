@@ -63,10 +63,11 @@ impl std::fmt::Display for Break {
     }
 }
 
+// #todo maybe use a custom Expr::DSSymbol expression to move the detection to read/static time?
 pub fn is_dynamically_scoped(name: &str) -> bool {
     // #todo don't allow `**`
     // #todo replace with regex? I am wondering which is faster.
-    name.starts_with('*') && name.ends_with('*')
+    name.starts_with('*') && name.ends_with('*') // && name.len() > 2;
 }
 
 #[cfg(test)]

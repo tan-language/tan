@@ -191,6 +191,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     // println!("--> method-fallback");
                     // #todo ultra-hack, if the method is not found, try to lookup the function symbol, fall-through.
                     // #todo should do proper type analysis here.
+                    // #todo maybe use a custom Expr::DSSymbol expression to move the detection to read/static time?
 
                     context
                         .get(symbol, is_dynamically_scoped(symbol))
