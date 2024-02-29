@@ -18,6 +18,8 @@ use crate::{
 // #todo macro_expand (and all comptime/static passes should return Vec<Ranged<Error>>>)
 // #todo support multiple errors, like in resolve.
 
+// #todo should we care about dynamic-scoping here?
+
 // #todo return Vec<Error> like all other methods?
 
 // #todo move pruning to optimize to run AFTER macro-expansion, macros could produce prunable exprs?
@@ -107,7 +109,7 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
 
                             let Expr::Symbol(s) = binding_sym.unpack() else {
                                 return Err(Error::invalid_arguments(
-                                    &format!("`{sym}` is not a Symbol <<<<"),
+                                    &format!("`{sym}` is not a Symbol"),
                                     binding_sym.range(),
                                 ));
                             };

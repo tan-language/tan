@@ -10,6 +10,7 @@ pub mod module_util;
 pub mod put_back_iterator;
 pub mod standard_names;
 
+// #todo this looks SLOW, maybe just use a HashSet here?
 /// Returns true if `sym` is reserved.
 pub fn is_reserved_symbol(sym: &str) -> bool {
     // #todo think about `Func`.
@@ -22,6 +23,7 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
             | "or"
             | "not"
             | "let"
+            | "let-ds"
             | "set!"
             | "if"
             | "cond"
@@ -58,5 +60,27 @@ impl std::error::Error for Break {}
 impl std::fmt::Display for Break {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "Break")
+    }
+}
+
+pub fn is_dynamically_scoped(name: &str) -> bool {
+    // #todo don't allow `**`
+    // #todo replace with regex? I am wondering which is faster.
+    name.starts_with('*') && name.ends_with('*')
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::util::is_dynamically_scoped;
+
+    #[test]
+    fn is_dynamically_scoped_should_detect_special_names() {
+        assert!(is_dynamically_scoped("*context*"));
+        assert!(is_dynamically_scoped("*my-context*"));
+        assert!(!is_dynamically_scoped("*context"));
+        assert!(!is_dynamically_scoped("my-context"));
+        // #todo fix the next two assertions
+        // assert!(!is_dynamically_scoped("**"));
+        // assert!(!is_dynamically_scoped("****"));
     }
 }

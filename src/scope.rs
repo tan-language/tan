@@ -84,4 +84,11 @@ impl Scope {
             // #todo should report an error here!
         }
     }
+
+    // #todo is this really useful?
+    // #todo no need to return anything here?
+    pub fn remove(&self, name: impl AsRef<str>) -> Option<Rc<Expr>> {
+        let mut bindings = self.bindings.borrow_mut();
+        bindings.remove(name.as_ref())
+    }
 }

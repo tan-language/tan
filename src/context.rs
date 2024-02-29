@@ -23,8 +23,14 @@ pub struct Context {
     pub root_path: String,
     pub module_registry: HashMap<String, Rc<Module>>,
     pub specials: HashMap<&'static str, Rc<Expr>>, // not used yet
+    // #insight named just scope instead of static_scope, to match module.scope.
+    /// The static scope.
     pub scope: Rc<Scope>,
-    pub top_scope: Rc<Scope>, // #todo find better name, e.g. prelude_scope?
+    /// The dynamic scope.
+    pub dynamic_scope: Rc<Scope>,
+    // #todo find better name, e.g. prelude_scope?
+    // #todo what about `global_scope`? nah...
+    pub top_scope: Rc<Scope>,
 }
 
 impl Default for Context {
@@ -47,6 +53,7 @@ impl Context {
             module_registry: HashMap::new(),
             specials: HashMap::new(),
             scope: Rc::new(Scope::default()),
+            dynamic_scope: Rc::new(Scope::default()),
             top_scope: Rc::new(Scope::default()),
         };
 
@@ -108,5 +115,30 @@ impl Context {
 
     pub fn get_special(&self, key: &'static str) -> Option<Rc<Expr>> {
         self.specials.get(key).cloned()
+    }
+
+    // #todo do the `impl Into`s slow down?
+    #[inline]
+    pub fn insert(
+        &self,
+        name: impl Into<String>,
+        value: impl Into<Rc<Expr>>,
+        is_dynamically_scoped: bool,
+    ) -> Option<Rc<Expr>> {
+        if is_dynamically_scoped {
+            self.dynamic_scope.insert(name, value)
+        } else {
+            self.scope.insert(name, value)
+        }
+    }
+
+    #[inline]
+    pub fn get(&self, name: impl AsRef<str>, is_dynamically_scoped: bool) -> Option<Rc<Expr>> {
+        let name = name.as_ref();
+        if is_dynamically_scoped {
+            self.dynamic_scope.get(name)
+        } else {
+            self.scope.get(name)
+        }
     }
 }
