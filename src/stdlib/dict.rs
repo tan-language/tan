@@ -200,6 +200,31 @@ pub fn dict_get_values(args: &[Expr], _context: &mut Context) -> Result<Expr, Er
     Ok(Expr::array(keys))
 }
 
+// #todo consider other names, e.g. `items`.
+// #todo introduce entries/get-entries for other collections/containers, even Array/List.
+pub fn dict_get_entries(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [dict] = args else {
+        return Err(Error::invalid_arguments("requires `this` argument", None));
+    };
+
+    let Some(items) = dict.as_dict_mut() else {
+        return Err(Error::invalid_arguments(
+            "`dict` argument should be a Dict",
+            dict.range(),
+        ));
+    };
+
+    // #todo why does map return k as String?
+    // #todo wow, this is incredibly inefficient.
+    // #todo #hack temp fix we add the a `:` prefix to generate keys
+    let entries: Vec<_> = items
+        .iter()
+        .map(|(k, v)| Expr::array(vec![Expr::KeySymbol(k.clone()), expr_clone(v)]))
+        .collect();
+
+    Ok(Expr::array(entries))
+}
+
 pub fn setup_lib_dict(context: &mut Context) {
     let module = require_module("prelude", context);
 
@@ -215,6 +240,7 @@ pub fn setup_lib_dict(context: &mut Context) {
     module.insert("get-or", Expr::ForeignFunc(Arc::new(dict_get_or)));
     module.insert("get-keys", Expr::ForeignFunc(Arc::new(dict_get_keys)));
     module.insert("get-values", Expr::ForeignFunc(Arc::new(dict_get_values)));
+    module.insert("get-entries", Expr::ForeignFunc(Arc::new(dict_get_entries)));
 }
 
 #[cfg(test)]
@@ -341,5 +367,16 @@ mod tests {
             .collect();
         assert!(values.contains(&r#""George""#.to_string()));
         assert!(values.contains(&":admin".to_string()));
+    }
+
+    #[test]
+    fn dict_get_entries() {
+        let input = r#"
+            (let dict {:name "George" :role :admin}) ; `:role :admin` is confusing!
+            (get-entries dict)
+        "#;
+        let mut context = Context::new();
+        let expr = eval_string(input, &mut context).unwrap();
+        assert_eq!(expr.to_string(), r#"[[:name "George"] [:role :admin]]"#);
     }
 }
