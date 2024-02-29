@@ -55,6 +55,7 @@ impl ExprIterator for FloatRangeIterator {
 // #todo what about reverse?
 // #todo consolidate List/Array
 
+// #insight this is used to iterate List.
 pub struct ArrayIterator<'a> {
     current: usize,
     items: &'a [Expr],
@@ -73,14 +74,15 @@ impl<'a> ExprIterator for ArrayIterator<'a> {
     }
 }
 
+// #insight this is used to iterate Array.
 // #todo ArrayIterator2 should replace ArrayIterator.
-pub struct ArrayIterator2<'a> {
+pub struct ArrayIteratorRc<'a> {
     current: usize,
     items: std::cell::Ref<'a, Vec<Expr>>,
     pub step: usize,
 }
 
-impl<'a> ExprIterator for ArrayIterator2<'a> {
+impl<'a> ExprIterator for ArrayIteratorRc<'a> {
     fn next(&mut self) -> Option<Expr> {
         if self.current < self.items.len() {
             let value = self.items[self.current].clone(); // #todo argh, avoid this. should array have Rcs? SOS!!!
@@ -149,7 +151,7 @@ pub fn try_iterator_from<'a>(expr: &'a Expr) -> Option<Rc<RefCell<dyn ExprIterat
         }))),
         Expr::Array(items) => {
             let items = items.borrow();
-            Some(Rc::new(RefCell::new(ArrayIterator2 {
+            Some(Rc::new(RefCell::new(ArrayIteratorRc {
                 current: 0,
                 items,
                 step: 1,
