@@ -377,6 +377,11 @@ mod tests {
         "#;
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
-        assert_eq!(expr.to_string(), r#"[[:name "George"] [:role :admin]]"#);
+        let expr = expr.to_string();
+        // #todo nasty hack to handle unordered map, maybe should sort the keys?
+        assert!(
+            expr == r#"[[:name "George"] [:role :admin]]"#
+                || expr == r#"[[:role :admin] [:name "George"]]"#
+        );
     }
 }
