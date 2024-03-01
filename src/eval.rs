@@ -1036,10 +1036,9 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             let mut module_prefix = module.stem.as_str();
 
                             if let Some(arg) = qualifier {
-                                eprintln!("==== {:?}", arg);
                                 if let Some(names) = arg.as_array() {
                                     // #todo consider (use /math pi tau) -> nah.
-                                    // (use /math [pi tau]) ; pi, embed without namespace.
+                                    // (use [pi tau] math) ; pi, embed without namespace.
                                     for name in names.iter() {
                                         // #todo ONLY export public bindings
                                         // #todo assign as top-level bindings!
