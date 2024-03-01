@@ -975,12 +975,11 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         "use" => {
                             // #insight modules are (currently) directories, _not_ files.
 
+                            // #todo add unit tests for all cases.
                             // #todo support single-file modules (xxx.mod.tan, xxx.module.tan)
                             // #todo extract as function
                             // #insight this code is temporarily(?) moved from `resolver` here.
                             // #todo also introduce a dynamic version of `use`.
-
-                            // #todo temp hack!!!
 
                             // #todo properly handle this here, strip the use expression, remove from eval
                             // #todo move this to resolve? use should be stripped at dyn-time
@@ -988,18 +987,23 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             // Import a directory as a module.
 
-                            let Some(term) = tail.first() else {
-                                return Err(Error::invalid_arguments(
-                                    "malformed use expression",
-                                    expr.range(),
-                                ));
+                            // #todo find a better name than qualifier.
+                            let (module_path, qualifier) = match tail.len() {
+                                1 => (tail.first().unwrap(), None),
+                                2 => (tail.get(1).unwrap(), tail.first()),
+                                _ => {
+                                    return Err(Error::invalid_arguments(
+                                        "malformed use expression",
+                                        expr.range(),
+                                    ));
+                                }
                             };
 
                             // #todo the formatter should convert string paths to symbols.
 
                             // #insight support both Strings and Symbols as module paths.
                             // #insight, notice the `try_string`.
-                            let Some(module_path) = term.as_stringable() else {
+                            let Some(module_path) = module_path.as_stringable() else {
                                 // let Some(module_path) = term.as_string() else {
                                 return Err(Error::invalid_arguments(
                                     "malformed use expression",
@@ -1023,15 +1027,18 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 panic!("invalid module for `{}`", module_path);
                             };
 
-                            if let Some(arg) = tail.get(1) {
-                                // (use /math [pi tau]) ; pi
-                                // (use /math :only [pi tau]) ; math/pi
-                                // (use /math :exclude [pi])
-                                // (use /math :as "mathematics") ; mathematics/pi
+                            // #insight
+                            // Follows the syntax of let, for, etc:
+                            // (use [pi tau] math) ; pi
+                            // (use m math) ; m/pi
 
+                            // use the module stem as the deafault prefix.
+                            let mut module_prefix = module.stem.as_str();
+
+                            if let Some(arg) = qualifier {
                                 if let Some(names) = arg.as_array() {
                                     // #todo consider (use /math pi tau) -> nah.
-                                    // (use /math [pi tau]) ; pi, embed without namespace.
+                                    // (use [pi tau] math) ; pi, embed without namespace.
                                     for name in names.iter() {
                                         // #todo ONLY export public bindings
                                         // #todo assign as top-level bindings!
@@ -1049,32 +1056,37 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                         };
                                         context.scope.insert(name, value.clone());
                                     }
+
+                                    // #todo again consider returning the module here.
+                                    return Ok(Expr::One);
+                                } else if let Some(prefix) = arg.as_symbol() {
+                                    module_prefix = prefix;
                                 } else {
                                     return Err(Error::invalid_arguments(
-                                        "malformed use expression, no list of symbols provided",
+                                        "malformed use expression, bad qualifier",
                                         expr.range(),
                                     ));
                                 }
-                            } else {
-                                // Import public names from module scope into the current scope.
+                            }
 
-                                // #todo support (use "/path/to/module" *) or (use "/path/to/module" :embed)
+                            // Import public names from module scope into the current scope.
 
-                                // #todo temp, needs cleanup!
-                                let bindings = module.scope.bindings.borrow().clone();
-                                for (name, value) in bindings {
-                                    // #todo temp fix to not override the special var
-                                    if name.starts_with('*') {
-                                        continue;
-                                    }
+                            // #todo support (use "/path/to/module" *) or (use "/path/to/module" :embed)
 
-                                    // #todo ONLY export public bindings
-
-                                    let name = format!("{}/{}", module.stem, name);
-
-                                    // #todo assign as top-level bindings!
-                                    context.scope.insert(name, value.clone());
+                            // #todo temp, needs cleanup!
+                            let bindings = module.scope.bindings.borrow().clone();
+                            for (name, value) in bindings {
+                                // #todo temp fix to not override the special var
+                                if name.starts_with('*') {
+                                    continue;
                                 }
+
+                                // #todo ONLY export public bindings
+
+                                let name = format!("{}/{}", module_prefix, name);
+
+                                // #todo assign as top-level bindings!
+                                context.scope.insert(name, value.clone());
                             }
 
                             // #todo allow for embedding explicit symbols, non-namespaced!
