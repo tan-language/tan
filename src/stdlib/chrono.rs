@@ -193,7 +193,7 @@ mod tests {
     fn chrono_date_add_days_usage() {
         let mut context = Context::new();
         let input = r#"
-            (use chrono [Date add-days])
+            (use [Date add-days] chrono)
             (let d (Date "2024-01-18"))
             (let d (add-days d 2))
             (to-string d)
@@ -202,7 +202,7 @@ mod tests {
         assert_matches!(expr, Expr::String(s) if s == "2024-01-20");
 
         let input = r#"
-            (use chrono [Date add-days])
+            (use [Date add-days] chrono)
             (let d (Date "2024-01-18"))
             (let d (add-days d -20))
             (to-string d)

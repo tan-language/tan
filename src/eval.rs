@@ -988,18 +988,31 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             // Import a directory as a module.
 
-                            let Some(term) = tail.first() else {
-                                return Err(Error::invalid_arguments(
-                                    "malformed use expression",
-                                    expr.range(),
-                                ));
+                            // #todo find a better name than qualifier.
+                            let (module_path, qualifier) = match tail.len() {
+                                1 => (tail.first().unwrap(), None),
+                                2 => (tail.get(1).unwrap(), tail.first()),
+                                _ => {
+                                    return Err(Error::invalid_arguments(
+                                        "malformed use expression",
+                                        expr.range(),
+                                    ));
+                                }
                             };
+
+                            // let Some(term) = tail.first() else {
+                            //     return Err(Error::invalid_arguments(
+                            //         "malformed use expression",
+                            //         expr.range(),
+                            //     ));
+                            // };
 
                             // #todo the formatter should convert string paths to symbols.
 
+                            eprintln!("==== {} {:?}", module_path, qualifier);
                             // #insight support both Strings and Symbols as module paths.
                             // #insight, notice the `try_string`.
-                            let Some(module_path) = term.as_stringable() else {
+                            let Some(module_path) = module_path.as_stringable() else {
                                 // let Some(module_path) = term.as_string() else {
                                 return Err(Error::invalid_arguments(
                                     "malformed use expression",
@@ -1023,7 +1036,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 panic!("invalid module for `{}`", module_path);
                             };
 
-                            if let Some(arg) = tail.get(1) {
+                            if let Some(arg) = qualifier {
                                 // (use /math [pi tau]) ; pi
                                 // (use /math :only [pi tau]) ; math/pi
                                 // (use /math :exclude [pi])
