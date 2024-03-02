@@ -182,6 +182,26 @@ fn lex_handles_multiline_strings_with_double_quotes() {
 }
 
 #[test]
+fn lex_handles_escape_codes_in_strings() {
+    let input = r#"(writeln "hello\tworld")"#;
+    let tokens = Lexer::new(input).lex().unwrap();
+    let string = &tokens[2];
+    assert_matches!(string.kind(), TokenKind::String(lexeme) if lexeme == "hello\tworld");
+
+    let input = r#"(writeln "hello\x1b[31mworld")"#;
+    let tokens = Lexer::new(input).lex().unwrap();
+    let string = &tokens[2];
+    assert_matches!(string.kind(), TokenKind::String(lexeme) if lexeme == "hello\x1b[31mworld");
+
+    // malformed escape code.
+    let input = r#"(writeln "hello\xworld")"#;
+    let err = Lexer::new(input).lex().unwrap_err();
+    let err = &err[0];
+
+    assert_matches!(err.variant(), ErrorVariant::MalformedEscapeCode);
+}
+
+#[test]
 fn lex_reports_unterminated_strings() {
     let input = r##"(write "Hello)"##;
     let tokens = Lexer::new(input).lex();
