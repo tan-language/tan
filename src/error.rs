@@ -54,6 +54,7 @@ pub enum ErrorVariant {
     UnexpectedEnd,
     MalformedInt,
     MalformedFloat,
+    MalformedEscapeCode,
     UnterminatedString,
     UnterminatedAnnotation,
 
@@ -107,6 +108,7 @@ impl fmt::Display for ErrorVariant {
             ErrorVariant::UnexpectedEnd => "unexpected end of input".to_owned(),
             ErrorVariant::MalformedInt => "malformed integer number".to_owned(),
             ErrorVariant::MalformedFloat => "malformed float number".to_owned(),
+            ErrorVariant::MalformedEscapeCode => "malformed escape code".to_owned(),
             ErrorVariant::UnterminatedString => "unterminated string".to_owned(),
             ErrorVariant::UnterminatedAnnotation => "unterminated annotation".to_owned(),
             ErrorVariant::InvalidQuote => "invalid quote".to_owned(),

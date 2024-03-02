@@ -123,6 +123,17 @@ impl<'a> Lexer<'a> {
     // #todo implement scanners with macro or a common function.
     // #todo two functions scan_lexeme, scan_delimited.
 
+    fn scan_chars(&mut self, count: usize) -> Option<String> {
+        let mut chars = String::new();
+        for _ in 0..count {
+            let Some(ch) = self.next_char() else {
+                return None;
+            };
+            chars.push(ch);
+        }
+        Some(chars)
+    }
+
     // #todo add unit tests
     // #todo try to reuse more!
     fn scan_lexeme(&mut self) -> String {
@@ -216,10 +227,50 @@ impl<'a> Lexer<'a> {
             if is_escaping {
                 // #todo support escaping more than one char
                 // #todo add additional escape sequences.
+                // #todo support \xHH
+                // #todo support \u{HHHH}: Represents a 16-bit Unicode code point (where HHHH is up to four hex digits)
+                // #todo support \U{HHHHHHHH}: Represents a 32-bit Unicode code point (where HHHHHHHH is up to eight hex digits)
                 match ch {
                     '\\' | '"' => string.push(ch),
                     'n' => string.push('\n'),
                     't' => string.push('\t'),
+                    'x' => {
+                        // #todo streamline this or extract
+                        // an escaped byte, in hexadecimal notation, read two
+                        // characters.
+                        let Some(chars) = self.scan_chars(2) else {
+                            let mut error = Error::new(ErrorVariant::MalformedEscapeCode);
+                            error.push_note(
+                                "the \\x escape code requires two characters",
+                                Some(self.current_range()),
+                            ); // #todo refine the text.
+                            self.errors.push(error);
+                            return None;
+                        };
+                        let code_point = u32::from_str_radix(&chars, 16);
+                        let Ok(code_point) = u32::from_str_radix(&chars, 16) else {
+                            let mut error = Error::new(ErrorVariant::MalformedEscapeCode);
+                            error.push_note(
+                                &format!(
+                                    "invalid \\x escape code point: {}",
+                                    code_point.unwrap_err()
+                                ),
+                                Some(self.current_range()),
+                            ); // #todo refine the text.
+                            self.errors.push(error);
+                            return None;
+                        };
+                        let Some(ch) = char::from_u32(code_point) else {
+                            let mut error = Error::new(ErrorVariant::MalformedEscapeCode);
+                            error.push_note(
+                                "invalid \\x escape code point",
+                                Some(self.current_range()),
+                            ); // #todo refine the text.
+                            self.errors.push(error);
+                            return None;
+                        };
+                        string.push(ch);
+                    }
                     _ => string.push_str(&format!("\\{ch}")), //#todo what to do here?
                 }
 
