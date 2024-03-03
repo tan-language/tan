@@ -343,8 +343,6 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     // Foreign Functions do NOT change the environment, hmm...
                     // #todo use RefCell / interior mutability instead, to allow for changing the environment (with Mutation Effect)
 
-                    // println!("--> {:?}", context.scope);
-
                     // Evaluate the arguments before calling the function.
                     let args = eval_args(tail, context)?;
 

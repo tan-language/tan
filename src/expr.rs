@@ -61,9 +61,18 @@ use crate::{
 // #todo consider &mut and & Context, different types!
 // #todo consider version with no Context
 // #todo find a better name for the type-alias
+// #todo add an option that gets a 'self' expression to allow for e.g. assert! implementation (uses self annotations)
+// #todo maybe should pass 'self' to all foreign functions?
+
 // #insight the `+ Send + Sync + 'static` suffix allows Expr to be Sync.
-/// A function that accepts a list of Exprs and returns an Expr.
-pub type ExprFn = dyn Fn(&[Expr], &mut Context) -> Result<Expr, Error> + Send + Sync + 'static;
+
+/// A function that accepts a list of Exprs and a mut Context, returns maybe an Expr.
+pub type ExprContextFn =
+    dyn Fn(&[Expr], &mut Context) -> Result<Expr, Error> + Send + Sync + 'static;
+
+// #todo not used yet.
+/// A function that accepts a list of Exprs, returns maybe an Expr.
+pub type ExprFn = dyn Fn(&[Expr]) -> Result<Expr, Error> + Send + Sync + 'static;
 
 // #todo use normal structs instead of tuple-structs?
 
@@ -120,7 +129,7 @@ pub enum Expr {
     // #todo add file_path to ForeignFunc
     // #todo the ForeignFunc should probably store the Module environment.
     // #todo introduce a ForeignFuncMut for mutating scope? what would be a better name?
-    ForeignFunc(Arc<ExprFn>), // #todo for some reason, Box is not working here!
+    ForeignFunc(Arc<ExprContextFn>), // #todo for some reason, Box is not working here!
     // --- High-level ---
     // #todo do should contain the expressions also, pre-parsed!
     Do,
