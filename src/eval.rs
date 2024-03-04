@@ -45,6 +45,65 @@ pub fn eval_args(args: &[Expr], context: &mut Context) -> Result<Vec<Expr>, Erro
     Ok(values)
 }
 
+fn insert_symbol_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(), Error> {
+    let sym = name.as_symbol().unwrap();
+
+    // #todo also is_reserved_symbol is slow, optimize.
+    // #todo do we really want this? Maybe convert to a lint?
+    if is_reserved_symbol(sym) {
+        return Err(Error::invalid_arguments(
+            &format!("cannot shadow the reserved symbol `{sym}`"),
+            name.range(),
+        ));
+    }
+
+    eprintln!("********** {sym} = {value:?}");
+
+    // #todo notify about overrides? use `set`?
+    context.scope.insert(sym, value);
+
+    Ok(())
+}
+
+// #todo implement destructuring
+// #todo use this in for
+// #todo find a better name.
+fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(), Error> {
+    // #todo some preliminary name check here?
+
+    // let value = eval(value, context)?;
+
+    // #todo allow for restructuring here!
+    // #todo allow [] and {}
+    // #todo consider special op/syntax for destructuring?
+
+    // #todo handle potential relevant annotations.
+
+    match name.unpack() {
+        Expr::Symbol(..) => {
+            insert_symbol_binding(name, value, context)?;
+        }
+        Expr::Array(names) => {
+            // #todo temp, nasty code.
+            let Some(values) = value.as_array() else {
+                panic!("#todo");
+            };
+            for (i, name) in names.borrow().iter().enumerate() {
+                // #todo verify symbols
+                insert_symbol_binding(name, values.get(i).unwrap().clone(), context)?;
+            }
+        }
+        _ => {
+            return Err(Error::invalid_arguments(
+                &format!("malformed binding: `${name}`"),
+                name.range(),
+            ));
+        }
+    }
+
+    Ok(())
+}
+
 // #todo rename to eval_func?
 // #todo a version where the arguments are pre-evaluated.
 // #todo use this function in eval, later.
@@ -1176,6 +1235,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo actually some resolving is happening in macro_expand, e.g. checking for binding values.
                             // #todo this is already parsed statically by resolver, no need to duplicate the tests here?
                             // #todo also report some of these errors statically, maybe in a sema phase?
+                            // #todo use 'location' or 'lvalue' instead of name?
+
                             let mut args = tail.iter();
 
                             loop {
@@ -1188,30 +1249,9 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                     break;
                                 };
 
-                                // #todo allow for restructuring here!
-                                // #todo allow [] and {}
-                                // #todo consider special op/syntax for destructuring?
-
-                                let Some(s) = name.as_symbol() else {
-                                    return Err(Error::invalid_arguments(
-                                        &format!("`{name}` is not a Symbol"),
-                                        name.range(),
-                                    ));
-                                };
-
-                                // #todo also is_reserved_symbol is slow, optimize.
-                                // #todo do we really want this? Maybe convert to a lint?
-                                if is_reserved_symbol(s) {
-                                    return Err(Error::invalid_arguments(
-                                        &format!("let cannot shadow the reserved symbol `{s}`"),
-                                        name.range(),
-                                    ));
-                                }
-
                                 let value = eval(value, context)?;
 
-                                // #todo notify about overrides? use `set`?
-                                context.scope.insert(s, value);
+                                insert_binding(name, value, context)?
                             }
 
                             // #todo return last value!
