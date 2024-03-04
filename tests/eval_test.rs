@@ -647,3 +647,10 @@ fn eval_should_report_errors_in_args() {
     let result = eval_file("array-errors.tan");
     assert!(result.is_err());
 }
+
+#[test]
+fn eval_should_support_destructuring() {
+    let result = eval_file("let-destruct.tan");
+    let value = result.unwrap().as_int().unwrap();
+    assert_eq!(value, 9);
+}
