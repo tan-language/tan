@@ -108,10 +108,15 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                             };
 
                             let Expr::Symbol(s) = binding_sym.unpack() else {
-                                return Err(Error::invalid_arguments(
-                                    &format!("`{sym}` is not a Symbol"),
-                                    binding_sym.range(),
-                                ));
+                                // #todo #ultra-hack
+                                // #todo proper destructuring needed here!
+                                result_exprs.push(binding_sym.clone());
+                                result_exprs.push(binding_value.clone());
+                                continue;
+                                // return Err(Error::invalid_arguments(
+                                //     &format!("`{sym}` is not a Symbol"),
+                                //     binding_sym.range(),
+                                // ));
                             };
 
                             if is_reserved_symbol(s) {
