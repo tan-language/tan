@@ -57,8 +57,6 @@ fn insert_symbol_binding(name: &Expr, value: Expr, context: &mut Context) -> Res
         ));
     }
 
-    eprintln!("********** {sym} = {value:?}");
-
     // #todo notify about overrides? use `set`?
     context.scope.insert(sym, value);
 
@@ -69,10 +67,6 @@ fn insert_symbol_binding(name: &Expr, value: Expr, context: &mut Context) -> Res
 // #todo use this in for
 // #todo find a better name.
 fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(), Error> {
-    // #todo some preliminary name check here?
-
-    // let value = eval(value, context)?;
-
     // #todo allow for restructuring here!
     // #todo allow [] and {}
     // #todo consider special op/syntax for destructuring?
