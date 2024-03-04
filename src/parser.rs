@@ -7,6 +7,7 @@ use crate::{
     error::{Error, ErrorVariant},
     expr::{annotate, annotate_range, Expr},
     lexer::{
+        is_range,
         token::{Token, TokenKind},
         Lexer,
     },
@@ -247,7 +248,7 @@ impl<'a> Parser<'a> {
                     // #todo consider using nil for false and everything else for true
                     // #todo consider using nothing/never for false and everything else for true.
                     Some(Expr::Bool(false))
-                } else if lexeme.contains("..") {
+                } else if is_range(lexeme) {
                     // #todo cleanup.
                     // #todo consider accepting as range `end/step`, without the `..` spread.
                     // #todo validate a range (e.g. only one .., no other random chars)

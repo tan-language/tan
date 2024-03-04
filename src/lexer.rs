@@ -39,9 +39,11 @@ fn is_eol(ch: char) -> bool {
     ch == '\n'
 }
 
+// #todo move to utils file?
 // #todo should consider n/step a 0..n/step range?
-fn is_range(input: &str) -> bool {
-    input.contains("..")
+pub fn is_range(input: &str) -> bool {
+    // #todo should be more precise, e.g. report 0...1, 0......3, etc.
+    input.contains("..") && input != "..."
 }
 
 // #todo stateful lexer vs buffer

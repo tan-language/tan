@@ -104,6 +104,7 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
                 if sym == "_" {
                     continue;
                 }
+                // #insight '...' is called `ellipsis`.
                 if sym == "..." {
                     break;
                 }

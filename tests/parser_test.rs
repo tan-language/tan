@@ -440,3 +440,16 @@ fn parse_handles_float_range() {
 
     assert_matches!(&exprs[2].unpack(), Expr::FloatRange(start, end, step) if *start == 2.0 && *end == 30.0 && *step == 3.0);
 }
+
+#[test]
+fn parse_handles_ellipsis() {
+    // #insight invalid tan, but good enough for this test.
+    let input = "(let ... 1)";
+    let result = parse_string(input).unwrap();
+
+    let Expr::List(exprs) = result.unpack() else {
+        panic!("invalid form")
+    };
+
+    assert_matches!(&exprs[1].unpack(), Expr::Symbol(s) if s == "...");
+}
