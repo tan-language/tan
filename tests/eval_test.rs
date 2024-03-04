@@ -654,3 +654,11 @@ fn eval_should_support_destructuring() {
     let value = result.unwrap().as_int().unwrap();
     assert_eq!(value, 9);
 }
+
+#[test]
+fn should_not_bind_underscore() {
+    let result = eval_input("(let a [1 2 3]) (let [x y _] a) _");
+    let errors = result.unwrap_err();
+    let err = errors.first().unwrap();
+    assert_matches!(err, Error{ variant: ErrorVariant::UndefinedSymbol(s), .. } if s == "_");
+}

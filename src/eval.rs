@@ -7,6 +7,7 @@ use crate::{
     context::Context,
     error::{Error, ErrorVariant},
     expr::{annotate, expr_clone, format_value, Expr},
+    range::Range,
     resolver::compute_dyn_signature,
     scope::Scope,
     util::{is_dynamically_scoped, is_reserved_symbol, standard_names::CURRENT_FILE_PATH},
@@ -45,15 +46,18 @@ pub fn eval_args(args: &[Expr], context: &mut Context) -> Result<Vec<Expr>, Erro
     Ok(values)
 }
 
-fn insert_symbol_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(), Error> {
-    let sym = name.as_symbol().unwrap();
-
+fn insert_symbol_binding(
+    sym: &str,
+    range: &Option<Range>,
+    value: Expr,
+    context: &mut Context,
+) -> Result<(), Error> {
     // #todo also is_reserved_symbol is slow, optimize.
     // #todo do we really want this? Maybe convert to a lint?
     if is_reserved_symbol(sym) {
         return Err(Error::invalid_arguments(
             &format!("cannot shadow the reserved symbol `{sym}`"),
-            name.range(),
+            range.clone(),
         ));
     }
 
@@ -74,17 +78,37 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
     // #todo handle potential relevant annotations.
 
     match name.unpack() {
-        Expr::Symbol(..) => {
-            insert_symbol_binding(name, value, context)?;
+        Expr::Symbol(sym) => {
+            // #todo report error if sym == _ or ...
+            insert_symbol_binding(sym, &name.range(), value, context)?;
         }
         Expr::Array(names) => {
             // #todo temp, nasty code.
             let Some(values) = value.as_array() else {
-                panic!("#todo");
+                // #todo better error message.
+                // #todo annotate the value.
+                // #todo add multiple notes to the error.
+                return Err(Error::invalid_arguments(
+                    "malformed destructuring bind, the value should be an array",
+                    name.range(),
+                ));
             };
+            // #todo check if the item count matches, report mismatches.
             for (i, name) in names.borrow().iter().enumerate() {
-                // #todo verify symbols
-                insert_symbol_binding(name, values.get(i).unwrap().clone(), context)?;
+                let Some(sym) = name.as_symbol() else {
+                    return Err(Error::invalid_arguments(
+                        "malformed destructuring bind, array pattern should contain symbols",
+                        name.range(),
+                    ));
+                };
+                if sym == "_" {
+                    continue;
+                }
+                if sym == "..." {
+                    break;
+                }
+                // #todo support "...", "...rest"
+                insert_symbol_binding(sym, &name.range(), values.get(i).unwrap().clone(), context)?;
             }
         }
         _ => {
