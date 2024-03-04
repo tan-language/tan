@@ -1188,6 +1188,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                     break;
                                 };
 
+                                // #todo allow for restructuring here!
+                                // #todo allow [] and {}
+                                // #todo consider special op/syntax for destructuring?
+
                                 let Some(s) = name.as_symbol() else {
                                     return Err(Error::invalid_arguments(
                                         &format!("`{name}` is not a Symbol"),
