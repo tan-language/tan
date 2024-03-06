@@ -649,8 +649,8 @@ fn eval_should_report_errors_in_args() {
 }
 
 #[test]
-fn eval_should_support_destructuring() {
-    let result = eval_file("let-destruct.tan");
+fn eval_should_support_array_destructuring() {
+    let result = eval_file("array-destruct.tan");
     let value = result.unwrap().as_int().unwrap();
     assert_eq!(value, 9);
 }
@@ -661,4 +661,12 @@ fn should_not_bind_underscore() {
     let errors = result.unwrap_err();
     let err = errors.first().unwrap();
     assert_matches!(err, Error{ variant: ErrorVariant::UndefinedSymbol(s), .. } if s == "_");
+}
+
+#[test]
+fn eval_should_support_dict_destructuring() {
+    let result = eval_file("dict-destruct.tan");
+    let value = result.unwrap();
+    let value = value.as_string().unwrap();
+    assert_eq!(value, "George");
 }

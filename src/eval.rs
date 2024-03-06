@@ -84,12 +84,13 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
         }
         Expr::Array(names) => {
             // #todo temp, nasty code.
+            // ensure that the values is also an Array.
             let Some(values) = value.as_array() else {
                 // #todo better error message.
                 // #todo annotate the value.
                 // #todo add multiple notes to the error.
                 return Err(Error::invalid_arguments(
-                    "malformed destructuring bind, the value should be an array",
+                    "malformed destructuring bind, the value should be an Array",
                     name.range(),
                 ));
             };
@@ -110,6 +111,44 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
                 }
                 // #todo support "...", "...rest"
                 insert_symbol_binding(sym, &name.range(), values.get(i).unwrap().clone(), context)?;
+            }
+        }
+        Expr::Dict(items) => {
+            // #todo temp, nasty code.
+            // ensure that the values are also a Dict.
+            let Some(values) = value.as_dict() else {
+                // #todo better error message.
+                // #todo annotate the value.
+                // #todo add multiple notes to the error.
+                return Err(Error::invalid_arguments(
+                    "malformed destructuring bind, the value should be a Dict",
+                    name.range(),
+                ));
+            };
+            // #todo check if the item count matches, report mismatches.
+            for (key, name) in items.borrow().iter() {
+                let Some(sym) = name.as_symbol() else {
+                    return Err(Error::invalid_arguments(
+                        "malformed destructuring bind, dict pattern should contain symbols",
+                        name.range(),
+                    ));
+                };
+                // // #todo what todo about  '_'?
+                // if sym == "_" {
+                //     continue;
+                // }
+                // // #todo what todo about '...'?
+                // // #insight '...' is called `ellipsis`.
+                // if sym == "..." {
+                //     break;
+                // }
+                // #todo support "...", "...rest"
+                insert_symbol_binding(
+                    sym,
+                    &name.range(),
+                    values.get(key).unwrap().clone(),
+                    context,
+                )?;
             }
         }
         _ => {
