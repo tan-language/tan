@@ -7,12 +7,12 @@ use crate::{
     util::module_util::require_module,
 };
 
-// #todo implement some of those functions: https://www.programiz.com/python-programming/methods/dictionary
+// #todo implement some of those functions: https://www.programiz.com/python-programming/methods/mapionary
 
 // #insight use `contains-key` so that `contains` refers to the value, consistent with other collections.
 // #todo consider other names: has, has-key, contains-key, includes, etc.
 // #todo consider appending a `?`
-pub fn dict_contains_key(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn map_contains_key(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [map, key] = args else {
         return Err(Error::invalid_arguments(
             "requires `this` and `key` argument",
@@ -41,7 +41,7 @@ pub fn dict_contains_key(args: &[Expr], _context: &mut Context) -> Result<Expr, 
 // #todo version that returns a new sequence
 // #todo also consider set, put
 // #todo item or element? -> I think for collections item is better.
-pub fn dict_put(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn map_put(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [map, key, value] = args else {
         return Err(Error::invalid_arguments(
             "requires `this`, `key`, and `value` arguments",
@@ -82,7 +82,7 @@ pub fn dict_put(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 // #todo I think `extend` is better, more descriptive.
 // #todo have draining and non-draining versions (drain other.) (consuming is better than draining)
 // #todo have mutating and non-mutating versions.
-pub fn dict_update_mut(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn map_update_mut(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [this, other] = args else {
         return Err(Error::invalid_arguments(
             "requires `this` and `other` argument",
@@ -122,7 +122,7 @@ pub fn dict_update_mut(args: &[Expr], _context: &mut Context) -> Result<Expr, Er
 // #todo (map :key <default>) could accept a default value.
 // #todo this should be a special form, not evaluate the default value if not needed (short-circuit).
 // #todo consider making default optional.
-pub fn dict_get_or(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn map_get_or(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [map, key, default_value] = args else {
         return Err(Error::invalid_arguments(
             "requires `this` and `key` argument",
@@ -166,7 +166,7 @@ pub fn dict_get_or(args: &[Expr], _context: &mut Context) -> Result<Expr, Error>
 // #todo consider name `keys-of` to avoid clash with variable keys? -> get-keys
 // #todo document the above in a decision file
 // #todo keys is problematic if it's in the prelude!
-pub fn dict_get_keys(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn map_get_keys(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [map] = args else {
         return Err(Error::invalid_arguments("requires `this` argument", None));
     };
@@ -183,7 +183,7 @@ pub fn dict_get_keys(args: &[Expr], _context: &mut Context) -> Result<Expr, Erro
     Ok(Expr::array(keys))
 }
 
-pub fn dict_get_values(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn map_get_values(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [map] = args else {
         return Err(Error::invalid_arguments("requires `this` argument", None));
     };
@@ -202,7 +202,7 @@ pub fn dict_get_values(args: &[Expr], _context: &mut Context) -> Result<Expr, Er
 
 // #todo consider other names, e.g. `items`.
 // #todo introduce entries/get-entries for other collections/containers, even Array/List.
-pub fn dict_get_entries(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn map_get_entries(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [map] = args else {
         return Err(Error::invalid_arguments("requires `this` argument", None));
     };
@@ -233,14 +233,14 @@ pub fn setup_lib_map(context: &mut Context) {
     // #todo add type qualifiers!
     module.insert(
         "contains-key",
-        Expr::ForeignFunc(Arc::new(dict_contains_key)),
+        Expr::ForeignFunc(Arc::new(map_contains_key)),
     );
-    module.insert("put", Expr::ForeignFunc(Arc::new(dict_put)));
-    module.insert("update!", Expr::ForeignFunc(Arc::new(dict_update_mut)));
-    module.insert("get-or", Expr::ForeignFunc(Arc::new(dict_get_or)));
-    module.insert("get-keys", Expr::ForeignFunc(Arc::new(dict_get_keys)));
-    module.insert("get-values", Expr::ForeignFunc(Arc::new(dict_get_values)));
-    module.insert("get-entries", Expr::ForeignFunc(Arc::new(dict_get_entries)));
+    module.insert("put", Expr::ForeignFunc(Arc::new(map_put)));
+    module.insert("update!", Expr::ForeignFunc(Arc::new(map_update_mut)));
+    module.insert("get-or", Expr::ForeignFunc(Arc::new(map_get_or)));
+    module.insert("get-keys", Expr::ForeignFunc(Arc::new(map_get_keys)));
+    module.insert("get-values", Expr::ForeignFunc(Arc::new(map_get_values)));
+    module.insert("get-entries", Expr::ForeignFunc(Arc::new(map_get_entries)));
 }
 
 #[cfg(test)]
@@ -254,11 +254,11 @@ mod tests {
     };
 
     #[test]
-    fn dict_put_usage() {
+    fn map_put_usage() {
         let input = r#"
-            (let map {})
-            (put map :given-name "Georgios")
-            map
+            (let user {})
+            (put user :given-name "Georgios")
+            user
         "#;
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
@@ -268,12 +268,12 @@ mod tests {
     }
 
     #[test]
-    fn dict_update_mut() {
+    fn map_update_mut() {
         let input = r#"
-            (let dict1 {:given-name "George" :nationality "Greek"})
-            (let dict2 {:family-name "Moschovitis"})
-            (update! dict1 dict2)
-            dict1
+            (let map1 {:given-name "George" :nationality "Greek"})
+            (let map2 {:family-name "Moschovitis"})
+            (update! map1 map2)
+            map1
         "#;
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
@@ -287,10 +287,10 @@ mod tests {
     }
 
     #[test]
-    fn dict_contains_key_usage() {
+    fn map_contains_key_usage() {
         let input = r#"
-            (let map {:name "George"})
-            (contains-key map :name)
+            (let user {:name "George"})
+            (contains-key user :name)
         "#;
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
@@ -298,8 +298,8 @@ mod tests {
         assert!(contains_key);
 
         let input = r#"
-            (let map {:name "George"})
-            (get-or map :role "Admin")
+            (let user {:name "George"})
+            (get-or user :role "Admin")
         "#;
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
@@ -309,10 +309,10 @@ mod tests {
     }
 
     #[test]
-    fn dict_get_or_usage() {
+    fn map_get_or_usage() {
         let input = r#"
-            (let map {:name "George"})
-            (get-or map :name "Zonk")
+            (let user {:name "George"})
+            (get-or user :name "Zonk")
         "#;
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
@@ -321,8 +321,8 @@ mod tests {
         assert_eq!(value, expected);
 
         let input = r#"
-            (let map {:name "George"})
-            (get-or map :role "Admin")
+            (let user {:name "George"})
+            (get-or user :role "Admin")
         "#;
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
@@ -332,11 +332,11 @@ mod tests {
     }
 
     #[test]
-    fn dict_get_keys() {
+    fn map_get_keys() {
         // #todo `:role :admin` looks weird, not that `role: :admin` looks much better though
         let input = r#"
-            (let map {:name "George" :role :admin})
-            (get-keys map)
+            (let user {:name "George" :role :admin})
+            (get-keys user)
         "#;
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
@@ -352,10 +352,10 @@ mod tests {
     }
 
     #[test]
-    fn dict_get_values() {
+    fn map_get_values() {
         let input = r#"
-            (let map {:name "George" :role :admin}) ; `:role :admin` is confusing!
-            (get-values map)
+            (let user {:name "George" :role :admin}) ; `:role :admin` is confusing!
+            (get-values user)
         "#;
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
@@ -370,10 +370,10 @@ mod tests {
     }
 
     #[test]
-    fn dict_get_entries() {
+    fn map_get_entries() {
         let input = r#"
-            (let map {:name "George" :role :admin}) ; `:role :admin` is confusing!
-            (get-entries map)
+            (let user {:name "George" :role :admin}) ; `:role :admin` is confusing!
+            (get-entries user)
         "#;
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();

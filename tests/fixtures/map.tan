@@ -1,11 +1,11 @@
 (do
-    (let map {
+    (let user {
         "given_name" "George"
         "family_name" "Moschovitis"
         "score" 100
     })
 
-    (let name (map "given_name"))
+    (let name (user "given_name"))
 
     name
 )

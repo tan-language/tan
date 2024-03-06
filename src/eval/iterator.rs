@@ -95,13 +95,13 @@ impl<'a> ExprIterator for ArrayIteratorRc<'a> {
 }
 
 // #todo under construction.
-pub struct DictIterator {
+pub struct MapIterator {
     current: usize,
     items: Vec<Expr>,
     pub step: usize,
 }
 
-impl ExprIterator for DictIterator {
+impl ExprIterator for MapIterator {
     // #todo keep rust iterator instead.
     fn next(&mut self) -> Option<Expr> {
         if self.current < self.items.len() {
@@ -160,7 +160,7 @@ pub fn try_iterator_from<'a>(expr: &'a Expr) -> Option<Rc<RefCell<dyn ExprIterat
             // example usage:
             // (let user {:name "George" :age :gender :male})
             // (for [f user] (writeln "*** ${(f 0)} = ${(f 1)}"))
-            // #todo somehow reuse dict_get_entries
+            // #todo somehow reuse map_get_entries
             let Some(items) = expr.as_map_mut() else {
                 panic!("invalid state in for-map");
             };
@@ -173,7 +173,7 @@ pub fn try_iterator_from<'a>(expr: &'a Expr) -> Option<Rc<RefCell<dyn ExprIterat
                 .map(|(k, v)| Expr::array(vec![Expr::KeySymbol(k.clone()), expr_clone(v)]))
                 .collect();
 
-            Some(Rc::new(RefCell::new(DictIterator {
+            Some(Rc::new(RefCell::new(MapIterator {
                 current: 0,
                 items,
                 step: 1,
