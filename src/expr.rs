@@ -110,7 +110,7 @@ pub enum Expr {
     Array(Rc<RefCell<Vec<Expr>>>), // #insight 'reference' type
     // #todo different name?
     // #todo support Expr as keys?
-    Dict(Rc<RefCell<HashMap<String, Expr>>>),
+    Map(Rc<RefCell<HashMap<String, Expr>>>),
     // #todo support `start..` and `..end` ranges.
     // #todo open-ended range with step can look like this: `start../2`
     // #todo have type render as (Range Int)
@@ -159,7 +159,7 @@ impl PartialEq for Expr {
             (Self::String(l0), Self::String(r0)) => l0 == r0,
             (Self::List(l0), Self::List(r0)) => l0 == r0,
             (Self::Array(l0), Self::Array(r0)) => l0 == r0,
-            (Self::Dict(l0), Self::Dict(r0)) => l0 == r0,
+            (Self::Map(l0), Self::Map(r0)) => l0 == r0,
             (Self::IntRange(l0, l1, l2), Self::IntRange(r0, r1, r2)) => {
                 l0 == r0 && l1 == r1 && l2 == r2
             }
@@ -208,7 +208,7 @@ impl fmt::Debug for Expr {
                 )
             }
             Expr::Array(v) => format!("Array({v:?})"),
-            Expr::Dict(d) => format!("Dict({d:?})"),
+            Expr::Map(d) => format!("Dict({d:?})"),
             Expr::IntRange(start, end, step) => format!("(Range Int {start} {end} {step})"),
             Expr::FloatRange(start, end, step) => format!("(Range Int {start} {end} {step})"),
             Expr::Func(..) => "#<func>".to_owned(),
@@ -269,7 +269,7 @@ impl fmt::Display for Expr {
                         .join(" ");
                     format!("[{exprs}]")
                 }
-                Expr::Dict(dict) => {
+                Expr::Map(dict) => {
                     // #todo Dict should support arbitrary exprs (or at lease `(Into String)` exprs)
                     // #todo currently we convert keys to symbol, make this more subtle.
                     let exprs = dict
@@ -328,7 +328,7 @@ impl Expr {
     }
 
     pub fn dict(d: impl Into<HashMap<String, Expr>>) -> Self {
-        Expr::Dict(Rc::new(RefCell::new(d.into())))
+        Expr::Map(Rc::new(RefCell::new(d.into())))
     }
 
     // pub fn foreign_func(f: &ExprFn) -> Self {
@@ -516,14 +516,14 @@ impl Expr {
     }
 
     pub fn as_dict(&self) -> Option<Ref<'_, HashMap<String, Expr>>> {
-        let Expr::Dict(dict) = self.unpack() else {
+        let Expr::Map(dict) = self.unpack() else {
             return None;
         };
         Some(dict.borrow())
     }
 
     pub fn as_dict_mut(&self) -> Option<RefMut<'_, HashMap<String, Expr>>> {
-        let Expr::Dict(dict) = self.unpack() else {
+        let Expr::Map(dict) = self.unpack() else {
             return None;
         };
         Some(dict.borrow_mut())
@@ -565,7 +565,7 @@ impl Expr {
             Expr::Dec(_) => Expr::symbol("Dec"),
             Expr::String(_) => Expr::symbol("String"),
             Expr::Array(_) => Expr::symbol("Array"), // #todo return parameterized type
-            Expr::Dict(_) => Expr::symbol("Dict"),   // #todo return parameterized type
+            Expr::Map(_) => Expr::symbol("Dict"),    // #todo return parameterized type
             // #todo what about quoted Symbol?
             Expr::Symbol(name) => {
                 if let Some(value) = context.scope.get(name) {
@@ -641,7 +641,7 @@ pub fn expr_clone(expr: &Expr) -> Expr {
     match expr {
         // #insight treat Array and Dict as a 'reference' types, Rc.clone is efficient.
         Expr::Array(items) => Expr::Array(items.clone()),
-        Expr::Dict(items) => Expr::Dict(items.clone()),
+        Expr::Map(items) => Expr::Map(items.clone()),
         _ => expr.clone(),
     }
 }

@@ -103,9 +103,9 @@ mod tests {
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
 
-        assert_matches!(expr.unpack(), Expr::Dict(..));
+        assert_matches!(expr.unpack(), Expr::Map(..));
 
-        let Expr::Dict(dict) = expr else {
+        let Expr::Map(dict) = expr else {
             panic!("expected Expr::Dict");
         };
 

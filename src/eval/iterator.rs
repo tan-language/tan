@@ -156,7 +156,7 @@ pub fn try_iterator_from<'a>(expr: &'a Expr) -> Option<Rc<RefCell<dyn ExprIterat
                 step: 1,
             })))
         }
-        Expr::Dict(_) => {
+        Expr::Map(_) => {
             // example usage:
             // (let user {:name "George" :age :gender :male})
             // (for [f user] (writeln "*** ${(f 0)} = ${(f 1)}"))

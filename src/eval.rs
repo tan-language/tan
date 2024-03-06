@@ -113,7 +113,7 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
                 insert_symbol_binding(sym, &name.range(), values.get(i).unwrap().clone(), context)?;
             }
         }
-        Expr::Dict(items) => {
+        Expr::Map(items) => {
             // #todo temp, nasty code.
             // ensure that the values are also a Dict.
             let Some(values) = value.as_dict() else {
@@ -501,7 +501,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         Ok(Expr::One)
                     }
                 }
-                Expr::Dict(dict) => {
+                Expr::Map(dict) => {
                     // Evaluate the arguments before calling the function.
                     let args = eval_args(tail, context)?;
 
@@ -1504,7 +1504,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             }
             Ok(Expr::array(evaled_items))
         }
-        Expr::Dict(dict) => {
+        Expr::Map(dict) => {
             // #insight evaluates the values.
             // #insight [...] => (Dict ...) => it's like a function.
             // #todo nasty code, improve.

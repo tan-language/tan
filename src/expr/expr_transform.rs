@@ -56,7 +56,7 @@ impl Expr {
             // #todo write unit test for dict quote
             // #todo ULTRA HACK: super nasty code here! and super non-optimal.
             // #todo properly handle array
-            (Expr::Dict(dict), ann) => {
+            (Expr::Map(dict), ann) => {
                 // #todo investigate this clone!!!!
                 let dict: HashMap<String, Expr> = dict
                     .borrow()
@@ -121,7 +121,7 @@ impl Expr {
 
                 Expr::maybe_annotated(Expr::array(terms), ann)
             }
-            (Expr::Dict(dict), ann) => {
+            (Expr::Map(dict), ann) => {
                 // #todo investigate this clone!!!!
                 let dict: HashMap<String, Expr> = dict
                     .borrow()
