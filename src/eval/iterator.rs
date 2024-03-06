@@ -161,8 +161,8 @@ pub fn try_iterator_from<'a>(expr: &'a Expr) -> Option<Rc<RefCell<dyn ExprIterat
             // (let user {:name "George" :age :gender :male})
             // (for [f user] (writeln "*** ${(f 0)} = ${(f 1)}"))
             // #todo somehow reuse dict_get_entries
-            let Some(items) = expr.as_dict_mut() else {
-                panic!("invalid state in for-dict");
+            let Some(items) = expr.as_map_mut() else {
+                panic!("invalid state in for-map");
             };
 
             // #todo why does map return k as String?

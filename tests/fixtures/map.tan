@@ -1,11 +1,11 @@
 (do
-    (let dict {
+    (let map {
         "given_name" "George"
         "family_name" "Moschovitis"
         "score" 100
     })
 
-    (let name (dict "given_name"))
+    (let name (map "given_name"))
 
     name
 )

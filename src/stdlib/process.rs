@@ -72,7 +72,7 @@ pub fn process_args(_args: &[Expr], context: &mut Context) -> Result<Expr, Error
 
 // #todo consider renaming to just `env`?
 // #todo optionally support key/name argument to return the value of a specific env variable.
-/// Return the process environment variables as a Dict/Map.
+/// Return the process environment variables as a Map/Map.
 pub fn process_env_vars(_args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let mut env_vars = HashMap::new();
 
@@ -80,7 +80,7 @@ pub fn process_env_vars(_args: &[Expr], _context: &mut Context) -> Result<Expr, 
         env_vars.insert(key, Expr::string(value));
     }
 
-    Ok(Expr::dict(env_vars))
+    Ok(Expr::map(env_vars))
 }
 
 // #todo spawn
@@ -119,7 +119,7 @@ pub fn process_env_vars(_args: &[Expr], _context: &mut Context) -> Result<Expr, 
 
 //     // #todo also return status and stderr.
 //     // #todo proper conversion of stdout output.
-//     // #todo could return dict {status, stdout, stderr}
+//     // #todo could return map {status, stdout, stderr}
 
 //     Ok(Expr::string(
 //         String::from_utf8(output.stdout).unwrap_or_default(),
@@ -157,7 +157,7 @@ pub fn process_exec(args: &[Expr], _context: &mut Context) -> Result<Expr, Error
 
     // #todo also return status and stderr.
     // #todo proper conversion of stdout output.
-    // #todo could return dict {status, stdout, stderr}
+    // #todo could return map {status, stdout, stderr}
 
     Ok(Expr::string(
         String::from_utf8(output.stdout).unwrap_or_default(),

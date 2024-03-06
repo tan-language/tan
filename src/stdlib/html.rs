@@ -64,13 +64,13 @@ fn render_expr(expr: &Expr) -> Result<Expr, Error> {
                 let mut i = 1;
 
                 if let Some(term) = terms.get(i) {
-                    let attributes: String = if let Some(dict) = term.as_dict() {
+                    let attributes: String = if let Some(map) = term.as_map() {
                         i += 1;
                         // #todo eval value!
                         // #todo escape value!
                         format!(
                             " {}",
-                            dict.iter()
+                            map.iter()
                                 .map(|(k, v)| format!("{k}=\"{}\"", format_value(v)))
                                 .collect::<Vec<String>>()
                                 .join(" ")

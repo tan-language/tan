@@ -8,10 +8,10 @@ use crate::util::module_util::require_module;
 use super::arithmetic::setup_lib_arithmetic;
 use super::chrono;
 use super::cmp::setup_lib_cmp;
-use super::dict::setup_lib_dict;
 use super::eq::setup_lib_eq;
 use super::io::setup_lib_io;
 use super::lang::setup_lib_lang;
+use super::map::setup_lib_map;
 use super::seq::setup_lib_seq;
 use super::string::setup_lib_string;
 
@@ -36,7 +36,7 @@ pub fn setup_lib_prelude(context: &mut Context) {
     setup_lib_io(context);
     setup_lib_string(context);
     setup_lib_seq(context);
-    setup_lib_dict(context);
+    setup_lib_map(context);
     setup_lib_lang(context);
 
     // #todo move this to lang.rs

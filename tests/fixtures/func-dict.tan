@@ -1,11 +1,15 @@
 (do
-    (let format-quote (Func [quote] (format "quote: " quote)))
+    (let format-quote (Func [quote]
+        (format "quote: " quote)
+    ))
 
-    (let get-dict (Func [quote] {
-        :title "Test"
-        :body (format-quote quote)
-        :level 1
-    }))
+    (let get-map (Func [quote]
+        {
+            :title "Test"
+            :body (format-quote quote)
+            :level 1
+        }
+    ))
 
-    (get-dict "a quote")
+    (get-map "a quote")
 )

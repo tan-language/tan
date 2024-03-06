@@ -454,10 +454,10 @@ impl<'a> Parser<'a> {
                 Some(Expr::List(items))
             }
             TokenKind::LeftBrace => {
-                // Syntactic sugar for a Dict.
+                // Syntactic sugar for a Map.
 
                 // #insight
-                // Don't optimize to `Expr::Dict` here, leave the parser expr
+                // Don't optimize to `Expr::Map` here, leave the parser expr
                 // 'normalized as it is beneficial for some kinds of analysis.
 
                 // #todo add error checking!
@@ -465,7 +465,7 @@ impl<'a> Parser<'a> {
 
                 let exprs = self.parse_many(TokenKind::RightBrace, start_position)?;
 
-                let mut items = vec![annotate_range(Expr::symbol("Dict"), range)];
+                let mut items = vec![annotate_range(Expr::symbol("Map"), range)];
 
                 for expr in exprs {
                     items.push(expr);

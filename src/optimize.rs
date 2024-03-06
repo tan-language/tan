@@ -6,7 +6,7 @@ use crate::expr::{format_value, Expr};
 
 // #insight
 // The optimizer converts general Expr::List expressions into execution-friendly
-// expressions like Expr::Array, Expr::Dict, etc. It also strips unnecessary
+// expressions like Expr::Array, Expr::Map, etc. It also strips unnecessary
 // annotations.
 
 // #todo what does optimize do? I think it just removes some annotations.
@@ -20,16 +20,16 @@ pub fn optimize_fn(expr: Expr) -> Expr {
                         let items: Vec<Expr> =
                             terms[1..].iter().map(|ax| ax.unpack().clone()).collect();
                         return Expr::maybe_annotated(Expr::array(items), expr.annotations());
-                    } else if s == "Dict" {
+                    } else if s == "Map" {
                         let items: Vec<Expr> =
                             terms[1..].iter().map(|ax| ax.unpack().clone()).collect();
-                        let mut dict = HashMap::new();
+                        let mut map = HashMap::new();
                         for pair in items.chunks(2) {
                             let k = pair[0].clone();
                             let v = pair[1].clone();
-                            dict.insert(format_value(k), v);
+                            map.insert(format_value(k), v);
                         }
-                        return Expr::maybe_annotated(Expr::dict(dict), expr.annotations());
+                        return Expr::maybe_annotated(Expr::map(map), expr.annotations());
                     }
                 }
             }
@@ -63,7 +63,7 @@ mod tests {
 
     // #todo the test is flaky for some reason, temporarily disabled, investigate.
     // #[test]
-    // fn optimize_rewrites_dict_expressions() {
+    // fn optimize_rewrites_map_expressions() {
     //     let input = r#"(let a {:name "George" :age 25})"#;
 
     //     let expr = parse_string(input).unwrap();
@@ -72,6 +72,6 @@ mod tests {
 
     //     let s = format!("{expr_optimized:?}");
 
-    //     assert!(s.contains(r#"Dict({"name": String("George"), "age": Int(25)})"#));
+    //     assert!(s.contains(r#"Map({"name": String("George"), "age": Int(25)})"#));
     // }
 }

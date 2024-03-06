@@ -89,7 +89,7 @@ impl Resolver {
                 }
 
                 // #todo handle 'PathSymbol'
-                // #todo handle a Dict invocable (and other invocables).
+                // #todo handle a Map invocable (and other invocables).
                 // #todo please note that multiple-dispatch is supposed to be dynamic!
 
                 let result = if let Some(Expr::Symbol(method)) = expr.annotation("method") {

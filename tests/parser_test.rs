@@ -274,7 +274,7 @@ fn parse_parses_arrays() {
 }
 
 #[test]
-fn parse_parses_dicts() {
+fn parse_parses_maps() {
     let input = r#"(let m {"name" "george" "value" 1})"#;
     let expr = parse_string(input).unwrap();
 
@@ -290,13 +290,13 @@ fn parse_parses_dicts() {
         panic!("assertion failed: invalid form")
     };
 
-    assert_matches!(&exprs[0].unpack(), Expr::Symbol(s) if s == "Dict");
+    assert_matches!(&exprs[0].unpack(), Expr::Symbol(s) if s == "Map");
     assert_matches!(exprs.len(), 5);
 }
 
 // #todo move to eval_test?
 // #[test]
-// fn parse_parses_dicts() {
+// fn parse_parses_maps() {
 //     let input = r##"(let m {"name" "george" "value" 1})"##;
 //     let result = parse_string(input).unwrap();
 
@@ -304,7 +304,7 @@ fn parse_parses_dicts() {
 //         panic!("assertion failed: invalid form")
 //     };
 
-//     assert_matches!(&vec[2], Ann(Expr::Dict(dict), ..) if dict.len() == 2);
+//     assert_matches!(&vec[2], Ann(Expr::Map(map), ..) if map.len() == 2);
 // }
 
 #[test]

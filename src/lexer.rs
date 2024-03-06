@@ -441,7 +441,7 @@ impl<'a> Lexer<'a> {
                 ']' => {
                     tokens.push(Token::new(TokenKind::RightBracket, self.current_range()));
                 }
-                // #todo maybe should just rewrite {..} -> (Dict ..)
+                // #todo maybe should just rewrite {..} -> (Map ..)
                 '{' => {
                     tokens.push(Token::new(TokenKind::LeftBrace, self.current_range()));
                 }

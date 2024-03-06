@@ -115,13 +115,13 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
         }
         Expr::Map(items) => {
             // #todo temp, nasty code.
-            // ensure that the values are also a Dict.
-            let Some(values) = value.as_dict() else {
+            // ensure that the values are also a Map.
+            let Some(values) = value.as_map() else {
                 // #todo better error message.
                 // #todo annotate the value.
                 // #todo add multiple notes to the error.
                 return Err(Error::invalid_arguments(
-                    "malformed destructuring bind, the value should be a Dict",
+                    "malformed destructuring bind, the value should be a Map",
                     name.range(),
                 ));
             };
@@ -129,7 +129,7 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
             for (key, name) in items.borrow().iter() {
                 let Some(sym) = name.as_symbol() else {
                     return Err(Error::invalid_arguments(
-                        "malformed destructuring bind, dict pattern should contain symbols",
+                        "malformed destructuring bind, map pattern should contain symbols",
                         name.range(),
                     ));
                 };
@@ -501,7 +501,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         Ok(Expr::One)
                     }
                 }
-                Expr::Map(dict) => {
+                Expr::Map(map) => {
                     // Evaluate the arguments before calling the function.
                     let args = eval_args(tail, context)?;
 
@@ -510,7 +510,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                     // #insight no need to unpack, format_value sees-through.
                     let key = format_value(&args[0]);
-                    if let Some(value) = dict.borrow().get(&key) {
+                    if let Some(value) = map.borrow().get(&key) {
                         Ok(value.clone())
                     } else {
                         // #todo introduce Maybe { Some, None }
@@ -560,9 +560,9 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             let expr = tail.first().unwrap();
 
                             if let Some(ann) = expr.annotations() {
-                                Ok(Expr::dict(ann.clone()))
+                                Ok(Expr::map(ann.clone()))
                             } else {
-                                Ok(Expr::dict(HashMap::new()))
+                                Ok(Expr::map(HashMap::new()))
                             }
                         }
                         "panic!" => eval_panic(&head, tail, context),
@@ -1061,26 +1061,26 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo maybe it should be some kind of let? e.g. (`let-all` ?? or `let*` or `let..`)
                             // #todo this is a temp hack.
 
-                            // Updates the scope with bindings of the given dict.
+                            // Updates the scope with bindings of the given map.
 
-                            let [dict] = tail else {
+                            let [map] = tail else {
                                 return Err(Error::invalid_arguments(
                                     "malformed `scope-update`",
                                     expr.range(),
                                 ));
                             };
 
-                            let dict = eval(dict, context)?;
+                            let map = eval(map, context)?;
 
-                            let Some(dict) = dict.as_dict() else {
+                            let Some(map) = map.as_map() else {
                                 // #todo report what was found!
                                 return Err(Error::invalid_arguments(
-                                    "malformed `scope-update`, expects Dict argument",
+                                    "malformed `scope-update`, expects Map argument",
                                     expr.range(),
                                 ));
                             };
 
-                            for (name, value) in dict.iter() {
+                            for (name, value) in map.iter() {
                                 // #todo remove clone.
                                 context.scope.insert(name, expr_clone(value));
                             }
@@ -1504,16 +1504,16 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             }
             Ok(Expr::array(evaled_items))
         }
-        Expr::Map(dict) => {
+        Expr::Map(map) => {
             // #insight evaluates the values.
-            // #insight [...] => (Dict ...) => it's like a function.
+            // #insight [...] => (Map ...) => it's like a function.
             // #todo nasty code, improve.
             // #todo can this get pre-evaluated statically in some cases?
-            let mut evaled_dict = HashMap::new();
-            for (k, v) in dict.borrow().iter() {
-                evaled_dict.insert(k.clone(), eval(v, context)?);
+            let mut evaled_map = HashMap::new();
+            for (k, v) in map.borrow().iter() {
+                evaled_map.insert(k.clone(), eval(v, context)?);
             }
-            Ok(Expr::dict(evaled_dict))
+            Ok(Expr::map(evaled_map))
         }
         _ => {
             // #todo hm, maybe need to report an error here? or even select the desired behavior? -> NO ERROR
