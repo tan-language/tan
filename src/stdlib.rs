@@ -3,13 +3,13 @@ pub mod chrono;
 pub mod cmark; // #tod rename to common mark?
 pub mod cmp;
 pub mod css_expr;
-pub mod dict;
 pub mod eq;
 pub mod fs;
 pub mod html;
 pub mod io;
 pub mod json;
 pub mod lang;
+pub mod map;
 pub mod math;
 pub mod network;
 pub mod path;

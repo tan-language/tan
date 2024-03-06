@@ -38,9 +38,9 @@ pub fn html_from_common_mark(args: &[Expr], _context: &mut Context) -> Result<Ex
         // #todo extract shortcodes support to separate module, e.g. `text/shortcodes`
         // options.extension.shortcodes = true; // #insight needs feature `shortcodes`
         if options.is_some() {
-            let Some(options) = options.unwrap().as_dict() else {
+            let Some(options) = options.unwrap().as_map() else {
                 return Err(Error::invalid_arguments(
-                    "options argument should be a dict",
+                    "options argument should be a map",
                     None,
                 ));
             };

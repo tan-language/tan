@@ -19,26 +19,26 @@ use crate::{
 
 pub fn tan_date_from_rust_date(rust_date: NaiveDate) -> Expr {
     // #todo month0, day0 is an interesting idea.
-    let mut dict = HashMap::new();
+    let mut map = HashMap::new();
     // #todo add helpers to initialize Expr::Int
-    dict.insert("year".to_string(), Expr::Int(rust_date.year() as i64));
-    dict.insert(
+    map.insert("year".to_string(), Expr::Int(rust_date.year() as i64));
+    map.insert(
         "month".to_string(),
         Expr::Int((rust_date.month0() + 1) as i64),
     );
-    dict.insert("day".to_string(), Expr::Int((rust_date.day0() + 1) as i64));
+    map.insert("day".to_string(), Expr::Int((rust_date.day0() + 1) as i64));
 
     // #todo support annotation with multiple types/traits, e.g. both Date + Map.
 
-    let expr = Expr::dict(dict);
+    let expr = Expr::map(map);
 
     annotate_type(expr, "Date")
 }
 
 // #todo as un-optimized as it gets.
 pub fn rust_date_from_tan_date(tan_date: &Expr) -> NaiveDate {
-    let dict = tan_date.as_dict().unwrap();
-    let s = format!("{}-{}-{}", dict["year"], dict["month"], dict["day"]);
+    let map = tan_date.as_map().unwrap();
+    let s = format!("{}-{}-{}", map["year"], map["month"], map["day"]);
     let format_string = "%Y-%m-%d";
     // NaiveDate::from_ymd_opt(2024, 1, 18).unwrap();
     NaiveDate::parse_from_str(&s, format_string).unwrap()
@@ -112,7 +112,7 @@ pub fn chrono_date_to_string(args: &[Expr], _context: &mut Context) -> Result<Ex
 
     // #todo check dyn_type.
 
-    let Some(dict) = this.as_dict() else {
+    let Some(map) = this.as_map() else {
         return Err(Error::invalid_arguments(
             "`this` argument should be a Date",
             this.range(),
@@ -121,15 +121,15 @@ pub fn chrono_date_to_string(args: &[Expr], _context: &mut Context) -> Result<Ex
 
     // #todo error checking!
 
-    let Some(year) = dict["year"].as_int() else {
+    let Some(year) = map["year"].as_int() else {
         return Err(Error::invalid_arguments("invalid Date", this.range()));
     };
 
-    let Some(month) = dict["month"].as_int() else {
+    let Some(month) = map["month"].as_int() else {
         return Err(Error::invalid_arguments("invalid Date", this.range()));
     };
 
-    let Some(day) = dict["day"].as_int() else {
+    let Some(day) = map["day"].as_int() else {
         return Err(Error::invalid_arguments("invalid Date", this.range()));
     };
     let str = format!("{}-{:02}-{:02}", year, month, day);
@@ -183,10 +183,10 @@ mod tests {
         let mut context = Context::new();
         let args = [Expr::string("2024-01-17")];
         let date = chrono_date(&args, &mut context).unwrap();
-        let dict = date.as_dict().unwrap();
-        assert_matches!(dict.get("year").unwrap(), Expr::Int(year) if *year == 2024);
-        assert_matches!(dict.get("month").unwrap(), Expr::Int(month) if *month == 1);
-        assert_matches!(dict.get("day").unwrap(), Expr::Int(day) if *day == 17);
+        let map = date.as_map().unwrap();
+        assert_matches!(map.get("year").unwrap(), Expr::Int(year) if *year == 2024);
+        assert_matches!(map.get("month").unwrap(), Expr::Int(month) if *month == 1);
+        assert_matches!(map.get("day").unwrap(), Expr::Int(day) if *day == 17);
     }
 
     #[test]

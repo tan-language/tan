@@ -20,15 +20,15 @@ fn json_value_to_expr(json: Value) -> Expr {
             Expr::array(arr)
         }
         Value::Object(obj) => {
-            let mut dict: HashMap<String, Expr> = HashMap::new();
+            let mut map: HashMap<String, Expr> = HashMap::new();
             for (key, value) in obj {
                 // #todo should support more key types.
                 // #todo should convert k from camelCase, PascalCase, snake_case, etc.
                 let key = key.replace('_', "-");
                 // let key = Expr::KeySymbol(key);
-                dict.insert(key, json_value_to_expr(value));
+                map.insert(key, json_value_to_expr(value));
             }
-            Expr::dict(dict)
+            Expr::map(map)
         }
         Value::String(s) => Expr::String(s),
         Value::Number(n) => Expr::Float(n.as_f64().unwrap()), // #todo handle Int, Float, remove unwrap!
@@ -103,13 +103,13 @@ mod tests {
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
 
-        assert_matches!(expr.unpack(), Expr::Dict(..));
+        assert_matches!(expr.unpack(), Expr::Map(..));
 
-        let Expr::Dict(dict) = expr else {
-            panic!("expected Expr::Dict");
+        let Expr::Map(map) = expr else {
+            panic!("expected Expr::Map");
         };
 
-        assert_eq!(format_value(&dict.borrow()["name"]), "George");
-        assert_eq!(format_value(&dict.borrow()["balance"]), "1022.33");
+        assert_eq!(format_value(&map.borrow()["name"]), "George");
+        assert_eq!(format_value(&map.borrow()["balance"]), "1022.33");
     }
 }

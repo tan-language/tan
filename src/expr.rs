@@ -110,7 +110,7 @@ pub enum Expr {
     Array(Rc<RefCell<Vec<Expr>>>), // #insight 'reference' type
     // #todo different name?
     // #todo support Expr as keys?
-    Dict(Rc<RefCell<HashMap<String, Expr>>>),
+    Map(Rc<RefCell<HashMap<String, Expr>>>),
     // #todo support `start..` and `..end` ranges.
     // #todo open-ended range with step can look like this: `start../2`
     // #todo have type render as (Range Int)
@@ -159,7 +159,7 @@ impl PartialEq for Expr {
             (Self::String(l0), Self::String(r0)) => l0 == r0,
             (Self::List(l0), Self::List(r0)) => l0 == r0,
             (Self::Array(l0), Self::Array(r0)) => l0 == r0,
-            (Self::Dict(l0), Self::Dict(r0)) => l0 == r0,
+            (Self::Map(l0), Self::Map(r0)) => l0 == r0,
             (Self::IntRange(l0, l1, l2), Self::IntRange(r0, r1, r2)) => {
                 l0 == r0 && l1 == r1 && l2 == r2
             }
@@ -208,7 +208,7 @@ impl fmt::Debug for Expr {
                 )
             }
             Expr::Array(v) => format!("Array({v:?})"),
-            Expr::Dict(d) => format!("Dict({d:?})"),
+            Expr::Map(d) => format!("Map({d:?})"),
             Expr::IntRange(start, end, step) => format!("(Range Int {start} {end} {step})"),
             Expr::FloatRange(start, end, step) => format!("(Range Int {start} {end} {step})"),
             Expr::Func(..) => "#<func>".to_owned(),
@@ -269,10 +269,10 @@ impl fmt::Display for Expr {
                         .join(" ");
                     format!("[{exprs}]")
                 }
-                Expr::Dict(dict) => {
-                    // #todo Dict should support arbitrary exprs (or at lease `(Into String)` exprs)
+                Expr::Map(map) => {
+                    // #todo Map should support arbitrary exprs (or at lease `(Into String)` exprs)
                     // #todo currently we convert keys to symbol, make this more subtle.
-                    let exprs = dict
+                    let exprs = map
                         .borrow()
                         .iter()
                         .map(|(k, v)| format!(":{k} {v}"))
@@ -327,8 +327,8 @@ impl Expr {
         Expr::Array(Rc::new(RefCell::new(a.into())))
     }
 
-    pub fn dict(d: impl Into<HashMap<String, Expr>>) -> Self {
-        Expr::Dict(Rc::new(RefCell::new(d.into())))
+    pub fn map(d: impl Into<HashMap<String, Expr>>) -> Self {
+        Expr::Map(Rc::new(RefCell::new(d.into())))
     }
 
     // pub fn foreign_func(f: &ExprFn) -> Self {
@@ -515,18 +515,18 @@ impl Expr {
         Some(v.borrow_mut())
     }
 
-    pub fn as_dict(&self) -> Option<Ref<'_, HashMap<String, Expr>>> {
-        let Expr::Dict(dict) = self.unpack() else {
+    pub fn as_map(&self) -> Option<Ref<'_, HashMap<String, Expr>>> {
+        let Expr::Map(map) = self.unpack() else {
             return None;
         };
-        Some(dict.borrow())
+        Some(map.borrow())
     }
 
-    pub fn as_dict_mut(&self) -> Option<RefMut<'_, HashMap<String, Expr>>> {
-        let Expr::Dict(dict) = self.unpack() else {
+    pub fn as_map_mut(&self) -> Option<RefMut<'_, HashMap<String, Expr>>> {
+        let Expr::Map(map) = self.unpack() else {
             return None;
         };
-        Some(dict.borrow_mut())
+        Some(map.borrow_mut())
     }
 
     // #todo consider #[inline]
@@ -565,7 +565,7 @@ impl Expr {
             Expr::Dec(_) => Expr::symbol("Dec"),
             Expr::String(_) => Expr::symbol("String"),
             Expr::Array(_) => Expr::symbol("Array"), // #todo return parameterized type
-            Expr::Dict(_) => Expr::symbol("Dict"),   // #todo return parameterized type
+            Expr::Map(_) => Expr::symbol("Map"),     // #todo return parameterized type
             // #todo what about quoted Symbol?
             Expr::Symbol(name) => {
                 if let Some(value) = context.scope.get(name) {
@@ -617,7 +617,7 @@ pub fn annotate_range(expr: Expr, range: Range) -> Expr {
 }
 
 // #todo move elsewhere, e.g. api.
-// #todo think where this function is used. (it is used for Dict keys, hmm...)
+// #todo think where this function is used. (it is used for Map keys, hmm...)
 // #todo this is a confusing name!
 /// Formats the expression as a value.
 /// For example strings are formatted without the quotes and keys without
@@ -639,9 +639,9 @@ pub fn format_value(expr: impl AsRef<Expr>) -> String {
 /// Clones expressions in optimized way, handles ref types.
 pub fn expr_clone(expr: &Expr) -> Expr {
     match expr {
-        // #insight treat Array and Dict as a 'reference' types, Rc.clone is efficient.
+        // #insight treat Array and Map as a 'reference' types, Rc.clone is efficient.
         Expr::Array(items) => Expr::Array(items.clone()),
-        Expr::Dict(items) => Expr::Dict(items.clone()),
+        Expr::Map(items) => Expr::Map(items.clone()),
         _ => expr.clone(),
     }
 }
@@ -651,29 +651,29 @@ pub fn expr_clone(expr: &Expr) -> Expr {
 // #todo implement Defer into Expr!
 
 // #todo convert to the Expr::Range variant.
-// #todo convert position to Dict Expr.
+// #todo convert position to Map Expr.
 
 pub fn position_to_expr(position: &Position) -> Expr {
     let mut map: HashMap<String, Expr> = HashMap::new();
     map.insert("index".to_owned(), Expr::Int(position.index as i64));
     map.insert("line".to_owned(), Expr::Int(position.line as i64));
     map.insert("col".to_owned(), Expr::Int(position.col as i64));
-    Expr::dict(map)
+    Expr::map(map)
 }
 
 pub fn expr_to_position(expr: &Expr) -> Position {
-    if let Some(dict) = expr.as_dict() {
-        let Some(Expr::Int(index)) = dict.get("index") else {
+    if let Some(map) = expr.as_map() {
+        let Some(Expr::Int(index)) = map.get("index") else {
             // #todo fix me!
             return Position::default();
         };
 
-        let Some(Expr::Int(line)) = dict.get("line") else {
+        let Some(Expr::Int(line)) = map.get("line") else {
             // #todo fix me!
             return Position::default();
         };
 
-        let Some(Expr::Int(col)) = dict.get("col") else {
+        let Some(Expr::Int(col)) = map.get("col") else {
             // #todo fix me!
             return Position::default();
         };

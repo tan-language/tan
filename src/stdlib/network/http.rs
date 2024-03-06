@@ -21,9 +21,9 @@ use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 /// Tries to extract a header from a function argument.
 fn extract_headers(arg: Option<&Expr>) -> Result<Option<HeaderMap>, Error> {
     if let Some(headers) = arg {
-        let Some(headers) = headers.as_dict() else {
+        let Some(headers) = headers.as_map() else {
             return Err(Error::invalid_arguments(
-                "`headers` argument should be a Dict",
+                "`headers` argument should be a Map",
                 headers.range(),
             ));
         };
@@ -71,7 +71,7 @@ fn build_tan_response(resp: reqwest::Result<reqwest::blocking::Response>) -> Res
     tan_response.insert("body".to_string(), Expr::string(body));
     // #todo also include response headers.
 
-    Ok(Expr::dict(tan_response))
+    Ok(Expr::map(tan_response))
 }
 
 pub fn http_get(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {

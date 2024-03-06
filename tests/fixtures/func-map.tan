@@ -1,0 +1,15 @@
+(do
+    (let format-quote (Func [quote]
+        (format "quote: " quote)
+    ))
+
+    (let get-map (Func [quote]
+        {
+            :title "Test"
+            :body (format-quote quote)
+            :level 1
+        }
+    ))
+
+    (get-map "a quote")
+)

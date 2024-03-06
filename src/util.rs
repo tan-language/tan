@@ -45,7 +45,7 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
             | "Macro"
             | "List"
             | "Array"
-            | "Dict"
+            | "Map"
     )
 }
 

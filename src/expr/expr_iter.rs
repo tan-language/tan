@@ -30,7 +30,7 @@ pub struct ExprIter<'a> {
 impl<'a> Iterator for ExprIter<'a> {
     type Item = &'a Expr;
 
-    // #todo this does not traverse Array, Dict, etc.
+    // #todo this does not traverse Array, Map, etc.
     fn next(&mut self) -> Option<Self::Item> {
         let Some(expr) = self.children.first() else {
             return match self.parent.take() {

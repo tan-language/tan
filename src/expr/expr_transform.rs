@@ -23,7 +23,7 @@ impl Expr {
                 let list = Expr::maybe_annotated(Expr::List(terms), ann);
                 f(list)
             }
-            // #todo ARGHHHHHH does not handle Dict, Array, etc.
+            // #todo ARGHHHHHH does not handle Map, Array, etc.
             _ => f(self),
         }
     }
@@ -53,21 +53,21 @@ impl Expr {
                 let array = Expr::maybe_annotated(Expr::array(terms), ann);
                 f(array)
             }
-            // #todo write unit test for dict quote
+            // #todo write unit test for map quote
             // #todo ULTRA HACK: super nasty code here! and super non-optimal.
             // #todo properly handle array
-            (Expr::Dict(dict), ann) => {
+            (Expr::Map(map), ann) => {
                 // #todo investigate this clone!!!!
-                let dict: HashMap<String, Expr> = dict
+                let map: HashMap<String, Expr> = map
                     .borrow()
                     .clone()
                     .into_iter()
                     .map(|(key, value)| (key, value.clone().transform_mut(f)))
                     .collect();
-                let dict = Expr::maybe_annotated(Expr::dict(dict), ann);
-                f(dict)
+                let map = Expr::maybe_annotated(Expr::map(map), ann);
+                f(map)
             }
-            // #todo ARGHHHHHH does not handle Dict, Array, etc.
+            // #todo ARGHHHHHH does not handle Map, Array, etc.
             _ => f(self),
         }
     }
@@ -121,16 +121,16 @@ impl Expr {
 
                 Expr::maybe_annotated(Expr::array(terms), ann)
             }
-            (Expr::Dict(dict), ann) => {
+            (Expr::Map(map), ann) => {
                 // #todo investigate this clone!!!!
-                let dict: HashMap<String, Expr> = dict
+                let map: HashMap<String, Expr> = map
                     .borrow()
                     .clone()
                     .into_iter()
                     .map(|(key, value)| (key, value.quot(context)))
                     .collect();
 
-                Expr::maybe_annotated(Expr::dict(dict), ann)
+                Expr::maybe_annotated(Expr::map(map), ann)
             }
             _ => self,
         }

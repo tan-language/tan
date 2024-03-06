@@ -274,25 +274,25 @@ fn eval_handles_function_with_no_params() {
 }
 
 #[test]
-fn eval_processes_dict() {
-    let result = eval_file("dict.tan");
+fn eval_processes_map() {
+    let result = eval_file("map.tan");
 
     assert!(result.is_ok());
 
     let value = format!("{}", result.unwrap());
-    let expected_value = read_file("dict.value.tan");
+    let expected_value = read_file("map.value.tan");
 
     assert_eq!(value, expected_value);
 }
 
 #[test]
-fn eval_processes_dict_with_keys() {
-    let result = eval_file("key-dict.tan");
+fn eval_processes_map_with_keys() {
+    let result = eval_file("key-map.tan");
 
     assert!(result.is_ok());
 
     let value = format!("{}", result.unwrap());
-    let expected_value = read_file("key-dict.value.tan");
+    let expected_value = read_file("key-map.value.tan");
 
     assert_eq!(value, expected_value);
 }
@@ -462,14 +462,14 @@ fn module_cannot_access_private_members_of_other_modules() {
 }
 
 #[test]
-fn eval_function_returns_dict() {
-    let expr = eval_file("func-dict.tan").unwrap();
+fn eval_function_returns_map() {
+    let expr = eval_file("func-map.tan").unwrap();
 
-    let Some(dict) = expr.as_dict() else {
+    let Some(map) = expr.as_map() else {
         panic!();
     };
 
-    let body = dict.get("body");
+    let body = map.get("body");
 
     assert_matches!(body, Some(Expr::String(s)) if s == "quote: a quote");
 }
@@ -664,8 +664,8 @@ fn should_not_bind_underscore() {
 }
 
 #[test]
-fn eval_should_support_dict_destructuring() {
-    let result = eval_file("dict-destruct.tan");
+fn eval_should_support_map_destructuring() {
+    let result = eval_file("map-destruct.tan");
     let value = result.unwrap();
     let value = value.as_string().unwrap();
     assert_eq!(value, "George");
