@@ -657,14 +657,6 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 ));
                             };
 
-                            let Some(var) = var.as_symbol() else {
-                                // #todo proper error!
-                                return Err(Error::invalid_arguments(
-                                    "invalid for binding, malformed variable",
-                                    var.range(),
-                                ));
-                            };
-
                             // #insight for the ListIterator
                             let value = eval(value, context)?;
 
@@ -684,7 +676,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             let mut iterator = iterator.borrow_mut();
 
                             'outer_loop: while let Some(value) = iterator.next() {
-                                context.scope.insert(var, value);
+                                insert_binding(var, value, context)?;
                                 'inner_loop: for expr in body {
                                     match eval(expr, context) {
                                         Err(Error {

@@ -1,0 +1,6 @@
+(let user {:given-name "George" :family-name "Moschovitis"})
+(let items [])
+(for [[key value] user]
+    (push items "${key}=${value}")
+)
+items

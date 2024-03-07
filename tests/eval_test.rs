@@ -670,3 +670,13 @@ fn eval_should_support_map_destructuring() {
     let value = value.as_string().unwrap();
     assert_eq!(value, "George");
 }
+
+#[test]
+fn eval_should_support_for_map() {
+    let result = eval_file("for-map.tan");
+    let value = result.unwrap();
+    let value = value.as_array().unwrap();
+    let items: Vec<&str> = value.iter().map(|x| x.as_string().unwrap()).collect();
+    assert!(items.contains(&"given-name=George"));
+    assert!(items.contains(&"family-name=Moschovitis"));
+}
