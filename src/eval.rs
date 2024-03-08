@@ -67,12 +67,8 @@ fn insert_symbol_binding(
     Ok(())
 }
 
-// #todo implement destructuring
-// #todo use this in for
 // #todo find a better name.
 fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(), Error> {
-    // #todo allow for restructuring here!
-    // #todo allow [] and {}
     // #todo consider special op/syntax for destructuring?
 
     // #todo handle potential relevant annotations.
@@ -293,7 +289,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
             // #todo handle 'PathSymbol'
 
-            // #todo try to populate "method"/"signature" annotations during
+            // #todo try to populate "method"/"signature" annotations during resolving
             // #todo this is missing now that we don't have the resolve stage.
             // #todo maybe resolve or optimize should already have placed the method in the AST?
 
