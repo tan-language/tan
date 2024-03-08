@@ -1,5 +1,7 @@
 mod common;
 
+use std::borrow::Borrow;
+
 use assert_matches::assert_matches;
 
 use tan::{
@@ -679,4 +681,14 @@ fn eval_should_support_for_map() {
     let items: Vec<&str> = value.iter().map(|x| x.as_string().unwrap()).collect();
     assert!(items.contains(&"given-name=George"));
     assert!(items.contains(&"family-name=Moschovitis"));
+}
+
+#[test]
+fn eval_should_support_literal_annotations() {
+    let result = eval_input("(let a #Amount 1)(ann a)");
+    let value = result.unwrap();
+    let value = value.as_map().unwrap();
+    let value = value.borrow();
+    assert!(value.contains_key("type"));
+    assert_eq!(value["type"].to_string(), "Amount");
 }
