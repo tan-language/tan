@@ -17,7 +17,7 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
     // #todo currently it include even non-reserved symbols, fix!!!
     matches!(
         sym,
-        "do" | "ann" // #todo consider `meta`?
+        "do"
             | "def"
             | "and"
             | "or"

@@ -5,13 +5,19 @@ use crate::{
     context::Context,
     error::Error,
     eval::{eval, util::eval_file},
-    expr::Expr,
+    expr::{annotate, expr_clone, Expr},
     util::module_util::require_module,
 };
 
+// #todo (if (= (get-type obj) Amount) ...) ; type, get-type, type-of
+// #todo implement `type?` e.g. (if (type? obj Amount) ...)
+// #todo op to set annotation.
+
+// #todo consider meta instead of ann
+// #todo consider get-ann?
 // #todo where is this used?
 // #todo extract *_impl function.
-pub fn ann(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
+pub fn ann(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     if args.len() != 1 {
         return Err(Error::invalid_arguments(
             "`ann` requires one argument",
@@ -23,12 +29,47 @@ pub fn ann(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
 
     let expr = args.first().unwrap();
 
+    let expr = eval(expr, context)?;
+
     if let Some(ann) = expr.annotations() {
         Ok(Expr::map(ann.clone()))
     } else {
         // #todo what to return here?
+        // Ok(Expr::map(HashMap::new()))
         Ok(Expr::One)
     }
+}
+
+// #todo find better name.
+// #todo support multiple annotations (pass map)
+// (ann! expr :type Amount)
+pub fn set_ann(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [target, key, value] = args else {
+        // #todo better error
+        return Err(Error::invalid_arguments("invalid arguments", None));
+    };
+
+    let Some(key) = key.as_stringable() else {
+        // #todo better error.
+        return Err(Error::invalid_arguments("invalid arguments", None));
+    };
+
+    // #todo remove the clones.
+    Ok(annotate(expr_clone(target), key, expr_clone(value)))
+}
+
+pub fn debug(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [expr, ..] = args else {
+        // #todo better error
+        return Err(Error::invalid_arguments("invalid arguments", None));
+    };
+
+    let s = match expr {
+        Expr::Annotated(expr, ann) => format!("ANN({expr:?}, {ann:?})"),
+        _ => format!("{expr:?}"),
+    };
+
+    Ok(Expr::string(s))
 }
 
 pub fn load_file(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
@@ -118,6 +159,11 @@ pub fn setup_lib_lang(context: &mut Context) {
     let module = require_module("prelude", context);
 
     // #todo separate read/read-string.
+
+    module.insert("ann", Expr::ForeignFunc(Arc::new(ann)));
+    module.insert("ann!", Expr::ForeignFunc(Arc::new(set_ann)));
+
+    module.insert("dbg!", Expr::ForeignFunc(Arc::new(debug)));
 
     module.insert("eval-string", Expr::ForeignFunc(Arc::new(eval_string)));
     module.insert(
