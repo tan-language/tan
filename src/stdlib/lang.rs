@@ -39,8 +39,9 @@ pub fn ann(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
 }
 
 // #todo find better name.
-// (put-ann expr :type Amount)
-pub fn put_ann(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+// #todo support multiple annotations (pass map)
+// (ann! expr :type Amount)
+pub fn set_ann(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [target, key, value] = args else {
         // #todo better error
         return Err(Error::invalid_arguments("invalid arguments", None));
@@ -158,7 +159,8 @@ pub fn setup_lib_lang(context: &mut Context) {
     // #todo separate read/read-string.
 
     module.insert("ann", Expr::ForeignFunc(Arc::new(ann)));
-    module.insert("put-ann", Expr::ForeignFunc(Arc::new(put_ann)));
+    module.insert("ann!", Expr::ForeignFunc(Arc::new(set_ann)));
+
     module.insert("dbg!", Expr::ForeignFunc(Arc::new(debug)));
 
     module.insert("eval-string", Expr::ForeignFunc(Arc::new(eval_string)));
