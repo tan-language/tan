@@ -9,6 +9,11 @@ use crate::{
     util::module_util::require_module,
 };
 
+// #todo (if (= (get-type obj) Amount) ...) ; type, get-type, type-of
+// #todo implement `type?` e.g. (if (type? obj Amount) ...)
+// #todo op to set annotation.
+
+// #todo consider get-ann?
 // #todo where is this used?
 // #todo extract *_impl function.
 pub fn ann(args: &[Expr], _context: &Context) -> Result<Expr, Error> {
