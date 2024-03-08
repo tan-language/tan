@@ -339,6 +339,7 @@ impl Expr {
         Expr::Annotated(Box::new(expr), HashMap::new())
     }
 
+    // #todo handle case where expr already has annotations.
     pub fn maybe_annotated(expr: Expr, annotations: Option<&HashMap<String, Expr>>) -> Self {
         if let Some(annotations) = annotations {
             // #todo do something about this clone!!

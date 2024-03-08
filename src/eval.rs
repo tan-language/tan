@@ -559,6 +559,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             let expr = tail.first().unwrap();
 
+                            let expr = eval(expr, context)?;
+
                             if let Some(ann) = expr.annotations() {
                                 Ok(Expr::map(ann.clone()))
                             } else {
