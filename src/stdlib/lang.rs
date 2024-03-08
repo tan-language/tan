@@ -13,6 +13,7 @@ use crate::{
 // #todo implement `type?` e.g. (if (type? obj Amount) ...)
 // #todo op to set annotation.
 
+// #todo consider meta instead of ann
 // #todo consider get-ann?
 // #todo where is this used?
 // #todo extract *_impl function.
@@ -34,6 +35,7 @@ pub fn ann(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
         Ok(Expr::map(ann.clone()))
     } else {
         // #todo what to return here?
+        // Ok(Expr::map(HashMap::new()))
         Ok(Expr::One)
     }
 }

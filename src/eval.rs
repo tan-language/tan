@@ -544,29 +544,6 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             Ok(value)
                         }
-                        "ann" => {
-                            // #insight implemented as special-form because it applies to Ann<Expr>.
-                            // #todo try to implement as ForeignFn
-
-                            if tail.len() != 1 {
-                                return Err(Error::invalid_arguments(
-                                    "`ann` requires one argument",
-                                    expr.range(),
-                                ));
-                            }
-
-                            // #todo support multiple arguments.
-
-                            let expr = tail.first().unwrap();
-
-                            let expr = eval(expr, context)?;
-
-                            if let Some(ann) = expr.annotations() {
-                                Ok(Expr::map(ann.clone()))
-                            } else {
-                                Ok(Expr::map(HashMap::new()))
-                            }
-                        }
                         "panic!" => eval_panic(&head, tail, context),
                         "eval" => {
                             // #todo also support eval-all/eval-many? (auto wrap with do?)
