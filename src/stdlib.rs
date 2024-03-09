@@ -19,6 +19,7 @@ pub mod rng;
 pub mod seq;
 pub mod string;
 pub mod testing;
+pub mod uuid;
 
 use crate::context::Context;
 
@@ -27,6 +28,7 @@ use self::{
     fs::setup_lib_fs, html::setup_lib_html, json::setup_lib_codec_json,
     network::http::setup_lib_http, path::setup_lib_path, prelude::setup_lib_prelude,
     process::setup_lib_process, rng::setup_lib_rand, testing::setup_lib_testing,
+    uuid::setup_lib_uuid,
 };
 
 // #todo consider extracting as a (temporary?) crate, e.g. tan-stdlib-native, tan-native-lib, tan-runtime
@@ -69,6 +71,7 @@ pub fn setup_lib(context: &mut Context) {
     setup_lib_chrono(context);
     setup_lib_testing(context);
     setup_lib_path(context);
+    setup_lib_uuid(context);
 
     setup_lib_prelude(context);
 }

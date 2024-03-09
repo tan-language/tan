@@ -19,6 +19,7 @@ comrak = { version = "0.21", default-features = false }
 reqwest = { version = "0.11", features = ["blocking"] }
 # #todo consider chrono features and making optional
 chrono = { version = "0.4" }
+uuid = { version = "1.7", features = ["v4"] }
 
 [dev-dependencies]
 assert_matches = "1.5"

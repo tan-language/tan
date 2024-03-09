@@ -58,7 +58,7 @@ pub fn set_ann(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(annotate(expr_clone(target), key, expr_clone(value)))
 }
 
-pub fn debug(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn debug_expr(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [expr, ..] = args else {
         // #todo better error
         return Err(Error::invalid_arguments("invalid arguments", None));
@@ -163,7 +163,7 @@ pub fn setup_lib_lang(context: &mut Context) {
     module.insert("ann", Expr::ForeignFunc(Arc::new(ann)));
     module.insert("ann!", Expr::ForeignFunc(Arc::new(set_ann)));
 
-    module.insert("dbg!", Expr::ForeignFunc(Arc::new(debug)));
+    module.insert("dbg!", Expr::ForeignFunc(Arc::new(debug_expr)));
 
     module.insert("eval-string", Expr::ForeignFunc(Arc::new(eval_string)));
     module.insert(
