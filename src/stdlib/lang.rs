@@ -72,6 +72,7 @@ pub fn debug_expr(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
     Ok(Expr::string(s))
 }
 
+// #todo consider naming just `load`.
 pub fn load_file(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     let [path] = args else {
         return Err(Error::invalid_arguments("requires `path` argument", None));

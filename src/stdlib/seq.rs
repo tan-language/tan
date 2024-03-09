@@ -39,6 +39,35 @@ pub fn array_push(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
     Ok(Expr::One)
 }
 
+// #todo generic Seq/extend, append on arrays, prepends on linked-lists.
+// #todo support concatenation of more than two arrays.
+// #todo find a good name
+// #todo consider the `++` operator
+pub fn array_concat_mut(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [array1, array2] = args else {
+        return Err(Error::invalid_arguments("requires two arguments", None));
+    };
+
+    let Some(mut array1) = array1.as_array_mut() else {
+        return Err(Error::invalid_arguments(
+            "`array1` argument should be a Array",
+            array1.range(),
+        ));
+    };
+
+    let Some(mut array2) = array2.as_array_mut() else {
+        return Err(Error::invalid_arguments(
+            "`array2` argument should be a Array",
+            array2.range(),
+        ));
+    };
+
+    array1.append(&mut array2);
+
+    // #todo what to return?
+    Ok(Expr::One)
+}
+
 // #todo can we find a more specific name?
 // #todo hm, it joins as strings, not very general, should move to string?
 /// (join names "\n")
@@ -243,6 +272,9 @@ pub fn setup_lib_seq(context: &mut Context) {
 
     // #todo add type qualifiers!
     module.insert("push", Expr::ForeignFunc(Arc::new(array_push)));
+    // #todo also introduce `++`, `++=`, versions
+    module.insert("concat!", Expr::ForeignFunc(Arc::new(array_concat_mut)));
+
     module.insert("join", Expr::ForeignFunc(Arc::new(array_join)));
     module.insert("skip", Expr::ForeignFunc(Arc::new(array_skip)));
     module.insert("count", Expr::ForeignFunc(Arc::new(array_count)));
@@ -280,6 +312,21 @@ mod tests {
             (push arr 3)
             (push arr 4)
             arr
+        "#;
+        let mut context = Context::new();
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "[1 2 3 4]";
+        assert_eq!(value, expected);
+    }
+
+    #[test]
+    fn array_concat_mut_usage() {
+        let input = r#"
+            (let a [1 2])
+            (let b [3 4])
+            (concat! a b)
+            a
         "#;
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
