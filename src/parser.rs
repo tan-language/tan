@@ -13,7 +13,7 @@ use crate::{
     },
     parser::util::recognize_string_template,
     range::{Position, Range},
-    util::{put_back_iterator::PutBackIterator, Break},
+    util::{is_type, put_back_iterator::PutBackIterator, Break},
 };
 
 use self::util::{is_key_symbol, recognize_range};
@@ -119,6 +119,12 @@ impl<'a> Parser<'a> {
             let ann_expr = ann_expr.unpack();
 
             match &ann_expr {
+                Expr::Type(..) => {
+                    // #todo introduce another shortcut for types, e.b. #:String, #:(Array Int), :=String,
+                    // Type shorthand: If the annotation starts with uppercase
+                    // letter, it's considered type annotations.
+                    expr = annotate(expr, "type", ann_expr.clone());
+                }
                 Expr::Symbol(sym) => {
                     if sym.is_empty() {
                         let mut error = Error::new(ErrorVariant::MalformedAnnotation);
@@ -134,30 +140,31 @@ impl<'a> Parser<'a> {
                         return expr;
                     }
 
-                    // #todo introduce another shortcut for types, e.b. #:String, #:(Array Int), :=String,
-                    if sym.chars().next().unwrap().is_uppercase() {
-                        // Type shorthand: If the annotation starts with uppercase
-                        // letter, it's considered type annotations.
-                        // #insight convert the symbol to a string.
-                        let Some(typ) = ann_expr.as_stringable() else {
-                            let mut error = Error::new(ErrorVariant::MalformedAnnotation);
-                            error.push_note(
-                                &format!("invalid type annotation`{}`", annotation_token.lexeme()),
-                                Some(annotation_token.range()),
-                            );
-                            self.errors.push(error);
+                    // // #todo introduce another shortcut for types, e.b. #:String, #:(Array Int), :=String,
+                    // if sym.chars().next().unwrap().is_uppercase() {
+                    //     // Type shorthand: If the annotation starts with uppercase
+                    //     // letter, it's considered type annotations.
+                    //     // #insight convert the symbol to a string.
+                    //     let Some(typ) = ann_expr.as_stringable() else {
+                    //         let mut error = Error::new(ErrorVariant::MalformedAnnotation);
+                    //         error.push_note(
+                    //             &format!("invalid type annotation`{}`", annotation_token.lexeme()),
+                    //             Some(annotation_token.range()),
+                    //         );
+                    //         self.errors.push(error);
 
-                            // ignore buffered annotations, continue to find more errors.
-                            return expr;
-                        };
-                        expr = annotate(expr, "type", Expr::string(typ));
-                    } else {
-                        // Bool=true shorthand: If the annotation starts with lowercase
-                        // letter, it's considered a boolean flag.
-                        expr = annotate(expr, sym.clone(), Expr::Bool(true));
-                    }
+                    //         // ignore buffered annotations, continue to find more errors.
+                    //         return expr;
+                    //     };
+                    //     expr = annotate(expr, "type", Expr::string(typ));
+                    // } else {
+                    // Bool=true shorthand: If the annotation starts with lowercase
+                    // letter, it's considered a boolean flag.
+                    expr = annotate(expr, sym.clone(), Expr::Bool(true));
+                    // }
                 }
                 Expr::List(list) => {
+                    // #todo also handle parameterized types.
                     // #todo support more than symbols, e.g. KeySymbols or Strings.
                     if let Some(Expr::Symbol(sym)) = list.first().map(|x| x.unpack()) {
                         expr = annotate(expr, sym.clone(), ann_expr.clone());
@@ -250,6 +257,8 @@ impl<'a> Parser<'a> {
                     let sym = str::replace(lexeme, ":", "");
                     // #todo consider Expr::Key instead of Expr::KeySymbol
                     Some(Expr::KeySymbol(sym))
+                } else if is_type(lexeme) {
+                    Some(Expr::Type(lexeme.into()))
                 } else if lexeme == "true" {
                     // #todo consider using (True) for true 'literal'.
                     // #todo e.g. (let flag (True))

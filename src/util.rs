@@ -63,7 +63,7 @@ impl std::fmt::Display for Break {
     }
 }
 
-// #todo move to utils file?
+// #todo consider is_type_symbol, is_type_literal.
 // A type starts with an uppercase character.
 pub fn is_type(input: &str) -> bool {
     let mut chars = input.chars();

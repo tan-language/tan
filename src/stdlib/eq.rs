@@ -94,7 +94,7 @@ pub fn eq_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(Expr::Bool(a == b))
 }
 
-// #insight handles both (quoted) Symbol and KeySymbol, they are the same thing anyway.
+// #insight handles both (quoted) Symbol and KeySymbol, they are the same thing anyway. Also handles Type.
 pub fn eq_symbol(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
     // #todo support overloading,
@@ -312,6 +312,7 @@ pub fn setup_lib_eq(context: &mut Context) {
         "=$$KeySymbol$$KeySymbol",
         Expr::ForeignFunc(Arc::new(eq_symbol)),
     );
+    module.insert("=$$Type$$Type", Expr::ForeignFunc(Arc::new(eq_symbol)));
 
     module.insert("!=", Expr::ForeignFunc(Arc::new(not_eq)));
     module.insert("!=$$Int$$Int", Expr::ForeignFunc(Arc::new(not_eq)));

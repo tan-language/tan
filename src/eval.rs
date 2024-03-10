@@ -389,12 +389,12 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             // #todo this is an ULTRA-HACK! SUPER NASTY/UGLY CODE, refactor!
 
             // Evaluate the head, try to find dynamic signature
-            let head = if let Some(name) = head.as_symbol() {
+            let head = if let Some(name) = head.as_symbolic() {
                 if !is_reserved_symbol(name) {
                     // #todo super nasty hack!!!!
                     let args = eval_args(tail, context)?;
 
-                    // #todo we don't support dynamic scoping in this position, reconsider
+                    // #odo we don't support dynamic scoping in this position, reconsider
                     if let Some(value) = context.scope.get(name) {
                         if let Expr::Func(params, ..) = value.unpack() {
                             // #todo extract utility function to invoke a function.
@@ -429,7 +429,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         } else if let Expr::ForeignFunc(_) = value.unpack() {
                             let signature = compute_dyn_signature(&args, context);
                             let head = annotate(
-                                head.clone(),
+                                // #insight we don't use .clone() here, so that Expr::Type is converted to Expr::Symbol()
+                                Expr::symbol(name),
                                 "method",
                                 Expr::String(format!("{name}$${signature}")),
                             );
@@ -515,6 +516,113 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         Ok(Expr::One)
                     }
                 }
+                Expr::Type(s) => match s.as_str() {
+                    "Char" => {
+                        // #todo report more than 1 arguments.
+
+                        let Some(arg) = tail.first() else {
+                            return Err(Error::invalid_arguments(
+                                "malformed Char constructor, missing argument",
+                                expr.range(),
+                            ));
+                        };
+
+                        let Some(c) = arg.as_string() else {
+                            return Err(Error::invalid_arguments(
+                                "malformed Char constructor, expected String argument",
+                                expr.range(),
+                            ));
+                        };
+
+                        if c.len() != 1 {
+                            // #todo better error message.
+                            return Err(Error::invalid_arguments(
+                                "the Char constructor requires a single-char string",
+                                expr.range(),
+                            ));
+                        }
+
+                        let c = c.chars().next().unwrap();
+
+                        Ok(Expr::Char(c))
+                    }
+                    "List" => {
+                        let args = eval_args(tail, context)?;
+                        Ok(Expr::List(args))
+                    }
+                    "Func" => {
+                        let Some(params) = tail.first() else {
+                            return Err(Error::invalid_arguments(
+                                "malformed func definition, missing function parameters",
+                                expr.range(),
+                            ));
+                        };
+
+                        let body = &tail[1..];
+
+                        // #todo move handling of Expr::One to as_list?
+
+                        // #todo should check both for list and array (i.e. as_iterable)
+                        let params = if let Some(params) = params.as_array() {
+                            params.clone()
+                        } else if params.is_one() {
+                            // #insight is_one as in is_unit
+                            Vec::new()
+                        } else {
+                            return Err(Error::invalid_arguments(
+                                "malformed func parameters definition",
+                                params.range(),
+                            ));
+                        };
+
+                        // #insight captures the static (lexical scope)
+
+                        // #todo optimize!
+                        let file_path = context
+                            .get_special(CURRENT_FILE_PATH)
+                            .unwrap()
+                            .as_string()
+                            .unwrap()
+                            .to_string();
+
+                        // #todo optimize
+                        Ok(Expr::Func(
+                            params,
+                            body.into(),
+                            context.scope.clone(),
+                            file_path,
+                        ))
+                    }
+                    // #todo macros should be handled at a separate, comptime, macroexpand pass.
+                    // #todo actually two passes, macro_def, macro_expand
+                    // #todo probably macro handling should be removed from eval, there are no runtime/dynamic macro definitions!!
+                    "Macro" => {
+                        let Some(params) = tail.first() else {
+                            // #todo seems the range is not reported correctly here!!!
+                            return Err(Error::invalid_arguments(
+                                "malformed macro definition, missing function parameters",
+                                expr.range(),
+                            ));
+                        };
+
+                        let body = &tail[1..];
+
+                        let Some(params) = params.as_list() else {
+                            return Err(Error::invalid_arguments(
+                                "malformed macro parameters definition",
+                                params.range(),
+                            ));
+                        };
+
+                        // #todo optimize!
+                        Ok(Expr::Macro(params.clone(), body.into()))
+                    }
+                    // #todo lookup constructor function
+                    _ => Err(Error::not_invocable(
+                        &format!("not invocable constructor `{head}`"),
+                        head.range(),
+                    )),
+                },
                 // #todo add handling of 'high-level', compound expressions here.
                 // #todo Expr::If
                 // #todo Expr::Let
@@ -1351,106 +1459,6 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             }
 
                             Ok(Expr::Bool(false))
-                        }
-                        "Char" => {
-                            // #todo report more than 1 arguments.
-
-                            let Some(arg) = tail.first() else {
-                                return Err(Error::invalid_arguments(
-                                    "malformed Char constructor, missing argument",
-                                    expr.range(),
-                                ));
-                            };
-
-                            let Some(c) = arg.as_string() else {
-                                return Err(Error::invalid_arguments(
-                                    "malformed Char constructor, expected String argument",
-                                    expr.range(),
-                                ));
-                            };
-
-                            if c.len() != 1 {
-                                // #todo better error message.
-                                return Err(Error::invalid_arguments(
-                                    "the Char constructor requires a single-char string",
-                                    expr.range(),
-                                ));
-                            }
-
-                            let c = c.chars().next().unwrap();
-
-                            Ok(Expr::Char(c))
-                        }
-                        "List" => {
-                            let args = eval_args(tail, context)?;
-                            Ok(Expr::List(args))
-                        }
-                        "Func" => {
-                            let Some(params) = tail.first() else {
-                                return Err(Error::invalid_arguments(
-                                    "malformed func definition, missing function parameters",
-                                    expr.range(),
-                                ));
-                            };
-
-                            let body = &tail[1..];
-
-                            // #todo move handling of Expr::One to as_list?
-
-                            // #todo should check both for list and array (i.e. as_iterable)
-                            let params = if let Some(params) = params.as_array() {
-                                params.clone()
-                            } else if params.is_one() {
-                                // #insight is_one as in is_unit
-                                Vec::new()
-                            } else {
-                                return Err(Error::invalid_arguments(
-                                    "malformed func parameters definition",
-                                    params.range(),
-                                ));
-                            };
-
-                            // #insight captures the static (lexical scope)
-
-                            // #todo optimize!
-                            let file_path = context
-                                .get_special(CURRENT_FILE_PATH)
-                                .unwrap()
-                                .as_string()
-                                .unwrap()
-                                .to_string();
-
-                            // #todo optimize
-                            Ok(Expr::Func(
-                                params,
-                                body.into(),
-                                context.scope.clone(),
-                                file_path,
-                            ))
-                        }
-                        // #todo macros should be handled at a separate, comptime, macroexpand pass.
-                        // #todo actually two passes, macro_def, macro_expand
-                        // #todo probably macro handling should be removed from eval, there are no runtime/dynamic macro definitions!!
-                        "Macro" => {
-                            let Some(params) = tail.first() else {
-                                // #todo seems the range is not reported correctly here!!!
-                                return Err(Error::invalid_arguments(
-                                    "malformed macro definition, missing function parameters",
-                                    expr.range(),
-                                ));
-                            };
-
-                            let body = &tail[1..];
-
-                            let Some(params) = params.as_list() else {
-                                return Err(Error::invalid_arguments(
-                                    "malformed macro parameters definition",
-                                    params.range(),
-                                ));
-                            };
-
-                            // #todo optimize!
-                            Ok(Expr::Macro(params.clone(), body.into()))
                         }
                         _ => Err(Error::not_invocable(
                             &format!("symbol `{head}`"),
