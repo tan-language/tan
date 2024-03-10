@@ -63,6 +63,19 @@ impl std::fmt::Display for Break {
     }
 }
 
+// #todo move to utils file?
+// A type starts with an uppercase character.
+pub fn is_type(input: &str) -> bool {
+    let mut chars = input.chars();
+    if let Some(c) = chars.next() {
+        // #todo is_ascii_uppercase is used for performance, but we should consider is_uppercase in the future.
+        // c.is_uppercase()
+        c.is_ascii_uppercase()
+    } else {
+        false
+    }
+}
+
 // #todo maybe use a custom Expr::DSSymbol expression to move the detection to read/static time?
 pub fn is_dynamically_scoped(name: &str) -> bool {
     // #todo don't allow `**`
@@ -72,7 +85,14 @@ pub fn is_dynamically_scoped(name: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::util::is_dynamically_scoped;
+    use crate::util::{is_dynamically_scoped, is_type};
+
+    #[test]
+    fn is_type_should_detect_type_symbols() {
+        assert!(is_type("User"));
+        assert!(is_type("Ledger-Account"));
+        assert!(!is_type("user"));
+    }
 
     #[test]
     fn is_dynamically_scoped_should_detect_special_names() {

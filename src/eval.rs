@@ -345,6 +345,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             // named (keyed) function parameter, enum variants, etc.
             Ok(expr.clone())
         }
+        // #todo remove this clone.
+        Expr::Type(..) => Ok(expr.clone()),
         // #todo if is unquotable!!
         Expr::If(predicate, true_clause, false_clause) => {
             let predicate = eval(predicate, context)?;
