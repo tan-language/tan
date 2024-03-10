@@ -422,7 +422,9 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             let signature = compute_dyn_signature(&args, context);
                             let head = annotate(
-                                head.clone(),
+                                // #todo #hack think about this!!!!!
+                                // #insight we don't use .clone() here, so that Expr::Type is converted to Expr::Symbol()
+                                Expr::symbol(name),
                                 "method",
                                 Expr::String(format!("{name}$${signature}")),
                             );
