@@ -693,3 +693,9 @@ fn eval_should_support_literal_annotations() {
     assert!(value.contains_key("type"));
     assert_eq!(format_value(&value["type"]), "Amount");
 }
+
+#[test]
+fn eval_should_support_type_constructor_definitions() {
+    let result = eval_file("type-constructor.tan");
+    assert!(result.is_ok());
+}

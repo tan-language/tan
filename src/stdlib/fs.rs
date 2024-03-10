@@ -51,6 +51,7 @@ pub fn read_file_to_string(args: &[Expr], _context: &mut Context) -> Result<Expr
 }
 
 // #todo decide on the parameters order.
+// (fs/write-string-to-file "path/to/file.text" "Hello world")
 pub fn write_string_to_file(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [path, content] = args else {
         return Err(Error::invalid_arguments(

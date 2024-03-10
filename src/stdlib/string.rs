@@ -7,6 +7,8 @@ use crate::{
     util::module_util::require_module,
 };
 
+// #todo string push/append/concat, make similar to array: push one char, append/concat another string, ++ handles both.
+
 // #todo rearrange the functions in some logical order, can be alphabetical.
 
 // #todo (compare str1 str2) ; => Ordering

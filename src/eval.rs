@@ -74,6 +74,11 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
     // #todo handle potential relevant annotations.
 
     match name.unpack() {
+        // #todo Type/Symbol duplication needs to be resolved, separate Types from Symbols.
+        Expr::Type(sym) => {
+            // #todo report error if sym == _ or ...
+            insert_symbol_binding(sym, &name.range(), value, context)?;
+        }
         Expr::Symbol(sym) => {
             // #todo report error if sym == _ or ...
             insert_symbol_binding(sym, &name.range(), value, context)?;
