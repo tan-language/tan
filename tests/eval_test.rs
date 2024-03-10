@@ -690,5 +690,5 @@ fn eval_should_support_literal_annotations() {
     let value = value.as_map().unwrap();
     let value = value.borrow();
     assert!(value.contains_key("type"));
-    assert_eq!(value["type"].to_string(), "Amount");
+    assert_eq!(format_value(&value["type"]), "Amount");
 }

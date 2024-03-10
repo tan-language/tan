@@ -293,7 +293,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             // #todo this is missing now that we don't have the resolve stage.
             // #todo maybe resolve or optimize should already have placed the method in the AST?
 
-            let value = if let Some(Expr::Symbol(method)) = expr.annotation("method") {
+            let value = if let Some(Expr::String(method)) = expr.annotation("method") {
                 // If the symbol is annotated with a `method`, it's in 'operator' position.
                 // `method` is just one of the variants of a multi-method-function.
                 // #hint: currently dynamically_scope is not supported in this position.
@@ -417,7 +417,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             let head = annotate(
                                 head.clone(),
                                 "method",
-                                Expr::Symbol(format!("{name}$${signature}")),
+                                Expr::String(format!("{name}$${signature}")),
                             );
                             let head = eval(&head, context)?;
 
@@ -429,7 +429,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             let head = annotate(
                                 head.clone(),
                                 "method",
-                                Expr::Symbol(format!("{name}$${signature}")),
+                                Expr::String(format!("{name}$${signature}")),
                             );
                             eval(&head, context)?
                         } else {

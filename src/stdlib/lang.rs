@@ -72,6 +72,16 @@ pub fn debug_expr(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
     Ok(Expr::string(s))
 }
 
+// #todo
+pub fn type_of(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+    let [expr] = args else {
+        // #todo better error
+        return Err(Error::invalid_arguments("one argument expected", None));
+    };
+
+    Ok(expr.dyn_type(context))
+}
+
 // #todo consider naming just `load`.
 pub fn load_file(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     let [path] = args else {
@@ -164,7 +174,11 @@ pub fn setup_lib_lang(context: &mut Context) {
     module.insert("ann", Expr::ForeignFunc(Arc::new(ann)));
     module.insert("ann!", Expr::ForeignFunc(Arc::new(set_ann)));
 
+    // #todo the `!` is confusing here.
     module.insert("dbg!", Expr::ForeignFunc(Arc::new(debug_expr)));
+
+    // #todo find a better name?
+    module.insert("type-of", Expr::ForeignFunc(Arc::new(type_of)));
 
     module.insert("eval-string", Expr::ForeignFunc(Arc::new(eval_string)));
     module.insert(

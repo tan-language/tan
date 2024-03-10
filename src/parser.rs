@@ -134,10 +134,23 @@ impl<'a> Parser<'a> {
                         return expr;
                     }
 
+                    // #todo introduce another shortcut for types, e.b. #:String, #:(Array Int), :=String,
                     if sym.chars().next().unwrap().is_uppercase() {
                         // Type shorthand: If the annotation starts with uppercase
                         // letter, it's considered type annotations.
-                        expr = annotate(expr, "type", ann_expr.clone());
+                        // #insight convert the symbol to a string.
+                        let Some(typ) = ann_expr.as_stringable() else {
+                            let mut error = Error::new(ErrorVariant::MalformedAnnotation);
+                            error.push_note(
+                                &format!("invalid type annotation`{}`", annotation_token.lexeme()),
+                                Some(annotation_token.range()),
+                            );
+                            self.errors.push(error);
+
+                            // ignore buffered annotations, continue to find more errors.
+                            return expr;
+                        };
+                        expr = annotate(expr, "type", Expr::string(typ));
                     } else {
                         // Bool=true shorthand: If the annotation starts with lowercase
                         // letter, it's considered a boolean flag.

@@ -554,6 +554,9 @@ impl Expr {
     // #todo we need a version that returns just a string.
 
     // #todo how about return &Expr to avoid clones?
+    // #todo alternatively consider key-symbol instead of String
+    // #insight use string for the type to support parameterized types, e.g (Map String Any)
+    // Returns the dynamic (run-time) type of the expression.
     pub fn dyn_type(&self, context: &Context) -> Expr {
         // #todo make constant out of "type".
         if let Some(typ) = self.annotation("type") {
@@ -561,26 +564,29 @@ impl Expr {
         }
 
         match self.unpack() {
-            Expr::Int(_) => Expr::symbol("Int"),
-            Expr::Float(_) => Expr::symbol("Float"),
-            Expr::Dec(_) => Expr::symbol("Dec"),
-            Expr::String(_) => Expr::symbol("String"),
-            Expr::Array(_) => Expr::symbol("Array"), // #todo return parameterized type
-            Expr::Map(_) => Expr::symbol("Map"),     // #todo return parameterized type
+            Expr::Int(_) => Expr::string("Int"),
+            Expr::Float(_) => Expr::string("Float"),
+            Expr::Dec(_) => Expr::string("Dec"),
+            Expr::String(_) => Expr::string("String"),
+            Expr::Array(_) => Expr::string("Array"), // #todo return parameterized type
+            Expr::Map(_) => Expr::string("Map"),     // #todo return parameterized type
             // #todo what about quoted Symbol?
             Expr::Symbol(name) => {
                 if let Some(value) = context.scope.get(name) {
                     value.dyn_type(context)
                 } else {
-                    Expr::symbol("Unknown")
+                    Expr::string("Unknown")
                 }
             }
-            Expr::KeySymbol(..) => Expr::symbol("KeySymbol"),
+            Expr::KeySymbol(..) => Expr::string("KeySymbol"),
             // #todo keep the Range type parameter as a ...parameter
-            Expr::IntRange(..) => Expr::symbol("(Range Int)"),
-            Expr::FloatRange(..) => Expr::symbol("(Range Float)"),
+            Expr::IntRange(..) => Expr::string("(Range Int)"),
+            Expr::FloatRange(..) => Expr::string("(Range Float)"),
             // #todo add more here!
-            _ => Expr::symbol("Unknown"),
+            _ => {
+                // eprintln!("---> {self:?}");
+                Expr::string("Unknown")
+            }
         }
     }
 
@@ -609,7 +615,8 @@ pub fn annotate(mut expr: Expr, name: impl Into<String>, ann_expr: Expr) -> Expr
 
 #[must_use]
 pub fn annotate_type(expr: Expr, type_name: impl Into<String>) -> Expr {
-    annotate(expr, "type", Expr::Symbol(type_name.into()))
+    // #todo String is not good, we need a symbol/key-symbol that supports spaces.
+    annotate(expr, "type", Expr::String(type_name.into()))
 }
 
 #[must_use]
