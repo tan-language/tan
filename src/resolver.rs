@@ -31,7 +31,7 @@ pub fn compute_dyn_signature(args: &[Expr], context: &Context) -> String {
 
     for arg in args {
         let typ = arg.dyn_type(context);
-        let Expr::String(typ) = typ else {
+        let Expr::Type(typ) = typ else {
             panic!("invalid dynamic type: {typ:?}");
         };
         signature.push(typ)

@@ -103,6 +103,9 @@ pub enum Expr {
     KeySymbol(String), // #todo consider renaming to Expr::Key
     Char(char),
     String(String),
+    // #todo currently a special String for types.
+    // #todo consider Typ
+    Type(String),
     // #todo better name for 'generic' List, how about `Cons` or `ConsList` or `Cell`?
     // #todo add 'quoted' List -> Array!
     // #todo do we really need Vec here? Maybe Arc<[Expr]> is enough?
@@ -155,6 +158,7 @@ impl PartialEq for Expr {
             (Self::Dec(l0), Self::Dec(r0)) => l0 == r0,
             (Self::Symbol(l0), Self::Symbol(r0)) => l0 == r0,
             (Self::KeySymbol(l0), Self::KeySymbol(r0)) => l0 == r0,
+            (Self::Type(l0), Self::Type(r0)) => l0 == r0,
             (Self::Char(l0), Self::Char(r0)) => l0 == r0,
             (Self::String(l0), Self::String(r0)) => l0 == r0,
             (Self::List(l0), Self::List(r0)) => l0 == r0,
@@ -190,6 +194,7 @@ impl fmt::Debug for Expr {
             Expr::Bool(b) => format!("Bool({b})"),
             Expr::Symbol(s) => format!("Symbol({s})"),
             Expr::KeySymbol(s) => format!("KeySymbol({s})"),
+            Expr::Type(s) => format!("Type({s})"),
             Expr::Char(c) => format!("Char({c})"),
             Expr::String(s) => format!("String(\"{s}\")"),
             Expr::Int(num) => format!("Int({num})"),
@@ -244,6 +249,7 @@ impl fmt::Display for Expr {
                 Expr::Dec(n) => format!("(Dec {n})"), // #todo 'literal', e.f. 1.23d or #Dec 1.23
                 Expr::Symbol(s) => s.clone(),
                 Expr::KeySymbol(s) => format!(":{s}"),
+                Expr::Type(s) => s.clone(),
                 Expr::Char(c) => format!(r#"(Char "{c}")"#), // #todo no char literal?
                 Expr::String(s) => format!("\"{s}\""),
                 Expr::Do => "do".to_owned(),
@@ -321,6 +327,10 @@ impl Expr {
 
     pub fn string(s: impl Into<String>) -> Self {
         Expr::String(s.into())
+    }
+
+    pub fn typ(s: impl Into<String>) -> Self {
+        Expr::Type(s.into())
     }
 
     pub fn array(a: impl Into<Vec<Expr>>) -> Self {
@@ -443,6 +453,7 @@ impl Expr {
             Expr::Symbol(s) => Some(s),
             Expr::KeySymbol(s) => Some(s),
             Expr::String(s) => Some(s),
+            Expr::Type(s) => Some(s),
             _ => None,
         }
     }
@@ -470,6 +481,7 @@ impl Expr {
         match expr {
             Expr::Symbol(s) => Some(s),
             Expr::KeySymbol(s) => Some(s),
+            Expr::Type(s) => Some(s),
             _ => None,
         }
     }
@@ -564,28 +576,29 @@ impl Expr {
         }
 
         match self.unpack() {
-            Expr::Int(_) => Expr::string("Int"),
-            Expr::Float(_) => Expr::string("Float"),
-            Expr::Dec(_) => Expr::string("Dec"),
-            Expr::String(_) => Expr::string("String"),
-            Expr::Array(_) => Expr::string("Array"), // #todo return parameterized type
-            Expr::Map(_) => Expr::string("Map"),     // #todo return parameterized type
+            Expr::Int(_) => Expr::typ("Int"),
+            Expr::Float(_) => Expr::typ("Float"),
+            Expr::Dec(_) => Expr::typ("Dec"),
+            Expr::String(_) => Expr::typ("String"),
+            Expr::Type(_) => Expr::typ("Type"),
+            Expr::Array(_) => Expr::typ("Array"), // #todo return parameterized type
+            Expr::Map(_) => Expr::typ("Map"),     // #todo return parameterized type
             // #todo what about quoted Symbol?
             Expr::Symbol(name) => {
                 if let Some(value) = context.scope.get(name) {
                     value.dyn_type(context)
                 } else {
-                    Expr::string("Unknown")
+                    Expr::typ("Unknown")
                 }
             }
-            Expr::KeySymbol(..) => Expr::string("KeySymbol"),
+            Expr::KeySymbol(..) => Expr::typ("KeySymbol"),
             // #todo keep the Range type parameter as a ...parameter
-            Expr::IntRange(..) => Expr::string("(Range Int)"),
-            Expr::FloatRange(..) => Expr::string("(Range Float)"),
+            Expr::IntRange(..) => Expr::typ("(Range Int)"),
+            Expr::FloatRange(..) => Expr::typ("(Range Float)"),
             // #todo add more here!
             _ => {
                 // eprintln!("---> {self:?}");
-                Expr::string("Unknown")
+                Expr::typ("Unknown")
             }
         }
     }
@@ -616,7 +629,7 @@ pub fn annotate(mut expr: Expr, name: impl Into<String>, ann_expr: Expr) -> Expr
 #[must_use]
 pub fn annotate_type(expr: Expr, type_name: impl Into<String>) -> Expr {
     // #todo String is not good, we need a symbol/key-symbol that supports spaces.
-    annotate(expr, "type", Expr::String(type_name.into()))
+    annotate(expr, "type", Expr::Type(type_name.into()))
 }
 
 #[must_use]
