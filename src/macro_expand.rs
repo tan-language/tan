@@ -83,6 +83,44 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
 
                     Ok(Some(value))
                 }
+                Expr::Type(sym) => {
+                    if sym == "Macro" {
+                        // #todo this is duplicated in eval, think about this!!! probably should remove from eval.
+
+                        let Some(params) = tail.first() else {
+                            // #todo seems the range is not reported correctly here!!!
+                            return Err(Error::invalid_arguments(
+                                "malformed macro definition, missing function parameters",
+                                expr.range(),
+                            ));
+                        };
+
+                        let body = &tail[1..];
+
+                        let Expr::List(params) = params.unpack() else {
+                            return Err(Error::invalid_arguments(
+                                "malformed macro parameters definition",
+                                params.range(),
+                            ));
+                        };
+
+                        // #todo optimize!
+                        Ok(Some(Expr::Macro(params.clone(), body.into())))
+                    } else {
+                        // Other kind of list with symbol head, macro-expand tail.
+
+                        let mut terms = Vec::new();
+                        terms.push(op.clone());
+                        for term in tail {
+                            let term = macro_expand(term.clone(), context)?;
+                            if let Some(term) = term {
+                                terms.push(term);
+                            }
+                        }
+
+                        Ok(Some(Expr::List(terms)))
+                    }
+                }
                 Expr::Symbol(sym) => {
                     // #todo oof the checks here happen also in resolver and eval, fix!
                     // #todo actually we should use `def` for this purpose, instead of `let`.
@@ -164,28 +202,6 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                             Expr::Symbol("quot".to_owned()),
                             value.unpack().clone(),
                         ])))
-                    } else if sym == "Macro" {
-                        // #todo this is duplicated in eval, think about this!!! probably should remove from eval.
-
-                        let Some(params) = tail.first() else {
-                            // #todo seems the range is not reported correctly here!!!
-                            return Err(Error::invalid_arguments(
-                                "malformed macro definition, missing function parameters",
-                                expr.range(),
-                            ));
-                        };
-
-                        let body = &tail[1..];
-
-                        let Expr::List(params) = params.unpack() else {
-                            return Err(Error::invalid_arguments(
-                                "malformed macro parameters definition",
-                                params.range(),
-                            ));
-                        };
-
-                        // #todo optimize!
-                        Ok(Some(Expr::Macro(params.clone(), body.into())))
                     } else {
                         // Other kind of list with symbol head, macro-expand tail.
 

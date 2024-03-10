@@ -429,6 +429,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         } else if let Expr::ForeignFunc(_) = value.unpack() {
                             let signature = compute_dyn_signature(&args, context);
                             let head = annotate(
+                                // #todo #hack think about this!!!!!
                                 // #insight we don't use .clone() here, so that Expr::Type is converted to Expr::Symbol()
                                 Expr::symbol(name),
                                 "method",
@@ -596,27 +597,28 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     // #todo macros should be handled at a separate, comptime, macroexpand pass.
                     // #todo actually two passes, macro_def, macro_expand
                     // #todo probably macro handling should be removed from eval, there are no runtime/dynamic macro definitions!!
-                    "Macro" => {
-                        let Some(params) = tail.first() else {
-                            // #todo seems the range is not reported correctly here!!!
-                            return Err(Error::invalid_arguments(
-                                "malformed macro definition, missing function parameters",
-                                expr.range(),
-                            ));
-                        };
+                    // #todo this is also in macro-expand!
+                    // "Macro" => {
+                    //     let Some(params) = tail.first() else {
+                    //         // #todo seems the range is not reported correctly here!!!
+                    //         return Err(Error::invalid_arguments(
+                    //             "malformed macro definition, missing function parameters",
+                    //             expr.range(),
+                    //         ));
+                    //     };
 
-                        let body = &tail[1..];
+                    //     let body = &tail[1..];
 
-                        let Some(params) = params.as_list() else {
-                            return Err(Error::invalid_arguments(
-                                "malformed macro parameters definition",
-                                params.range(),
-                            ));
-                        };
+                    //     let Some(params) = params.as_list() else {
+                    //         return Err(Error::invalid_arguments(
+                    //             "malformed macro parameters definition",
+                    //             params.range(),
+                    //         ));
+                    //     };
 
-                        // #todo optimize!
-                        Ok(Expr::Macro(params.clone(), body.into()))
-                    }
+                    //     // #todo optimize!
+                    //     Ok(Expr::Macro(params.clone(), body.into()))
+                    // }
                     // #todo lookup constructor function
                     _ => Err(Error::not_invocable(
                         &format!("not invocable constructor `{head}`"),
