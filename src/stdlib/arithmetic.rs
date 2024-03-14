@@ -335,6 +335,12 @@ pub fn setup_lib_arithmetic(context: &mut Context) {
         annotate_type(Expr::ForeignFunc(Arc::new(mul_float)), "Float"),
     );
     module.insert(
+        "*$$Float$$Float$$Float",
+        // #todo add the proper type: (Func Float Float Float)
+        // #todo even better: (Func (Many Float) Float)
+        annotate_type(Expr::ForeignFunc(Arc::new(mul_float)), "Float"),
+    );
+    module.insert(
         "/",
         annotate_type(Expr::ForeignFunc(Arc::new(div_float)), "Float"),
     );
