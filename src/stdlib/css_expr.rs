@@ -78,14 +78,25 @@ fn render_css_expr(expr: &Expr) -> Result<Expr, Error> {
                 )) // #todo
             }
         }
+        // #todo write a unit test for this.
+        Expr::Array(rules) => {
+            let mut body: Vec<String> = Vec::new();
+            for expr in rules.borrow().iter() {
+                let value = render_css_expr(expr)?;
+                body.push(format_value(value));
+            }
+            // #todo consider \n\n as separator.
+            Ok(Expr::string(body.join("\n")))
+        }
         Expr::Map(..) => {
+            // #todo remove duplication with List above.
             // #todo what is the coorect type for this?
             // let items: &HashMap<String, Expr> = items.borrow();
             // #todo #hack temp solution.
             let items = expr.as_map().unwrap();
             let mut body: Vec<String> = Vec::new();
             for (key, value) in items.iter() {
-                body.push(format!("{key}: {value}"));
+                body.push(format!("{key}: {}", format_value(value)));
             }
             Ok(Expr::string(body.join("; ")))
         }
@@ -239,7 +250,7 @@ mod tests {
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
         let value = expr.as_string().unwrap();
-        let expected = r#"a { font-size: "12px" }"#;
+        let expected = r#"a { font-size: 12px }"#;
         assert_eq!(value, expected);
     }
 }
