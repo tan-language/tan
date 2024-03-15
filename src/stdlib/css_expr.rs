@@ -78,6 +78,15 @@ fn render_css_expr(expr: &Expr) -> Result<Expr, Error> {
                 )) // #todo
             }
         }
+        Expr::Map(..) => {
+            let items = expr.as_map().unwrap();
+            // let items: &HashMap<String, Expr> = items.borrow();
+            let mut body: Vec<String> = Vec::new();
+            for (key, value) in items.iter() {
+                body.push(format!("{key}: {value}"));
+            }
+            Ok(Expr::string(body.join("; ")))
+        }
         _ => Ok(Expr::string(format_value(expr))),
     }
 }
@@ -202,6 +211,33 @@ mod tests {
         let expr = eval_string(input, &mut context).unwrap();
         let value = expr.as_string().unwrap();
         let expected = r#"a { text-decoration: none; :hover { text-decoration: underline } }"#;
+        assert_eq!(value, expected);
+    }
+
+    // #todo give a good name to this test.
+    #[test]
+    fn to_expr_to_css_expands_maps() {
+        let input = r#"
+            (use "/dialect/css-expr")
+
+            (let rules (Func []
+                {
+                    :font-size "12px"
+                }
+            ))
+
+            (let expr #CSS-Expr
+                '(a
+                    $(rules)
+                )
+            )
+
+            (css-expr/to-css expr)
+        "#;
+        let mut context = Context::new();
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = expr.as_string().unwrap();
+        let expected = r#"a { font-size: "12px" }"#;
         assert_eq!(value, expected);
     }
 }
