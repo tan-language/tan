@@ -79,8 +79,10 @@ fn render_css_expr(expr: &Expr) -> Result<Expr, Error> {
             }
         }
         Expr::Map(..) => {
-            let items = expr.as_map().unwrap();
+            // #todo what is the coorect type for this?
             // let items: &HashMap<String, Expr> = items.borrow();
+            // #todo #hack temp solution.
+            let items = expr.as_map().unwrap();
             let mut body: Vec<String> = Vec::new();
             for (key, value) in items.iter() {
                 body.push(format!("{key}: {value}"));
