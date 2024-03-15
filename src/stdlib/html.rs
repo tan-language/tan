@@ -3,6 +3,7 @@
 // #todo also perform attribute and body escaping
 // #todo add unit tests
 // #todo what about attributes without value? for the moment just use true, e.g. { :attr true }, can optimize to no-value attr on rendering
+// #todo special handling for <!DOCTYPE html>
 
 // #todo translate (ul.nasty ..) to (ul {class: "nasty"})
 // #todo translate (ul#nasty ..) to (ul {id: "nasty"})
@@ -60,6 +61,12 @@ fn render_expr(expr: &Expr) -> Result<Expr, Error> {
                         op.range(),
                     ));
                 };
+
+                // #insight #hack special handling of (!DOCTYPE html), html is optional, just (!DOCTYPE) works.
+                if sym == "!DOCTYPE" {
+                    // #todo also check the `html` part.
+                    return Ok(Expr::string("<!DOCTYPE html>\n"));
+                }
 
                 let mut i = 1;
 
@@ -218,6 +225,17 @@ mod tests {
         let expr = eval_string(input, &mut context).unwrap();
         let value = expr.as_string().unwrap();
         let expected = r#"<script src="https://example.com/script.js"></script>"#;
+        assert_eq!(value, expected);
+    }
+
+    #[test]
+    fn should_handle_doctype() {
+        let input = r#"(use "html")(html/html-from-expr '[(!DOCTYPE)(script {:src "https://example.com/script.js"})])"#;
+        let mut context = Context::new();
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = expr.as_string().unwrap();
+        eprintln!("{value}");
+        let expected = "<!DOCTYPE html>\n<script src=\"https://example.com/script.js\"></script>";
         assert_eq!(value, expected);
     }
 
