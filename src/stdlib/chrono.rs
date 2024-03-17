@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-use chrono::{Datelike, Duration, NaiveDate, Utc};
+use chrono::{Datelike, Duration, NaiveDate, NaiveDateTime, Timelike, Utc};
 
 use crate::{
     context::Context,
@@ -8,6 +8,8 @@ use crate::{
     expr::{annotate_type, Expr},
     util::module_util::require_module,
 };
+
+// #todo support rfc-399 and rfc-2822
 
 // #link https://datatracker.ietf.org/doc/html/rfc3339
 // #link https://ijmacd.github.io/rfc3339-iso8601/
@@ -19,6 +21,101 @@ use crate::{
 // #todo register the`Date` and `Duration` types.
 
 // #insight `Duration` is similar to `Time`, i.e. time is a 'duration' from 0000-00-00, explore this.
+// #todo Range instead of Duration?
+
+pub fn tan_date_time_from_rust_date_time(rust_date_time: NaiveDateTime) -> Expr {
+    // #todo month0, day0 is an interesting idea.
+    let mut map = HashMap::new();
+    // #todo add helpers to initialize Expr::Int
+    map.insert("year".to_string(), Expr::Int(rust_date_time.year() as i64));
+    map.insert(
+        "month".to_string(),
+        Expr::Int((rust_date_time.month0() + 1) as i64),
+    );
+    map.insert(
+        "day".to_string(),
+        Expr::Int((rust_date_time.day0() + 1) as i64),
+    );
+
+    map.insert("hour".to_string(), Expr::Int(rust_date_time.hour() as i64));
+    map.insert(
+        "minute".to_string(),
+        Expr::Int(rust_date_time.minute() as i64),
+    );
+    map.insert(
+        "second".to_string(),
+        Expr::Int(rust_date_time.second() as i64),
+    );
+
+    // #todo support annotation with multiple types/traits, e.g. both Date + Map.
+
+    let expr = Expr::map(map);
+
+    annotate_type(expr, "Date-Time")
+}
+
+pub fn chrono_date_time_now(_args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let date_time = Utc::now().naive_utc();
+    Ok(tan_date_time_from_rust_date_time(date_time))
+}
+
+// #todo add unit test
+pub fn chrono_date_time(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    if args.is_empty() {
+        chrono_date_time_now(args, _context)
+    } else {
+        todo!();
+        // chrono_date_from_string(args, _context)
+    }
+}
+
+pub fn chrono_date_time_to_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [this] = args else {
+        return Err(Error::invalid_arguments("requires `this` argument", None));
+    };
+
+    // #todo check dyn_type.
+
+    let Some(map) = this.as_map() else {
+        return Err(Error::invalid_arguments(
+            "`this` argument should be a Date-Time",
+            this.range(),
+        ));
+    };
+
+    // #todo error checking!
+
+    let Some(year) = map["year"].as_int() else {
+        return Err(Error::invalid_arguments("invalid Date-Time", this.range()));
+    };
+
+    let Some(month) = map["month"].as_int() else {
+        return Err(Error::invalid_arguments("invalid Date-Time", this.range()));
+    };
+
+    let Some(day) = map["day"].as_int() else {
+        return Err(Error::invalid_arguments("invalid Dat-Time", this.range()));
+    };
+
+    let Some(hour) = map["hour"].as_int() else {
+        return Err(Error::invalid_arguments("invalid Date-Time", this.range()));
+    };
+
+    let Some(minute) = map["minute"].as_int() else {
+        return Err(Error::invalid_arguments("invalid Date-Time", this.range()));
+    };
+
+    let Some(second) = map["second"].as_int() else {
+        return Err(Error::invalid_arguments("invalid Date-Time", this.range()));
+    };
+
+    let str = format!(
+        "{}-{:02}-{:02}T{:02}:{:02}:{:02}",
+        year, month, day, hour, minute, second
+    );
+
+    Ok(Expr::string(str))
+}
 
 pub fn tan_date_from_rust_date(rust_date: NaiveDate) -> Expr {
     // #todo month0, day0 is an interesting idea.
@@ -140,6 +237,40 @@ pub fn chrono_date_to_string(args: &[Expr], _context: &mut Context) -> Result<Ex
     Ok(Expr::string(str))
 }
 
+// #todo implement me!
+pub fn chrono_date_to_rfc399(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [this] = args else {
+        return Err(Error::invalid_arguments("requires `this` argument", None));
+    };
+
+    // #todo check dyn_type.
+
+    let Some(map) = this.as_map() else {
+        return Err(Error::invalid_arguments(
+            "`this` argument should be a Date",
+            this.range(),
+        ));
+    };
+
+    // #todo error checking!
+
+    let Some(year) = map["year"].as_int() else {
+        return Err(Error::invalid_arguments("invalid Date", this.range()));
+    };
+
+    let Some(month) = map["month"].as_int() else {
+        return Err(Error::invalid_arguments("invalid Date", this.range()));
+    };
+
+    let Some(day) = map["day"].as_int() else {
+        return Err(Error::invalid_arguments("invalid Date", this.range()));
+    };
+
+    let str = format!("{}-{:02}-{:02}T00:00:00", year, month, day);
+
+    Ok(Expr::string(str))
+}
+
 pub fn chrono_date_add_days(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [this, days] = args else {
         return Err(Error::invalid_arguments("requires `this` argument", None));
@@ -163,6 +294,14 @@ pub fn chrono_date_add_days(args: &[Expr], _context: &mut Context) -> Result<Exp
 
 pub fn setup_lib_chrono(context: &mut Context) {
     let module = require_module("chrono", context);
+
+    module.insert("Date-Time", Expr::ForeignFunc(Arc::new(chrono_date_time)));
+    // #todo consider (String date-time)
+    // #insight #hack this is added in prelude! NASTY hack
+    // module.insert(
+    //     "to-string$$Date-Time",
+    //     Expr::ForeignFunc(Arc::new(chrono_date_time_to_string)),
+    // );
 
     module.insert("Date", Expr::ForeignFunc(Arc::new(chrono_date)));
     // #todo implement with duration and `+`.
