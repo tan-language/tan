@@ -109,12 +109,18 @@ pub fn chrono_date_time_to_string(args: &[Expr], _context: &mut Context) -> Resu
         return Err(Error::invalid_arguments("invalid Date-Time", this.range()));
     };
 
+    // #todo have separate function for to-rfc-399
     let str = format!(
-        "{}-{:02}-{:02}T{:02}:{:02}:{:02}",
+        "{}-{:02}-{:02}T{:02}:{:02}:{:02}Z",
         year, month, day, hour, minute, second
     );
 
     Ok(Expr::string(str))
+}
+
+// #todo differentiate to_string from to_rfc399
+pub fn chrono_date_time_to_rfc399(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+    chrono_date_time_to_string(args, context)
 }
 
 pub fn tan_date_from_rust_date(rust_date: NaiveDate) -> Expr {
@@ -296,6 +302,15 @@ pub fn setup_lib_chrono(context: &mut Context) {
     let module = require_module("chrono", context);
 
     module.insert("Date-Time", Expr::ForeignFunc(Arc::new(chrono_date_time)));
+    // #todo consider `to-rfc-399-string` or `format-rfc-399`
+    module.insert(
+        "to-rfc-399",
+        Expr::ForeignFunc(Arc::new(chrono_date_time_to_rfc399)),
+    );
+    module.insert(
+        "to-rfc-399$$Date-Time",
+        Expr::ForeignFunc(Arc::new(chrono_date_time_to_rfc399)),
+    );
     // #todo consider (String date-time)
     // #insight #hack this is added in prelude! NASTY hack
     // module.insert(
