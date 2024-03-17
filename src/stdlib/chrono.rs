@@ -9,6 +9,9 @@ use crate::{
     util::module_util::require_module,
 };
 
+// #link https://datatracker.ietf.org/doc/html/rfc3339
+// #link https://ijmacd.github.io/rfc3339-iso8601/
+
 // #todo what is a better name for DateTime.
 // #todo does it make sense to support a Date? maybe we could only support a 'DateTime'
 // #todo consider another namespace?

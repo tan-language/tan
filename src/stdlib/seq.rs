@@ -10,6 +10,8 @@ use crate::{
 
 use super::cmp::rust_ordering_from_tan_ordering;
 
+// #todo implement slice _and_ takes
+
 // #todo implement sort! and sort (or sort, to-sorted)
 // #todo add put/insert at index
 
@@ -266,6 +268,64 @@ pub fn array_sort_mut(args: &[Expr], context: &mut Context) -> Result<Expr, Erro
     Ok(array.clone())
 }
 
+// #todo enforce range within string length
+// #todo rename to `cut`? (as in 'cut a slice')
+// #todo relation with range?
+// #todo pass range as argument?
+// #todo support negative index: -1 => length - 1
+// #insight negative index _may_ be problematic if the index is computed and returns negative by mistake.
+/// (slice arr 2 5)
+/// (slice arr 2)
+/// (slice arr 2 -2) ; -2 is length - 2
+pub fn array_slice(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [this, start, ..] = args else {
+        return Err(Error::invalid_arguments(
+            "requires `this` and start arguments",
+            None,
+        ));
+    };
+
+    let Some(elements) = this.as_array() else {
+        return Err(Error::invalid_arguments(
+            "`this` argument should be an Array",
+            this.range(),
+        ));
+    };
+
+    let Some(start) = start.as_int() else {
+        return Err(Error::invalid_arguments(
+            "`start` argument should be an Int",
+            this.range(),
+        ));
+    };
+
+    let end = if let Some(end) = args.get(2) {
+        let Some(end) = end.as_int() else {
+            return Err(Error::invalid_arguments(
+                "`end` argument should be an Int",
+                this.range(),
+            ));
+        };
+        end
+    } else {
+        elements.len() as i64
+    };
+
+    let start = start as usize;
+    let end = if end < 0 {
+        // #todo supporting negative index may hide errors if the index is computed
+        // #todo offer a link to only support negative values for constant index
+        // If the end argument is negative it indexes from the end of the string.
+        (elements.len() as i64 + end) as usize
+    } else {
+        end as usize
+    };
+
+    let slice = &elements[start..end];
+
+    Ok(Expr::array(slice))
+}
+
 pub fn setup_lib_seq(context: &mut Context) {
     // #todo should put in `seq` module and then into `prelude`.
     let module = require_module("prelude", context);
@@ -290,6 +350,18 @@ pub fn setup_lib_seq(context: &mut Context) {
     );
     module.insert("is-empty?", Expr::ForeignFunc(Arc::new(array_is_empty)));
     module.insert("sort!", Expr::ForeignFunc(Arc::new(array_sort_mut)));
+
+    // #todo slice is to general works both as noun and verb, try to find an explicit verb? e.g. `cut` or `carve`
+    // #todo alternatively use something like `get-slice` or `cut-slice` or `carve-slice`.
+    // module.insert("slice", Expr::ForeignFunc(Arc::new(array_slice)));
+    module.insert(
+        "slice$$Array$$Int",
+        Expr::ForeignFunc(Arc::new(array_slice)),
+    );
+    module.insert(
+        "slice$$Array$$Int$$Int",
+        Expr::ForeignFunc(Arc::new(array_slice)),
+    );
 
     // let module = require_module("seq", context);
 
@@ -403,5 +475,15 @@ mod tests {
         let value = format_value(expr);
         let expected = "[6 5 4 3 1]";
         assert_eq!(value, expected);
+    }
+
+    #[test]
+    fn slice_usage() {
+        let mut context = Context::new();
+        let input = r#"
+            (slice [1 2 3 4 5] 2)
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        assert_eq!(format_value(expr), "[3 4 5]");
     }
 }
