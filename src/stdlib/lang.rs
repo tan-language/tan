@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{path::PathBuf, sync::Arc};
 
 use crate::{
     api::resolve_string,
@@ -6,7 +6,7 @@ use crate::{
     error::Error,
     eval::{eval, util::eval_file},
     expr::{annotate, expr_clone, Expr},
-    util::module_util::require_module,
+    util::{module_util::require_module, standard_names::CURRENT_MODULE_PATH},
 };
 
 // #todo (if (= (get-type obj) Amount) ...) ; type, get-type, type-of
@@ -82,6 +82,7 @@ pub fn type_of(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     Ok(expr.dyn_type(context))
 }
 
+// #todo maybe should be just eval_module?
 // #todo consider naming just `load`.
 pub fn load_file(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     let [path] = args else {
@@ -104,7 +105,33 @@ pub fn load_file(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     // let prev_scope = context.scope.clone();
     // context.scope = Rc::new(Scope::new(prev_scope.clone()));
 
-    match eval_file(path, context) {
+    // #todo #hack temp solution here! somehow unify with eval_module.
+
+    let prev_current_module_path = context.scope.get(CURRENT_MODULE_PATH);
+
+    // #todo use context.insert_special!
+    context.scope.insert(
+        CURRENT_MODULE_PATH,
+        Expr::string(
+            PathBuf::from(&path)
+                .parent()
+                .unwrap()
+                .to_string_lossy()
+                .to_string(),
+        ),
+    );
+
+    let result = eval_file(path, context);
+
+    if let Some(prev_current_module_path) = prev_current_module_path {
+        context
+            .scope
+            .insert(CURRENT_MODULE_PATH, prev_current_module_path);
+    }
+
+    // context.scope = prev_scope;
+
+    match result {
         Ok(value) => Ok(value),
         Err(errors) => {
             // #todo precise formating is _required_ here!
@@ -117,8 +144,6 @@ pub fn load_file(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
             Err(Error::failed_use(path, errors))
         }
     }
-
-    // context.scope = prev_scope;
 }
 
 pub fn eval_string(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
