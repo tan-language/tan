@@ -51,7 +51,7 @@ pub fn canonicalize_module_path(
 
     if path.starts_with('@') {
         path = format!("{}/{path}", context.root_path);
-    } else if path.starts_with("./") || path.starts_with("../") {
+    } else if path.starts_with("./") {
         if let Some(base_path) = context.scope.get(CURRENT_MODULE_PATH) {
             let Some(base_path) = base_path.as_string() else {
                 // #todo!
@@ -60,6 +60,19 @@ pub fn canonicalize_module_path(
 
             // Canonicalize the path using the current-module-path as the base path.
             path = format!("{base_path}{}", path.strip_prefix('.').unwrap());
+        } else {
+            // #todo!
+            panic!("missing current-module-path");
+        }
+    } else if path.starts_with("../") {
+        if let Some(base_path) = context.scope.get(CURRENT_MODULE_PATH) {
+            let Some(base_path) = base_path.as_string() else {
+                // #todo!
+                panic!("invalid current-module-path");
+            };
+
+            // Canonicalize the path using the current-module-path as the base path.
+            path = format!("{base_path}/{path}");
         } else {
             // #todo!
             panic!("missing current-module-path");

@@ -9,7 +9,7 @@ use tan::{
     error::{Error, ErrorVariant},
     eval::{eval, util::eval_module},
     expr::{format_value, Expr},
-    util::fmt::format_float,
+    util::{fmt::format_float, standard_names::CURRENT_MODULE_PATH},
 };
 
 use crate::common::{eval_file, eval_input, read_file};
@@ -455,7 +455,7 @@ fn module_cannot_access_private_members_of_other_modules() {
     let mut context = Context::new();
     context
         .scope
-        .insert("*current-module-path*", Expr::string("tests/fixtures"));
+        .insert(CURRENT_MODULE_PATH, Expr::string("tests/fixtures"));
     let result = eval_module("./main.tan", &mut context, false);
 
     assert!(result.is_err());
