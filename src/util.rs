@@ -63,6 +63,18 @@ impl std::fmt::Display for Break {
     }
 }
 
+/// Returns true if the input can be a path literal.
+pub fn is_path_literal(input: &str) -> bool {
+    input.contains('/') || input.contains('@') || input == ".." // || input == "."
+}
+
+// #todo move to utils file?
+// #todo should consider n/step a 0..n/step range?
+pub fn is_range_literal(input: &str) -> bool {
+    // #todo should be more precise, e.g. report 0...1, 0......3, etc.
+    (!is_path_literal(input)) && input.contains("..") && input != "..."
+}
+
 // #todo consider is_type_symbol, is_type_literal.
 // A type starts with an uppercase character.
 pub fn is_type(input: &str) -> bool {

@@ -419,7 +419,7 @@ fn parse_keeps_comments() {
 // #todo use assert_matches!
 #[test]
 fn parse_handles_int_range() {
-    let input = "(let a 2..30/3)";
+    let input = "(let a 2..30|3)";
     let result = parse_string(input).unwrap();
 
     let Expr::List(exprs) = result.unpack() else {
@@ -431,7 +431,7 @@ fn parse_handles_int_range() {
 
 #[test]
 fn parse_handles_float_range() {
-    let input = "(let a 2.0..30.0/3.0)";
+    let input = "(let a 2.0..30.0|3.0)";
     let result = parse_string(input).unwrap();
 
     let Expr::List(exprs) = result.unpack() else {

@@ -50,9 +50,13 @@ pub fn recognize_string_template(input: &str) -> Result<Expr, Vec<Error>> {
 // #ai-generated
 // #todo cleanup the implementation.
 // #todo move to another file.
+// #todo the `/step` part is conflicting with paths, e.g. in `use` statements, consider other separator.
+// #todo consider not supporting the step in the literal, instead: (with-step 3..10 2) <- THIS
+// #todo support 3..=10 literal
+// #todo consider swift-like range literals, closed: 2...3 and open 2..<3
 /// Parses a range string: start..end/step.
 pub fn recognize_range(range_str: &str) -> Option<Expr> {
-    let parts: Vec<&str> = range_str.split('/').collect();
+    let parts: Vec<&str> = range_str.split('|').collect();
 
     if parts.len() > 2 {
         // If there are more than two parts, the input format is invalid

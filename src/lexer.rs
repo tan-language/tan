@@ -6,6 +6,7 @@ use std::str::Chars;
 use crate::{
     error::{Error, ErrorVariant},
     range::{Position, Range},
+    util::is_range_literal,
 };
 
 use self::{
@@ -37,13 +38,6 @@ fn is_delimiter(ch: char) -> bool {
 
 fn is_eol(ch: char) -> bool {
     ch == '\n'
-}
-
-// #todo move to utils file?
-// #todo should consider n/step a 0..n/step range?
-pub fn is_range(input: &str) -> bool {
-    // #todo should be more precise, e.g. report 0...1, 0......3, etc.
-    input.contains("..") && input != "..."
 }
 
 // #todo stateful lexer vs buffer
@@ -407,7 +401,7 @@ impl<'a> Lexer<'a> {
     fn lex_number_or_range(&mut self) -> Token {
         let lexeme = self.scan_number();
 
-        if is_range(&lexeme) {
+        if is_range_literal(&lexeme) {
             Token::symbol(lexeme, self.current_range())
         } else {
             Token::number(lexeme, self.current_range())

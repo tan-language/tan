@@ -1,6 +1,6 @@
 (let dummy (Func []
     (let sum 0)
-    (for [x 0..10/1]
+    (for [x 0..10]
         (if (= x 5)
             (continue)
         )

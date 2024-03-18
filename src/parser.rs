@@ -7,13 +7,12 @@ use crate::{
     error::{Error, ErrorVariant},
     expr::{annotate, annotate_range, Expr},
     lexer::{
-        is_range,
         token::{Token, TokenKind},
         Lexer,
     },
     parser::util::recognize_string_template,
     range::{Position, Range},
-    util::{is_type, put_back_iterator::PutBackIterator, Break},
+    util::{is_range_literal, is_type, put_back_iterator::PutBackIterator, Break},
 };
 
 use self::util::{is_key_symbol, recognize_range};
@@ -270,7 +269,7 @@ impl<'a> Parser<'a> {
                     // #todo consider using nil for false and everything else for true
                     // #todo consider using nothing/never for false and everything else for true.
                     Some(Expr::Bool(false))
-                } else if is_range(lexeme) {
+                } else if is_range_literal(lexeme) {
                     // #todo cleanup.
                     // #todo consider accepting as range `end/step`, without the `..` spread.
                     // #todo validate a range (e.g. only one .., no other random chars)
