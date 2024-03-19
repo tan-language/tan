@@ -76,6 +76,7 @@ pub fn regex_is_matching(args: &[Expr], _context: &mut Context) -> Result<Expr, 
     Ok(Expr::Bool(re.is_match(string)))
 }
 
+// #todo support named captures? nah, too much.
 pub fn regex_capture(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [this, string] = args else {
         return Err(Error::invalid_arguments(
@@ -111,6 +112,7 @@ pub fn regex_capture(args: &[Expr], _context: &mut Context) -> Result<Expr, Erro
 
     for cap in re.captures_iter(string) {
         // #todo #fixme temporarily only returns the first capture.
+        // eprintln!("---> {} {}", cap.get(0).unwrap().as_str(), cap.len());
         let value = cap.get(1).unwrap().as_str();
         captures.push(Expr::string(value));
     }
