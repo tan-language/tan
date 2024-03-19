@@ -37,7 +37,7 @@ pub fn regex_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 
     let rx = Expr::string(pattern);
 
-    // #todo consider Regexpr? or Reg-Expr? naah...
+    // #todo consider Regexpr? or Regexp, or Reg-Expr? naah...
 
     Ok(annotate_type(rx, "Regex"))
 }
@@ -87,4 +87,34 @@ pub fn setup_lib_regex(context: &mut Context) {
 
     // #todo  consider is-matching?, nah, let's make the `?` suffix useful.
     module.insert("matching?", Expr::ForeignFunc(Arc::new(regex_is_matching)));
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{api::eval_string, context::Context, expr::format_value};
+
+    #[test]
+    fn is_matching_usage() {
+        let mut context = Context::new();
+        let expr = eval_string(
+            r#"
+            (use [Regex matching?] regex)
+            (let rx (Regex "\\d+"))
+            (matching? rx "1234")
+        "#,
+            &mut context,
+        )
+        .unwrap();
+        assert_eq!(format_value(expr), "true");
+
+        let expr = eval_string(
+            r#"
+            (let rx (Regex "\\d+"))
+            (matching? rx "hello")
+        "#,
+            &mut context,
+        )
+        .unwrap();
+        assert_eq!(format_value(expr), "false");
+    }
 }
