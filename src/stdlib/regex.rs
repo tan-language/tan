@@ -76,6 +76,48 @@ pub fn regex_is_matching(args: &[Expr], _context: &mut Context) -> Result<Expr, 
     Ok(Expr::Bool(re.is_match(string)))
 }
 
+pub fn regex_capture(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [this, string] = args else {
+        return Err(Error::invalid_arguments(
+            "requires `this` and `string` arguments",
+            None,
+        ));
+    };
+
+    // #todo verify that is Regex, not just string?
+    let Some(re_pattern) = this.as_string() else {
+        return Err(Error::invalid_arguments(
+            "`this` argument should be a Regex",
+            this.range(),
+        ));
+    };
+
+    let Some(string) = string.as_stringable() else {
+        return Err(Error::invalid_arguments(
+            "`string` argument should be a Stringable",
+            string.range(),
+        ));
+    };
+
+    // #todo proper error reporting here!
+    let Ok(re) = Regex::new(re_pattern) else {
+        return Err(Error::invalid_arguments(
+            &format!("invalid regex pattern: {re_pattern}"),
+            this.range(),
+        ));
+    };
+
+    let mut captures: Vec<Expr> = Vec::new();
+
+    for cap in re.captures_iter(string) {
+        // #todo #fixme temporarily only returns the first capture.
+        let value = cap.get(1).unwrap().as_str();
+        captures.push(Expr::string(value));
+    }
+
+    Ok(Expr::array(captures))
+}
+
 pub fn setup_lib_regex(context: &mut Context) {
     // #todo find a better module-path
     let module = require_module("regex", context);
@@ -85,8 +127,11 @@ pub fn setup_lib_regex(context: &mut Context) {
 
     module.insert("Regex", Expr::ForeignFunc(Arc::new(regex_new)));
 
-    // #todo  consider is-matching?, nah, let's make the `?` suffix useful.
+    // #todo consider is-matching?, nah, let's make the `?` suffix useful.
     module.insert("matching?", Expr::ForeignFunc(Arc::new(regex_is_matching)));
+
+    //
+    module.insert("capture", Expr::ForeignFunc(Arc::new(regex_capture)));
 }
 
 #[cfg(test)]
@@ -116,5 +161,31 @@ mod tests {
         )
         .unwrap();
         assert_eq!(format_value(expr), "false");
+    }
+
+    #[test]
+    fn capture_usage() {
+        let mut context = Context::new();
+        let expr = eval_string(
+            r#"
+            (use [Regex capture] regex)
+            (let rx (Regex "\\s*(\\d+)\\s*"))
+            (capture rx " 12,  345 6 7890    11 ")
+        "#,
+            &mut context,
+        )
+        .unwrap();
+        assert_eq!(format_value(expr), r#"["12" "345" "6" "7890" "11"]"#);
+
+        let expr = eval_string(
+            r#"
+            (use [Regex capture] regex)
+            (let rx (Regex "class=\"([\w ]*)\""))
+            (capture rx "<div class=\"cool stuff\"><i class=\"nice\">works</i><i class=\"work\">works</i></div>")
+        "#,
+            &mut context,
+        )
+        .unwrap();
+        assert_eq!(format_value(expr), r#"["cool stuff" "nice" "work"]"#);
     }
 }
