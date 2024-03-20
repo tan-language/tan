@@ -77,6 +77,7 @@ pub fn regex_is_matching(args: &[Expr], _context: &mut Context) -> Result<Expr, 
 }
 
 // #todo support named captures? nah, too much.
+// #todo capture-one <> capture-many, or capture <> capture*, or use xxxx* for generators/coroutines?
 pub fn regex_capture(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [this, string] = args else {
         return Err(Error::invalid_arguments(

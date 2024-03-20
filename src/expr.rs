@@ -2,6 +2,7 @@ pub mod expr_iter;
 pub mod expr_transform;
 
 use std::{
+    any::Any,
     cell::{Ref, RefCell, RefMut},
     collections::HashMap,
     fmt,
@@ -133,6 +134,7 @@ pub enum Expr {
     // #todo the ForeignFunc should probably store the Module environment.
     // #todo introduce a ForeignFuncMut for mutating scope? what would be a better name?
     ForeignFunc(Arc<ExprContextFn>), // #todo for some reason, Box is not working here!
+    ForeignStruct(Rc<RefCell<dyn Any>>), // #todo consider Arc?
     // --- High-level ---
     // #todo do should contain the expressions also, pre-parsed!
     Do,
@@ -173,6 +175,7 @@ impl PartialEq for Expr {
             (Self::Func(..), Self::Func(..)) => false,
             (Self::Macro(l0, l1), Self::Macro(r0, r1)) => l0 == r0 && l1 == r1,
             (Self::ForeignFunc(..), Self::ForeignFunc(..)) => false,
+            (Self::ForeignStruct(..), Self::ForeignStruct(..)) => false,
             (Self::If(l0, l1, l2), Self::If(r0, r1, r2)) => l0 == r0 && l1 == r1 && l2 == r2,
             // #todo #think should unpack and ignore annotations?
             (Self::Annotated(l0, l1), Self::Annotated(r0, r1)) => l0 == r0 && l1 == r1,
@@ -219,6 +222,7 @@ impl fmt::Debug for Expr {
             Expr::Func(..) => "#<func>".to_owned(),
             Expr::Macro(..) => "#<macro>".to_owned(),
             Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
+            Expr::ForeignStruct(..) => "#<foreign_struct>".to_owned(),
             Expr::Let => "let".to_owned(),
             // #todo properly format do, let, if, etc.
             Expr::If(_, _, _) => "if".to_owned(),
@@ -305,6 +309,7 @@ impl fmt::Display for Expr {
                 Expr::Func(..) => "#<func>".to_owned(),
                 Expr::Macro(..) => "#<func>".to_owned(),
                 Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
+                Expr::ForeignStruct(..) => "#<foreign_struct>".to_owned(),
                 // #insight intentionally pass through the formatting.
                 Expr::Annotated(expr, _) => format!("{expr}"),
                 Expr::Module(module) => format!("Module({})", module.stem),
