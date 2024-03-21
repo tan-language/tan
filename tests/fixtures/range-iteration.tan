@@ -1,0 +1,5 @@
+(let vals [])
+(for [i 2..5]
+    (push vals i)
+)
+(join vals ",")

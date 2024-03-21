@@ -125,7 +125,8 @@ pub fn try_iterator_from<'a>(expr: &'a Expr) -> Option<Rc<RefCell<dyn ExprIterat
             step: 1,
         }))),
         Expr::IntRange(start, end, step) => Some(Rc::new(RefCell::new(IntRangeIterator {
-            current: 0,
+            // #todo start is not really needed, could use just current!
+            current: *start,
             start: *start,
             end: *end,
             step: *step,
@@ -137,7 +138,8 @@ pub fn try_iterator_from<'a>(expr: &'a Expr) -> Option<Rc<RefCell<dyn ExprIterat
             step: 1.0,
         }))),
         Expr::FloatRange(start, end, step) => Some(Rc::new(RefCell::new(FloatRangeIterator {
-            current: 0.0,
+            // #todo start is really not needed!
+            current: *start,
             start: *start,
             end: *end,
             step: *step,

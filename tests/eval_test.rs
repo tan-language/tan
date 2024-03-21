@@ -699,3 +699,9 @@ fn eval_should_support_type_constructor_definitions() {
     let result = eval_file("type-constructor.tan");
     assert!(result.is_ok());
 }
+
+#[test]
+fn eval_should_iterate_ranges() {
+    let value = eval_file("range-iteration.tan").unwrap();
+    assert_eq!(format_value(value), "2,3,4");
+}
