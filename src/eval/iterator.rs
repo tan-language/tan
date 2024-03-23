@@ -3,6 +3,8 @@
 // #todo reuse Rust's iterator trait?
 // #todo consider renaming `next` -> `resume` like coroutines
 
+// #todo what about negative iteration, negative step?
+
 use std::{cell::RefCell, rc::Rc};
 
 use crate::expr::{expr_clone, Expr};
@@ -16,7 +18,6 @@ pub trait ExprIterator {
 
 pub struct IntRangeIterator {
     current: i64,
-    pub start: i64,
     pub end: i64,
     pub step: i64,
 }
@@ -35,7 +36,6 @@ impl ExprIterator for IntRangeIterator {
 
 pub struct FloatRangeIterator {
     current: f64,
-    pub start: f64,
     pub end: f64,
     pub step: f64,
 }
@@ -120,27 +120,23 @@ pub fn try_iterator_from<'a>(expr: &'a Expr) -> Option<Rc<RefCell<dyn ExprIterat
     match expr.unpack() {
         Expr::Int(n) => Some(Rc::new(RefCell::new(IntRangeIterator {
             current: 0,
-            start: 0,
             end: *n,
             step: 1,
         }))),
         Expr::IntRange(start, end, step) => Some(Rc::new(RefCell::new(IntRangeIterator {
             // #todo start is not really needed, could use just current!
             current: *start,
-            start: *start,
             end: *end,
             step: *step,
         }))),
         Expr::Float(n) => Some(Rc::new(RefCell::new(FloatRangeIterator {
             current: 0.0,
-            start: 0.0,
             end: *n,
             step: 1.0,
         }))),
         Expr::FloatRange(start, end, step) => Some(Rc::new(RefCell::new(FloatRangeIterator {
             // #todo start is really not needed!
             current: *start,
-            start: *start,
             end: *end,
             step: *step,
         }))),
