@@ -22,9 +22,21 @@ pub struct IntRangeIterator {
     pub step: i64,
 }
 
+impl IntRangeIterator {
+    // #todo find a better name.
+    #[inline]
+    fn is_exhausted(&self) -> bool {
+        if self.step > 0 {
+            self.current >= self.end
+        } else {
+            self.current <= self.end
+        }
+    }
+}
+
 impl ExprIterator for IntRangeIterator {
     fn next(&mut self) -> Option<Expr> {
-        if self.current >= self.end {
+        if self.is_exhausted() {
             None
         } else {
             let value = self.current;
@@ -40,9 +52,21 @@ pub struct FloatRangeIterator {
     pub step: f64,
 }
 
+impl FloatRangeIterator {
+    // #todo find a better name.
+    #[inline]
+    fn is_exhausted(&self) -> bool {
+        if self.step > 0.0 {
+            self.current >= self.end
+        } else {
+            self.current <= self.end
+        }
+    }
+}
+
 impl ExprIterator for FloatRangeIterator {
     fn next(&mut self) -> Option<Expr> {
-        if self.current >= self.end {
+        if self.is_exhausted() {
             None
         } else {
             let value = self.current;

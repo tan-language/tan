@@ -78,7 +78,12 @@ pub fn recognize_range(range_str: &str) -> Option<Expr> {
         let step: f64 = if parts.len() == 2 {
             parts[1].parse().ok()?
         } else {
-            1.0
+            // #todo think more about start == end
+            if end >= start {
+                1.0
+            } else {
+                -1.0
+            }
         };
 
         Some(Expr::FloatRange(start, end, step))
@@ -90,7 +95,12 @@ pub fn recognize_range(range_str: &str) -> Option<Expr> {
         let step: i64 = if parts.len() == 2 {
             parts[1].parse().ok()?
         } else {
-            1
+            // #todo think more about start == end
+            if end >= start {
+                1
+            } else {
+                -1
+            }
         };
 
         Some(Expr::IntRange(start, end, step))

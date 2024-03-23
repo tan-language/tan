@@ -703,5 +703,5 @@ fn eval_should_support_type_constructor_definitions() {
 #[test]
 fn eval_should_iterate_ranges() {
     let value = eval_file("range-iteration.tan").unwrap();
-    assert_eq!(format_value(value), "2,3,4");
+    assert_eq!(format_value(value), "2,3,4,5,4,3");
 }
