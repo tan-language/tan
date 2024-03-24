@@ -1062,6 +1062,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo intentionally don't return a value, reconsider this?
                             Ok(Expr::One)
                         }
+                        // #todo #hack this has a BAD interface for map, don't use, FIX!!
                         // #todo extract
                         // #todo functions implemented here have dynamic dispatch!
                         // #todo show usage in comments
