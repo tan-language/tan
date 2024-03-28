@@ -10,7 +10,9 @@ use crate::{
     range::Range,
     resolver::compute_dyn_signature,
     scope::Scope,
-    util::{is_dynamically_scoped, is_reserved_symbol, standard_names::CURRENT_FILE_PATH},
+    util::{
+        is_dynamically_scoped, is_ellipsis, is_reserved_symbol, standard_names::CURRENT_FILE_PATH,
+    },
 };
 
 use self::{iterator::try_iterator_from, util::eval_module};
@@ -187,15 +189,37 @@ pub fn invoke_func(func: &Expr, args: &[Expr], context: &mut Context) -> Result<
     let prev_scope = context.scope.clone();
     context.scope = Rc::new(Scope::new(func_scope.clone())); // #insight notice we use func_scope here!
 
-    for (param, arg) in params.iter().zip(args) {
-        let Some(param) = param.as_symbol() else {
+    // #todo consider args.into_iter();
+
+    let mut args = args.into_iter();
+
+    for param in params {
+        let Some(param_name) = param.as_symbol() else {
             return Err(Error::invalid_arguments(
                 "parameter is not a symbol",
                 param.range(),
             ));
         };
 
-        context.scope.insert(param, arg);
+        // #todo consider other syntax, e.g. `&rest` like Clojure.
+
+        // check for 'rest' parameter.
+        if is_ellipsis(param_name) {
+            let rest_args = Expr::array(args.collect::<Vec<Expr>>());
+            // remove the ellipsis prefix from the parameter name.
+            let param_name = &param_name[3..];
+            context.scope.insert(param_name, rest_args);
+            break;
+        }
+
+        let Some(arg) = args.next() else {
+            return Err(Error::invalid_arguments(
+                "no argument for parameter `{param}`",
+                param.range(),
+            ));
+        };
+
+        context.scope.insert(param_name, arg);
     }
 
     // #todo this code is the same as in the (do ..) block, extract.

@@ -64,15 +64,24 @@ impl std::fmt::Display for Break {
 }
 
 /// Returns true if the input can be a path literal.
+#[inline]
 pub fn is_path_literal(input: &str) -> bool {
-    input.contains('/') || input.contains('@') || input == ".." // || input == "."
+    input.contains('/') || input.starts_with('@') || input.starts_with("../") // || input == "."
+}
+
+// #todo handle more ellipsis/wildcard cases.
+/// Returns true id the input is ellipsis
+#[inline]
+pub fn is_ellipsis(input: &str) -> bool {
+    input.starts_with("...")
 }
 
 // #todo move to utils file?
 // #todo should consider n/step a 0..n/step range?
+#[inline]
 pub fn is_range_literal(input: &str) -> bool {
     // #todo should be more precise, e.g. report 0...1, 0......3, etc.
-    (!is_path_literal(input)) && input.contains("..") && input != "..."
+    input.contains("..") && (!is_path_literal(input)) && (!is_ellipsis(input))
 }
 
 // #todo consider is_type_symbol, is_type_literal.

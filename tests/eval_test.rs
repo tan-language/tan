@@ -705,3 +705,9 @@ fn eval_should_iterate_ranges() {
     let value = eval_file("range-iteration.tan").unwrap();
     assert_eq!(format_value(value), "2,3,4,5,4,3");
 }
+
+#[test]
+fn eval_should_handle_rest_parameters() {
+    let value = eval_file("rest-parameter.tan").unwrap();
+    assert_eq!(format_value(value), "5");
+}

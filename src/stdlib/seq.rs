@@ -337,6 +337,7 @@ pub fn setup_lib_seq(context: &mut Context) {
 
     module.insert("join", Expr::ForeignFunc(Arc::new(array_join)));
     module.insert("skip", Expr::ForeignFunc(Arc::new(array_skip)));
+    // #todo rename to (get-length) or something, match with String and other collection types.
     module.insert("count", Expr::ForeignFunc(Arc::new(array_count)));
     // #todo make contains? generic!
     module.insert("contains?", Expr::ForeignFunc(Arc::new(array_contains)));
