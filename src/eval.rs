@@ -212,14 +212,20 @@ pub fn invoke_func(func: &Expr, args: &[Expr], context: &mut Context) -> Result<
             break;
         }
 
-        let Some(arg) = args.next() else {
-            return Err(Error::invalid_arguments(
-                "no argument for parameter `{param}`",
-                param.range(),
-            ));
-        };
+        // #todo consider making missing parameters an error!
+        // #todo or maybe just a warning?
+        // let Some(arg) = args.next() else {
+        //     return Err(Error::invalid_arguments(
+        //         &format!("no argument for parameter `{param}`"),
+        //         param.range(),
+        //     ));
+        // };
 
-        context.scope.insert(param_name, arg);
+        if let Some(arg) = args.next() {
+            context.scope.insert(param_name, arg);
+        } else {
+            break;
+        }
     }
 
     // #todo this code is the same as in the (do ..) block, extract.
