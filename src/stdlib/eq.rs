@@ -312,7 +312,10 @@ pub fn setup_lib_eq(context: &mut Context) {
         "=$$KeySymbol$$KeySymbol",
         Expr::ForeignFunc(Arc::new(eq_symbol)),
     );
+    // #todo #hack this is nasty!
     module.insert("=$$Type$$Type", Expr::ForeignFunc(Arc::new(eq_symbol)));
+    module.insert("=$$Type$$String", Expr::ForeignFunc(Arc::new(eq_symbol)));
+    module.insert("=$$Type$$KeySymbol", Expr::ForeignFunc(Arc::new(eq_symbol)));
 
     module.insert("!=", Expr::ForeignFunc(Arc::new(not_eq)));
     module.insert("!=$$Int$$Int", Expr::ForeignFunc(Arc::new(not_eq)));
