@@ -1,26 +1,17 @@
-use std::{
-    any::Any,
-    cell::{RefCell, RefMut},
-    collections::HashSet,
-    rc::Rc,
-    sync::Arc,
-};
+use std::{collections::HashSet, sync::Arc};
 
 use crate::{
     context::Context,
     error::Error,
-    expr::{annotate_type, Expr},
+    expr::{expr_clone, Expr},
     util::module_util::require_module,
 };
 
-// #warning under construction, not ready for use yet!
+// #insight there isn alternative implementation in `set-alt.rs`.
 
 pub fn set_new(_args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
-    // #todo for the moment only strings are supported, we need to support Expr.
-    let set: HashSet<String> = HashSet::new();
-    let expr = Expr::ForeignStruct(Rc::new(RefCell::new(set)) as Rc<RefCell<dyn Any>>);
-
-    Ok(annotate_type(expr, "Set"))
+    let set: HashSet<Expr> = HashSet::new();
+    Ok(Expr::set(set))
 }
 
 pub fn set_put(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
@@ -31,49 +22,37 @@ pub fn set_put(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
         ));
     };
 
-    let Expr::ForeignStruct(s) = this.unpack() else {
-        return Err(Error::invalid_arguments("`this` should be a Set", None));
-    };
-
-    let Some(value) = value.as_stringable() else {
+    let Some(mut items) = this.as_set_mut() else {
         return Err(Error::invalid_arguments(
-            "`value` argument should be a Stringable",
-            value.range(),
+            "`this` argument should be a Set",
+            this.range(),
         ));
     };
 
-    if let Some(s) = s.borrow_mut().downcast_mut::<HashSet<String>>() {
-        s.insert(value.to_string());
-    } else {
-        return Err(Error::invalid_arguments("invalid Set", None));
-    }
+    // #insight dont' put annotated values in the Set.
+
+    // #todo hmmm this clone!
+    items.insert(expr_clone(value.unpack()));
 
     // #todo what should we return here?
     Ok(Expr::One)
 }
 
+// #todo set_values is a _weird_ name!
 // #todo consider other names, e.g. items?
 pub fn set_values(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [this] = args else {
         return Err(Error::invalid_arguments("requires `this` argument", None));
     };
 
-    let Expr::ForeignStruct(s) = this.unpack() else {
-        return Err(Error::invalid_arguments("`this` should be a Set", None));
+    let Some(items) = this.as_set_mut() else {
+        return Err(Error::invalid_arguments(
+            "`this` argument should be a Set",
+            this.range(),
+        ));
     };
 
-    let mut s: RefMut<dyn Any> = s.borrow_mut();
-
-    let Some(s) = s.downcast_mut::<HashSet<String>>() else {
-        return Err(Error::invalid_arguments("invalid Set", None));
-    };
-
-    let mut values = Vec::new();
-
-    for value in s.iter() {
-        values.push(Expr::string(value));
-    }
-
+    let values: Vec<_> = items.iter().map(expr_clone).collect();
     Ok(Expr::array(values))
 }
 
@@ -101,7 +80,7 @@ mod tests {
     use crate::{api::eval_string, context::Context, expr::Expr};
 
     #[test]
-    fn set_push_usage() {
+    fn set_put_usage() {
         let mut context = Context::new();
         let expr = eval_string(
             r#"

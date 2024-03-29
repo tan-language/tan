@@ -118,7 +118,6 @@ impl<'a> ExprIterator for ArrayIteratorRc<'a> {
     }
 }
 
-// #todo under construction.
 pub struct MapIterator {
     current: usize,
     items: Vec<Expr>,
@@ -126,6 +125,27 @@ pub struct MapIterator {
 }
 
 impl ExprIterator for MapIterator {
+    // #todo keep rust iterator instead.
+    fn next(&mut self) -> Option<Expr> {
+        if self.current < self.items.len() {
+            let value = self.items[self.current].clone(); // #todo argh, avoid this. should array have Rcs? SOS!!!
+            self.current += self.step;
+            Some(value)
+        } else {
+            None
+        }
+    }
+}
+
+// #todo move iterator impls to the corresponding type impl?
+
+pub struct SetIterator {
+    current: usize,
+    items: Vec<Expr>,
+    pub step: usize,
+}
+
+impl ExprIterator for SetIterator {
     // #todo keep rust iterator instead.
     fn next(&mut self) -> Option<Expr> {
         if self.current < self.items.len() {

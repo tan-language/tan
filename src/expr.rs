@@ -4,8 +4,9 @@ pub mod expr_transform;
 use std::{
     any::Any,
     cell::{Ref, RefCell, RefMut},
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     fmt,
+    hash::{Hash, Hasher},
     rc::Rc,
     sync::Arc,
 };
@@ -115,6 +116,7 @@ pub enum Expr {
     // #todo different name?
     // #todo support Expr as keys?
     Map(Rc<RefCell<HashMap<String, Expr>>>),
+    Set(Rc<RefCell<HashSet<Expr>>>),
     // #todo support `start..` and `..end` ranges.
     // #todo open-ended range with step can look like this: `start../2`
     // #todo have type render as (Range Int)
@@ -149,6 +151,8 @@ pub enum Expr {
     Module(Rc<Module>),
 }
 
+impl Eq for Expr {}
+
 // #todo think some more about this.
 impl PartialEq for Expr {
     fn eq(&self, other: &Self) -> bool {
@@ -178,9 +182,52 @@ impl PartialEq for Expr {
             (Self::ForeignStruct(..), Self::ForeignStruct(..)) => false,
             (Self::If(l0, l1, l2), Self::If(r0, r1, r2)) => l0 == r0 && l1 == r1 && l2 == r2,
             // #todo #think should unpack and ignore annotations?
-            (Self::Annotated(l0, l1), Self::Annotated(r0, r1)) => l0 == r0 && l1 == r1,
+            (Self::Annotated(l0, _l1), Self::Annotated(r0, _r1)) => l0.eq(r0),
             (Self::Module(..), Self::Module(..)) => false,
             _ => core::mem::discriminant(self) == core::mem::discriminant(other),
+        }
+    }
+}
+
+impl Hash for Expr {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        match self {
+            Self::String(s) => {
+                0.hash(state);
+                s.hash(state);
+            }
+            Self::Annotated(inner, _) => inner.hash(state),
+            // Expr::Zero => todo!(),
+            // Expr::One => todo!(),
+            // Expr::Comment(_, _) => todo!(),
+            // Expr::TextSeparator => todo!(),
+            // Expr::Bool(_) => todo!(),
+            // Expr::Int(_) => todo!(),
+            // Expr::Float(_) => todo!(),
+            // Expr::Dec(_) => todo!(),
+            // Expr::Symbol(_) => todo!(),
+            // Expr::KeySymbol(_) => todo!(),
+            // Expr::Char(_) => todo!(),
+            // Expr::String(_) => todo!(),
+            // Expr::Type(_) => todo!(),
+            // Expr::List(_) => todo!(),
+            // Expr::Array(_) => todo!(),
+            // Expr::Map(_) => todo!(),
+            // Expr::Set(_) => todo!(),
+            // Expr::IntRange(_, _, _) => todo!(),
+            // Expr::FloatRange(_, _, _) => todo!(),
+            // Expr::Func(_, _, _, _) => todo!(),
+            // Expr::Macro(_, _) => todo!(),
+            // Expr::ForeignFunc(_) => todo!(),
+            // Expr::ForeignStruct(_) => todo!(),
+            // Expr::Do => todo!(),
+            // Expr::Let => todo!(),
+            // Expr::If(_, _, _) => todo!(),
+            // Expr::Annotated(_, _) => todo!(),
+            // Expr::Module(_) => todo!(),
+            _ => {
+                println!("******** OTHER");
+            }
         }
     }
 }
@@ -217,6 +264,7 @@ impl fmt::Debug for Expr {
             }
             Expr::Array(v) => format!("Array({v:?})"),
             Expr::Map(d) => format!("Map({d:?})"),
+            Expr::Set(d) => format!("Set({d:?})"),
             Expr::IntRange(start, end, step) => format!("(Range Int {start} {end} {step})"),
             Expr::FloatRange(start, end, step) => format!("(Range Int {start} {end} {step})"),
             Expr::Func(..) => "#<func>".to_owned(),
@@ -290,6 +338,17 @@ impl fmt::Display for Expr {
                         .join(" ");
                     format!("{{{exprs}}}")
                 }
+                Expr::Set(map) => {
+                    // #todo Map should support arbitrary exprs (or at lease `(Into String)` exprs)
+                    // #todo currently we convert keys to symbol, make this more subtle.
+                    let exprs = map
+                        .borrow()
+                        .iter()
+                        .map(|v| format!("{v}"))
+                        .collect::<Vec<String>>()
+                        .join(" ");
+                    format!("[{exprs}]")
+                }
                 Expr::IntRange(start, end, step) => {
                     if *step == 1 {
                         format!("{start}..{end}")
@@ -342,8 +401,12 @@ impl Expr {
         Expr::Array(Rc::new(RefCell::new(a.into())))
     }
 
-    pub fn map(d: impl Into<HashMap<String, Expr>>) -> Self {
-        Expr::Map(Rc::new(RefCell::new(d.into())))
+    pub fn map(m: impl Into<HashMap<String, Expr>>) -> Self {
+        Expr::Map(Rc::new(RefCell::new(m.into())))
+    }
+
+    pub fn set(s: impl Into<HashSet<Expr>>) -> Self {
+        Expr::Set(Rc::new(RefCell::new(s.into())))
     }
 
     // pub fn foreign_func(f: &ExprFn) -> Self {
@@ -547,6 +610,20 @@ impl Expr {
         Some(map.borrow_mut())
     }
 
+    pub fn as_set(&self) -> Option<Ref<'_, HashSet<Expr>>> {
+        let Expr::Set(set) = self.unpack() else {
+            return None;
+        };
+        Some(set.borrow())
+    }
+
+    pub fn as_set_mut(&self) -> Option<RefMut<'_, HashSet<Expr>>> {
+        let Expr::Set(set) = self.unpack() else {
+            return None;
+        };
+        Some(set.borrow_mut())
+    }
+
     // #todo consider #[inline]
     pub fn as_func(&self) -> Option<i64> {
         let Expr::Int(n) = self.unpack() else {
@@ -589,6 +666,7 @@ impl Expr {
             Expr::Type(_) => Expr::typ("Type"),
             Expr::Array(_) => Expr::typ("Array"), // #todo return parameterized type
             Expr::Map(_) => Expr::typ("Map"),     // #todo return parameterized type
+            Expr::Set(_) => Expr::typ("Set"),     // #todo return parameterized type
             // #todo what about quoted Symbol?
             Expr::Symbol(name) => {
                 if let Some(value) = context.scope.get(name) {
@@ -602,6 +680,7 @@ impl Expr {
             Expr::IntRange(..) => Expr::typ("(Range Int)"),
             Expr::FloatRange(..) => Expr::typ("(Range Float)"),
             // #todo add more here!
+            // #todo the wildcard is very error-prone, cover all cases!
             _ => {
                 // eprintln!("---> {self:?}");
                 Expr::typ("Unknown")
