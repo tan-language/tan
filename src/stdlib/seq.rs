@@ -70,6 +70,7 @@ pub fn array_concat_mut(args: &[Expr], _context: &mut Context) -> Result<Expr, E
     Ok(Expr::One)
 }
 
+// #todo consider the name intercalate from haskell?
 // #todo can we find a more specific name?
 // #todo hm, it joins as strings, not very general, should move to string?
 /// (join names "\n")

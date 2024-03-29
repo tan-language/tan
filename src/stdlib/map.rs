@@ -236,6 +236,7 @@ pub fn setup_lib_map(context: &mut Context) {
         Expr::ForeignFunc(Arc::new(map_contains_key)),
     );
     module.insert("put", Expr::ForeignFunc(Arc::new(map_put)));
+    module.insert("put$$Map", Expr::ForeignFunc(Arc::new(map_put)));
     module.insert("update!", Expr::ForeignFunc(Arc::new(map_update_mut)));
     module.insert("get-or", Expr::ForeignFunc(Arc::new(map_get_or)));
     module.insert("get-keys", Expr::ForeignFunc(Arc::new(map_get_keys)));
