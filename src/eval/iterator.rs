@@ -221,6 +221,24 @@ pub fn try_iterator_from<'a>(expr: &'a Expr) -> Option<Rc<RefCell<dyn ExprIterat
                 step: 1,
             })))
         }
+        Expr::Set(_) => {
+            // example usage: #todo
+            // #todo somehow reuse map_get_entries
+            let Some(items) = expr.as_set_mut() else {
+                panic!("invalid state in for-set");
+            };
+
+            // #todo wow, this is incredibly inefficient.
+            // #todo #hack temp fix we add the a `:` prefix to generate keys
+            // #todo argh, cloned!
+            let items: Vec<_> = items.iter().cloned().collect();
+
+            Some(Rc::new(RefCell::new(SetIterator {
+                current: 0,
+                items,
+                step: 1,
+            })))
+        }
         _ => None,
     }
 }
