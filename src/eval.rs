@@ -15,7 +15,10 @@ use crate::{
     },
 };
 
-use self::{iterator::try_iterator_from, util::eval_module};
+use self::{
+    iterator::try_iterator_from,
+    util::{eval_module, get_bindings_with_prefix},
+};
 
 // #insight
 // _Not_ a pure evaluator, performs side-effects.
@@ -1268,8 +1271,9 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             let mut module_prefix = module.stem.as_str();
 
                             if let Some(arg) = qualifier {
+                                // there is qualifier, only import the selected
+                                // names.
                                 if let Some(names) = arg.as_array() {
-                                    // #todo consider (use /math pi tau) -> nah.
                                     // (use [pi tau] math) ; pi, embed without namespace.
                                     for name in names.iter() {
                                         // #todo ONLY export public bindings
@@ -1280,13 +1284,29 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                                 expr.range(),
                                             ));
                                         };
-                                        let Some(value) = module.scope.get(name) else {
+
+                                        let bindings =
+                                            get_bindings_with_prefix(&module.scope, name);
+
+                                        if bindings.is_empty() {
                                             return Err(Error::invalid_arguments(
                                                 &format!("undefined import `{name}`"),
                                                 expr.range(),
                                             ));
-                                        };
-                                        context.scope.insert(name, value.clone());
+                                        }
+
+                                        for binding in bindings {
+                                            // eprintln!("======> {} = {}", binding.0, binding.1);
+                                            context.scope.insert(binding.0, binding.1);
+                                        }
+
+                                        // let Some(value) = module.scope.get(name) else {
+                                        //     return Err(Error::invalid_arguments(
+                                        //         &format!("undefined import `{name}`"),
+                                        //         expr.range(),
+                                        //     ));
+                                        // };
+                                        // context.scope.insert(name, value.clone());
                                     }
 
                                     // #todo again consider returning the module here.

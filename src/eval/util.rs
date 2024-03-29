@@ -10,6 +10,7 @@ use crate::{
     error::Error,
     expr::Expr,
     module::Module,
+    scope::Scope,
     util::{
         constants::INPUT_PSEUDO_FILE_PATH,
         standard_names::{CURRENT_FILE_PATH, CURRENT_MODULE_PATH},
@@ -309,6 +310,25 @@ pub fn eval_module(
     context.module_registry.insert(module_name, module.clone());
 
     Ok(Expr::Module(module.clone()))
+}
+
+/// Returns the binding within a scope that match the given prefix.
+/// Does not search ancestors. Used in ...`use`.
+pub fn get_bindings_with_prefix(scope: &Scope, prefix: impl AsRef<str>) -> Vec<(String, Rc<Expr>)> {
+    let name = prefix.as_ref();
+    let prefix = format!("{name}$$");
+
+    let scope_bindings = scope.bindings.borrow();
+
+    let mut matched_bindings = Vec::new();
+
+    for key in scope_bindings.keys() {
+        if key == name || key.starts_with(&prefix) {
+            matched_bindings.push((key.clone(), scope_bindings.get(key).unwrap().clone()));
+        }
+    }
+
+    matched_bindings
 }
 
 #[cfg(test)]
