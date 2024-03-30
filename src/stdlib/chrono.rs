@@ -349,6 +349,7 @@ pub fn setup_lib_chrono(context: &mut Context) {
         "add-days",
         Expr::ForeignFunc(Arc::new(chrono_date_add_days)),
     );
+    // #insight spec comes first for more 'natural' currying.
     // #todo maybe just pass optional parameters to to-string?
     // #todo what would be a better name? stringf, strfmt? format is just too generic to reserve.
     module.insert(
@@ -362,11 +363,7 @@ pub fn setup_lib_chrono(context: &mut Context) {
 mod tests {
     use assert_matches::assert_matches;
 
-    use crate::{
-        api::eval_string,
-        context::Context,
-        expr::{format_value, Expr},
-    };
+    use crate::{api::eval_string, context::Context, expr::Expr};
 
     use super::chrono_date;
 
