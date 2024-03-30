@@ -277,6 +277,31 @@ pub fn chrono_date_to_rfc399(args: &[Expr], _context: &mut Context) -> Result<Ex
     Ok(Expr::string(str))
 }
 
+// https://docs.rs/chrono/latest/chrono/format/strftime/
+// #todo temp implementation, supports some hardcoded format strings.
+// - "%B %m, %Y"
+pub fn chrono_date_format(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [spec, date] = args else {
+        return Err(Error::invalid_arguments(
+            "requires `spec` and `date` arguments",
+            None,
+        ));
+    };
+
+    let rust_date = rust_date_from_tan_date(date);
+
+    let Some(fmt) = spec.as_stringable() else {
+        return Err(Error::invalid_arguments(
+            "`format-spec` argument should be a Stringable",
+            spec.range(),
+        ));
+    };
+
+    let output = rust_date.format(fmt);
+
+    Ok(Expr::string(output.to_string()))
+}
+
 pub fn chrono_date_add_days(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [this, days] = args else {
         return Err(Error::invalid_arguments("requires `this` argument", None));
@@ -324,6 +349,12 @@ pub fn setup_lib_chrono(context: &mut Context) {
         "add-days",
         Expr::ForeignFunc(Arc::new(chrono_date_add_days)),
     );
+    // #todo maybe just pass optional parameters to to-string?
+    // #todo what would be a better name? stringf, strfmt? format is just too generic to reserve.
+    module.insert(
+        "format-string",
+        Expr::ForeignFunc(Arc::new(chrono_date_format)),
+    );
     // #todo add more functions
 }
 
@@ -331,7 +362,11 @@ pub fn setup_lib_chrono(context: &mut Context) {
 mod tests {
     use assert_matches::assert_matches;
 
-    use crate::{api::eval_string, context::Context, expr::Expr};
+    use crate::{
+        api::eval_string,
+        context::Context,
+        expr::{format_value, Expr},
+    };
 
     use super::chrono_date;
 
@@ -366,5 +401,17 @@ mod tests {
         "#;
         let expr = eval_string(input, &mut context).unwrap();
         assert_matches!(expr, Expr::String(s) if s == "2023-12-29");
+    }
+
+    #[test]
+    fn date_format_usage() {
+        let mut context = Context::new();
+        let input = r#"
+            (use [Date format-string] chrono)
+            (let d (Date "2024-01-18"))
+            (format-string "%B %d, %Y" d)
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        assert_matches!(expr, Expr::String(s) if s == "January 18, 2024");
     }
 }
