@@ -278,8 +278,6 @@ pub fn chrono_date_to_rfc399(args: &[Expr], _context: &mut Context) -> Result<Ex
 }
 
 // https://docs.rs/chrono/latest/chrono/format/strftime/
-// #todo temp implementation, supports some hardcoded format strings.
-// - "%B %m, %Y"
 pub fn chrono_date_format(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [spec, date] = args else {
         return Err(Error::invalid_arguments(
