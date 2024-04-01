@@ -68,6 +68,16 @@ fn render_expr(expr: &Expr) -> Result<Expr, Error> {
                     return Ok(Expr::string("<!DOCTYPE html>\n"));
                 }
 
+                // #todo #hack this is a temp fix
+                if sym == "format" {
+                    // #todo just use String/format
+                    let output = terms.iter().skip(1).fold(String::new(), |mut str, x| {
+                        str.push_str(&format_value(x));
+                        str
+                    });
+                    return Ok(Expr::string(output));
+                }
+
                 let mut i = 1;
 
                 if let Some(term) = terms.get(i) {
