@@ -4,11 +4,36 @@ use crate::{
     context::Context,
     error::Error,
     eval::invoke_func,
-    expr::{format_value, Expr},
+    expr::{expr_clone, format_value, Expr},
     util::module_util::require_module,
 };
 
 use super::cmp::rust_ordering_from_tan_ordering;
+
+// #todo find a better name
+pub fn list_cons(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [head, tail] = args else {
+        return Err(Error::invalid_arguments(
+            "requires `head` and `tail` arguments",
+            None,
+        ));
+    };
+
+    let Some(tail) = tail.as_list() else {
+        return Err(Error::invalid_arguments(
+            "`tail` argument should be a List",
+            tail.range(),
+        ));
+    };
+
+    // #todo this is slow!
+    let mut cons_items = vec![expr_clone(head.unpack())];
+    for expr in tail {
+        cons_items.push(expr_clone(expr));
+    }
+
+    Ok(Expr::List(cons_items))
+}
 
 // #todo implement slice _and_ takes
 
@@ -330,6 +355,9 @@ pub fn array_slice(args: &[Expr], _context: &mut Context) -> Result<Expr, Error>
 pub fn setup_lib_seq(context: &mut Context) {
     // #todo should put in `seq` module and then into `prelude`.
     let module = require_module("prelude", context);
+
+    // #todo introduce `++` overload?
+    module.insert("cons", Expr::ForeignFunc(Arc::new(list_cons)));
 
     // #todo add type qualifiers!
     module.insert("push", Expr::ForeignFunc(Arc::new(array_push)));
