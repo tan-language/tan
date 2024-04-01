@@ -88,6 +88,59 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
             // #todo report error if sym == _ or ...
             insert_symbol_binding(sym, &name.range(), value, context)?;
         }
+        Expr::List(names) => {
+            if names.len() != 2 {
+                return Err(Error::invalid_arguments(
+                    "malformed List destructuring, needs two names",
+                    name.range(),
+                ));
+            }
+
+            let Some(head_name) = names[0].as_symbol() else {
+                return Err(Error::invalid_arguments(
+                    "malformed List destructuring bind, pattern should contain head symbol",
+                    name.range(),
+                ));
+            };
+
+            let Some(tail_name) = names[1].as_symbol() else {
+                return Err(Error::invalid_arguments(
+                    "malformed List destructuring bind, pattern should contain tail symbol",
+                    name.range(),
+                ));
+            };
+
+            if !tail_name.starts_with("...") {
+                return Err(Error::invalid_arguments(
+                    "malformed List destructuring bind, tail symbol should start with ellisis",
+                    name.range(),
+                ));
+            }
+
+            let Some(values) = value.as_list() else {
+                // #todo better error message.
+                // #todo annotate the value.
+                // #todo add multiple notes to the error.
+                return Err(Error::invalid_arguments(
+                    "malformed List destructuring bind, the value should be a List",
+                    value.range(),
+                ));
+            };
+
+            // #insight unwrap is safe here after the previous checks.
+            let (head, tail) = values.split_first().unwrap();
+
+            // #todo omg expr_clone() and to_vec() are expensive!
+            insert_symbol_binding(head_name, &names[0].range(), expr_clone(head), context)?;
+            insert_symbol_binding(
+                &tail_name[3..],
+                &names[0].range(),
+                Expr::List(tail.to_vec()),
+                context,
+            )?;
+
+            // #todo add unit tests.
+        }
         Expr::Array(names) => {
             // #todo temp, nasty code.
             // ensure that the values is also an Array.
@@ -97,7 +150,7 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
                 // #todo add multiple notes to the error.
                 return Err(Error::invalid_arguments(
                     "malformed destructuring bind, the value should be an Array",
-                    name.range(),
+                    value.range(),
                 ));
             };
             // #todo check if the item count matches, report mismatches.
@@ -115,8 +168,14 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
                 if sym == "..." {
                     break;
                 }
+
                 // #todo support "...", "...rest"
-                insert_symbol_binding(sym, &name.range(), values.get(i).unwrap().clone(), context)?;
+                insert_symbol_binding(
+                    sym,
+                    &name.range(),
+                    expr_clone(values.get(i).unwrap()),
+                    context,
+                )?;
             }
         }
         Expr::Map(items) => {
