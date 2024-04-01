@@ -79,7 +79,7 @@ pub fn string_slice(args: &[Expr], _context: &mut Context) -> Result<Expr, Error
         ));
     };
 
-    let Expr::String(s) = this.unpack() else {
+    let Some(s) = this.as_stringable() else {
         return Err(Error::invalid_arguments(
             "`this` argument should be a String",
             this.range(),
