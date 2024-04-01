@@ -408,6 +408,20 @@ mod tests {
     use crate::{api::eval_string, context::Context, expr::format_value};
 
     #[test]
+    fn list_cons_usage() {
+        let input = r#"
+            (let h 1)
+            (let t '(2 3 4 5))
+            (cons h t)
+        "#;
+        let mut context = Context::new();
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "(1 2 3 4 5)";
+        assert_eq!(value, expected);
+    }
+
+    #[test]
     fn array_push_usage() {
         let input = r#"
             (let arr [1 2])
