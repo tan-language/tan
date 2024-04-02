@@ -125,12 +125,22 @@ pub fn setup_lib_io(context: &mut Context) {
     module.insert("read", Expr::ForeignFunc(Arc::new(read_string)));
     module.insert("read$$String", Expr::ForeignFunc(Arc::new(read_string)));
 
-    module.insert("read-string-all", Expr::ForeignFunc(Arc::new(read_string_all)));
-    module.insert("read-string-all$$String", Expr::ForeignFunc(Arc::new(read_string_all)));
+    module.insert(
+        "read-string-all",
+        Expr::ForeignFunc(Arc::new(read_string_all)),
+    );
+    module.insert(
+        "read-string-all$$String",
+        Expr::ForeignFunc(Arc::new(read_string_all)),
+    );
 
     module.insert("write", Expr::ForeignFunc(Arc::new(write)));
     module.insert("write$$String", Expr::ForeignFunc(Arc::new(write)));
 
     module.insert("writeln", Expr::ForeignFunc(Arc::new(writeln)));
     module.insert("writeln$$String", Expr::ForeignFunc(Arc::new(writeln)));
+
+    // #todo temp implementation echo is different than writeln.
+    module.insert("echo", Expr::ForeignFunc(Arc::new(writeln)));
+    module.insert("echo$$String", Expr::ForeignFunc(Arc::new(writeln)));
 }
