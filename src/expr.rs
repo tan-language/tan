@@ -353,16 +353,18 @@ impl fmt::Display for Expr {
                     if *step == 1 {
                         format!("{start}..{end}")
                     } else {
-                        // #todo consider using `:` or `,` instead of `/`?
-                        format!("{start}..{end}/{step}")
+                        // #insight cannot use `/`
+                        // #todo consider using `:` or `,` instead of `|`?
+                        format!("{start}..{end}|{step}")
                     }
                 }
                 Expr::FloatRange(start, end, step) => {
                     if *step == 1.0 {
                         format!("{start}..{end}")
                     } else {
-                        // #todo consider using `:` or `,` instead of `/`?
-                        format!("{start}..{end}/{step}")
+                        // #insight cannot use `/`
+                        // #todo consider using `:` or `,` instead of `|`?
+                        format!("{start}..{end}|{step}")
                     }
                 }
                 Expr::Func(..) => "#<func>".to_owned(),
