@@ -248,10 +248,20 @@ impl Error {
     }
 
     // #todo make errors Option.
-    pub fn failed_use(url: &str, errors: Vec<Error>) -> Self {
+    pub fn failed_use(url: &str, source_errors: Vec<Error>) -> Self {
+        // #todo formatting of the error should not happen here.
+        // #todo needs two steps: and abstract formatter that creates notes etc and multiple renderers: text, colored, html, etc.
+
         // #todo url is _not_ the error.file_path, we need the caller module path.
         // error.file_path = url.to_owned();
-        Self::new(ErrorVariant::FailedUse(url.to_owned(), errors))
+        let mut notes = Vec::new();
+        for e in &source_errors {
+            // #todo should also include source range!!
+            notes.push(ErrorNote::new(&e.to_string(), e.range().cloned()));
+        }
+        let mut error = Self::new(ErrorVariant::FailedUse(url.to_owned(), source_errors));
+        error.notes = notes;
+        error
     }
 
     // placeholder error!

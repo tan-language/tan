@@ -1310,9 +1310,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             if let Err(errors) = result {
                                 // #todo precise formating is _required_ here!
                                 // eprintln!("{}", format_errors(&errors));
-                                // dbg!(errors);
+                                // dbg!(&errors);``
                                 // println!("~~~~~ {errors:?}");
                                 // #todo add note with information here!
+                                // #todo SOS! need to surface the errors here!
                                 return Err(Error::failed_use(module_path, errors));
                             };
 

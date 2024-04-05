@@ -97,6 +97,7 @@ impl Expr {
                             Ok(expr) => expr,
                             Err(error) => {
                                 // #todo this is a temp (bad) solution.
+                                // #todo somehow properly report this error.
                                 eprintln!("{error:?}");
                                 panic!("error in quoted expression: `{}`", &terms[1]);
                             }
