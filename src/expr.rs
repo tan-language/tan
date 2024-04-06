@@ -666,9 +666,10 @@ impl Expr {
             Expr::Dec(_) => Expr::typ("Dec"),
             Expr::String(_) => Expr::typ("String"),
             Expr::Type(_) => Expr::typ("Type"),
+            Expr::List(_) => Expr::typ("List"), // #todo return parameterized type
             Expr::Array(_) => Expr::typ("Array"), // #todo return parameterized type
-            Expr::Map(_) => Expr::typ("Map"),     // #todo return parameterized type
-            Expr::Set(_) => Expr::typ("Set"),     // #todo return parameterized type
+            Expr::Map(_) => Expr::typ("Map"),   // #todo return parameterized type
+            Expr::Set(_) => Expr::typ("Set"),   // #todo return parameterized type
             // #todo what about quoted Symbol?
             Expr::Symbol(name) => {
                 if let Some(value) = context.scope.get(name) {

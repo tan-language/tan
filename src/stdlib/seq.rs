@@ -35,6 +35,22 @@ pub fn list_cons(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(Expr::List(cons_items))
 }
 
+// #todo find better name, match Array and String.
+pub fn list_count(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [list, ..] = args else {
+        return Err(Error::invalid_arguments("requires `list` argument", None));
+    };
+
+    let Some(list) = list.as_list() else {
+        return Err(Error::invalid_arguments(
+            "`list` argument should be a List",
+            list.range(),
+        ));
+    };
+
+    Ok(Expr::Int(list.len() as i64))
+}
+
 // #todo implement slice _and_ takes
 
 // #todo implement sort! and sort (or sort, to-sorted)
@@ -358,6 +374,8 @@ pub fn setup_lib_seq(context: &mut Context) {
 
     // #todo introduce `++` overload?
     module.insert("cons", Expr::ForeignFunc(Arc::new(list_cons)));
+    module.insert("count", Expr::ForeignFunc(Arc::new(list_count)));
+    module.insert("count$$List", Expr::ForeignFunc(Arc::new(list_count)));
 
     // #todo add type qualifiers!
     module.insert("push", Expr::ForeignFunc(Arc::new(array_push)));
@@ -368,6 +386,7 @@ pub fn setup_lib_seq(context: &mut Context) {
     module.insert("skip", Expr::ForeignFunc(Arc::new(array_skip)));
     // #todo rename to (get-length) or something, match with String and other collection types.
     module.insert("count", Expr::ForeignFunc(Arc::new(array_count)));
+    module.insert("count$$Array", Expr::ForeignFunc(Arc::new(array_count)));
     // #todo make contains? generic!
     module.insert("contains?", Expr::ForeignFunc(Arc::new(array_contains)));
     module.insert(
