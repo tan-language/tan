@@ -81,12 +81,25 @@ fn render_css_expr(expr: &Expr) -> Result<Expr, Error> {
         // #todo write a unit test for this.
         Expr::Array(rules) => {
             let mut body: Vec<String> = Vec::new();
-            for expr in rules.borrow().iter() {
-                let value = render_css_expr(expr)?;
-                body.push(format_value(value));
+            // #todo #hack ultra hackish way to emulate unquote-explode in CSS-Expr
+            let is_explode = if let Some(flag) = rules.borrow()[0].as_string() {
+                flag == "..."
+            } else {
+                false
+            };
+            if is_explode {
+                for expr in rules.borrow().iter().skip(1) {
+                    body.push(format_value(expr));
+                }
+                Ok(Expr::string(body.join(";")))
+            } else {
+                for expr in rules.borrow().iter() {
+                    let value = render_css_expr(expr)?;
+                    body.push(format_value(value));
+                }
+                // #todo consider \n\n as separator.
+                Ok(Expr::string(body.join("\n")))
             }
-            // #todo consider \n\n as separator.
-            Ok(Expr::string(body.join("\n")))
         }
         Expr::Map(..) => {
             // #todo remove duplication with List above.
