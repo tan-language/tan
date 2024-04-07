@@ -91,9 +91,9 @@ pub enum Expr {
     // Any, // Anything, Top
     // #insight In the Curry–Howard correspondence, an empty type corresponds to falsity.
     // #insight the Bottom type is the dual to the Top type (Any)
-    Zero, // Nothing, Never, Bottom, the empty type
+    Zero, // Never, Bottom, the empty type, don't use the name `Nothing`
     // #insight Unit == One, and it _is_ 'one' in the algebraic sense
-    One,                          // Unit == List(Vec::new())
+    One,                          // Unit == List(Vec::new()), the Void type.
     Comment(String, CommentKind), // #todo consider renaming to Remark (REM)
     TextSeparator,                // for the formatter.
     Bool(bool),                   // #todo remove?
@@ -661,6 +661,8 @@ impl Expr {
         }
 
         match self.unpack() {
+            Expr::Zero => Expr::typ("Zero"), // Never
+            Expr::One => Expr::typ("One"),   // Unit
             Expr::Int(_) => Expr::typ("Int"),
             Expr::Float(_) => Expr::typ("Float"),
             Expr::Dec(_) => Expr::typ("Dec"),

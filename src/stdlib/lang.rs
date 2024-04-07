@@ -72,7 +72,25 @@ pub fn debug_expr(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
     Ok(Expr::string(s))
 }
 
-// #todo
+// #insight with dynamic typing you don't strictly need a Maybe type?
+pub fn is_none(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [expr] = args else {
+        // #todo better error
+        return Err(Error::invalid_arguments("one argument expected", None));
+    };
+
+    Ok(Expr::Bool(expr.is_one()))
+}
+
+pub fn is_some(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [expr] = args else {
+        // #todo better error
+        return Err(Error::invalid_arguments("one argument expected", None));
+    };
+
+    Ok(Expr::Bool(!expr.is_one()))
+}
+
 pub fn type_of(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     let [expr] = args else {
         // #todo better error
@@ -202,7 +220,13 @@ pub fn setup_lib_lang(context: &mut Context) {
     // #todo the `!` is confusing here.
     module.insert("dbg!", Expr::ForeignFunc(Arc::new(debug_expr)));
 
-    // #todo find a better name?
+    // #todo use is-some? to make more like a verb?
+    // (if (some? user) ...)
+    // (if (is-some? user) ...)
+    // (if (is-some user) ...)
+    module.insert("some?", Expr::ForeignFunc(Arc::new(is_some)));
+    module.insert("none?", Expr::ForeignFunc(Arc::new(is_none)));
+
     module.insert("type-of", Expr::ForeignFunc(Arc::new(type_of)));
 
     module.insert("eval-string", Expr::ForeignFunc(Arc::new(eval_string)));
