@@ -81,6 +81,9 @@ pub type ExprFn = dyn Fn(&[Expr]) -> Result<Expr, Error> + Send + Sync + 'static
 // #todo add Expr::Date
 // #todo add Expr::Panic (catched by the runtime, should support unwind)
 
+// #insight Maybe.None == Nil == Unit
+// #insight (Maybe T) = (Or T Nil)
+
 /// A symbolic expression. This is the 'universal' data type in the language,
 /// all values are expressions (and expressions are values). Evaluation is expression
 /// rewriting to a fixed point.
@@ -93,6 +96,7 @@ pub enum Expr {
     // #insight the Bottom type is the dual to the Top type (Any)
     Zero, // Never, Bottom, the empty type, don't use the name `Nothing`
     // #insight Unit == One, and it _is_ 'one' in the algebraic sense
+    // #todo consider naming this Nil, like Gleam?
     One,                          // Unit == List(Vec::new()), the Void type.
     Comment(String, CommentKind), // #todo consider renaming to Remark (REM)
     TextSeparator,                // for the formatter.
