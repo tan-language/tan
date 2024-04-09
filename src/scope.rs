@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, sync::Arc};
 
 use crate::expr::Expr;
 
@@ -34,15 +34,15 @@ use crate::expr::Expr;
 pub struct Scope {
     // #todo add global/session ?
     // #todo support read-only bindings?
-    pub parent: Option<Rc<Scope>>,
-    pub bindings: RefCell<HashMap<String, Rc<Expr>>>,
+    pub parent: Option<Arc<Scope>>,
+    pub bindings: RefCell<HashMap<String, Arc<Expr>>>,
     // #idea have separate values/annotations!!!
     // #idea annotate only named expressions/bindings, don't annotate literals! to make the above work.
 }
 
 impl Scope {
     // #todo consider renaming to child_of?
-    pub fn new(parent: Rc<Scope>) -> Self {
+    pub fn new(parent: Arc<Scope>) -> Self {
         Self {
             parent: Some(parent),
             bindings: RefCell::new(HashMap::new()),
@@ -50,11 +50,15 @@ impl Scope {
     }
 
     // #todo do the `impl Into`s slow down?
-    pub fn insert(&self, name: impl Into<String>, value: impl Into<Rc<Expr>>) -> Option<Rc<Expr>> {
+    pub fn insert(
+        &self,
+        name: impl Into<String>,
+        value: impl Into<Arc<Expr>>,
+    ) -> Option<Arc<Expr>> {
         self.bindings.borrow_mut().insert(name.into(), value.into())
     }
 
-    pub fn get(&self, name: impl AsRef<str>) -> Option<Rc<Expr>> {
+    pub fn get(&self, name: impl AsRef<str>) -> Option<Arc<Expr>> {
         let bindings = self.bindings.borrow();
 
         let value = bindings.get(name.as_ref());
@@ -77,7 +81,7 @@ impl Scope {
         let binding = bindings.get_mut(name.as_ref());
 
         if let Some(binding) = binding {
-            *binding = Rc::new(value.into());
+            *binding = Arc::new(value.into());
         } else if let Some(parent) = &self.parent {
             parent.update(name, value);
         } else {
@@ -87,7 +91,7 @@ impl Scope {
 
     // #todo is this really useful?
     // #todo no need to return anything here?
-    pub fn remove(&self, name: impl AsRef<str>) -> Option<Rc<Expr>> {
+    pub fn remove(&self, name: impl AsRef<str>) -> Option<Arc<Expr>> {
         let mut bindings = self.bindings.borrow_mut();
         bindings.remove(name.as_ref())
     }

@@ -13,6 +13,8 @@
 // #todo in the future consider an async implementation, bring-in the tokio runtime.
 // #todo introduce StatusCode, canonical reason.
 
+// #todo implement general http/fetch.
+
 use std::{collections::HashMap, str::FromStr, sync::Arc};
 
 use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
@@ -154,7 +156,7 @@ pub fn http_post(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 // (let resp (http/post "https://api.site.com/create" "body" { :content-encoding "application/json" }))
 // (resp :status)
 
-pub fn setup_lib_http(context: &mut Context) {
+pub fn setup_lib_http_client(context: &mut Context) {
     let module = require_module("network/http", context);
     module.insert("get", Expr::ForeignFunc(Arc::new(http_get)));
     module.insert("post", Expr::ForeignFunc(Arc::new(http_post)));

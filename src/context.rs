@@ -1,6 +1,6 @@
 // #insight one instance of context per thread/process of execution.
 
-use std::{collections::HashMap, rc::Rc};
+use std::{collections::HashMap, sync::Arc};
 
 use crate::{
     eval::util::canonicalize_path, expr::Expr, module::Module, scope::Scope, stdlib::setup_lib,
@@ -17,20 +17,21 @@ const ROOT_PATH_ENV_VAR: &str = "TAN_ROOT";
 
 // #todo consider process/thread context?
 /// An execution context
+#[derive(Clone, Debug)]
 pub struct Context {
     // #todo what else should we add here?
     // #todo consider the name `module_map`
     pub root_path: String,
-    pub module_registry: HashMap<String, Rc<Module>>,
-    pub specials: HashMap<&'static str, Rc<Expr>>, // not used yet
+    pub module_registry: HashMap<String, Arc<Module>>,
+    pub specials: HashMap<&'static str, Arc<Expr>>, // not used yet
     // #insight named just scope instead of static_scope, to match module.scope.
     /// The static scope.
-    pub scope: Rc<Scope>,
+    pub scope: Arc<Scope>,
     /// The dynamic scope.
-    pub dynamic_scope: Rc<Scope>,
+    pub dynamic_scope: Arc<Scope>,
     // #todo find better name, e.g. prelude_scope?
     // #todo what about `global_scope`? nah...
-    pub top_scope: Rc<Scope>,
+    pub top_scope: Arc<Scope>,
 }
 
 impl Default for Context {
@@ -52,9 +53,9 @@ impl Context {
             root_path,
             module_registry: HashMap::new(),
             specials: HashMap::new(),
-            scope: Rc::new(Scope::default()),
-            dynamic_scope: Rc::new(Scope::default()),
-            top_scope: Rc::new(Scope::default()),
+            scope: Arc::new(Scope::default()),
+            dynamic_scope: Arc::new(Scope::default()),
+            top_scope: Arc::new(Scope::default()),
         };
 
         // #todo should setup_std externally!
@@ -80,14 +81,14 @@ impl Context {
 
         // #todo nasty, temp hack, makes older api functions work, CLEANUP!
 
-        context.scope = Rc::new(Scope::new(context.top_scope.clone()));
+        context.scope = Arc::new(Scope::new(context.top_scope.clone()));
 
         context
     }
 
     // #todo get_module_mut
     // #todo require_module
-    pub fn get_module(&self, path: &str) -> Option<&Rc<Module>> {
+    pub fn get_module(&self, path: &str) -> Option<&Arc<Module>> {
         // #todo this is a hack.
         // #todo extract as function.
         let url = format!("{}/@std/{}", self.root_path, path);
@@ -98,7 +99,7 @@ impl Context {
         self.module_registry.get(&url)
     }
 
-    pub fn get_module_mut(&mut self, path: &str) -> Option<&mut Rc<Module>> {
+    pub fn get_module_mut(&mut self, path: &str) -> Option<&mut Arc<Module>> {
         // #todo this is a hack.
         // #todo extract as function.
         let url = format!("{}/@std/{}", self.root_path, path);
@@ -110,10 +111,10 @@ impl Context {
     }
 
     pub fn insert_special(&mut self, key: &'static str, value: Expr) {
-        self.specials.insert(key, Rc::new(value));
+        self.specials.insert(key, Arc::new(value));
     }
 
-    pub fn get_special(&self, key: &'static str) -> Option<Rc<Expr>> {
+    pub fn get_special(&self, key: &'static str) -> Option<Arc<Expr>> {
         self.specials.get(key).cloned()
     }
 
@@ -122,9 +123,9 @@ impl Context {
     pub fn insert(
         &self,
         name: impl Into<String>,
-        value: impl Into<Rc<Expr>>,
+        value: impl Into<Arc<Expr>>,
         is_dynamically_scoped: bool,
-    ) -> Option<Rc<Expr>> {
+    ) -> Option<Arc<Expr>> {
         if is_dynamically_scoped {
             self.dynamic_scope.insert(name, value)
         } else {
@@ -133,7 +134,7 @@ impl Context {
     }
 
     #[inline]
-    pub fn get(&self, name: impl AsRef<str>, is_dynamically_scoped: bool) -> Option<Rc<Expr>> {
+    pub fn get(&self, name: impl AsRef<str>, is_dynamically_scoped: bool) -> Option<Arc<Expr>> {
         let name = name.as_ref();
         if is_dynamically_scoped {
             self.dynamic_scope.get(name)
