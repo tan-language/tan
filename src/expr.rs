@@ -631,12 +631,12 @@ impl Expr {
     }
 
     // #todo consider #[inline]
-    pub fn as_func(&self) -> Option<i64> {
-        let Expr::Int(n) = self.unpack() else {
-            return None;
-        };
-        Some(*n)
-    }
+    // pub fn as_func(&self) -> Option<i64> {
+    //     let Expr::Func(params, body, scope) = self.unpack() else {
+    //         return None;
+    //     };
+    //     Some(*n)
+    // }
 
     // // static vs dyn type.
     // pub fn static_type(&self) -> Expr {
