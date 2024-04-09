@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::{
     context::Context,
@@ -58,7 +58,7 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                     // let body = body.clone();
 
                     let prev_scope = context.scope.clone();
-                    context.scope = Rc::new(Scope::new(prev_scope.clone()));
+                    context.scope = Arc::new(Scope::new(prev_scope.clone()));
 
                     for (param, arg) in params.iter().zip(args) {
                         let Expr::Symbol(param) = param.unpack() else {
@@ -197,7 +197,7 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                         };
 
                         // #todo super nasty, quotes should be resolved statically (at compile time)
-                        // #todo hm, that clone, maybe `Rc` can fix this?
+                        // #todo hm, that clone, maybe `Arc` can fix this?
                         Ok(Some(Expr::List(vec![
                             Expr::Symbol("quot".to_owned()),
                             value.unpack().clone(),

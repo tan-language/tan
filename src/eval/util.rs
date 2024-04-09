@@ -1,7 +1,7 @@
 use std::{
     fs,
     path::{Path, PathBuf},
-    rc::Rc,
+    sync::Arc,
 };
 
 use crate::{
@@ -268,7 +268,7 @@ pub fn eval_module(
         module
     } else {
         // The module is not registered, try to load it.
-        Rc::new(Module::new(module_stem, context.top_scope.clone()))
+        Arc::new(Module::new(module_stem, context.top_scope.clone()))
     };
 
     let prev_scope = context.scope.clone();
@@ -314,7 +314,10 @@ pub fn eval_module(
 
 /// Returns the binding within a scope that match the given prefix.
 /// Does not search ancestors. Used in ...`use`.
-pub fn get_bindings_with_prefix(scope: &Scope, prefix: impl AsRef<str>) -> Vec<(String, Rc<Expr>)> {
+pub fn get_bindings_with_prefix(
+    scope: &Scope,
+    prefix: impl AsRef<str>,
+) -> Vec<(String, Arc<Expr>)> {
     let name = prefix.as_ref();
     let prefix = format!("{name}$$");
 

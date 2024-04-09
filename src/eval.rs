@@ -1,7 +1,7 @@
 pub mod iterator;
 pub mod util;
 
-use std::{collections::HashMap, rc::Rc};
+use std::{collections::HashMap, sync::Arc};
 
 use crate::{
     context::Context,
@@ -249,7 +249,7 @@ pub fn invoke_func(func: &Expr, args: &[Expr], context: &mut Context) -> Result<
     // scope on the lexical function scope.
 
     let prev_scope = context.scope.clone();
-    context.scope = Rc::new(Scope::new(func_scope.clone())); // #insight notice we use func_scope here!
+    context.scope = Arc::new(Scope::new(func_scope.clone())); // #insight notice we use func_scope here!
 
     // #todo consider args.into_iter();
 
@@ -499,7 +499,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             let params = params.clone();
 
                             let prev_scope = context.scope.clone();
-                            context.scope = Rc::new(Scope::new(prev_scope.clone()));
+                            context.scope = Arc::new(Scope::new(prev_scope.clone()));
 
                             for (param, arg) in params.iter().zip(&args) {
                                 let Some(param) = param.as_symbol() else {
@@ -741,7 +741,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo extract this.
 
                             let prev_scope = context.scope.clone();
-                            context.scope = Rc::new(Scope::new(prev_scope.clone()));
+                            context.scope = Arc::new(Scope::new(prev_scope.clone()));
 
                             for expr in tail {
                                 value = eval(expr, context)?;
@@ -857,7 +857,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             };
 
                             let prev_scope = context.scope.clone();
-                            context.scope = Rc::new(Scope::new(prev_scope.clone()));
+                            context.scope = Arc::new(Scope::new(prev_scope.clone()));
 
                             let mut iterator = iterator.borrow_mut();
 
@@ -964,7 +964,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             };
 
                             let prev_scope = context.scope.clone();
-                            context.scope = Rc::new(Scope::new(prev_scope.clone()));
+                            context.scope = Arc::new(Scope::new(prev_scope.clone()));
 
                             let mut iterator = iterator.borrow_mut();
 
@@ -1140,7 +1140,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             };
 
                             let prev_scope = context.scope.clone();
-                            context.scope = Rc::new(Scope::new(prev_scope.clone()));
+                            context.scope = Arc::new(Scope::new(prev_scope.clone()));
 
                             for x in arr.iter() {
                                 // #todo array should have Ann<Expr> use Ann<Expr> everywhere, avoid the clones!
@@ -1185,7 +1185,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             };
 
                             let prev_scope = context.scope.clone();
-                            context.scope = Rc::new(Scope::new(prev_scope.clone()));
+                            context.scope = Arc::new(Scope::new(prev_scope.clone()));
 
                             let mut results: Vec<Expr> = Vec::new();
 
@@ -1430,7 +1430,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             // #todo name this parent_scope?
                             let prev_scope = context.dynamic_scope.clone();
-                            context.dynamic_scope = Rc::new(Scope::new(prev_scope.clone()));
+                            context.dynamic_scope = Arc::new(Scope::new(prev_scope.clone()));
 
                             let Some(bindings) = bindings.as_array() else {
                                 return Err(Error::invalid_arguments(

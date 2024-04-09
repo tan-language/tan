@@ -7,7 +7,6 @@ use std::{
     collections::{HashMap, HashSet},
     fmt,
     hash::{Hash, Hasher},
-    rc::Rc,
     sync::Arc,
 };
 
@@ -116,11 +115,11 @@ pub enum Expr {
     // #todo add 'quoted' List -> Array!
     // #todo do we really need Vec here? Maybe Arc<[Expr]> is enough?
     List(Vec<Expr>),
-    Array(Rc<RefCell<Vec<Expr>>>), // #insight 'reference' type
+    Array(Arc<RefCell<Vec<Expr>>>), // #insight 'reference' type
     // #todo different name?
     // #todo support Expr as keys?
-    Map(Rc<RefCell<HashMap<String, Expr>>>),
-    Set(Rc<RefCell<HashSet<Expr>>>),
+    Map(Arc<RefCell<HashMap<String, Expr>>>),
+    Set(Arc<RefCell<HashSet<Expr>>>),
     // #todo support `start..` and `..end` ranges.
     // #todo open-ended range with step can look like this: `start../2`
     // #todo have type render as (Range Int)
@@ -131,7 +130,7 @@ pub enum Expr {
     // #todo the Func should probably store the Module environment.
     // #todo maybe should have explicit do block?
     /// Func(params, body, func_scope)
-    Func(Vec<Expr>, Vec<Expr>, Rc<Scope>, String),
+    Func(Vec<Expr>, Vec<Expr>, Arc<Scope>, String),
     // #todo add file_path to Macro
     // #todo maybe should have explicit do block?
     /// Macro(params, body)
@@ -140,7 +139,7 @@ pub enum Expr {
     // #todo the ForeignFunc should probably store the Module environment.
     // #todo introduce a ForeignFuncMut for mutating scope? what would be a better name?
     ForeignFunc(Arc<ExprContextFn>), // #todo for some reason, Box is not working here!
-    ForeignStruct(Rc<RefCell<dyn Any>>), // #todo consider Arc?
+    ForeignStruct(Arc<RefCell<dyn Any>>), // #todo consider Arc?
     // --- High-level ---
     // #todo do should contain the expressions also, pre-parsed!
     Do,
@@ -152,7 +151,7 @@ pub enum Expr {
     // #todo maybe use annotation in Expr for public/exported? no Vec<String> for exported?
     // #todo convert free-expression into pseudo-function?
     // Module(HashMap<String, Expr>, Vec<String>, Vec<Expr>), // bindings, public/exported, free-expressions.
-    Module(Rc<Module>),
+    Module(Arc<Module>),
 }
 
 impl Eq for Expr {}
@@ -404,15 +403,15 @@ impl Expr {
     }
 
     pub fn array(a: impl Into<Vec<Expr>>) -> Self {
-        Expr::Array(Rc::new(RefCell::new(a.into())))
+        Expr::Array(Arc::new(RefCell::new(a.into())))
     }
 
     pub fn map(m: impl Into<HashMap<String, Expr>>) -> Self {
-        Expr::Map(Rc::new(RefCell::new(m.into())))
+        Expr::Map(Arc::new(RefCell::new(m.into())))
     }
 
     pub fn set(s: impl Into<HashSet<Expr>>) -> Self {
-        Expr::Set(Rc::new(RefCell::new(s.into())))
+        Expr::Set(Arc::new(RefCell::new(s.into())))
     }
 
     // pub fn foreign_func(f: &ExprFn) -> Self {
@@ -748,13 +747,13 @@ pub fn format_value(expr: impl AsRef<Expr>) -> String {
     }
 }
 
-// #todo consider using Rc<Expr> everywhere?
+// #todo consider using Arc<Expr> everywhere?
 // #todo proper name
 // #todo proper value/reference handling for all types.
 /// Clones expressions in optimized way, handles ref types.
 pub fn expr_clone(expr: &Expr) -> Expr {
     match expr {
-        // #insight treat Array and Map as a 'reference' types, Rc.clone is efficient.
+        // #insight treat Array and Map as a 'reference' types, Arc.clone is efficient.
         Expr::Array(items) => Expr::Array(items.clone()),
         Expr::Map(items) => Expr::Map(items.clone()),
         _ => expr.clone(),
