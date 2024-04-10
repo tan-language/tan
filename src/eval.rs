@@ -155,7 +155,7 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
                 ));
             };
 
-            let names = try_lock_read(names, value.range())?;
+            let names = try_lock_read(names, name.range())?;
 
             // #todo check if the item count matches, report mismatches.
             for (i, name) in names.iter().enumerate() {
@@ -195,7 +195,10 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
                 ));
             };
             // #todo check if the item count matches, report mismatches.
-            for (key, name) in items.borrow().iter() {
+
+            let items = try_lock_read(items, name.range())?;
+
+            for (key, name) in items.iter() {
                 let Some(sym) = name.as_symbol() else {
                     return Err(Error::invalid_arguments(
                         "malformed destructuring bind, map pattern should contain symbols",
@@ -616,7 +619,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                     // #insight no need to unpack, format_value sees-through.
                     let key = format_value(&args[0]);
-                    if let Some(value) = map.borrow().get(&key) {
+
+                    let map = try_lock_read(map, expr.range())?;
+
+                    if let Some(value) = map.get(&key) {
                         Ok(value.clone())
                     } else {
                         // #todo introduce Maybe { Some, None }
@@ -1615,7 +1621,9 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             // #todo nasty code, improve.
             // #todo can this get pre-evaluated statically in some cases?
             let mut evaled_map = HashMap::new();
-            for (k, v) in map.borrow().iter() {
+            // #todo use pairs or items instead of map?
+            let map = try_lock_read(map, expr.range())?;
+            for (k, v) in map.iter() {
                 evaled_map.insert(k.clone(), eval(v, context)?);
             }
             Ok(Expr::map(evaled_map))

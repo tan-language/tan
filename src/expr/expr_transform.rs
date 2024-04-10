@@ -57,8 +57,7 @@ impl Expr {
             // #todo properly handle array
             (Expr::Map(map), ann) => {
                 // #todo investigate this clone!!!!
-                let map: HashMap<String, Expr> = map
-                    .borrow()
+                let map: HashMap<String, Expr> = expect_lock_read(map)
                     .clone()
                     .into_iter()
                     .map(|(key, value)| (key, value.clone().transform_mut(f)))
@@ -122,8 +121,7 @@ impl Expr {
             }
             (Expr::Map(map), ann) => {
                 // #todo investigate this clone!!!!
-                let map: HashMap<String, Expr> = map
-                    .borrow()
+                let map: HashMap<String, Expr> = expect_lock_read(map)
                     .clone()
                     .into_iter()
                     .map(|(key, value)| (key, value.quot(context)))

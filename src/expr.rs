@@ -3,7 +3,7 @@ pub mod expr_transform;
 
 use std::{
     any::Any,
-    cell::{Ref, RefCell, RefMut},
+    cell::{RefCell, RefMut},
     collections::{HashMap, HashSet},
     fmt,
     hash::{Hash, Hasher},
@@ -118,7 +118,7 @@ pub enum Expr {
     Array(Arc<RwLock<Vec<Expr>>>), // #insight 'reference' type
     // #todo different name?
     // #todo support Expr as keys?
-    Map(Arc<RefCell<HashMap<String, Expr>>>),
+    Map(Arc<RwLock<HashMap<String, Expr>>>),
     Set(Arc<RwLock<HashSet<Expr>>>),
     // #todo support `start..` and `..end` ranges.
     // #todo open-ended range with step can look like this: `start../2`
@@ -139,7 +139,7 @@ pub enum Expr {
     // #todo the ForeignFunc should probably store the Module environment.
     // #todo introduce a ForeignFuncMut for mutating scope? what would be a better name?
     ForeignFunc(Arc<ExprContextFn>), // #todo for some reason, Box is not working here!
-    ForeignStruct(Arc<RefCell<dyn Any>>), // #todo consider Arc?
+    ForeignStruct(Arc<RefCell<dyn Any>>),
     // --- High-level ---
     // #todo do should contain the expressions also, pre-parsed!
     Do,
@@ -171,9 +171,12 @@ impl PartialEq for Expr {
             (Self::Char(l0), Self::Char(r0)) => l0 == r0,
             (Self::String(l0), Self::String(r0)) => l0 == r0,
             (Self::List(l0), Self::List(r0)) => l0 == r0,
-            (Self::Array(..), Self::Array(..)) => false, // #todo equality not supported for Array, due to RwLock.
+            // #todo maybe should leave for the default discriminant case?
+            // #todo equality not supported for Array, due to RwLock.
+            // (Self::Array(..), Self::Array(..)) => false,
             // (Self::Array(l0), Self::Array(r0)) => l0 == r0,
-            (Self::Map(l0), Self::Map(r0)) => l0 == r0,
+            // #todo equality not supported for Map, due to RwLock.
+            // (Self::Map(l0), Self::Map(r0)) => l0 == r0,
             (Self::IntRange(l0, l1, l2), Self::IntRange(r0, r1, r2)) => {
                 l0 == r0 && l1 == r1 && l2 == r2
             }
@@ -333,8 +336,7 @@ impl fmt::Display for Expr {
                 Expr::Map(map) => {
                     // #todo Map should support arbitrary exprs (or at lease `(Into String)` exprs)
                     // #todo currently we convert keys to symbol, make this more subtle.
-                    let exprs = map
-                        .borrow()
+                    let exprs = expect_lock_read(map)
                         .iter()
                         .map(|(k, v)| format!(":{k} {v}"))
                         .collect::<Vec<String>>()
@@ -406,7 +408,7 @@ impl Expr {
     }
 
     pub fn map(m: impl Into<HashMap<String, Expr>>) -> Self {
-        Expr::Map(Arc::new(RefCell::new(m.into())))
+        Expr::Map(Arc::new(RwLock::new(m.into())))
     }
 
     pub fn set(s: impl Into<HashSet<Expr>>) -> Self {
@@ -602,18 +604,18 @@ impl Expr {
         Some(expect_lock_write(v))
     }
 
-    pub fn as_map(&self) -> Option<Ref<'_, HashMap<String, Expr>>> {
+    pub fn as_map(&self) -> Option<RwLockReadGuard<'_, HashMap<String, Expr>>> {
         let Expr::Map(map) = self.unpack() else {
             return None;
         };
-        Some(map.borrow())
+        Some(expect_lock_read(map))
     }
 
-    pub fn as_map_mut(&self) -> Option<RefMut<'_, HashMap<String, Expr>>> {
+    pub fn as_map_mut(&self) -> Option<RwLockWriteGuard<'_, HashMap<String, Expr>>> {
         let Expr::Map(map) = self.unpack() else {
             return None;
         };
-        Some(map.borrow_mut())
+        Some(expect_lock_write(map))
     }
 
     pub fn as_set(&self) -> Option<RwLockReadGuard<'_, HashSet<Expr>>> {

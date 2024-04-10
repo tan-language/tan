@@ -88,6 +88,7 @@ mod tests {
         api::eval_string,
         context::Context,
         expr::{format_value, Expr},
+        util::expect_lock_read,
     };
 
     #[test]
@@ -109,7 +110,7 @@ mod tests {
             panic!("expected Expr::Map");
         };
 
-        assert_eq!(format_value(&map.borrow()["name"]), "George");
-        assert_eq!(format_value(&map.borrow()["balance"]), "1022.33");
+        assert_eq!(format_value(&expect_lock_read(&map)["name"]), "George");
+        assert_eq!(format_value(&expect_lock_read(&map)["balance"]), "1022.33");
     }
 }
