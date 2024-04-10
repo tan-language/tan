@@ -5,9 +5,12 @@
 
 // #todo what about negative iteration, negative step?
 
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, rc::Rc, sync::RwLockReadGuard};
 
-use crate::expr::{expr_clone, Expr};
+use crate::{
+    expr::{expr_clone, Expr},
+    util::expect_lock_read,
+};
 
 pub trait ExprIterator {
     fn next(&mut self) -> Option<Expr>;
@@ -102,7 +105,7 @@ impl<'a> ExprIterator for ArrayIterator<'a> {
 // #todo ArrayIterator2 should replace ArrayIterator.
 pub struct ArrayIteratorRc<'a> {
     current: usize,
-    items: std::cell::Ref<'a, Vec<Expr>>,
+    items: RwLockReadGuard<'a, Vec<Expr>>,
     pub step: usize,
 }
 
@@ -191,7 +194,11 @@ pub fn try_iterator_from<'a>(expr: &'a Expr) -> Option<Rc<RefCell<dyn ExprIterat
             step: 1,
         }))),
         Expr::Array(items) => {
-            let items = items.borrow();
+            // let Ok(items) = items.read() else {
+            //     // #todo maybe panic here?
+            //     return None;
+            // };
+            let items = expect_lock_read(items);
             Some(Rc::new(RefCell::new(ArrayIteratorRc {
                 current: 0,
                 items,

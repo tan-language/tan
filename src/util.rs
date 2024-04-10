@@ -4,11 +4,36 @@
 // #todo consider using `name` instead of `symbol`?
 // #todo better organize the util module.
 
+use std::sync::{Arc, RwLock};
+
+use crate::{error::Error, range::Range};
+
 pub mod constants;
 pub mod fmt;
 pub mod module_util;
 pub mod put_back_iterator;
 pub mod standard_names;
+
+// #todo better name? consider lock_borrow?
+// #todo should mention what type of expr we are trying to read?
+pub fn expect_lock_read<T>(v: &Arc<RwLock<T>>) -> std::sync::RwLockReadGuard<'_, T> {
+    v.read().expect("lock should not be poisoned")
+}
+
+// #todo consider lock_borrow_mut?
+pub fn expect_lock_write<T>(v: &Arc<RwLock<T>>) -> std::sync::RwLockWriteGuard<'_, T> {
+    v.write().expect("lock should not be poisoned")
+}
+
+pub fn try_lock_read<T>(
+    v: &Arc<RwLock<T>>,
+    range: Option<Range>,
+) -> Result<std::sync::RwLockReadGuard<'_, T>, Error> {
+    let Ok(v) = v.read() else {
+        return Err(Error::poisoned_lock("when accessing expression", range));
+    };
+    Ok(v)
+}
 
 // #todo this looks SLOW, maybe just use a HashSet here?
 /// Returns true if `sym` is reserved.

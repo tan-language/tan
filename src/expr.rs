@@ -7,7 +7,7 @@ use std::{
     collections::{HashMap, HashSet},
     fmt,
     hash::{Hash, Hasher},
-    sync::Arc,
+    sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard},
 };
 
 #[cfg(feature = "dec")]
@@ -20,7 +20,7 @@ use crate::{
     module::Module,
     range::{Position, Range},
     scope::Scope,
-    util::fmt::format_float,
+    util::{expect_lock_read, expect_lock_write, fmt::format_float},
 };
 
 // #todo introduce Expr::ForeignStruct
@@ -115,11 +115,11 @@ pub enum Expr {
     // #todo add 'quoted' List -> Array!
     // #todo do we really need Vec here? Maybe Arc<[Expr]> is enough?
     List(Vec<Expr>),
-    Array(Arc<RefCell<Vec<Expr>>>), // #insight 'reference' type
+    Array(Arc<RwLock<Vec<Expr>>>), // #insight 'reference' type
     // #todo different name?
     // #todo support Expr as keys?
     Map(Arc<RefCell<HashMap<String, Expr>>>),
-    Set(Arc<RefCell<HashSet<Expr>>>),
+    Set(Arc<RwLock<HashSet<Expr>>>),
     // #todo support `start..` and `..end` ranges.
     // #todo open-ended range with step can look like this: `start../2`
     // #todo have type render as (Range Int)
@@ -171,7 +171,8 @@ impl PartialEq for Expr {
             (Self::Char(l0), Self::Char(r0)) => l0 == r0,
             (Self::String(l0), Self::String(r0)) => l0 == r0,
             (Self::List(l0), Self::List(r0)) => l0 == r0,
-            (Self::Array(l0), Self::Array(r0)) => l0 == r0,
+            (Self::Array(..), Self::Array(..)) => false, // #todo equality not supported for Array, due to RwLock.
+            // (Self::Array(l0), Self::Array(r0)) => l0 == r0,
             (Self::Map(l0), Self::Map(r0)) => l0 == r0,
             (Self::IntRange(l0, l1, l2), Self::IntRange(r0, r1, r2)) => {
                 l0 == r0 && l1 == r1 && l2 == r2
@@ -322,8 +323,7 @@ impl fmt::Display for Expr {
                     )
                 }
                 Expr::Array(exprs) => {
-                    let exprs = exprs
-                        .borrow()
+                    let exprs = expect_lock_read(exprs)
                         .iter()
                         .map(|expr| expr.to_string())
                         .collect::<Vec<String>>()
@@ -341,11 +341,10 @@ impl fmt::Display for Expr {
                         .join(" ");
                     format!("{{{exprs}}}")
                 }
-                Expr::Set(map) => {
+                Expr::Set(set) => {
                     // #todo Map should support arbitrary exprs (or at lease `(Into String)` exprs)
                     // #todo currently we convert keys to symbol, make this more subtle.
-                    let exprs = map
-                        .borrow()
+                    let exprs = expect_lock_read(set)
                         .iter()
                         .map(|v| format!("{v}"))
                         .collect::<Vec<String>>()
@@ -403,7 +402,7 @@ impl Expr {
     }
 
     pub fn array(a: impl Into<Vec<Expr>>) -> Self {
-        Expr::Array(Arc::new(RefCell::new(a.into())))
+        Expr::Array(Arc::new(RwLock::new(a.into())))
     }
 
     pub fn map(m: impl Into<HashMap<String, Expr>>) -> Self {
@@ -411,7 +410,7 @@ impl Expr {
     }
 
     pub fn set(s: impl Into<HashSet<Expr>>) -> Self {
-        Expr::Set(Arc::new(RefCell::new(s.into())))
+        Expr::Set(Arc::new(RwLock::new(s.into())))
     }
 
     // pub fn foreign_func(f: &ExprFn) -> Self {
@@ -575,11 +574,13 @@ impl Expr {
         Some(v)
     }
 
-    pub fn as_array(&self) -> Option<Ref<'_, Vec<Expr>>> {
+    pub fn as_array(&self) -> Option<RwLockReadGuard<'_, Vec<Expr>>> {
         let Expr::Array(v) = self.unpack() else {
             return None;
         };
-        Some(v.borrow())
+        // #todo what would be a good message?
+        // #todo extract as variable.
+        Some(expect_lock_read(v))
     }
 
     // // #todo try to find a better name.
@@ -594,11 +595,11 @@ impl Expr {
     //     }
     // }
 
-    pub fn as_array_mut(&self) -> Option<RefMut<'_, Vec<Expr>>> {
+    pub fn as_array_mut(&self) -> Option<RwLockWriteGuard<'_, Vec<Expr>>> {
         let Expr::Array(v) = self.unpack() else {
             return None;
         };
-        Some(v.borrow_mut())
+        Some(expect_lock_write(v))
     }
 
     pub fn as_map(&self) -> Option<Ref<'_, HashMap<String, Expr>>> {
@@ -615,18 +616,18 @@ impl Expr {
         Some(map.borrow_mut())
     }
 
-    pub fn as_set(&self) -> Option<Ref<'_, HashSet<Expr>>> {
+    pub fn as_set(&self) -> Option<RwLockReadGuard<'_, HashSet<Expr>>> {
         let Expr::Set(set) = self.unpack() else {
             return None;
         };
-        Some(set.borrow())
+        Some(expect_lock_read(set))
     }
 
-    pub fn as_set_mut(&self) -> Option<RefMut<'_, HashSet<Expr>>> {
+    pub fn as_set_mut(&self) -> Option<RwLockWriteGuard<'_, HashSet<Expr>>> {
         let Expr::Set(set) = self.unpack() else {
             return None;
         };
-        Some(set.borrow_mut())
+        Some(expect_lock_write(set))
     }
 
     // #todo consider #[inline]

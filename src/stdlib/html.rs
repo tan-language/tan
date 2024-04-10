@@ -15,7 +15,7 @@ use crate::{
     error::Error,
     eval::util::eval_module,
     expr::{format_value, Expr},
-    util::module_util::require_module,
+    util::{module_util::require_module, try_lock_read},
 };
 
 // #todo investigate the interaction between expr/string interpolation '$' and quoting, make string interpolation work in quoted expr.
@@ -44,7 +44,7 @@ fn render_expr(expr: &Expr) -> Result<Expr, Error> {
         Expr::Array(terms) => {
             // #todo this is a temp solution, investigate refactoring opportunities
             let mut html = String::new();
-            let terms = terms.borrow();
+            let terms = try_lock_read(terms, None)?;
             for term in terms.iter() {
                 let expr = render_expr(term)?;
                 html.push_str(&format_value(&expr));
@@ -105,7 +105,7 @@ fn render_expr(expr: &Expr) -> Result<Expr, Error> {
 
                         match term.unpack() {
                             Expr::Array(array) => {
-                                let array = array.borrow();
+                                let array = try_lock_read(array, None)?;
                                 for t in array.iter() {
                                     let child = render_expr(t)?;
                                     body.push_str(&format_value(&child));

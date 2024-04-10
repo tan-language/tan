@@ -77,6 +77,7 @@ pub enum ErrorVariant {
 
     // Runtime errors
     Io(std::io::Error),
+    PoisonedLock,    // #todo find a better name!
     General(String), // #todo find a better name!
 
     // Panic
@@ -124,6 +125,7 @@ impl fmt::Display for ErrorVariant {
             ErrorVariant::Io(io_err) => format!("i/o error: {io_err}"),
             ErrorVariant::FailedUse(url, _) => format!("failed use `{url}`"),
             ErrorVariant::InvalidArguments => "invalid arguments".to_owned(),
+            ErrorVariant::PoisonedLock => "poisoned lock".to_owned(),
             ErrorVariant::NotInvocable => "not invocable".to_owned(),
             ErrorVariant::General(text) => text.clone(),
             ErrorVariant::Panic(_) => "panic".to_owned(),
@@ -217,6 +219,12 @@ impl Error {
 
     pub fn invalid_arguments(note: &str, range: Option<Range>) -> Self {
         let mut error = Self::new(ErrorVariant::InvalidArguments);
+        error.push_note(note, range);
+        error
+    }
+
+    pub fn poisoned_lock(note: &str, range: Option<Range>) -> Self {
+        let mut error = Self::new(ErrorVariant::PoisonedLock);
         error.push_note(note, range);
         error
     }

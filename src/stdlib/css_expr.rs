@@ -9,7 +9,7 @@ use crate::{
     context::Context,
     error::Error,
     expr::{format_value, Expr},
-    util::module_util::require_module,
+    util::{module_util::require_module, try_lock_read},
 };
 
 // #todo #fixme key-symbol conversion skips the `:` chars.
@@ -82,18 +82,19 @@ fn render_css_expr(expr: &Expr) -> Result<Expr, Error> {
         Expr::Array(rules) => {
             let mut body: Vec<String> = Vec::new();
             // #todo #hack ultra hackish way to emulate unquote-explode in CSS-Expr
-            let is_explode = if let Some(flag) = rules.borrow()[0].as_string() {
+            let rules = try_lock_read(rules, None)?;
+            let is_explode = if let Some(flag) = rules[0].as_string() {
                 flag == "..."
             } else {
                 false
             };
             if is_explode {
-                for expr in rules.borrow().iter().skip(1) {
+                for expr in rules.iter().skip(1) {
                     body.push(format_value(expr));
                 }
                 Ok(Expr::string(body.join(";")))
             } else {
-                for expr in rules.borrow().iter() {
+                for expr in rules.iter() {
                     let value = render_css_expr(expr)?;
                     body.push(format_value(value));
                 }
