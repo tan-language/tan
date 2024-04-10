@@ -71,11 +71,12 @@ impl Context {
         // #todo could use a non-mut version of require_module.
         let prelude = context
             .get_module("prelude")
-            .expect("prelude should be defined");
+            .expect("prelude should be defined")
+            .clone();
 
         // #todo reuse `use` code here or extract helper!
-        let bindings = prelude.scope.bindings.borrow().clone();
-        for (name, value) in bindings {
+        let bindings = prelude.scope.bindings.read().expect("poisoned lock");
+        for (name, value) in bindings.iter() {
             context.top_scope.insert(name, value.clone());
         }
 

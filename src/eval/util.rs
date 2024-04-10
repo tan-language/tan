@@ -321,7 +321,7 @@ pub fn get_bindings_with_prefix(
     let name = prefix.as_ref();
     let prefix = format!("{name}$$");
 
-    let scope_bindings = scope.bindings.borrow();
+    let scope_bindings = scope.bindings.read().expect("poisoned lock");
 
     let mut matched_bindings = Vec::new();
 

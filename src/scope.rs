@@ -1,4 +1,7 @@
-use std::{cell::RefCell, collections::HashMap, sync::Arc};
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 
 use crate::expr::Expr;
 
@@ -35,7 +38,9 @@ pub struct Scope {
     // #todo add global/session ?
     // #todo support read-only bindings?
     pub parent: Option<Arc<Scope>>,
-    pub bindings: RefCell<HashMap<String, Arc<Expr>>>,
+    // #todo explain why we have RefCell here.
+    // #todo do we need RwLock here?
+    pub bindings: RwLock<HashMap<String, Arc<Expr>>>,
     // #idea have separate values/annotations!!!
     // #idea annotate only named expressions/bindings, don't annotate literals! to make the above work.
 }
@@ -45,7 +50,7 @@ impl Scope {
     pub fn new(parent: Arc<Scope>) -> Self {
         Self {
             parent: Some(parent),
-            bindings: RefCell::new(HashMap::new()),
+            bindings: RwLock::new(HashMap::new()),
         }
     }
 
@@ -55,11 +60,14 @@ impl Scope {
         name: impl Into<String>,
         value: impl Into<Arc<Expr>>,
     ) -> Option<Arc<Expr>> {
-        self.bindings.borrow_mut().insert(name.into(), value.into())
+        self.bindings
+            .write()
+            .expect("poisoned lock")
+            .insert(name.into(), value.into())
     }
 
     pub fn get(&self, name: impl AsRef<str>) -> Option<Arc<Expr>> {
-        let bindings = self.bindings.borrow();
+        let bindings = self.bindings.read().expect("poisoned lock");
 
         let value = bindings.get(name.as_ref());
 
@@ -76,7 +84,7 @@ impl Scope {
     // #todo should we even allow this?
     /// Updates an existing binding, walks the environment.
     pub fn update(&self, name: impl AsRef<str>, value: impl Into<Expr>) {
-        let mut bindings = self.bindings.borrow_mut();
+        let mut bindings = self.bindings.write().expect("poisoned lock");
 
         let binding = bindings.get_mut(name.as_ref());
 
@@ -92,7 +100,7 @@ impl Scope {
     // #todo is this really useful?
     // #todo no need to return anything here?
     pub fn remove(&self, name: impl AsRef<str>) -> Option<Arc<Expr>> {
-        let mut bindings = self.bindings.borrow_mut();
+        let mut bindings = self.bindings.write().expect("poisoned lock");
         bindings.remove(name.as_ref())
     }
 }
