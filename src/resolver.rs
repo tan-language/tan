@@ -250,8 +250,8 @@ impl Resolver {
                         // #todo support (use "/path/to/module" *) or (use "/path/to/module" :embed)
 
                         // #todo temp, needs cleanup!
-                        let bindings = module.scope.bindings.borrow().clone();
-                        for (name, value) in bindings {
+                        let bindings = module.scope.bindings.read().expect("poisoned lock");
+                        for (name, value) in bindings.iter() {
                             // #todo temp fix to not override the special var
                             if name.starts_with('*') {
                                 continue;

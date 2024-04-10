@@ -2,21 +2,25 @@ use std::{collections::HashMap, sync::Arc};
 
 use axum::{routing::get, Router};
 
-use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
+use crate::{
+    context::Context, error::Error, eval::invoke_func, expr::Expr,
+    util::module_util::require_module,
+};
 
 static DEFAULT_ADDRESS: &str = "127.0.0.1";
 static DEFAULT_PORT: i64 = 8000; // #todo what should be the default port?
 
-async fn run_server(options: HashMap<String, Expr>, handler: Expr, context: Context) {
+async fn run_server(options: HashMap<String, Expr>, handler: Expr, context: &mut Context) {
+    let mut context = context.clone();
     let app = Router::new().route(
         "/",
         get(|| async move {
-            // if let Ok(value) = invoke_func(&handler, &vec![], &mut context) {
-            //     if let Some(value) = value.as_stringable() {
-            //         return value;
-            //     }
-            // }
-            "error"
+            if let Ok(value) = invoke_func(&handler, &[], &mut context) {
+                if let Some(value) = value.as_stringable() {
+                    return value.to_string();
+                }
+            }
+            "error".to_string()
         }),
     );
 
@@ -80,11 +84,7 @@ pub fn http_serve(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
 
     let rt = tokio::runtime::Runtime::new().unwrap();
     // #todo argh, this clone is nasty!s
-    rt.block_on(run_server(
-        options.clone(),
-        handler.clone(),
-        context.clone(),
-    ));
+    rt.block_on(run_server(options.clone(), handler.clone(), context));
 
     // #insight never returns!
     Ok(Expr::Zero)

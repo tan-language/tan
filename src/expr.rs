@@ -138,7 +138,7 @@ pub enum Expr {
     // #todo the ForeignFunc should probably store the Module environment.
     // #todo introduce a ForeignFuncMut for mutating scope? what would be a better name?
     ForeignFunc(Arc<ExprContextFn>), // #todo for some reason, Box is not working here!
-    ForeignStruct(Arc<RwLock<dyn Any>>),
+    ForeignStruct(Arc<RwLock<dyn Any + Send + Sync + 'static>>),
     // --- High-level ---
     // #todo do should contain the expressions also, pre-parsed!
     Do,

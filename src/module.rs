@@ -50,6 +50,6 @@ mod tests {
     #[test]
     fn new_modules_dont_duplicate_prelude() {
         let module = Module::default();
-        assert_eq!(module.scope.bindings.borrow().len(), 0);
+        assert_eq!(module.scope.bindings.read().unwrap().len(), 0);
     }
 }
