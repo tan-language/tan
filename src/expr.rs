@@ -3,7 +3,6 @@ pub mod expr_transform;
 
 use std::{
     any::Any,
-    cell::{RefCell, RefMut},
     collections::{HashMap, HashSet},
     fmt,
     hash::{Hash, Hasher},
@@ -139,7 +138,7 @@ pub enum Expr {
     // #todo the ForeignFunc should probably store the Module environment.
     // #todo introduce a ForeignFuncMut for mutating scope? what would be a better name?
     ForeignFunc(Arc<ExprContextFn>), // #todo for some reason, Box is not working here!
-    ForeignStruct(Arc<RefCell<dyn Any>>),
+    ForeignStruct(Arc<RwLock<dyn Any>>),
     // --- High-level ---
     // #todo do should contain the expressions also, pre-parsed!
     Do,
@@ -513,10 +512,11 @@ impl Expr {
         Some(s)
     }
 
-    pub fn as_string_mut(&self) -> Option<RefMut<'_, &String>> {
-        // #todo how to implement this?
-        todo!()
-    }
+    // #todo
+    // pub fn as_string_mut(&self) -> Option<RefMut<'_, &String>> {
+    //     // #todo how to implement this?
+    //     todo!()
+    // }
 
     // #insight https://en.wiktionary.org/wiki/stringable
     pub fn as_stringable(&self) -> Option<&str> {

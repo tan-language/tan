@@ -35,6 +35,8 @@ pub struct Scope {
     // #todo add global/session ?
     // #todo support read-only bindings?
     pub parent: Option<Arc<Scope>>,
+    // #todo explain why we have RefCell here.
+    // #todo do we need RwLock here?
     pub bindings: RefCell<HashMap<String, Arc<Expr>>>,
     // #idea have separate values/annotations!!!
     // #idea annotate only named expressions/bindings, don't annotate literals! to make the above work.
