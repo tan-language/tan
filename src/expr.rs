@@ -119,7 +119,7 @@ pub enum Expr {
     // #todo different name?
     // #todo support Expr as keys?
     Map(Arc<RefCell<HashMap<String, Expr>>>),
-    Set(Arc<RefCell<HashSet<Expr>>>),
+    Set(Arc<RwLock<HashSet<Expr>>>),
     // #todo support `start..` and `..end` ranges.
     // #todo open-ended range with step can look like this: `start../2`
     // #todo have type render as (Range Int)
@@ -341,11 +341,10 @@ impl fmt::Display for Expr {
                         .join(" ");
                     format!("{{{exprs}}}")
                 }
-                Expr::Set(map) => {
+                Expr::Set(set) => {
                     // #todo Map should support arbitrary exprs (or at lease `(Into String)` exprs)
                     // #todo currently we convert keys to symbol, make this more subtle.
-                    let exprs = map
-                        .borrow()
+                    let exprs = expect_lock_read(set)
                         .iter()
                         .map(|v| format!("{v}"))
                         .collect::<Vec<String>>()
@@ -411,7 +410,7 @@ impl Expr {
     }
 
     pub fn set(s: impl Into<HashSet<Expr>>) -> Self {
-        Expr::Set(Arc::new(RefCell::new(s.into())))
+        Expr::Set(Arc::new(RwLock::new(s.into())))
     }
 
     // pub fn foreign_func(f: &ExprFn) -> Self {
@@ -617,18 +616,18 @@ impl Expr {
         Some(map.borrow_mut())
     }
 
-    pub fn as_set(&self) -> Option<Ref<'_, HashSet<Expr>>> {
+    pub fn as_set(&self) -> Option<RwLockReadGuard<'_, HashSet<Expr>>> {
         let Expr::Set(set) = self.unpack() else {
             return None;
         };
-        Some(set.borrow())
+        Some(expect_lock_read(set))
     }
 
-    pub fn as_set_mut(&self) -> Option<RefMut<'_, HashSet<Expr>>> {
+    pub fn as_set_mut(&self) -> Option<RwLockWriteGuard<'_, HashSet<Expr>>> {
         let Expr::Set(set) = self.unpack() else {
             return None;
         };
-        Some(set.borrow_mut())
+        Some(expect_lock_write(set))
     }
 
     // #todo consider #[inline]
