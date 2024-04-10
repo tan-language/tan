@@ -12,6 +12,7 @@ use crate::{
     scope::Scope,
     util::{
         is_dynamically_scoped, is_ellipsis, is_reserved_symbol, standard_names::CURRENT_FILE_PATH,
+        try_lock_read,
     },
 };
 
@@ -153,8 +154,11 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
                     value.range(),
                 ));
             };
+
+            let names = try_lock_read(names, value.range())?;
+
             // #todo check if the item count matches, report mismatches.
-            for (i, name) in names.borrow().iter().enumerate() {
+            for (i, name) in names.iter().enumerate() {
                 let Some(sym) = name.as_symbol() else {
                     return Err(Error::invalid_arguments(
                         "malformed destructuring bind, array pattern should contain symbols",
@@ -592,7 +596,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         ));
                     };
                     let index = index as usize;
-                    if let Some(value) = arr.borrow().get(index) {
+
+                    let arr = try_lock_read(arr, expr.range())?;
+
+                    if let Some(value) = arr.get(index) {
                         // #todo replace the clone with the custom expr::copy/ref
                         Ok(value.clone())
                     } else {
@@ -1596,7 +1603,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             // #insight [...] => (Array ...) => it's like a function.
             // #todo can this get pre-evaluated statically in some cases?
             let mut evaled_items = Vec::new();
-            for item in items.borrow().iter() {
+            let items = try_lock_read(items, expr.range())?;
+            for item in items.iter() {
                 evaled_items.push(eval(item, context)?);
             }
             Ok(Expr::array(evaled_items))

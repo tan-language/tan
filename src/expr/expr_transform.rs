@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{context::Context, eval::eval};
+use crate::{context::Context, eval::eval, util::expect_lock_read};
 
 use super::Expr;
 
@@ -44,8 +44,7 @@ impl Expr {
             // #todo properly handle array
             (Expr::Array(terms), ann) => {
                 // #todo investigate this clone!!!!
-                let terms: Vec<Expr> = terms
-                    .borrow()
+                let terms: Vec<Expr> = expect_lock_read(terms)
                     .clone()
                     .into_iter()
                     .map(|t| t.clone().transform_mut(f))
@@ -113,8 +112,7 @@ impl Expr {
             }
             (Expr::Array(terms), ann) => {
                 // #todo investigate this clone!!!!
-                let terms: Vec<Expr> = terms
-                    .borrow()
+                let terms: Vec<Expr> = expect_lock_read(terms)
                     .clone()
                     .into_iter()
                     .map(|t| t.quot(context))
