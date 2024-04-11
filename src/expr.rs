@@ -82,6 +82,8 @@ pub type ExprFn = dyn Fn(&[Expr]) -> Result<Expr, Error> + Send + Sync + 'static
 // #insight Maybe.None == Nil == Unit
 // #insight (Maybe T) = (Or T Nil)
 
+// #todo probably the Any/Never (i.e. Top/Bottom) types should not be encoded in Expr.
+
 /// A symbolic expression. This is the 'universal' data type in the language,
 /// all values are expressions (and expressions are values). Evaluation is expression
 /// rewriting to a fixed point.
@@ -89,13 +91,19 @@ pub type ExprFn = dyn Fn(&[Expr]) -> Result<Expr, Error> + Send + Sync + 'static
 pub enum Expr {
     // --- Low-level ---
     // #todo Any <> Nothing or even Anything <> Nothing, better keep the shorter Any
-    // Any, // Anything, Top
+    // Any is the Top type.
+    // Any,
+    // `Never` is the Bottom type (Zero). It's the empty type, a type without instances.
+    // #insight Never is the 'zero' in algebraic sense (x+0 = x, x*0 = 0)
     // #insight In the Curry–Howard correspondence, an empty type corresponds to falsity.
     // #insight the Bottom type is the dual to the Top type (Any)
-    Zero, // Never, Bottom, the empty type, don't use the name `Nothing`
+    Never,
+    // `Nil` is the Unit type (One). It's a type with a single instance, and thus carries no information.
+    // The single instance of `Nil` is `()` (nil).
+    // #insight `()` is used to avoid reserving `nil`.
+    // #insight Nil/Unit/One is the 'one' in algebraic sense (x+1 != 0, x*1 = x)
     // #insight Unit == One, and it _is_ 'one' in the algebraic sense
-    // #todo consider naming this Nil, like Gleam?
-    One,                          // Unit == List(Vec::new()), the Void type.
+    Nil,
     Comment(String, CommentKind), // #todo consider renaming to Remark (REM)
     TextSeparator,                // for the formatter.
     Bool(bool),                   // #todo remove?
@@ -243,8 +251,8 @@ impl Hash for Expr {
 impl fmt::Debug for Expr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let text = match self {
-            Expr::Zero => "⊥".to_owned(), // #todo maybe use an ASCII representation, e.g. `!` or `!!`
-            Expr::One => "()".to_owned(),
+            Expr::Never => "⊥".to_owned(), // #todo maybe use an ASCII representation, e.g. `!` or `!!`
+            Expr::Nil => "()".to_owned(),
             Expr::Comment(s, _) => format!("Comment({s})"),
             Expr::TextSeparator => "<TEXT-SEPARATOR>".to_owned(),
             Expr::Bool(b) => format!("Bool({b})"),
@@ -296,8 +304,8 @@ impl fmt::Display for Expr {
         // #todo optimize this!
         f.write_str(
             (match self {
-                Expr::Zero => "⊥".to_owned(),
-                Expr::One => "()".to_owned(),
+                Expr::Never => "⊥".to_owned(),
+                Expr::Nil => "()".to_owned(),
                 Expr::Comment(s, _) => format!(r#"(rem "{s}")"#), // #todo what would be a good representation?
                 Expr::TextSeparator => "<TS>".to_owned(),
                 Expr::Bool(b) => b.to_string(),
@@ -472,7 +480,7 @@ impl Expr {
 
     // #todo is_one/is_unit
     pub fn is_one(&self) -> bool {
-        matches!(self.unpack(), Expr::One)
+        matches!(self.unpack(), Expr::Nil)
     }
 
     // #todo consider #[inline]
@@ -650,7 +658,7 @@ impl Expr {
     // }
 
     pub fn static_type(&self) -> &Expr {
-        self.annotation("type").unwrap_or(&Expr::One)
+        self.annotation("type").unwrap_or(&Expr::Nil)
     }
 
     // #todo we need a version that returns just a string.
@@ -667,8 +675,8 @@ impl Expr {
         }
 
         match self.unpack() {
-            Expr::Zero => Expr::typ("Zero"), // Never
-            Expr::One => Expr::typ("One"),   // Unit
+            Expr::Never => Expr::typ("Zero"), // Never
+            Expr::Nil => Expr::typ("One"),    // Unit
             Expr::Int(_) => Expr::typ("Int"),
             Expr::Float(_) => Expr::typ("Float"),
             Expr::Dec(_) => Expr::typ("Dec"),

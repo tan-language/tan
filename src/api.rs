@@ -165,7 +165,7 @@ pub fn resolve_string(
 pub fn eval_string(input: impl AsRef<str>, context: &mut Context) -> Result<Expr, Vec<Error>> {
     let exprs = resolve_string(input, context)?;
 
-    let mut last_value = Expr::One;
+    let mut last_value = Expr::Nil;
 
     for expr in exprs {
         let value = eval(&expr, context);

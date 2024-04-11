@@ -55,6 +55,8 @@ async fn run_server(options: HashMap<String, Expr>, handler: Expr, context: &mut
     axum::serve(listener, app).await.unwrap();
 }
 
+// #todo investigate the Go http-serve API.
+
 // (http/serve {:port 8000} (Func [] "hello world!"))
 pub fn http_serve(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     // #todo consider other name instead of handler, e.g. `callback`.
@@ -87,7 +89,7 @@ pub fn http_serve(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     rt.block_on(run_server(options.clone(), handler.clone(), context));
 
     // #insight never returns!
-    Ok(Expr::Zero)
+    Ok(Expr::Never)
 }
 
 pub fn setup_lib_http_server(context: &mut Context) {
