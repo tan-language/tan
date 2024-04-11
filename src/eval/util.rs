@@ -199,7 +199,7 @@ pub fn eval_file(path: &str, context: &mut Context) -> Result<Expr, Vec<Error>> 
         return Err(errors);
     };
 
-    let mut value = Expr::One;
+    let mut value = Expr::Nil;
     let mut errors = Vec::new();
 
     for expr in exprs {

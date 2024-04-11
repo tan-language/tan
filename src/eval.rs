@@ -300,7 +300,7 @@ pub fn invoke_func(func: &Expr, args: &[Expr], context: &mut Context) -> Result<
     // #todo this code is the same as in the (do ..) block, extract.
 
     // #todo do should be 'monadic', propagate Eff (effect) wrapper.
-    let mut value = Expr::One;
+    let mut value = Expr::Nil;
 
     for expr in body {
         // #todo what happens on `return` statement! should exit this loop and not evaluate the rest!
@@ -468,7 +468,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                 eval(false_clause, context)
             } else {
                 // #todo what should we return if there is no false-clause? Zero/Never?
-                Ok(Expr::One)
+                Ok(Expr::Nil)
             }
         }
         Expr::List(list) => {
@@ -481,7 +481,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                 // check is needed in the evaluator to handle the case where the
                 // expression is constructed programmatically (e.g. self-modifying code,
                 // dynamically constructed expression, homoiconicity, etc).
-                return Ok(Expr::One);
+                return Ok(Expr::Nil);
             }
 
             // The unwrap here is safe.
@@ -607,7 +607,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         Ok(value.clone())
                     } else {
                         // #todo introduce Maybe { Some, None }
-                        Ok(Expr::One)
+                        Ok(Expr::Nil)
                     }
                 }
                 Expr::Map(map) => {
@@ -626,7 +626,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         Ok(value.clone())
                     } else {
                         // #todo introduce Maybe { Some, None }
-                        Ok(Expr::One)
+                        Ok(Expr::Nil)
                     }
                 }
                 Expr::Type(s) => match s.as_str() {
@@ -749,7 +749,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         // #todo use the `optimize`/`raise` function, here to prepare high-level expression for evaluation, to avoid duplication.
                         "do" => {
                             // #todo do should be 'monadic', propagate Eff (effect) wrapper.
-                            let mut value = Expr::One;
+                            let mut value = Expr::Nil;
 
                             // #todo extract this.
 
@@ -780,7 +780,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             eval(&expr, context)
                         }
                         "return" => {
-                            let value = tail.first().unwrap_or(&Expr::One);
+                            let value = tail.first().unwrap_or(&Expr::Nil);
                             let value = eval(value, context)?;
                             Err(Error::return_cf(value))
                         }
@@ -793,7 +793,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         // #todo consider break without parentheses?
                         // #todo maybe should return some kind of Nothing/Never/Zero value?
                         "break" => {
-                            let value = tail.first().unwrap_or(&Expr::One);
+                            let value = tail.first().unwrap_or(&Expr::Nil);
                             let value = eval(value, context)?;
                             Err(Error::break_cf(value))
                         }
@@ -908,7 +908,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo what happens to this if an error is thrown?
                             context.scope = prev_scope;
 
-                            Ok(Expr::One)
+                            Ok(Expr::Nil)
                         }
                         // #todo consider the name `for*` or something similar?
                         "for->list" => {
@@ -1010,7 +1010,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 ));
                             };
 
-                            let mut value = Expr::One;
+                            let mut value = Expr::Nil;
 
                             loop {
                                 let predicate = eval(predicate, context)?;
@@ -1068,7 +1068,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 // #insight
                                 // Zero / Nothing disallows this:
                                 // (let flag (if predicate (+ 1 2))) ; compile error: cannot assign Nothing
-                                Ok(Expr::Zero)
+                                Ok(Expr::Never)
                             }
                         }
                         // #todo is this different enough from `if`?
@@ -1083,7 +1083,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             loop {
                                 if i >= tail.len() {
                                     // #todo what should we return here? probably Never/Zero?
-                                    break Ok(Expr::One);
+                                    break Ok(Expr::Nil);
                                 }
 
                                 let Some(predicate) = tail.get(i) else {
@@ -1165,7 +1165,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             context.scope = prev_scope;
 
                             // #todo intentionally don't return a value, reconsider this?
-                            Ok(Expr::One)
+                            Ok(Expr::Nil)
                         }
                         // #todo #hack this has a BAD interface for map, don't use, FIX!!
                         // #todo extract
@@ -1245,7 +1245,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             context.scope.update(name, value.clone());
 
                             // #todo what should this return? One/Unit (i.e. nothing useful) or the actual value?
-                            Ok(Expr::One)
+                            Ok(Expr::Nil)
                         }
                         "scope-update" => {
                             // #todo this name conflicts with scope.update()
@@ -1277,7 +1277,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 context.scope.insert(name, expr_clone(value));
                             }
 
-                            Ok(Expr::One)
+                            Ok(Expr::Nil)
                         }
                         "use" => {
                             // #insight modules are (currently) directories, _not_ files.
@@ -1383,7 +1383,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                     }
 
                                     // #todo again consider returning the module here.
-                                    return Ok(Expr::One);
+                                    return Ok(Expr::Nil);
                                 } else if let Some(prefix) = arg.as_symbol() {
                                     module_prefix = prefix;
                                 } else {
@@ -1418,7 +1418,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             // #todo what could we return here? the Expr::Module?
                             // Ok(Expr::Module(module))
-                            Ok(Expr::One)
+                            Ok(Expr::Nil)
                         }
                         // #todo #hack temp hack
                         // (let-ds [*q* 1]
@@ -1436,7 +1436,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             }
 
                             // #todo do should be 'monadic', propagate Eff (effect) wrapper.
-                            let mut value = Expr::One;
+                            let mut value = Expr::Nil;
 
                             let bindings = tail.first().unwrap();
                             let body = &tail[1..];
@@ -1523,7 +1523,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             }
 
                             // #todo return last value!
-                            Ok(Expr::One)
+                            Ok(Expr::Nil)
                         }
                         "not" => {
                             // #todo make a function

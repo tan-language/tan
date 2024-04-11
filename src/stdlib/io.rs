@@ -108,7 +108,7 @@ pub fn write(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
         }
     }
 
-    Ok(Expr::One)
+    Ok(Expr::Nil)
 }
 
 pub fn writeln(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {

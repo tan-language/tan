@@ -35,7 +35,7 @@ pub fn set_put(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     items.insert(expr_clone(value.unpack()));
 
     // #todo what should we return here?
-    Ok(Expr::One)
+    Ok(Expr::Nil)
 }
 
 // #todo set_values is a _weird_ name!

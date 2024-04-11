@@ -76,7 +76,7 @@ pub fn write_string_to_file(args: &[Expr], _context: &mut Context) -> Result<Exp
 
     fs::write(path, content)?;
 
-    Ok(Expr::One)
+    Ok(Expr::Nil)
 }
 
 // #todo use walkdir crate instead!
@@ -270,7 +270,7 @@ pub fn create_directory(args: &[Expr], _context: &mut Context) -> Result<Expr, E
     fs::create_dir_all(path)?;
 
     // #todo what to return?
-    Ok(Expr::One)
+    Ok(Expr::Nil)
 }
 
 // #todo add some kind of unit test for this.

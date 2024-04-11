@@ -425,7 +425,7 @@ impl<'a> Parser<'a> {
                     // #insight this was causing a problem with Func with no params.
                     // #todo maybe as_list should return empty list?
                     // `()` == One/Unit   (unit is _not_ Top)
-                    Some(Expr::One)
+                    Some(Expr::Nil)
                 } else {
                     Some(Expr::List(terms))
 

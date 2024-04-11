@@ -36,7 +36,7 @@ pub fn ann(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     } else {
         // #todo what to return here?
         // Ok(Expr::map(HashMap::new()))
-        Ok(Expr::One)
+        Ok(Expr::Nil)
     }
 }
 
@@ -183,7 +183,7 @@ pub fn eval_string(args: &[Expr], context: &mut Context) -> Result<Expr, Error> 
 
         if let Ok(exprs) = result {
             // #todo what would be the correct initialization?
-            let mut value = Expr::One;
+            let mut value = Expr::Nil;
             for expr in exprs {
                 value = eval(&expr, context)?;
                 // if let Err(mut error) = eval(&expr, context) {

@@ -145,7 +145,7 @@ fn render_expr(expr: &Expr) -> Result<Expr, Error> {
         }
         // #todo is there a better way to do this?
         // #insight Nothing/Zero expressions should be skipped.
-        Expr::Zero => Ok(Expr::string("")),
+        Expr::Never => Ok(Expr::string("")),
         _ => Ok(Expr::string(format_value(expr))),
     }
 }
