@@ -41,10 +41,6 @@ use self::{
 pub fn eval_args(args: &[Expr], context: &mut Context) -> Result<Vec<Expr>, Error> {
     // #todo should report ALL errors!
 
-    // args.iter()
-    //     .map(|x| eval(x, context))
-    //     .collect::<Result<Vec<_>, _>>()
-
     let mut values = Vec::with_capacity(args.len());
     for arg in args {
         values.push(eval(arg, context)?);

@@ -22,7 +22,6 @@ use crate::{
     util::{expect_lock_read, expect_lock_write, fmt::format_float},
 };
 
-// #todo introduce Expr::ForeignStruct
 // #todo introduce Expr::Ref() with an Rc reference to avoid excessive cloning!
 
 // #insight
@@ -57,7 +56,7 @@ use crate::{
 
 // #todo consider Visitor pattern instead of enum?
 
-// #todo consider &mut Context <--
+// #todo for ForeignFn
 // #todo consider &mut and & Context, different types!
 // #todo consider version with no Context
 // #todo find a better name for the type-alias
@@ -98,6 +97,7 @@ pub enum Expr {
     // #insight In the Curry–Howard correspondence, an empty type corresponds to falsity.
     // #insight the Bottom type is the dual to the Top type (Any)
     Never,
+    // #todo consider renaming Nil to None? (more like Python, less like Lisp)
     // `Nil` is the Unit type (One). It's a type with a single instance, and thus carries no information.
     // The single instance of `Nil` is `()` (nil).
     // #insight `()` is used to avoid reserving `nil`.
