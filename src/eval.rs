@@ -1165,42 +1165,6 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo intentionally don't return a value, reconsider this?
                             Ok(Expr::Nil)
                         }
-                        // #todo extract to stdlib file.
-                        // (map (Func [x] (+ x 1)) [1 2 3]) ; => [2 3 4]
-                        // (map \(+ % 1) [1 2 3])
-                        // "map" => {
-                        //     // #todo add unit tests.
-
-                        //     let [func, seq] = tail else {
-                        //         return Err(Error::invalid_arguments(
-                        //             "malformed `map`",
-                        //             expr.range(),
-                        //         ));
-                        //     };
-
-                        //     let func = eval(func, context)?;
-
-                        //     let seq = eval(seq, context)?;
-
-                        //     let Some(input_values) = seq.as_array() else {
-                        //         return Err(Error::invalid_arguments(
-                        //             "`map` requires a `Seq` as the first argument",
-                        //             seq.range(),
-                        //         ));
-                        //     };
-
-                        //     // #insight cannot use map, because of the `?` operator.
-
-                        //     let mut output_values: Vec<Expr> = Vec::new();
-
-                        //     for x in input_values.iter() {
-                        //         // #todo can we remove this clone somehow?
-                        //         let args = vec![expr_clone(x)];
-                        //         output_values.push(invoke_func(&func, &args, context)?);
-                        //     }
-
-                        //     Ok(Expr::array(output_values))
-                        // }
                         "set!" => {
                             // #insight
                             // this is not the same as let, it also traverses the scope stack to find bindings to

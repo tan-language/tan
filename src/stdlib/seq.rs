@@ -557,6 +557,19 @@ mod tests {
     }
 
     #[test]
+    fn array_map_usage() {
+        let input = r#"
+            (let arr [1 2 3 4])
+            (map (Func [x] (+ 5 x)) arr)
+        "#;
+        let mut context = Context::new();
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "[6 7 8 9]";
+        assert_eq!(value, expected);
+    }
+
+    #[test]
     fn array_filter_usage() {}
 
     #[test]
