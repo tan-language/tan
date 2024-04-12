@@ -1,6 +1,6 @@
 pub mod arithmetic;
 pub mod chrono;
-pub mod cmark; // #tod rename to common mark?
+pub mod cmark; // #todo rename to common mark?
 pub mod cmp;
 pub mod css_expr;
 pub mod eq;
@@ -34,7 +34,6 @@ use self::{
 };
 
 // #todo consider extracting as a (temporary?) crate, e.g. tan-stdlib-native, tan-native-lib, tan-runtime
-// #todo find
 // #todo add unit test for the foreign-functions.
 
 // #todo consider extracting builtins.

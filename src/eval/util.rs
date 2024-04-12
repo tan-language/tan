@@ -28,14 +28,6 @@ use super::eval;
 //     todo!()
 // }
 
-// (use /math) ; #todo better (use math)
-// (use /math :only [pi tau])
-// (use /math :exclude [pi])
-// (use /math :as "mathematics")
-// (use /math [pi tau])
-// (use /@gmosx/my-lib) ; #todo better (use @gmosx/my-lib)
-// (use http://www.tan.org/modules/my-lib)
-
 // #todo handle module_urls with https://, https://, ipfs://, etc, auto-download, like Deno.
 
 // #todo write unit tests!

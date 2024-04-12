@@ -1,3 +1,5 @@
+// #insight used in parser.
+
 pub struct PutBackIterator<'a, T> {
     items: std::slice::Iter<'a, T>,
     buffer: Vec<&'a T>,
