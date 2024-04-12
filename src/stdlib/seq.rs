@@ -233,6 +233,40 @@ pub fn array_contains(args: &[Expr], _context: &mut Context) -> Result<Expr, Err
     Ok(Expr::Bool(elements.contains(element.unpack())))
 }
 
+// #todo add unit tests.
+pub fn array_map(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+    let [func, seq] = args else {
+        return Err(Error::invalid_arguments(
+            "requires `func` and `seq` arguments",
+            None,
+        ));
+    };
+
+    // let func = eval(func, context)?;
+
+    // let seq = eval(seq, context)?;
+
+    let Some(input_values) = seq.as_array() else {
+        return Err(Error::invalid_arguments(
+            "`seq` must be an `Array`",
+            seq.range(),
+        ));
+    };
+
+    // #insight cannot use map, because of the `?` operator.
+
+    let mut output_values: Vec<Expr> = Vec::new();
+
+    for x in input_values.iter() {
+        // #todo can we remove this clone somehow?
+        let args = vec![expr_clone(x)];
+        output_values.push(invoke_func(func, &args, context)?);
+    }
+
+    Ok(Expr::array(output_values))
+}
+
+// #todo this can actually be implemented with invoke_func.
 // #todo how to implement this? -> implement with tan code!
 pub fn array_filter(_args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     todo!();
@@ -381,6 +415,12 @@ pub fn setup_lib_seq(context: &mut Context) {
     module.insert("push", Expr::ForeignFunc(Arc::new(array_push)));
     // #todo also introduce `++`, `++=`, versions
     module.insert("concat!", Expr::ForeignFunc(Arc::new(array_concat_mut)));
+
+    // (map (Func [x] (+ x 1)) [1 2 3]) ; => [2 3 4]
+    // (map (Fn x (+ x 1)) [1 2 3]) ; => [2 3 4]
+    // (map (-> x (+ x 1)) [1 2 3]) ; => [2 3 4]
+    // (map \(+ % 1) [1 2 3])
+    module.insert("map", Expr::ForeignFunc(Arc::new(array_map)));
 
     module.insert("join", Expr::ForeignFunc(Arc::new(array_join)));
     module.insert("skip", Expr::ForeignFunc(Arc::new(array_skip)));

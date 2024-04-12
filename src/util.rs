@@ -59,7 +59,6 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
             | "for->list" // #todo reconsider the name!
             | "while"
             | "for-each" // #todo extract as seq function
-            | "map"
             | "eval"
             | "panic!"
             | "quot"
