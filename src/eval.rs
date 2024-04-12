@@ -195,6 +195,8 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
             let items = try_lock_read(items, name.range())?;
 
             for (key, name) in items.iter() {
+                // #todo could use as_stringable here.
+                // #todo could use the real expression here.
                 let Some(sym) = name.as_symbol() else {
                     return Err(Error::invalid_arguments(
                         "malformed destructuring bind, map pattern should contain symbols",
@@ -1163,53 +1165,41 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo intentionally don't return a value, reconsider this?
                             Ok(Expr::Nil)
                         }
-                        // #todo #hack this has a BAD interface for map, don't use, FIX!!
-                        // #todo extract
-                        // #todo functions implemented here have dynamic dispatch!
-                        // #todo show usage in comments
-                        // (map [1 2 3] x (+ x 1)) ; => [2 3 4]
+                        // #todo extract to stdlib file.
+                        // (map (Func [x] (+ x 1)) [1 2 3]) ; => [2 3 4]
+                        // (map \(+ % 1) [1 2 3])
                         "map" => {
-                            // #todo this is a temp hack!
-                            let [seq, var, body] = tail else {
+                            // #todo add unit tests.
+
+                            let [func, seq] = tail else {
                                 return Err(Error::invalid_arguments(
                                     "malformed `map`",
                                     expr.range(),
                                 ));
                             };
 
+                            let func = eval(func, context)?;
+
                             let seq = eval(seq, context)?;
 
-                            let Some(arr) = seq.as_array() else {
+                            let Some(input_values) = seq.as_array() else {
                                 return Err(Error::invalid_arguments(
                                     "`map` requires a `Seq` as the first argument",
                                     seq.range(),
                                 ));
                             };
 
-                            let Some(sym) = var.as_symbol() else {
-                                return Err(Error::invalid_arguments(
-                                    "`map` requires a symbol as the second argument",
-                                    var.range(),
-                                ));
-                            };
+                            // #insight cannot use map, because of the `?` operator.
 
-                            let prev_scope = context.scope.clone();
-                            context.scope = Arc::new(Scope::new(prev_scope.clone()));
+                            let mut output_values: Vec<Expr> = Vec::new();
 
-                            let mut results: Vec<Expr> = Vec::new();
-
-                            for x in arr.iter() {
-                                // #todo array should have Ann<Expr> use Ann<Expr> everywhere, avoid the clones!
-                                context.scope.insert(sym, x.clone());
-                                let result = eval(body, context)?;
-                                // #todo replace the clone with custom expr::ref/copy?
-                                results.push(result.unpack().clone());
+                            for x in input_values.iter() {
+                                // #todo can we remove this clone somehow?
+                                let args = vec![expr_clone(x)];
+                                output_values.push(invoke_func(&func, &args, context)?);
                             }
 
-                            context.scope = prev_scope.clone();
-
-                            // #todo intentionally don't return a value, reconsider this?
-                            Ok(Expr::array(results))
+                            Ok(Expr::array(output_values))
                         }
                         "set!" => {
                             // #insight
