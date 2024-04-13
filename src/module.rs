@@ -48,7 +48,7 @@ mod tests {
     use super::Module;
 
     #[test]
-    fn new_modules_dont_duplicate_prelude() {
+    fn new_modules_do_not_duplicate_prelude() {
         let module = Module::default();
         assert_eq!(module.scope.bindings.read().unwrap().len(), 0);
     }

@@ -92,7 +92,7 @@ pub struct ArrayIterator<'a> {
 impl<'a> ExprIterator for ArrayIterator<'a> {
     fn next(&mut self) -> Option<Expr> {
         if self.current < self.items.len() {
-            let value = self.items[self.current].clone(); // #todo argh, avoid this. should array have Rcs?
+            let value = self.items[self.current].clone(); // #todo avoid this, should array have Rcs?
             self.current += self.step;
             Some(value)
         } else {
@@ -112,7 +112,7 @@ pub struct ArrayIteratorRc<'a> {
 impl<'a> ExprIterator for ArrayIteratorRc<'a> {
     fn next(&mut self) -> Option<Expr> {
         if self.current < self.items.len() {
-            let value = self.items[self.current].clone(); // #todo argh, avoid this. should array have Rcs? SOS!!!
+            let value = self.items[self.current].clone(); // #todo avoid this, should array have Rcs? SOS!!!
             self.current += self.step;
             Some(value)
         } else {
@@ -131,7 +131,7 @@ impl ExprIterator for MapIterator {
     // #todo keep rust iterator instead.
     fn next(&mut self) -> Option<Expr> {
         if self.current < self.items.len() {
-            let value = self.items[self.current].clone(); // #todo argh, avoid this. should array have Rcs? SOS!!!
+            let value = self.items[self.current].clone(); // #todo avoid this, should array have Rcs? SOS!!!
             self.current += self.step;
             Some(value)
         } else {
@@ -152,7 +152,7 @@ impl ExprIterator for SetIterator {
     // #todo keep rust iterator instead.
     fn next(&mut self) -> Option<Expr> {
         if self.current < self.items.len() {
-            let value = self.items[self.current].clone(); // #todo argh, avoid this. should array have Rcs? SOS!!!
+            let value = self.items[self.current].clone(); // #todo avoid this, should array have Rcs? SOS!!!
             self.current += self.step;
             Some(value)
         } else {
@@ -237,7 +237,7 @@ pub fn try_iterator_from<'a>(expr: &'a Expr) -> Option<Rc<RefCell<dyn ExprIterat
 
             // #todo wow, this is incredibly inefficient.
             // #todo #hack temp fix we add the a `:` prefix to generate keys
-            // #todo argh, cloned!
+            // #todo try to avoid the cloned!
             let items: Vec<_> = items.iter().cloned().collect();
 
             Some(Rc::new(RefCell::new(SetIterator {

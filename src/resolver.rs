@@ -93,7 +93,7 @@ impl Resolver {
                 }
 
                 // #todo handle 'PathSymbol'
-                // #todo handle a Map invocable (and other invocables).
+                // #todo handle a Map invocable (and other invokables).
                 // #todo please note that multiple-dispatch is supposed to be dynamic!
 
                 let result = if let Some(Expr::Symbol(method)) = expr.annotation("method") {
@@ -308,7 +308,7 @@ impl Resolver {
                         // return Expr::maybe_annotated(Expr::List(list), head.annotations());
 
                         // #todo do something ;-)
-                        // #todo this is a temp hack, we don't resolve inside a function, argh!
+                        // #todo this is a temp hack, we don't resolve inside a function!
 
                         // dbg!(&head);
                         // dbg!(&tail);

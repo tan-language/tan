@@ -25,7 +25,7 @@ pub fn prune_fn(expr: Expr) -> Option<Expr> {
             None
         }
         Expr::TextSeparator => {
-            // #todo remove TextSeparator anws.
+            // #todo remove TextSeparator.
             // #todo move prune elsewhere.
             // Prune TextSeparator expressions.
             None

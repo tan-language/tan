@@ -122,9 +122,7 @@ impl<'a> Lexer<'a> {
     fn scan_chars(&mut self, count: usize) -> Option<String> {
         let mut chars = String::new();
         for _ in 0..count {
-            let Some(ch) = self.next_char() else {
-                return None;
-            };
+            let ch = self.next_char()?;
             chars.push(ch);
         }
         Some(chars)
