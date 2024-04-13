@@ -1,4 +1,5 @@
 mod eval_if;
+mod eval_let;
 pub mod iterator;
 pub mod util;
 
@@ -19,6 +20,7 @@ use crate::{
 
 use self::{
     eval_if::eval_if,
+    eval_let::eval_let,
     iterator::try_iterator_from,
     util::{anchor, eval_module, get_bindings_with_prefix},
 };
@@ -1412,33 +1414,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo return last value!
                             Ok(value)
                         }
-                        "let" => {
-                            // #todo there is currently no resolver, duh.
-                            // #todo actually some resolving is happening in macro_expand, e.g. checking for binding values.
-                            // #todo this is already parsed statically by resolver, no need to duplicate the tests here?
-                            // #todo also report some of these errors statically, maybe in a sema phase?
-                            // #todo use 'location' or 'lvalue' instead of name?
-
-                            let mut args = tail.iter();
-
-                            loop {
-                                let Some(name) = args.next() else {
-                                    break;
-                                };
-
-                                let Some(value) = args.next() else {
-                                    // #todo error?
-                                    break;
-                                };
-
-                                let value = eval(value, context)?;
-
-                                insert_binding(name, value, context)?
-                            }
-
-                            // #todo return last value!
-                            Ok(Expr::Nil)
-                        }
+                        "let" => anchor(eval_let(tail, context), expr),
                         "not" => {
                             // #todo make a function
                             // #todo consider binary/bitmask version.
