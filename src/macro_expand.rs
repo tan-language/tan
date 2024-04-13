@@ -84,9 +84,12 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                     Ok(Some(value))
                 }
                 Expr::Type(sym) => {
+                    // #insight macro handling is removed from eval, there are no runtime/dynamic macro definitions
+                    // #insight to create/eval macros at runtime (dyn-time) make sure you call macro-expand.
+                    // #todo macros should be handled at a separate, comptime, macroexpand pass.
+                    // #todo actually two passes, macro_def, macro_expand
+                    // #todo probably macro handling should be removed from eval, there are no runtime/dynamic macro definitions!!
                     if sym == "Macro" {
-                        // #todo this is duplicated in eval, think about this!!! probably should remove from eval.
-
                         let Some(params) = tail.first() else {
                             // #todo seems the range is not reported correctly here!!!
                             return Err(Error::invalid_arguments(

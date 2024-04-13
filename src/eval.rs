@@ -667,31 +667,6 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             file_path,
                         ))
                     }
-                    // #todo macros should be handled at a separate, comptime, macroexpand pass.
-                    // #todo actually two passes, macro_def, macro_expand
-                    // #todo probably macro handling should be removed from eval, there are no runtime/dynamic macro definitions!!
-                    // #todo this is also in macro-expand!
-                    // "Macro" => {
-                    //     let Some(params) = tail.first() else {
-                    //         // #todo seems the range is not reported correctly here!!!
-                    //         return Err(Error::invalid_arguments(
-                    //             "malformed macro definition, missing function parameters",
-                    //             expr.range(),
-                    //         ));
-                    //     };
-
-                    //     let body = &tail[1..];
-
-                    //     let Some(params) = params.as_list() else {
-                    //         return Err(Error::invalid_arguments(
-                    //             "malformed macro parameters definition",
-                    //             params.range(),
-                    //         ));
-                    //     };
-
-                    //     // #todo optimize!
-                    //     Ok(Expr::Macro(params.clone(), body.into()))
-                    // }
                     // #todo lookup constructor function
                     _ => Err(Error::not_invocable(
                         &format!("not invocable constructor `{head}`"),
