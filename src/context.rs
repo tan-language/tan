@@ -3,7 +3,7 @@
 use std::{collections::HashMap, sync::Arc};
 
 use crate::{
-    eval::util::canonicalize_path, expr::Expr, module::Module, scope::Scope, stdlib::setup_lib,
+    eval::util::canonicalize_path, expr::Expr, library::setup_lib, module::Module, scope::Scope,
 };
 
 // #insight Context is the instance of a Tan 'machine'.

@@ -44,7 +44,7 @@ mod tests {
 
     use assert_matches::assert_matches;
 
-    use crate::{expr::Expr, stdlib::cmp::rust_ordering_from_tan_ordering};
+    use crate::{expr::Expr, library::cmp::rust_ordering_from_tan_ordering};
 
     #[test]
     fn rust_ordering_from_tan_ordering_usage() {
