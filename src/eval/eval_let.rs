@@ -26,6 +26,6 @@ pub fn eval_let(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
         insert_binding(name, value, context)?
     }
 
-    // #todo return last value!
+    // #todo return last value, it would require some cloning currently.
     Ok(Expr::Nil)
 }
