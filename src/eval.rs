@@ -569,20 +569,21 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     // Evaluate the arguments before calling the function.
                     let args = eval_args(tail, context)?;
 
-                    let result = foreign_function(&args, context);
+                    anchor(foreign_function(&args, context), expr)
+                    // let result = foreign_function(&args, context);
 
                     // If the error has no range, try to apply the range of the invocation.
-                    if let Err(mut error) = result {
-                        if let Some(note) = error.notes.first_mut() {
-                            if note.range.is_none() {
-                                note.range = expr.range()
-                            }
-                        };
+                    // if let Err(mut error) = result {
+                    //     if let Some(note) = error.notes.first_mut() {
+                    //         if note.range.is_none() {
+                    //             note.range = expr.range()
+                    //         }
+                    //     };
 
-                        return Err(error);
-                    };
+                    //     return Err(error);
+                    // };
 
-                    result
+                    // result
                 }
                 Expr::Array(arr) => {
                     // Evaluate the arguments before calling the function.
@@ -1031,47 +1032,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             Ok(value)
                         }
-                        "if" => {
-                            anchor(eval_if(tail, context), expr)
-                            // // #todo this is a temp hack!
-                            // let Some(predicate) = tail.first() else {
-                            //     return Err(Error::invalid_arguments(
-                            //         "malformed if predicate",
-                            //         expr.range(),
-                            //     ));
-                            // };
-
-                            // let Some(true_clause) = tail.get(1) else {
-                            //     return Err(Error::invalid_arguments(
-                            //         "malformed if true clause",
-                            //         expr.range(),
-                            //     ));
-                            // };
-
-                            // // #todo don't get false_clause if not required?
-                            // let false_clause = tail.get(2);
-
-                            // let predicate = eval(predicate, context)?;
-
-                            // let Some(predicate) = predicate.as_bool() else {
-                            //     return Err(Error::invalid_arguments(
-                            //         "the if predicate is not a boolean value",
-                            //         predicate.range(),
-                            //     ));
-                            // };
-
-                            // if predicate {
-                            //     eval(true_clause, context)
-                            // } else if let Some(false_clause) = false_clause {
-                            //     eval(false_clause, context)
-                            // } else {
-                            //     // #insight In the Curry–Howard correspondence, an empty type corresponds to falsity.
-                            //     // #insight
-                            //     // Zero / Nothing disallows this:
-                            //     // (let flag (if predicate (+ 1 2))) ; compile error: cannot assign Nothing
-                            //     Ok(Expr::Never)
-                            // }
-                        }
+                        "if" => anchor(eval_if(tail, context), expr),
                         // #todo is this different enough from `if`?
                         // (cond
                         //   (> i 5) (...)
