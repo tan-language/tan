@@ -1,5 +1,6 @@
 mod eval_if;
 mod eval_let;
+mod eval_panic;
 mod eval_use;
 pub mod iterator;
 pub mod util;
@@ -20,8 +21,8 @@ use crate::{
 };
 
 use self::{
-    eval_if::eval_if, eval_let::eval_let, eval_use::eval_use, iterator::try_iterator_from,
-    util::anchor,
+    eval_if::eval_if, eval_let::eval_let, eval_panic::eval_panic, eval_use::eval_use,
+    iterator::try_iterator_from, util::anchor,
 };
 
 // #insight
@@ -333,48 +334,6 @@ pub fn invoke_func(func: &Expr, args: &[Expr], context: &mut Context) -> Result<
     context.scope = prev_scope;
 
     Ok(value)
-}
-
-// #todo could be made a ForeignFunc actually, not performance sensitive.
-// #todo extract to special_forms or something.
-// #todo note that we pass op, this is a macro?
-pub fn eval_panic(op: &Expr, args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
-    // #todo make message optional!
-
-    // #todo the op.range() annotation could be applied externally.
-    let [msg] = args else {
-        return Err(Error::invalid_arguments(
-            "requires `msg` argument",
-            op.range(),
-        ));
-    };
-
-    let Some(msg) = msg.as_stringable() else {
-        return Err(Error::invalid_arguments(
-            "`msg` argument should be a Stringable",
-            msg.range(),
-        ));
-    };
-
-    // #todo encode location.
-
-    let file_path = context
-        .get_special(CURRENT_FILE_PATH)
-        .unwrap()
-        .as_string()
-        .unwrap()
-        .to_string();
-
-    // #todo add panic constructor.
-    let mut error = Error {
-        variant: crate::error::ErrorVariant::Panic(msg.to_string()),
-        file_path: file_path.clone(),
-        notes: vec![],
-    };
-
-    error.push_note(msg, op.range());
-
-    Err(error)
 }
 
 // #todo needs better conversion to Expr::Annotated
@@ -766,7 +725,9 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             Ok(value)
                         }
-                        "panic!" => eval_panic(&head, tail, context),
+                        // #insight `head` seems to have range info, that `expr` lacks.
+                        // #todo add range info to expr (no unpack) and use it instead!!!
+                        "panic!" => anchor(eval_panic(tail, context), &head),
                         "eval" => {
                             // #todo also support eval-all/eval-many? (auto wrap with do?)
                             let [expr] = tail else {
@@ -1194,6 +1155,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             Ok(Expr::Nil)
                         }
+                        // #insight `head` seems to have range info, that `expr` lacks.
+                        // #todo add range info to expr (no unpack) and use it instead!!!
                         "use" => anchor(eval_use(tail, context), expr),
                         // #todo #hack temp hack
                         // (let-ds [*q* 1]
