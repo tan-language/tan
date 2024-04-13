@@ -1,3 +1,4 @@
+mod eval_if;
 pub mod iterator;
 pub mod util;
 
@@ -17,8 +18,9 @@ use crate::{
 };
 
 use self::{
+    eval_if::eval_if,
     iterator::try_iterator_from,
-    util::{eval_module, get_bindings_with_prefix},
+    util::{anchor, eval_module, get_bindings_with_prefix},
 };
 
 // #insight
@@ -1030,44 +1032,45 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             Ok(value)
                         }
                         "if" => {
-                            // #todo this is a temp hack!
-                            let Some(predicate) = tail.first() else {
-                                return Err(Error::invalid_arguments(
-                                    "malformed if predicate",
-                                    expr.range(),
-                                ));
-                            };
+                            anchor(eval_if(tail, context), expr)
+                            // // #todo this is a temp hack!
+                            // let Some(predicate) = tail.first() else {
+                            //     return Err(Error::invalid_arguments(
+                            //         "malformed if predicate",
+                            //         expr.range(),
+                            //     ));
+                            // };
 
-                            let Some(true_clause) = tail.get(1) else {
-                                return Err(Error::invalid_arguments(
-                                    "malformed if true clause",
-                                    expr.range(),
-                                ));
-                            };
+                            // let Some(true_clause) = tail.get(1) else {
+                            //     return Err(Error::invalid_arguments(
+                            //         "malformed if true clause",
+                            //         expr.range(),
+                            //     ));
+                            // };
 
-                            // #todo don't get false_clause if not required?
-                            let false_clause = tail.get(2);
+                            // // #todo don't get false_clause if not required?
+                            // let false_clause = tail.get(2);
 
-                            let predicate = eval(predicate, context)?;
+                            // let predicate = eval(predicate, context)?;
 
-                            let Some(predicate) = predicate.as_bool() else {
-                                return Err(Error::invalid_arguments(
-                                    "the if predicate is not a boolean value",
-                                    predicate.range(),
-                                ));
-                            };
+                            // let Some(predicate) = predicate.as_bool() else {
+                            //     return Err(Error::invalid_arguments(
+                            //         "the if predicate is not a boolean value",
+                            //         predicate.range(),
+                            //     ));
+                            // };
 
-                            if predicate {
-                                eval(true_clause, context)
-                            } else if let Some(false_clause) = false_clause {
-                                eval(false_clause, context)
-                            } else {
-                                // #insight In the Curry–Howard correspondence, an empty type corresponds to falsity.
-                                // #insight
-                                // Zero / Nothing disallows this:
-                                // (let flag (if predicate (+ 1 2))) ; compile error: cannot assign Nothing
-                                Ok(Expr::Never)
-                            }
+                            // if predicate {
+                            //     eval(true_clause, context)
+                            // } else if let Some(false_clause) = false_clause {
+                            //     eval(false_clause, context)
+                            // } else {
+                            //     // #insight In the Curry–Howard correspondence, an empty type corresponds to falsity.
+                            //     // #insight
+                            //     // Zero / Nothing disallows this:
+                            //     // (let flag (if predicate (+ 1 2))) ; compile error: cannot assign Nothing
+                            //     Ok(Expr::Never)
+                            // }
                         }
                         // #todo is this different enough from `if`?
                         // (cond

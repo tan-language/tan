@@ -19,6 +19,22 @@ use crate::{
 
 use super::eval;
 
+// #todo find a good name.
+/// If the result is an error, add a range from the 'anchor' expression.
+pub fn anchor(result: Result<Expr, Error>, expr: &Expr) -> Result<Expr, Error> {
+    if let Err(mut error) = result {
+        // #todo notes in error is a hack, needs refactoring.
+        if let Some(note) = error.notes.first_mut() {
+            if note.range.is_none() {
+                note.range = expr.range()
+            }
+        };
+        Err(error)
+    } else {
+        result
+    }
+}
+
 // #todo split read_module, eval(_module)
 // #todo not sure that dir as module is a good idea.
 
