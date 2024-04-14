@@ -1,9 +1,12 @@
 use std::{collections::HashMap, sync::Arc};
 
-use axum::handler::HandlerWithoutStateExt;
+use axum::{extract::Request, handler::HandlerWithoutStateExt};
 
 use crate::{
-    context::Context, error::Error, eval::invoke_func, expr::Expr,
+    context::Context,
+    error::Error,
+    eval::invoke_func,
+    expr::{annotate_type, Expr},
     util::module_util::require_module,
 };
 
@@ -13,8 +16,15 @@ static DEFAULT_PORT: i64 = 8000; // #todo what should be the default port?
 async fn run_server(options: HashMap<String, Expr>, handler: Expr, context: &mut Context) {
     let mut context = context.clone();
 
-    let axum_handler = || async move {
-        if let Ok(value) = invoke_func(&handler, &[], &mut context) {
+    let axum_handler = |axum_req: Request| async move {
+        // #todo what else to pass to tan_req?
+        let mut map = HashMap::new();
+        map.insert("uri".to_string(), Expr::string(axum_req.uri().to_string()));
+        // #todo consider "/http/Request".
+        let req = annotate_type(Expr::map(map), "http/Request");
+
+        // #todo handle conversion of more return types.
+        if let Ok(value) = invoke_func(&handler, &[req], &mut context) {
             if let Some(value) = value.as_stringable() {
                 return value.to_string();
             }
