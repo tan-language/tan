@@ -642,8 +642,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         // #todo optimize!
                         let file_path = context
                             .get_special(CURRENT_FILE_PATH)
-                            // #todo why is the unwrap_or_else triggered? this covers a bug.
-                            .unwrap_or_else(|| Arc::new(Expr::string("unknown")))
+                            // #todo use unwrap_or_else to be more fault tolerant?
+                            // .unwrap_or_else(|| Arc::new(Expr::string("UNKNOWN")))
+                            // #insight for the moment we use unwrap() to catch bugs
+                            .unwrap()
                             .as_string()
                             .unwrap()
                             .to_string();
