@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{context::Context, error::Error, expr::Expr, util::standard_names::CURRENT_FILE_PATH};
 
 // #todo make this anchor-compatible.
@@ -23,7 +25,10 @@ pub fn eval_panic(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
 
     let file_path = context
         .get_special(CURRENT_FILE_PATH)
-        .unwrap()
+        // #todo this duplicated code from eval, refactor+extract
+        // #todo think about how to best handle this.
+        // #insight use unwrap_or_else to be more fault tolerant, when no file is available (eval_string, repl, etc...)
+        .unwrap_or_else(|| Arc::new(Expr::string("UNKNOWN")))
         .as_string()
         .unwrap()
         .to_string();

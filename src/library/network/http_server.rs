@@ -17,11 +17,13 @@ use crate::{
 static DEFAULT_ADDRESS: &str = "127.0.0.1";
 static DEFAULT_PORT: i64 = 8000; // #todo what should be the default port?
 
+// #see https://docs.rs/axum/latest/axum/response/index.html
+
 async fn run_server(options: HashMap<String, Expr>, handler: Expr, context: &mut Context) {
     let mut context = context.clone();
 
     let axum_handler = |axum_req: Request| async move {
-        // #todo what else to pass to tan_req?
+        // #todo what else to pass to tan_req? (headers, method, ...)
         let mut map = HashMap::new();
         map.insert("uri".to_string(), Expr::string(axum_req.uri().to_string()));
         // #todo consider "/http/Request".
@@ -104,11 +106,8 @@ pub fn http_serve(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
         ));
     };
 
-    // let result = invoke_func(handler, &Vec::new(), context)?;
-    // eprintln!("=== {options:?} : {result}");
-
     let rt = tokio::runtime::Runtime::new().unwrap();
-    // #todo argh, this clone is nasty!s
+    // #todo can we remove the clones?
     rt.block_on(run_server(options.clone(), handler.clone(), context));
 
     // #insight never returns!
