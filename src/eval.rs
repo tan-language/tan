@@ -1,3 +1,4 @@
+mod eval_do;
 mod eval_for;
 mod eval_if;
 mod eval_let;
@@ -22,8 +23,8 @@ use crate::{
 };
 
 use self::{
-    eval_for::eval_for, eval_if::eval_if, eval_let::eval_let, eval_panic::eval_panic,
-    eval_use::eval_use, iterator::try_iterator_from, util::anchor,
+    eval_do::eval_do, eval_for::eval_for, eval_if::eval_if, eval_let::eval_let,
+    eval_panic::eval_panic, eval_use::eval_use, iterator::try_iterator_from, util::anchor,
 };
 
 // #insight
@@ -670,23 +671,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         // special term
                         // #todo the low-level handling of special forms should use the above high-level cases.
                         // #todo use the `optimize`/`raise` function, here to prepare high-level expression for evaluation, to avoid duplication.
-                        "do" => {
-                            // #todo do should be 'monadic', propagate Eff (effect) wrapper.
-                            let mut value = Expr::Nil;
-
-                            // #todo extract this.
-
-                            let prev_scope = context.scope.clone();
-                            context.scope = Arc::new(Scope::new(prev_scope.clone()));
-
-                            for expr in tail {
-                                value = eval(expr, context)?;
-                            }
-
-                            context.scope = prev_scope;
-
-                            Ok(value)
-                        }
+                        "do" => anchor(eval_do(tail, context), expr),
                         // #insight `head` seems to have range info, that `expr` lacks.
                         // #todo add range info to expr (no unpack) and use it instead!!!
                         "panic!" => anchor(eval_panic(tail, context), &head),
