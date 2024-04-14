@@ -1,6 +1,10 @@
 use std::{collections::HashMap, sync::Arc};
 
-use axum::{extract::Request, handler::HandlerWithoutStateExt};
+use axum::{
+    extract::Request,
+    handler::HandlerWithoutStateExt,
+    http::{header, StatusCode},
+};
 
 use crate::{
     context::Context,
@@ -25,11 +29,20 @@ async fn run_server(options: HashMap<String, Expr>, handler: Expr, context: &mut
 
         // #todo handle conversion of more return types.
         if let Ok(value) = invoke_func(&handler, &[req], &mut context) {
+            // #todo set content type depending on output.
             if let Some(value) = value.as_stringable() {
-                return value.to_string();
+                return (
+                    StatusCode::FOUND,
+                    [(header::CONTENT_TYPE, "text/html")],
+                    value.to_string(),
+                );
             }
         }
-        "error".to_string()
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            [(header::CONTENT_TYPE, "text/plain")],
+            "internal server error".to_string(),
+        )
     };
 
     let address = if options.contains_key("address") {
