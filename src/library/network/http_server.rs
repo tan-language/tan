@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-use axum::{routing::get, Router};
+use axum::handler::HandlerWithoutStateExt;
 
 use crate::{
     context::Context, error::Error, eval::invoke_func, expr::Expr,
@@ -12,17 +12,15 @@ static DEFAULT_PORT: i64 = 8000; // #todo what should be the default port?
 
 async fn run_server(options: HashMap<String, Expr>, handler: Expr, context: &mut Context) {
     let mut context = context.clone();
-    let app = Router::new().route(
-        "/",
-        get(|| async move {
-            if let Ok(value) = invoke_func(&handler, &[], &mut context) {
-                if let Some(value) = value.as_stringable() {
-                    return value.to_string();
-                }
+
+    let axum_handler = || async move {
+        if let Ok(value) = invoke_func(&handler, &[], &mut context) {
+            if let Some(value) = value.as_stringable() {
+                return value.to_string();
             }
-            "error".to_string()
-        }),
-    );
+        }
+        "error".to_string()
+    };
 
     let address = if options.contains_key("address") {
         if let Some(address) = options["address"].as_stringable() {
@@ -52,7 +50,9 @@ async fn run_server(options: HashMap<String, Expr>, handler: Expr, context: &mut
     // #todo add some kind of tracing?
     // println!("listening on {}", listener.local_addr().unwrap());
 
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(listener, axum_handler.into_make_service())
+        .await
+        .unwrap();
 }
 
 // #todo investigate the Go http-serve API.

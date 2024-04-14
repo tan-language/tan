@@ -642,7 +642,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         // #todo optimize!
                         let file_path = context
                             .get_special(CURRENT_FILE_PATH)
-                            .unwrap()
+                            // #todo why is the unwrap_or_else triggered? this covers a bug.
+                            .unwrap_or_else(|| Arc::new(Expr::string("unknown")))
                             .as_string()
                             .unwrap()
                             .to_string();
