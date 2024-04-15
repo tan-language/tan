@@ -9,7 +9,6 @@ use crate::{
 // #insight Context is the instance of a Tan 'machine'.
 
 // #todo consider renaming to Env again?
-// #todo keep `specials` or `special-vars`, e.g. *current-module*.
 // #todo rethink what Context is
 // #todo initialize *current-module-path*? e.g. to '.'
 // #todo in the past we had a ...special `specials` map for system variables, is this useful?
