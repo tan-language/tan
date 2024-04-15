@@ -12,6 +12,7 @@ use crate::{
 // #todo keep `specials` or `special-vars`, e.g. *current-module*.
 // #todo rethink what Context is
 // #todo initialize *current-module-path*? e.g. to '.'
+// #todo in the past we had a ...special `specials` map for system variables, is this useful?
 
 const ROOT_PATH_ENV_VAR: &str = "TAN_ROOT";
 
@@ -23,7 +24,6 @@ pub struct Context {
     pub root_path: String,
     // #todo consider the name `module_map`
     pub module_registry: HashMap<String, Arc<Module>>,
-    pub specials: HashMap<&'static str, Arc<Expr>>, // not used yet
     // #insight named just scope instead of static_scope, to match module.scope.
     /// The static scope.
     pub scope: Arc<Scope>,
@@ -54,7 +54,6 @@ impl Context {
         let mut context = Self {
             root_path,
             module_registry: HashMap::new(),
-            specials: HashMap::new(),
             scope: top_scope.clone(),
             dynamic_scope: Arc::new(Scope::default()),
             top_scope: top_scope.clone(),
@@ -113,14 +112,6 @@ impl Context {
         let url = canonicalize_path(url);
 
         self.module_registry.get_mut(&url)
-    }
-
-    pub fn insert_special(&mut self, key: &'static str, value: Expr) {
-        self.specials.insert(key, Arc::new(value));
-    }
-
-    pub fn get_special(&self, key: &'static str) -> Option<Arc<Expr>> {
-        self.specials.get(key).cloned()
     }
 
     // #todo do the `impl Into`s slow down?
