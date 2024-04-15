@@ -9,9 +9,9 @@ use crate::{
 // #insight Context is the instance of a Tan 'machine'.
 
 // #todo consider renaming to Env again?
-// #todo keep `specials` or `special-vars`, e.g. *current-module*.
 // #todo rethink what Context is
 // #todo initialize *current-module-path*? e.g. to '.'
+// #todo in the past we had a ...special `specials` map for system variables, is this useful?
 
 const ROOT_PATH_ENV_VAR: &str = "TAN_ROOT";
 
@@ -20,10 +20,9 @@ const ROOT_PATH_ENV_VAR: &str = "TAN_ROOT";
 #[derive(Clone, Debug)]
 pub struct Context {
     // #todo what else should we add here?
-    // #todo consider the name `module_map`
     pub root_path: String,
+    // #todo consider the name `module_map`
     pub module_registry: HashMap<String, Arc<Module>>,
-    pub specials: HashMap<&'static str, Arc<Expr>>, // not used yet
     // #insight named just scope instead of static_scope, to match module.scope.
     /// The static scope.
     pub scope: Arc<Scope>,
@@ -49,13 +48,14 @@ impl Context {
         let root_path = std::env::var(ROOT_PATH_ENV_VAR)
             .unwrap_or_else(|_| panic!("env variable `{ROOT_PATH_ENV_VAR}` should be set"));
 
+        let top_scope = Arc::new(Scope::default());
+
         let mut context = Self {
             root_path,
             module_registry: HashMap::new(),
-            specials: HashMap::new(),
-            scope: Arc::new(Scope::default()),
+            scope: top_scope.clone(),
             dynamic_scope: Arc::new(Scope::default()),
-            top_scope: Arc::new(Scope::default()),
+            top_scope: top_scope.clone(),
         };
 
         // #todo should setup_std externally!
@@ -77,12 +77,14 @@ impl Context {
         // #todo reuse `use` code here or extract helper!
         let bindings = prelude.scope.bindings.read().expect("poisoned lock");
         for (name, value) in bindings.iter() {
-            context.top_scope.insert(name, value.clone());
+            top_scope.insert(name, value.clone());
         }
 
         // #todo nasty, temp hack, makes older api functions work, CLEANUP!
 
-        context.scope = Arc::new(Scope::new(context.top_scope.clone()));
+        // #todo we need scope-stack visualization.
+        // #todo do we really need this intermediate scope? for some reason this is needed! investigate why!
+        context.scope = Arc::new(Scope::new(top_scope.clone()));
 
         context
     }
@@ -109,14 +111,6 @@ impl Context {
         let url = canonicalize_path(url);
 
         self.module_registry.get_mut(&url)
-    }
-
-    pub fn insert_special(&mut self, key: &'static str, value: Expr) {
-        self.specials.insert(key, Arc::new(value));
-    }
-
-    pub fn get_special(&self, key: &'static str) -> Option<Arc<Expr>> {
-        self.specials.get(key).cloned()
     }
 
     // #todo do the `impl Into`s slow down?

@@ -641,7 +641,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                         // #todo optimize!
                         let file_path = context
-                            .get_special(CURRENT_FILE_PATH)
+                            .top_scope
+                            .get(CURRENT_FILE_PATH)
                             // #todo think about how to best handle this.
                             // #insight use unwrap_or_else to be more fault tolerant, when no file is available (eval_string, repl, etc...)
                             .unwrap_or_else(|| Arc::new(Expr::string("UNKNOWN")))

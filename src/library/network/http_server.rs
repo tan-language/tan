@@ -20,6 +20,7 @@ static DEFAULT_PORT: i64 = 8000; // #todo what should be the default port?
 // #see https://docs.rs/axum/latest/axum/response/index.html
 
 async fn run_server(options: HashMap<String, Expr>, handler: Expr, context: &mut Context) {
+    // #todo #think should have separate context per thread? per task/fiber?
     let mut context = context.clone();
 
     let axum_handler = |axum_req: Request| async move {
