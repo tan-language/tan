@@ -136,7 +136,7 @@ pub enum Expr {
     // Range(...),
     // #todo the Func should probably store the Module environment.
     // #todo maybe should have explicit do block?
-    /// Func(params, body, func_scope)
+    /// Func(params, body, func_scope, filename)
     Func(Vec<Expr>, Vec<Expr>, Arc<Scope>, String),
     // #todo add file_path to Macro
     // #todo maybe should have explicit do block?
@@ -483,6 +483,12 @@ impl Expr {
         matches!(self.unpack(), Expr::Nil)
     }
 
+    pub fn is_func(&self) -> bool {
+        matches!(self.unpack(), Expr::Func(..))
+    }
+
+    // #todo is_invocable
+
     // #todo consider #[inline]
     pub fn as_int(&self) -> Option<i64> {
         let Expr::Int(n) = self.unpack() else {
@@ -640,12 +646,12 @@ impl Expr {
         Some(expect_lock_write(set))
     }
 
-    // #todo consider #[inline]
+    // // #todo consider #[inline]
     // pub fn as_func(&self) -> Option<i64> {
-    //     let Expr::Func(params, body, scope) = self.unpack() else {
+    //     let Expr::Func(params, body, scope, filename) = self.unpack() else {
     //         return None;
     //     };
-    //     Some(*n)
+    //     Some(...)
     // }
 
     // // static vs dyn type.
