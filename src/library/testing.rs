@@ -17,6 +17,37 @@ use std::sync::Arc;
 
 use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
 
+// #todo move assert to prelude?
+
+// #todo should implement as a macro, this is a temp solution.
+// #todo is `predicate` a good name?
+pub fn assert(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+    let [predicate] = args else {
+        return Err(Error::invalid_arguments(
+            "requires `predicate` argument",
+            None,
+        ));
+    };
+
+    let Some(predicate) = predicate.as_bool() else {
+        return Err(Error::invalid_arguments(
+            &format!("`{}` is not a Bool", predicate.unpack()),
+            predicate.range(),
+        ));
+    };
+
+    if predicate {
+        Ok(Expr::Bool(true))
+    } else {
+        if let Some(value) = context.get("*test-failures*", true) {
+            if let Some(mut failures) = value.as_array_mut() {
+                failures.push(Expr::string(format!("{predicate} failed")));
+            }
+        }
+        Ok(Expr::Bool(false))
+    }
+}
+
 // #todo we need the call-side position.
 pub fn assert_eq(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     // #todo need to implement method dispatching here!
@@ -54,6 +85,7 @@ pub fn assert_eq(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
 pub fn setup_lib_testing(context: &mut Context) {
     let module = require_module("testing", context);
 
+    module.insert("assert", Expr::ForeignFunc(Arc::new(assert)));
     module.insert("assert-eq", Expr::ForeignFunc(Arc::new(assert_eq)));
 }
 
