@@ -898,12 +898,14 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         }
                         // #todo #temp temporary solution.
                         "assert" => {
-                            let [predicate] = args else {
+                            let [assert_expr] = args else {
                                 return Err(Error::invalid_arguments(
                                     "requires `predicate` argument",
                                     None,
                                 ));
                             };
+
+                            let predicate = eval(assert_expr, context)?;
 
                             let Some(predicate) = predicate.as_bool() else {
                                 return Err(Error::invalid_arguments(
@@ -917,8 +919,20 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             } else {
                                 if let Some(value) = context.get("*test-failures*", true) {
                                     if let Some(mut failures) = value.as_array_mut() {
-                                        println!("-- {}", 1);
-                                        failures.push(Expr::string(format!("{predicate} failed")));
+                                        let file_path = get_current_file_path(context);
+                                        let location = if let Some(range) = op.range() {
+                                            format!(
+                                                ":{}:{}",
+                                                range.start.line + 1,
+                                                range.start.col + 1
+                                            )
+                                        } else {
+                                            String::new()
+                                        };
+                                        failures.push(Expr::string(format!(
+                                            "assertion failed: {}\n  at {}{}",
+                                            assert_expr, file_path, location
+                                        )));
                                     }
                                 }
                                 Ok(Expr::Bool(false))
