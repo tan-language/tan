@@ -85,7 +85,7 @@ pub fn assert_eq(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
 pub fn setup_lib_testing(context: &mut Context) {
     let module = require_module("testing", context);
 
-    module.insert("assert", Expr::ForeignFunc(Arc::new(assert)));
+    // module.insert("assert", Expr::ForeignFunc(Arc::new(assert)));
     module.insert("assert-eq", Expr::ForeignFunc(Arc::new(assert_eq)));
 }
 
