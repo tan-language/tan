@@ -1,3 +1,4 @@
+mod eval_assertions;
 mod eval_do;
 mod eval_for;
 mod eval_if;
@@ -20,6 +21,7 @@ use crate::{
 };
 
 use self::{
+    eval_assertions::eval_assert,
     eval_do::eval_do,
     eval_for::eval_for,
     eval_if::eval_if,
@@ -897,47 +899,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             }
                         }
                         // #todo #temp temporary solution.
-                        "assert" => {
-                            let [assert_expr] = args else {
-                                return Err(Error::invalid_arguments(
-                                    "requires `predicate` argument",
-                                    None,
-                                ));
-                            };
-
-                            let predicate = eval(assert_expr, context)?;
-
-                            let Some(predicate) = predicate.as_bool() else {
-                                return Err(Error::invalid_arguments(
-                                    &format!("`{}` is not a Bool", predicate.unpack()),
-                                    predicate.range(),
-                                ));
-                            };
-
-                            if predicate {
-                                Ok(Expr::Bool(true))
-                            } else {
-                                if let Some(value) = context.get("*test-failures*", true) {
-                                    if let Some(mut failures) = value.as_array_mut() {
-                                        let file_path = get_current_file_path(context);
-                                        let location = if let Some(range) = op.range() {
-                                            format!(
-                                                ":{}:{}",
-                                                range.start.line + 1,
-                                                range.start.col + 1
-                                            )
-                                        } else {
-                                            String::new()
-                                        };
-                                        failures.push(Expr::string(format!(
-                                            "assertion failed: {}\n  at {}{}",
-                                            assert_expr, file_path, location
-                                        )));
-                                    }
-                                }
-                                Ok(Expr::Bool(false))
-                            }
-                        }
+                        "assert" => eval_assert(op, args, context),
                         // #todo for-each or overload for?
                         "for-each" => {
                             // #todo this is a temp hack!
