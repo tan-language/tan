@@ -16,15 +16,18 @@ use crate::{
     range::Range,
     resolver::compute_dyn_signature,
     scope::Scope,
-    util::{
-        is_dynamically_scoped, is_ellipsis, is_reserved_symbol, standard_names::CURRENT_FILE_PATH,
-        try_lock_read,
-    },
+    util::{is_dynamically_scoped, is_ellipsis, is_reserved_symbol, try_lock_read},
 };
 
 use self::{
-    eval_do::eval_do, eval_for::eval_for, eval_if::eval_if, eval_let::eval_let,
-    eval_panic::eval_panic, eval_use::eval_use, iterator::try_iterator_from, util::anchor,
+    eval_do::eval_do,
+    eval_for::eval_for,
+    eval_if::eval_if,
+    eval_let::eval_let,
+    eval_panic::eval_panic,
+    eval_use::eval_use,
+    iterator::try_iterator_from,
+    util::{anchor, get_current_file_path},
 };
 
 // #insight
@@ -639,23 +642,12 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                         // #insight captures the static (lexical scope)
 
-                        // #todo optimize!
-                        let file_path = context
-                            .top_scope
-                            .get(CURRENT_FILE_PATH)
-                            // #todo think about how to best handle this.
-                            // #insight use unwrap_or_else to be more fault tolerant, when no file is available (eval_string, repl, etc...)
-                            .unwrap_or_else(|| Arc::new(Expr::string("UNKNOWN")))
-                            .as_string()
-                            .unwrap()
-                            .to_string();
-
                         // #todo optimize
                         Ok(Expr::Func(
                             params,
                             body.into(),
                             context.scope.clone(),
-                            file_path,
+                            get_current_file_path(context),
                         ))
                     }
                     // #todo lookup constructor function
@@ -925,6 +917,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             } else {
                                 if let Some(value) = context.get("*test-failures*", true) {
                                     if let Some(mut failures) = value.as_array_mut() {
+                                        println!("-- {}", 1);
                                         failures.push(Expr::string(format!("{predicate} failed")));
                                     }
                                 }
