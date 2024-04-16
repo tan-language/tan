@@ -21,7 +21,7 @@ use crate::{
 };
 
 use self::{
-    eval_assertions::eval_assert,
+    eval_assertions::{eval_assert, eval_assert_eq},
     eval_do::eval_do,
     eval_for::eval_for,
     eval_if::eval_if,
@@ -900,6 +900,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         }
                         // #todo #temp temporary solution.
                         "assert" => eval_assert(op, args, context),
+                        "assert-eq" => eval_assert_eq(op, args, context),
                         // #todo for-each or overload for?
                         "for-each" => {
                             // #todo this is a temp hack!

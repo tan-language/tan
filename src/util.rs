@@ -61,6 +61,7 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
             | "for-each" // #todo extract as seq function
             | "eval"
             | "assert" // #todo temp solution.
+            | "assert-eq" // #todo temp solution.
             | "panic!"
             | "quot"
             | "scope-update" // #todo rename to `let*` or `let..` or `let-all` or something.

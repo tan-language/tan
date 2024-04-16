@@ -13,9 +13,7 @@
 
 // #todo support optional message?
 
-use std::sync::Arc;
-
-use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
+use crate::{context::Context, error::Error, expr::Expr};
 
 // #todo move assert to prelude?
 
@@ -82,11 +80,13 @@ pub fn assert_eq(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     Ok(result)
 }
 
-pub fn setup_lib_testing(context: &mut Context) {
-    let module = require_module("testing", context);
+pub fn setup_lib_testing(_context: &mut Context) {
+    // #todo at the moment we use the assert and assert-eq special forms.
+
+    // let module = require_module("testing", context);
 
     // module.insert("assert", Expr::ForeignFunc(Arc::new(assert)));
-    module.insert("assert-eq", Expr::ForeignFunc(Arc::new(assert_eq)));
+    // module.insert("assert-eq", Expr::ForeignFunc(Arc::new(assert_eq)));
 }
 
 #[cfg(test)]
