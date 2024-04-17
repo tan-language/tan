@@ -1,3 +1,4 @@
+mod eval_assertions;
 mod eval_do;
 mod eval_for;
 mod eval_if;
@@ -16,15 +17,19 @@ use crate::{
     range::Range,
     resolver::compute_dyn_signature,
     scope::Scope,
-    util::{
-        is_dynamically_scoped, is_ellipsis, is_reserved_symbol, standard_names::CURRENT_FILE_PATH,
-        try_lock_read,
-    },
+    util::{is_dynamically_scoped, is_ellipsis, is_reserved_symbol, try_lock_read},
 };
 
 use self::{
-    eval_do::eval_do, eval_for::eval_for, eval_if::eval_if, eval_let::eval_let,
-    eval_panic::eval_panic, eval_use::eval_use, iterator::try_iterator_from, util::anchor,
+    eval_assertions::{eval_assert, eval_assert_eq},
+    eval_do::eval_do,
+    eval_for::eval_for,
+    eval_if::eval_if,
+    eval_let::eval_let,
+    eval_panic::eval_panic,
+    eval_use::eval_use,
+    iterator::try_iterator_from,
+    util::{anchor, get_current_file_path},
 };
 
 // #insight
@@ -447,18 +452,18 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             }
 
             // The unwrap here is safe.
-            let head = list.first().unwrap();
-            let tail = &list[1..];
+            let op = list.first().unwrap();
+            let args = &list[1..];
 
             // #todo could check special forms before the eval
 
             // #todo this is an ULTRA-HACK! SUPER NASTY/UGLY CODE, refactor!
 
             // Evaluate the head, try to find dynamic signature
-            let head = if let Some(name) = head.as_symbolic() {
+            let head = if let Some(name) = op.as_symbolic() {
                 if !is_reserved_symbol(name) {
                     // #todo super nasty hack!!!!
-                    let args = eval_args(tail, context)?;
+                    let args = eval_args(args, context)?;
 
                     // #odo we don't support dynamic scoping in this position, reconsider
                     if let Some(value) = context.scope.get(name) {
@@ -505,23 +510,23 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             );
                             eval(&head, context)?
                         } else {
-                            eval(head, context)?
+                            eval(op, context)?
                         }
                     } else {
-                        eval(head, context)?
+                        eval(op, context)?
                     }
                 } else {
                     // #todo !?!?
-                    eval(head, context)?
+                    eval(op, context)?
                 }
             } else {
-                eval(head, context)?
+                eval(op, context)?
             };
 
             // #todo move special forms to prelude, as Expr::Macro or Expr::Special
 
             match head.unpack() {
-                Expr::Func(..) => invoke_func(&head, tail, context),
+                Expr::Func(..) => invoke_func(&head, args, context),
                 Expr::ForeignFunc(foreign_function) => {
                     // #todo extract as `invoke_foreign_function`
                     // #todo do NOT pre-evaluate args for ForeignFunc, allow to implement 'macros'.
@@ -529,13 +534,13 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     // #todo use RefCell / interior mutability instead, to allow for changing the environment (with Mutation Effect)
 
                     // Evaluate the arguments before calling the function.
-                    let args = eval_args(tail, context)?;
+                    let args = eval_args(args, context)?;
 
                     anchor(foreign_function(&args, context), expr)
                 }
                 Expr::Array(arr) => {
                     // Evaluate the arguments before calling the function.
-                    let args = eval_args(tail, context)?;
+                    let args = eval_args(args, context)?;
 
                     // #todo optimize this!
                     // #todo error checking, one arg, etc.
@@ -561,7 +566,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                 }
                 Expr::Map(map) => {
                     // Evaluate the arguments before calling the function.
-                    let args = eval_args(tail, context)?;
+                    let args = eval_args(args, context)?;
 
                     // #todo optimize this!
                     // #todo error checking, one arg, stringable, etc.
@@ -582,7 +587,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     "Char" => {
                         // #todo report more than 1 arguments.
 
-                        let Some(arg) = tail.first() else {
+                        let Some(arg) = args.first() else {
                             return Err(Error::invalid_arguments(
                                 "malformed Char constructor, missing argument",
                                 expr.range(),
@@ -609,18 +614,18 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         Ok(Expr::Char(c))
                     }
                     "List" => {
-                        let args = eval_args(tail, context)?;
+                        let args = eval_args(args, context)?;
                         Ok(Expr::List(args))
                     }
                     "Func" => {
-                        let Some(params) = tail.first() else {
+                        let Some(params) = args.first() else {
                             return Err(Error::invalid_arguments(
                                 "malformed func definition, missing function parameters",
                                 expr.range(),
                             ));
                         };
 
-                        let body = &tail[1..];
+                        let body = &args[1..];
 
                         // #todo move handling of Expr::One to as_list?
 
@@ -639,23 +644,12 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                         // #insight captures the static (lexical scope)
 
-                        // #todo optimize!
-                        let file_path = context
-                            .top_scope
-                            .get(CURRENT_FILE_PATH)
-                            // #todo think about how to best handle this.
-                            // #insight use unwrap_or_else to be more fault tolerant, when no file is available (eval_string, repl, etc...)
-                            .unwrap_or_else(|| Arc::new(Expr::string("UNKNOWN")))
-                            .as_string()
-                            .unwrap()
-                            .to_string();
-
                         // #todo optimize
                         Ok(Expr::Func(
                             params,
                             body.into(),
                             context.scope.clone(),
-                            file_path,
+                            get_current_file_path(context),
                         ))
                     }
                     // #todo lookup constructor function
@@ -674,13 +668,13 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         // special term
                         // #todo the low-level handling of special forms should use the above high-level cases.
                         // #todo use the `optimize`/`raise` function, here to prepare high-level expression for evaluation, to avoid duplication.
-                        "do" => anchor(eval_do(tail, context), expr),
+                        "do" => anchor(eval_do(args, context), expr),
                         // #insight `head` seems to have range info, that `expr` lacks.
                         // #todo add range info to expr (no unpack) and use it instead!!!
-                        "panic!" => anchor(eval_panic(tail, context), &head),
+                        "panic!" => anchor(eval_panic(args, context), &head),
                         "eval" => {
                             // #todo also support eval-all/eval-many? (auto wrap with do?)
-                            let [expr] = tail else {
+                            let [expr] = args else {
                                 return Err(Error::invalid_arguments(
                                     "missing expression to be evaluated",
                                     expr.range(),
@@ -693,7 +687,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             eval(&expr, context)
                         }
                         "return" => {
-                            let value = tail.first().unwrap_or(&Expr::Nil);
+                            let value = args.first().unwrap_or(&Expr::Nil);
                             let value = eval(value, context)?;
                             Err(Error::return_cf(value))
                         }
@@ -706,7 +700,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         // #todo consider break without parentheses?
                         // #todo maybe should return some kind of Nothing/Never/Zero value?
                         "break" => {
-                            let value = tail.first().unwrap_or(&Expr::Nil);
+                            let value = args.first().unwrap_or(&Expr::Nil);
                             let value = eval(value, context)?;
                             Err(Error::break_cf(value))
                         }
@@ -715,7 +709,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo doesn't quote all exprs, e.g. the if expression.
                             // #todo optimize with custom exprs, e.g Expr::Quot, Expr::QuasiQuot, etc.
 
-                            let [value] = tail else {
+                            let [value] = args else {
                                 return Err(Error::invalid_arguments(
                                     "missing quote target",
                                     expr.range(),
@@ -726,7 +720,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo expr.quote() is a temp hack.
                             Ok(value.clone().quot(context))
                         }
-                        "for" => anchor(eval_for(tail, context), expr),
+                        "for" => anchor(eval_for(args, context), expr),
                         // #todo consider the name `for*` or something similar?
                         "for->list" => {
                             // #insight
@@ -741,7 +735,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo reuse code from let
                             // #todo the resolver should handle this.
 
-                            if tail.len() < 2 {
+                            if args.len() < 2 {
                                 // #todo add more structural checks.
                                 // #todo proper error!
                                 return Err(Error::invalid_arguments(
@@ -752,8 +746,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             let mut values = Vec::new();
 
-                            let binding = tail.first().unwrap();
-                            let body = &tail[1..];
+                            let binding = args.first().unwrap();
+                            let body = &args[1..];
 
                             // #todo should be as_array to match `for`.
                             // #todo should check both for list and array.
@@ -819,7 +813,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo
                             // try to merge `while` with `for` (maybe `for` is implemented on top of `while`?)
 
-                            let [predicate, body] = tail else {
+                            let [predicate, body] = args else {
                                 // #todo proper error!
                                 return Err(Error::invalid_arguments(
                                     "missing for arguments",
@@ -848,7 +842,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             Ok(value)
                         }
-                        "if" => anchor(eval_if(tail, context), expr),
+                        "if" => anchor(eval_if(args, context), expr),
                         // #todo is this different enough from `if`?
                         // (cond
                         //   (> i 5) (...)
@@ -859,19 +853,19 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             let mut i = 0;
 
                             loop {
-                                if i >= tail.len() {
+                                if i >= args.len() {
                                     // #todo what should we return here? probably Never/Zero?
                                     break Ok(Expr::Nil);
                                 }
 
-                                let Some(predicate) = tail.get(i) else {
+                                let Some(predicate) = args.get(i) else {
                                     return Err(Error::invalid_arguments(
                                         "malformed cond predicate",
                                         expr.range(),
                                     ));
                                 };
 
-                                let Some(clause) = tail.get(i + 1) else {
+                                let Some(clause) = args.get(i + 1) else {
                                     return Err(Error::invalid_arguments(
                                         "malformed cond clause",
                                         expr.range(),
@@ -904,10 +898,13 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 i += 2;
                             }
                         }
+                        // #todo #temp temporary solution.
+                        "assert" => eval_assert(op, args, context),
+                        "assert-eq" => eval_assert_eq(op, args, context),
                         // #todo for-each or overload for?
                         "for-each" => {
                             // #todo this is a temp hack!
-                            let [seq, var, body] = tail else {
+                            let [seq, var, body] = args else {
                                 return Err(Error::invalid_arguments(
                                     "malformed `for-each`",
                                     expr.range(),
@@ -955,7 +952,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo write unit tests
                             // #todo support mutating multiple variables.
 
-                            let [name, value] = tail else {
+                            let [name, value] = args else {
                                 return Err(Error::invalid_arguments(
                                     "malformed `set!`",
                                     expr.range(),
@@ -985,7 +982,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             // Updates the scope with bindings of the given map.
 
-                            let [map] = tail else {
+                            let [map] = args else {
                                 return Err(Error::invalid_arguments(
                                     "malformed `scope-update`",
                                     expr.range(),
@@ -1011,14 +1008,14 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         }
                         // #insight `head` seems to have range info, that `expr` lacks.
                         // #todo add range info to expr (no unpack) and use it instead!!!
-                        "use" => anchor(eval_use(tail, context), expr),
+                        "use" => anchor(eval_use(args, context), expr),
                         // #todo #hack temp hack
                         // (let-ds [*q* 1]
                         //     (writeln q)
                         //     (writeln q)
                         // )
                         "let-ds" => {
-                            if tail.len() < 2 {
+                            if args.len() < 2 {
                                 // #todo add more structural checks.
                                 // #todo proper error!
                                 return Err(Error::invalid_arguments(
@@ -1030,8 +1027,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo do should be 'monadic', propagate Eff (effect) wrapper.
                             let mut value = Expr::Nil;
 
-                            let bindings = tail.first().unwrap();
-                            let body = &tail[1..];
+                            let bindings = args.first().unwrap();
+                            let body = &args[1..];
 
                             // #todo name this parent_scope?
                             let prev_scope = context.dynamic_scope.clone();
@@ -1090,13 +1087,13 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo return last value!
                             Ok(value)
                         }
-                        "let" => anchor(eval_let(tail, context), expr),
+                        "let" => anchor(eval_let(args, context), expr),
                         "not" => {
                             // #todo make a function
                             // #todo consider binary/bitmask version.
                             // #todo consider operator `~` (_not_ `!`)
 
-                            let [arg] = tail else {
+                            let [arg] = args else {
                                 return Err(Error::invalid_arguments(
                                     "`not` expects one argument",
                                     expr.range(),
@@ -1122,7 +1119,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo make a function?
                             // #todo should these 'special forms' get added in scope/env?
 
-                            for arg in tail {
+                            for arg in args {
                                 let value = eval(arg, context)?;
                                 let Some(predicate) = value.as_bool() else {
                                     return Err(Error::invalid_arguments(
@@ -1143,7 +1140,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo consider operator form? `||` or `+`
                             // #insight `or` is short-circuiting so it cannot be implemented as a function
 
-                            for arg in tail {
+                            for arg in args {
                                 let value = eval(arg, context)?;
                                 let Some(predicate) = value.as_bool() else {
                                     return Err(Error::invalid_arguments(

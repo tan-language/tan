@@ -346,6 +346,18 @@ pub fn get_bindings_with_prefix(
     matched_bindings
 }
 
+pub fn get_current_file_path(context: &Context) -> String {
+    // #todo optimize!
+    context
+        .top_scope
+        .get(CURRENT_FILE_PATH)
+        // #todo think about how to best handle this.
+        // #insight use unwrap_or_else to be more fault tolerant, when no file is available (eval_string, repl, etc...)
+        .unwrap_or_else(|| Arc::new(Expr::string("UNKNOWN")))
+        .as_string()
+        .unwrap()
+        .to_string()
+}
 #[cfg(test)]
 mod tests {
     use crate::{context::Context, expr::Expr, util::standard_names::CURRENT_MODULE_PATH};

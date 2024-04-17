@@ -4,7 +4,7 @@ use crate::{context::Context, error::Error, expr::Expr, util::module_util::requi
 
 // #todo support all types!
 
-pub fn eq(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn eq_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
     // #todo support overloading,
     // #todo make equality a method of Expr?
@@ -125,7 +125,7 @@ pub fn eq_symbol(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(Expr::Bool(a == b))
 }
 
-pub fn not_eq(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn not_eq_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
     // #todo support overloading,
     // #todo make equality a method of Expr?
@@ -303,8 +303,8 @@ pub fn lt(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 pub fn setup_lib_eq(context: &mut Context) {
     let module = require_module("prelude", context);
 
-    module.insert("=", Expr::ForeignFunc(Arc::new(eq)));
-    module.insert("=$$Int$$Int", Expr::ForeignFunc(Arc::new(eq)));
+    module.insert("=", Expr::ForeignFunc(Arc::new(eq_int)));
+    module.insert("=$$Int$$Int", Expr::ForeignFunc(Arc::new(eq_int)));
     module.insert("=$$Float$$Float", Expr::ForeignFunc(Arc::new(eq_float)));
     module.insert("=$$String$$String", Expr::ForeignFunc(Arc::new(eq_string)));
     // module.insert("=$$Symbol$$Symbol", Expr::ForeignFunc(Arc::new(eq_symbol)));
@@ -317,8 +317,8 @@ pub fn setup_lib_eq(context: &mut Context) {
     module.insert("=$$Type$$String", Expr::ForeignFunc(Arc::new(eq_symbol)));
     module.insert("=$$Type$$KeySymbol", Expr::ForeignFunc(Arc::new(eq_symbol)));
 
-    module.insert("!=", Expr::ForeignFunc(Arc::new(not_eq)));
-    module.insert("!=$$Int$$Int", Expr::ForeignFunc(Arc::new(not_eq)));
+    module.insert("!=", Expr::ForeignFunc(Arc::new(not_eq_int)));
+    module.insert("!=$$Int$$Int", Expr::ForeignFunc(Arc::new(not_eq_int)));
     module.insert(
         "!=$$Float$$Float",
         Expr::ForeignFunc(Arc::new(not_eq_float)),
