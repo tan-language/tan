@@ -1,4 +1,5 @@
 pub mod arithmetic;
+pub mod bool;
 pub mod chrono;
 pub mod cmark; // #todo rename to common mark?
 pub mod cmp;

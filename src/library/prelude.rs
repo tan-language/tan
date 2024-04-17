@@ -6,6 +6,7 @@ use crate::expr::Expr;
 use crate::util::module_util::require_module;
 
 use super::arithmetic::setup_lib_arithmetic;
+use super::bool::setup_lib_bool;
 use super::chrono;
 use super::cmp::setup_lib_cmp;
 use super::eq::setup_lib_eq;
@@ -31,6 +32,7 @@ pub fn setup_lib_prelude(context: &mut Context) {
     // #todo maybe context.require_module(path) instead?
 
     setup_lib_arithmetic(context);
+    setup_lib_bool(context);
     setup_lib_eq(context);
     setup_lib_cmp(context);
     setup_lib_io(context);

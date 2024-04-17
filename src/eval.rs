@@ -1091,29 +1091,29 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         // }
                         "let-ds" => anchor(eval_let_ds(args, context), expr),
                         "let" => anchor(eval_let(args, context), expr),
-                        "not" => {
-                            // #todo make a function
-                            // #todo consider binary/bitmask version.
-                            // #todo consider operator `~` (_not_ `!`)
+                        // "not" => {
+                        //     // #todo make a function
+                        //     // #todo consider binary/bitmask version.
+                        //     // #todo consider operator `~` (_not_ `!`)
 
-                            let [arg] = args else {
-                                return Err(Error::invalid_arguments(
-                                    "`not` expects one argument",
-                                    expr.range(),
-                                ));
-                            };
+                        //     let [arg] = args else {
+                        //         return Err(Error::invalid_arguments(
+                        //             "`not` expects one argument",
+                        //             expr.range(),
+                        //         ));
+                        //     };
 
-                            let value = eval(arg, context)?;
+                        //     let value = eval(arg, context)?;
 
-                            let Some(predicate) = value.as_bool() else {
-                                return Err(Error::invalid_arguments(
-                                    "`not` argument should be boolean",
-                                    expr.range(),
-                                ));
-                            };
+                        //     let Some(predicate) = value.as_bool() else {
+                        //         return Err(Error::invalid_arguments(
+                        //             "`not` argument should be boolean",
+                        //             expr.range(),
+                        //         ));
+                        //     };
 
-                            Ok(Expr::Bool(!predicate))
-                        }
+                        //     Ok(Expr::Bool(!predicate))
+                        // }
                         "and" => {
                             // #todo what about binary and?
                             // #todo consider operator form? `&&` or `*`

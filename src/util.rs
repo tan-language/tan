@@ -46,7 +46,7 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
             | "def"
             | "and"
             | "or"
-            | "not"
+            // | "not"
             | "let"
             | "let-ds"
             | "set!"
