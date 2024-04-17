@@ -2,6 +2,7 @@ mod eval_assertions;
 mod eval_cond;
 mod eval_do;
 mod eval_for;
+mod eval_for_list;
 mod eval_if;
 mod eval_let;
 mod eval_let_ds;
@@ -27,12 +28,12 @@ use self::{
     eval_cond::eval_cond,
     eval_do::eval_do,
     eval_for::eval_for,
+    eval_for_list::eval_for_list,
     eval_if::eval_if,
     eval_let::eval_let,
     eval_let_ds::eval_let_ds,
     eval_panic::eval_panic,
     eval_use::eval_use,
-    iterator::try_iterator_from,
     util::{anchor, get_current_file_path},
 };
 
@@ -669,13 +670,6 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                 // #todo Expr::..
                 Expr::Symbol(s) => {
                     match s.as_str() {
-                        // special term
-                        // #todo the low-level handling of special forms should use the above high-level cases.
-                        // #todo use the `optimize`/`raise` function, here to prepare high-level expression for evaluation, to avoid duplication.
-                        "do" => anchor(eval_do(args, context), expr),
-                        // #insight `head` seems to have range info, that `expr` lacks.
-                        // #todo add range info to expr (no unpack) and use it instead!!!
-                        "panic!" => anchor(eval_panic(args, context), &head),
                         "eval" => {
                             // #todo also support eval-all/eval-many? (auto wrap with do?)
                             let [expr] = args else {
@@ -724,89 +718,16 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo expr.quote() is a temp hack.
                             Ok(value.clone().quot(context))
                         }
+                        // special term
+                        // #todo the low-level handling of special forms should use the above high-level cases.
+                        // #todo use the `optimize`/`raise` function, here to prepare high-level expression for evaluation, to avoid duplication.
+                        "do" => anchor(eval_do(args, context), expr),
+                        // #insight `head` seems to have range info, that `expr` lacks.
+                        // #todo add range info to expr (no unpack) and use it instead!!!
+                        "panic!" => anchor(eval_panic(args, context), &head),
                         "for" => anchor(eval_for(args, context), expr),
                         // #todo consider the name `for*` or something similar?
-                        "for->list" => {
-                            // #insight
-                            // `while` is a generalization of `if`
-                            // `for` is a generalization of `let`
-                            // `for` is related with `do`
-                            // `for` is monadic
-
-                            // (for (x 10) (writeln x))
-
-                            // #todo solve duplication between for and for->list
-                            // #todo reuse code from let
-                            // #todo the resolver should handle this.
-
-                            if args.len() < 2 {
-                                // #todo add more structural checks.
-                                // #todo proper error!
-                                return Err(Error::invalid_arguments(
-                                    "missing for->list arguments",
-                                    expr.range(),
-                                ));
-                            }
-
-                            let mut values = Vec::new();
-
-                            let binding = args.first().unwrap();
-                            let body = &args[1..];
-
-                            // #todo should be as_array to match `for`.
-                            // #todo should check both for list and array.
-                            let Some(binding_parts) = binding.as_array() else {
-                                // #todo proper error!
-                                return Err(Error::invalid_arguments(
-                                    "invalid for->list binding, not an array",
-                                    binding.range(),
-                                ));
-                            };
-
-                            let [var, value] = &binding_parts[..] else {
-                                return Err(Error::invalid_arguments(
-                                    "invalid for->list binding",
-                                    binding.range(),
-                                ));
-                            };
-
-                            let Some(var) = var.as_symbol() else {
-                                // #todo proper error!
-                                return Err(Error::invalid_arguments(
-                                    "invalid for->list binding, malformed variable",
-                                    var.range(),
-                                ));
-                            };
-
-                            // #insight for the ListIterator
-                            let value = eval(value, context)?;
-
-                            // #todo also handle (Range start end step)
-                            // #todo maybe step should be external to Range, or use SteppedRange, or (Step-By (Range T))
-                            let Some(iterator) = try_iterator_from(&value) else {
-                                // #todo proper error!
-                                return Err(Error::invalid_arguments(
-                                    "invalid for binding, the value is not iterable",
-                                    value.range(),
-                                ));
-                            };
-
-                            let prev_scope = context.scope.clone();
-                            context.scope = Arc::new(Scope::new(prev_scope.clone()));
-
-                            let mut iterator = iterator.borrow_mut();
-
-                            while let Some(value) = iterator.next() {
-                                context.scope.insert(var, value);
-                                for expr in body {
-                                    values.push(eval(expr, context)?);
-                                }
-                            }
-
-                            context.scope = prev_scope;
-
-                            Ok(Expr::array(values))
-                        }
+                        "for->list" => anchor(eval_for_list(args, context), expr),
                         "while" => {
                             // #insight
                             // `while` is a generalization of `if`
