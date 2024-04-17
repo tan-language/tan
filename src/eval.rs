@@ -1014,11 +1014,11 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         "let-ds" => anchor(eval_let_ds(args, context), expr),
                         "let" => anchor(eval_let(args, context), expr),
                         "and" => {
+                            // #insight `and` _is_ short-circuiting and cannot be implemented with a function
                             // #todo what about binary and?
                             // #todo consider operator form? `&&` or `*`
                             // #todo optimize case with 2 arguments.
-                            // #insight `and` is not short-circuiting
-                            // #todo make a function?
+                            // #todo make a macro
                             // #todo should these 'special forms' get added in scope/env?
 
                             for arg in args {
@@ -1038,9 +1038,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             Ok(Expr::Bool(true))
                         }
                         "or" => {
+                            // #insight `or` is short-circuiting so it cannot be implemented as a function
                             // #todo what about binary or?
                             // #todo consider operator form? `||` or `+`
-                            // #insight `or` is short-circuiting so it cannot be implemented as a function
+                            // #todo make a macro.
 
                             for arg in args {
                                 let value = eval(arg, context)?;
