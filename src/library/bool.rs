@@ -2,10 +2,10 @@ use std::sync::Arc;
 
 use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
 
-// #insight `and` cannot be implemented with a function, needs a macro or a special form.
-// pub fn bool_and(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
-// ...
-// }
+// #insight `and` is short-circuting, cannot be implemented with a function, needs a macro or a special form.
+// #insight `or` is short-circuting, cannot be implemented with a function, needs a macro or a special form.
+
+// #todo introduce a way to have functions with lazily evaluated arguments, when you don't need full macro power.
 
 pub fn bool_not(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo consider binary/bitmask version.

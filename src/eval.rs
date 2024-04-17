@@ -1,4 +1,5 @@
 mod eval_assertions;
+mod eval_cond;
 mod eval_do;
 mod eval_for;
 mod eval_if;
@@ -23,6 +24,7 @@ use crate::{
 
 use self::{
     eval_assertions::{eval_assert, eval_assert_eq},
+    eval_cond::eval_cond,
     eval_do::eval_do,
     eval_for::eval_for,
     eval_if::eval_if,
@@ -845,61 +847,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             Ok(value)
                         }
                         "if" => anchor(eval_if(args, context), expr),
-                        // #todo is this different enough from `if`?
-                        // (cond
-                        //   (> i 5) (...)
-                        //   (> i 15) (...)
-                        //   else (...)
-                        // )
-                        "cond" => {
-                            let mut i = 0;
-
-                            loop {
-                                if i >= args.len() {
-                                    // #todo what should we return here? probably Never/Zero?
-                                    break Ok(Expr::Nil);
-                                }
-
-                                let Some(predicate) = args.get(i) else {
-                                    return Err(Error::invalid_arguments(
-                                        "malformed cond predicate",
-                                        expr.range(),
-                                    ));
-                                };
-
-                                let Some(clause) = args.get(i + 1) else {
-                                    return Err(Error::invalid_arguments(
-                                        "malformed cond clause",
-                                        expr.range(),
-                                    ));
-                                };
-
-                                // #todo `else` should not be annotated.
-                                // #todo should NOT annotate symbols and keysymbols!
-                                // #todo introduce a helper to check for specific symbol.
-
-                                if let Expr::Symbol(sym) = predicate.unpack() {
-                                    if sym == "else" {
-                                        break eval(clause, context);
-                                    }
-                                }
-
-                                let predicate = eval(predicate, context)?;
-
-                                let Some(predicate) = predicate.as_bool() else {
-                                    return Err(Error::invalid_arguments(
-                                        "the cond predicate is not a boolean value",
-                                        predicate.range(),
-                                    ));
-                                };
-
-                                if predicate {
-                                    break eval(clause, context);
-                                }
-
-                                i += 2;
-                            }
-                        }
+                        "cond" => anchor(eval_cond(args, context), expr),
                         // #todo #temp temporary solution.
                         "assert" => eval_assert(op, args, context),
                         "assert-eq" => eval_assert_eq(op, args, context),
