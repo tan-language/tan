@@ -8,6 +8,7 @@ mod eval_let;
 mod eval_let_ds;
 mod eval_panic;
 mod eval_use;
+mod eval_while;
 pub mod iterator;
 pub mod util;
 
@@ -34,6 +35,7 @@ use self::{
     eval_let_ds::eval_let_ds,
     eval_panic::eval_panic,
     eval_use::eval_use,
+    eval_while::eval_while,
     util::{anchor, get_current_file_path},
 };
 
@@ -728,45 +730,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         "for" => anchor(eval_for(args, context), expr),
                         // #todo consider the name `for*` or something similar?
                         "for->list" => anchor(eval_for_list(args, context), expr),
-                        "while" => {
-                            // #insight
-                            // `while` is a generalization of `if`
-                            // `for` is a generalization of `let`
-                            // `for` is related with `do`
-                            // `for` is monadic
-
-                            // #todo
-                            // try to merge `while` with `for` (maybe `for` is implemented on top of `while`?)
-
-                            let [predicate, body] = args else {
-                                // #todo proper error!
-                                return Err(Error::invalid_arguments(
-                                    "missing for arguments",
-                                    expr.range(),
-                                ));
-                            };
-
-                            let mut value = Expr::Nil;
-
-                            loop {
-                                let predicate = eval(predicate, context)?;
-
-                                let Some(predicate) = predicate.as_bool() else {
-                                    return Err(Error::invalid_arguments(
-                                        "the `while` predicate is not a boolean value",
-                                        predicate.range(),
-                                    ));
-                                };
-
-                                if !predicate {
-                                    break;
-                                }
-
-                                value = eval(body, context)?;
-                            }
-
-                            Ok(value)
-                        }
+                        "while" => anchor(eval_while(args, context), expr),
                         "if" => anchor(eval_if(args, context), expr),
                         "cond" => anchor(eval_cond(args, context), expr),
                         // #todo #temp temporary solution.
