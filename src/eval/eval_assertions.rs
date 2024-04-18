@@ -32,7 +32,7 @@ pub fn eval_assert(op: &Expr, args: &[Expr], context: &mut Context) -> Result<Ex
                     String::new()
                 };
                 failures.push(Expr::string(format!(
-                    "assertion failed: {}\n  at {}{}",
+                    "{}\n  at {}{}",
                     assert_expr, file_path, location
                 )));
             }
@@ -78,7 +78,7 @@ pub fn eval_assert_eq(op: &Expr, args: &[Expr], context: &mut Context) -> Result
                     String::new()
                 };
                 failures.push(Expr::string(format!(
-                    "assertion failed: {} != {}\n  at {}{}",
+                    "{} != {}\n  at {}{}",
                     left_expr, right_expr, file_path, location
                 )));
             }
