@@ -19,6 +19,9 @@ use crate::{
 
 use super::eval;
 
+// #todo need to introduce profiles.
+// #todo skip *.test.tan, *.data.tan, etc unless you are in a special profile!
+
 // #todo find a good name, consider `ground`.
 /// If the result is an error, add a range from the 'anchor' expression.
 pub fn anchor(result: Result<Expr, Error>, expr: &Expr) -> Result<Expr, Error> {

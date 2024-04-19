@@ -17,9 +17,10 @@ fn get_dirname(path: &str) -> Option<&str> {
     }
 }
 
+// #todo consider moving to util, but what if we extract the foreign-library implementation?
 // #todo also support getting the last part of the extension.
 // #todo optimize this.
-fn get_full_extension(path: &str) -> Option<&str> {
+pub fn get_full_extension(path: &str) -> Option<&str> {
     if let Some(dot_position) = path.find('.') {
         if dot_position == 0 {
             // This is a hidden file, skip the leading dot and try again.

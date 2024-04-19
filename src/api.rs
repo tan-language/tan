@@ -8,6 +8,7 @@ use crate::{
     eval::eval,
     expr::Expr,
     lexer::{token::Token, Lexer},
+    library::path::get_full_extension,
     macro_expand::macro_expand,
     optimize::optimize,
     parser::Parser,
@@ -18,9 +19,23 @@ pub const TAN_FILE_EXTENSION: &str = "tan";
 
 pub const TAN_FILE_EMOJI_EXTENSION: &str = "👅";
 
+// #todo add unit test.
+// #todo implement strict version that checks exactly *.tan and skips *.*.tan, e.g. *.data.tan
 pub fn has_tan_extension(path: impl AsRef<Path>) -> bool {
     let path = path.as_ref();
     if let Some(extension) = path.extension() {
+        extension == TAN_FILE_EXTENSION || extension == TAN_FILE_EMOJI_EXTENSION
+    } else {
+        false
+    }
+}
+
+// #todo add unit test
+/// A strict version of has_tan_extension that checks exactly `*.tan` and
+/// skips `*.*.tan`, e.g. `*.data.tan``.
+pub fn has_tan_extension_strict(path: impl AsRef<Path>) -> bool {
+    let path = path.as_ref();
+    if let Some(extension) = get_full_extension(&path.to_string_lossy()) {
         extension == TAN_FILE_EXTENSION || extension == TAN_FILE_EMOJI_EXTENSION
     } else {
         false
