@@ -89,12 +89,14 @@ pub fn canonicalize_module_path(
             // #todo!
             panic!("missing current-module-path");
         }
-    } else if path.starts_with('/') {
-        path = format!("{}/@std{path}", context.root_path);
     } else if path.starts_with("file://") {
         // #insight used by tan-run.
         path = path[7..].to_string();
+    } else if path.starts_with('/') {
+        // #insight the leading `/` is ignored.
+        path = format!("{}/@std{path}", context.root_path);
     } else {
+        // #todo maybe we should always require the `/` prefix for the standard library?
         path = format!("{}/@std/{path}", context.root_path);
     }
 
