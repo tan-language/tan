@@ -112,23 +112,23 @@ pub fn write_string_to_file(args: &[Expr], _context: &mut Context) -> Result<Exp
 // }
 
 /// Returns flat structure.
-fn walk_dir(dir_path: &Path) -> Vec<Expr> {
+fn walk_dir(dir_path: &Path) -> Result<Vec<Expr>, std::io::Error> {
     let mut tree: Vec<Expr> = Vec::new();
 
-    // #todo ugh remove all unwraps!
-    for entry in fs::read_dir(dir_path).unwrap() {
-        let entry_path = entry.unwrap().path();
+    for entry in fs::read_dir(dir_path)? {
+        let entry_path = entry?.path();
+        // #todo investigate this unwrap.
+        let entry_path_str = entry_path.to_str().unwrap().to_string();
 
         if entry_path.is_dir() {
-            let dir_name = entry_path.to_str().unwrap().to_string();
-            tree.push(Expr::String(format!("{dir_name}/")));
-            tree.append(&mut walk_dir(&entry_path));
+            tree.push(Expr::String(format!("{entry_path_str}/")));
+            tree.append(&mut walk_dir(&entry_path)?);
         } else {
-            tree.push(Expr::String(entry_path.to_str().unwrap().to_string()));
+            tree.push(Expr::String(entry_path_str));
         }
     }
 
-    tree
+    Ok(tree)
 }
 
 // #todo
@@ -191,9 +191,21 @@ pub fn list_as_tree(args: &[Expr], _context: &mut Context) -> Result<Expr, Error
         ));
     };
 
-    let tree = Expr::List(walk_dir(Path::new(path)));
-
-    Ok(tree)
+    match walk_dir(Path::new(path)) {
+        // #todo should return Array?
+        Ok(entries) => Ok(Expr::List(entries)),
+        Err(io_error) => {
+            // #todo
+            // in the future it should return a Tan 'Result' for the caller to handle.
+            // for the moment we just panic.
+            // Err(Error::io(io_error, &format!("path: {path}"), None))
+            // Err(Error::panic(&format!(
+            //     "while walking `{path}`: {}",
+            //     io_error
+            // )))
+            panic!("{}", &format!("while walking `{path}`: {}", io_error));
+        }
+    }
 }
 
 /// Checks if a path exists.

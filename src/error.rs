@@ -255,6 +255,12 @@ impl Error {
         error
     }
 
+    pub fn io(io_error: std::io::Error, note: &str, range: Option<Range>) -> Self {
+        let mut error = Self::new(ErrorVariant::Io(io_error));
+        error.push_note(note, range);
+        error
+    }
+
     // #todo make errors Option.
     pub fn failed_use(url: &str, source_errors: Vec<Error>) -> Self {
         // #todo formatting of the error should not happen here.
@@ -287,6 +293,10 @@ impl Error {
 
     pub fn continue_cf() -> Self {
         Self::new(ErrorVariant::ContinueCF)
+    }
+
+    pub fn panic(text: &str) -> Self {
+        Self::new(ErrorVariant::Panic(text.to_owned()))
     }
 
     pub fn variant(&self) -> &ErrorVariant {
