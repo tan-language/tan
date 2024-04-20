@@ -2,6 +2,7 @@ mod eval_assertions;
 mod eval_cond;
 mod eval_do;
 mod eval_for;
+mod eval_for_each;
 mod eval_for_list;
 mod eval_if;
 mod eval_let;
@@ -30,6 +31,7 @@ use self::{
     eval_cond::eval_cond,
     eval_do::eval_do,
     eval_for::eval_for,
+    eval_for_each::eval_for_each,
     eval_for_list::eval_for_list,
     eval_if::eval_if,
     eval_let::eval_let,
@@ -752,46 +754,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         "assert" => eval_assert(op, args, context),
                         "assert-eq" => eval_assert_eq(op, args, context),
                         // #todo for-each or overload for?
-                        "for-each" => {
-                            // #todo this is a temp hack!
-                            let [seq, var, body] = args else {
-                                return Err(Error::invalid_arguments(
-                                    "malformed `for-each`",
-                                    expr.range(),
-                                ));
-                            };
-
-                            let seq = eval(seq, context)?;
-
-                            let Some(arr) = seq.as_array() else {
-                                return Err(Error::invalid_arguments(
-                                    "`for-each` requires a `Seq` as the first argument",
-                                    seq.range(),
-                                ));
-                            };
-
-                            let Some(sym) = var.as_symbol() else {
-                                return Err(Error::invalid_arguments(
-                                    "`for-each` requires a symbol as the second argument",
-                                    var.range(),
-                                ));
-                            };
-
-                            let prev_scope = context.scope.clone();
-                            context.scope = Arc::new(Scope::new(prev_scope.clone()));
-
-                            for x in arr.iter() {
-                                // #todo array should have Ann<Expr> use Ann<Expr> everywhere, avoid the clones!
-                                // #todo replace the clone with custom expr::ref/copy?
-                                context.scope.insert(sym, x.clone());
-                                eval(body, context)?;
-                            }
-
-                            context.scope = prev_scope;
-
-                            // #todo intentionally don't return a value, reconsider this?
-                            Ok(Expr::Nil)
-                        }
+                        "for-each" => anchor(eval_for_each(args, context), expr),
                         "set!" => anchor(eval_set(args, context), expr),
                         "scope-update" => {
                             // #todo this name conflicts with scope.update()
