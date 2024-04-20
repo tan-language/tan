@@ -8,6 +8,7 @@ mod eval_if;
 mod eval_let;
 mod eval_let_ds;
 mod eval_panic;
+mod eval_scope_update;
 mod eval_set;
 mod eval_use;
 mod eval_while;
@@ -37,6 +38,7 @@ use self::{
     eval_let::eval_let,
     eval_let_ds::eval_let_ds,
     eval_panic::eval_panic,
+    eval_scope_update::eval_scope_update,
     eval_set::eval_set,
     eval_use::eval_use,
     eval_while::eval_while,
@@ -756,39 +758,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         // #todo for-each or overload for?
                         "for-each" => anchor(eval_for_each(args, context), expr),
                         "set!" => anchor(eval_set(args, context), expr),
-                        "scope-update" => {
-                            // #todo this name conflicts with scope.update()
-                            // #todo consider a function that nests a new scope.
-                            // #todo maybe it should be some kind of let? e.g. (`let-all` ?? or `let*` or `let..`)
-                            // #todo this is a temp hack.
-
-                            // Updates the scope with bindings of the given map.
-
-                            let [map] = args else {
-                                return Err(Error::invalid_arguments(
-                                    "malformed `scope-update`",
-                                    expr.range(),
-                                ));
-                            };
-
-                            let map = eval(map, context)?;
-
-                            let Some(map) = map.as_map() else {
-                                // #todo report what was found!
-                                return Err(Error::invalid_arguments(
-                                    "malformed `scope-update`, expects Map argument",
-                                    expr.range(),
-                                ));
-                            };
-
-                            for (name, value) in map.iter() {
-                                // #todo remove clone.
-                                context.scope.insert(name, expr_clone(value));
-                            }
-
-                            Ok(Expr::Nil)
-                        }
-                        // #insight `head` seems to have range info, that `expr` lacks.
+                        "scope-update" => anchor(eval_scope_update(args, context), expr),
+                        // #insight `op` seems to have range info, that `expr` lacks.
                         // #todo add range info to expr (no unpack) and use it instead!!!
                         "use" => anchor(eval_use(args, context), expr),
                         "let-ds" => anchor(eval_let_ds(args, context), expr),
