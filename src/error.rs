@@ -330,6 +330,10 @@ impl Error {
         }
         None
     }
+
+    pub fn is_panic(&self) -> bool {
+        matches!(self.variant, ErrorVariant::Panic(..))
+    }
 }
 
 impl From<std::io::Error> for Error {

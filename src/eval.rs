@@ -533,7 +533,20 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             // #todo move special forms to prelude, as Expr::Macro or Expr::Special
 
             match head.unpack() {
-                Expr::Func(..) => invoke_func(&head, args, context),
+                Expr::Func(..) => {
+                    let result = invoke_func(&head, args, context);
+                    match result {
+                        Err(ref error) => {
+                            if let ErrorVariant::Panic(msg) = &error.variant {
+                                // #todo #hack this is a temp solution, maybe the Repl/Runner should install a custom panic handler?
+                                // #todo maybe put a flag in Context to stop further evaluation and unwind the stack?
+                                panic!("{}", msg);
+                            }
+                            result
+                        }
+                        Ok(_) => result,
+                    }
+                }
                 Expr::ForeignFunc(foreign_function) => {
                     // #todo extract as `invoke_foreign_function`
                     // #todo do NOT pre-evaluate args for ForeignFunc, allow to implement 'macros'.

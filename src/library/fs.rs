@@ -199,11 +199,10 @@ pub fn list_as_tree(args: &[Expr], _context: &mut Context) -> Result<Expr, Error
             // in the future it should return a Tan 'Result' for the caller to handle.
             // for the moment we just panic.
             // Err(Error::io(io_error, &format!("path: {path}"), None))
-            // Err(Error::panic(&format!(
-            //     "while walking `{path}`: {}",
-            //     io_error
-            // )))
-            panic!("{}", &format!("while walking `{path}`: {}", io_error));
+            Err(Error::panic(&format!(
+                "while walking `{path}`: {}",
+                io_error
+            )))
         }
     }
 }
