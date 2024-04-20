@@ -7,6 +7,7 @@ mod eval_if;
 mod eval_let;
 mod eval_let_ds;
 mod eval_panic;
+mod eval_set;
 mod eval_use;
 mod eval_while;
 pub mod iterator;
@@ -34,6 +35,7 @@ use self::{
     eval_let::eval_let,
     eval_let_ds::eval_let_ds,
     eval_panic::eval_panic,
+    eval_set::eval_set,
     eval_use::eval_use,
     eval_while::eval_while,
     util::{anchor, get_current_file_path},
@@ -790,38 +792,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo intentionally don't return a value, reconsider this?
                             Ok(Expr::Nil)
                         }
-                        "set!" => {
-                            // #insight
-                            // this is not the same as let, it also traverses the scope stack to find bindings to
-                            // update in parent scopes.
-
-                            // #todo find other name: poke, mut, mutate
-                            // #todo this is a temp hack
-                            // #todo write unit tests
-                            // #todo support mutating multiple variables.
-
-                            let [name, value] = args else {
-                                return Err(Error::invalid_arguments(
-                                    "malformed `set!`",
-                                    expr.range(),
-                                ));
-                            };
-
-                            let Some(name) = name.as_stringable() else {
-                                return Err(Error::invalid_arguments(
-                                    "`set!` requires a symbol as the first argument",
-                                    name.range(),
-                                ));
-                            };
-
-                            let value = eval(value, context)?;
-
-                            // #todo should we check that the symbol actually exists?
-                            context.scope.update(name, value.clone());
-
-                            // #todo what should this return? One/Unit (i.e. nothing useful) or the actual value?
-                            Ok(Expr::Nil)
-                        }
+                        "set!" => anchor(eval_set(args, context), expr),
                         "scope-update" => {
                             // #todo this name conflicts with scope.update()
                             // #todo consider a function that nests a new scope.
