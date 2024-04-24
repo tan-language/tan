@@ -232,7 +232,7 @@ pub fn fs_exists(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 // #todo delete (or remove?)
 
 // #todo support paths
-pub fn copy(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn fs_copy(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [source, target] = args else {
         return Err(Error::invalid_arguments(
             "`copy` requires `source` and `target` arguments",
@@ -258,6 +258,65 @@ pub fn copy(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 
     // #todo what to return?
     Ok(Expr::Int(bytes_count as i64))
+}
+
+// #ai
+// #todo find a good name that denotes that this is foreign.
+// #extract to a utility?
+fn copy_dir(source: impl AsRef<Path>, target: impl AsRef<Path>) -> std::io::Result<()> {
+    let source = source.as_ref();
+    let target = target.as_ref();
+
+    // #todo consider actually NOT using create_dir_all here, just create_dir.
+    // #insight create_dir_all is required in the recursive call? no.
+    // fs::create_dir_all(target)?;
+
+    // #insight
+    // we don't use create_dir_all here to have consistent semantics
+    // with copy-file. Use glue/fs-util helper (that leverages ensure-directory)
+    // to provide a more resilient version of this function.
+    fs::create_dir(target)?;
+
+    for entry in fs::read_dir(source)? {
+        let entry = entry?;
+        let file_type = entry.file_type()?;
+
+        if file_type.is_dir() {
+            copy_dir(&entry.path(), &target.join(entry.file_name()))?;
+        } else {
+            fs::copy(entry.path(), target.join(entry.file_name()))?;
+        }
+    }
+    Ok(())
+}
+
+// #insight this
+pub fn fs_copy_directory(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [source, target] = args else {
+        return Err(Error::invalid_arguments(
+            "`copy_directory` requires `source` and `target` arguments",
+            None,
+        ));
+    };
+
+    let Some(source) = source.as_string() else {
+        return Err(Error::invalid_arguments(
+            "`source` argument should be a String",
+            source.range(),
+        ));
+    };
+
+    let Some(target) = target.as_string() else {
+        return Err(Error::invalid_arguments(
+            "`target` argument should be a String",
+            target.range(),
+        ));
+    };
+
+    copy_dir(source, target)?;
+
+    // #todo what is a good return value?
+    Ok(Expr::Nil)
 }
 
 // #todo consider `make-directory`? (make in process, create in system)
@@ -346,7 +405,12 @@ pub fn setup_lib_fs(context: &mut Context) {
     module.insert("exists?", Expr::ForeignFunc(Arc::new(fs_exists)));
     module.insert("exists?$$String", Expr::ForeignFunc(Arc::new(fs_exists)));
 
-    module.insert("copy", Expr::ForeignFunc(Arc::new(copy)));
+    module.insert("copy", Expr::ForeignFunc(Arc::new(fs_copy)));
+
+    module.insert(
+        "copy-directory",
+        Expr::ForeignFunc(Arc::new(fs_copy_directory)),
+    );
 
     module.insert(
         "create-directory",
