@@ -10,6 +10,7 @@ use crate::{context::Context, eval::util::canonicalize_path, module::Module};
 /// Returns a module from the registry. If the module does not exist this function
 /// creates it.
 pub fn require_module<'a>(path: &str, context: &'a mut Context) -> &'a mut Arc<Module> {
+    // #todo support leading `/`.
     // #todo extract the url generation.
     // #todo this is a hack.
     let url = format!("{}/@std/{}", context.root_path, path);

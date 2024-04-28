@@ -78,6 +78,7 @@ pub fn eval_use(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
                 let bindings = get_bindings_with_prefix(&module.scope, name);
 
                 if bindings.is_empty() {
+                    // #todo make this a FailedUse error.
                     return Err(Error::invalid_arguments(
                         &format!("undefined import `{name}`"),
                         None,
