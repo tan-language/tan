@@ -102,6 +102,29 @@ pub fn complex_mul(args: &[Expr], _context: &mut Context) -> Result<Expr, Error>
     Ok(make_complex(re, im))
 }
 
+// |z| = √(a² + b²)
+pub fn complex_abs(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [c] = args else {
+        return Err(Error::invalid_arguments("requires `self` argument", None));
+    };
+
+    let Some((a, b)) = try_complex(c) else {
+        return Err(Error::invalid_arguments(
+            &format!("{c} is not a Complex"),
+            c.range(),
+        ));
+    };
+
+    // complex abs formula: |z| = √(a² + b²)
+    // #insight the complex abs is the 'magnitude' of the complex number.
+
+    // #todo detect and optimize pure real (a + 0i) and pure imaginary (0 + bi) cases.
+
+    let magnitude = ((a * a) + (b * b)).sqrt();
+
+    Ok(magnitude.into())
+}
+
 pub fn setup_lib_math_complex(context: &mut Context) {
     // #todo skip the `math/` prefix?
     let module = require_module("math/complex", context);
@@ -126,6 +149,10 @@ pub fn setup_lib_math_complex(context: &mut Context) {
         Expr::ForeignFunc(Arc::new(complex_mul)),
     );
 
+    // #todo move this to arithmetic or something similar.
+    module.insert("abs", Expr::ForeignFunc(Arc::new(complex_abs)));
+    module.insert("abs$$Complex", Expr::ForeignFunc(Arc::new(complex_abs)));
+
     // #todo also consider Complex:one, Complex:zero ~~ (Complex :zero) -> Complex:zero
     // #todo `Complex/one`
     // #todo `Complex/zero`
@@ -133,7 +160,6 @@ pub fn setup_lib_math_complex(context: &mut Context) {
     // #todo `Complex/im`
     // #todo `(re c)`, `(re-of c)`, `(get-re c)`
     // #todo `(im c)`, `(im-of c)`, `(get-im c)`
-    // #todo (abs c)
 }
 
 // #todo add unit tests.
@@ -201,9 +227,6 @@ mod tests {
     fn complex_mul_usage() {
         let mut context = Context::new();
 
-        // complex multiplication formula: (ac - bd) + (ad + bc)i.
-        // 8 - 3 = 5
-        // 2 + 12 = 14
         let input = r#"
         (use [Complex *] /math/complex)
         (let c (Complex 2.0 3.0))
@@ -213,6 +236,36 @@ mod tests {
         let expr = eval_string(input, &mut context).unwrap();
         let value = format_value(expr);
         let expected = "[5 14]";
+        assert_eq!(value, expected);
+    }
+
+    #[test]
+    fn complex_abs_usage() {
+        let mut context = Context::new();
+
+        let input = r#"
+        (use [Complex abs] /math/complex)
+        (abs (Complex 3.0 4.0))
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "5.0";
+        assert_eq!(value, expected);
+
+        let input = r#"
+        (abs (Complex 3.0 0.0))
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "3.0";
+        assert_eq!(value, expected);
+
+        let input = r#"
+        (abs (Complex 0.0 4.0))
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "4.0";
         assert_eq!(value, expected);
     }
 }
