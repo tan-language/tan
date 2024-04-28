@@ -718,6 +718,20 @@ impl Expr {
     }
 }
 
+impl From<i64> for Expr {
+    fn from(item: i64) -> Self {
+        Expr::Int(item)
+    }
+}
+
+impl From<f64> for Expr {
+    fn from(item: f64) -> Self {
+        Expr::Float(item)
+    }
+}
+
+// #todo impl TryFrom<Expr> for f64, i64, etc.
+
 #[must_use]
 pub fn annotate(mut expr: Expr, name: impl Into<String>, ann_expr: Expr) -> Expr {
     let name = name.into();
@@ -740,6 +754,18 @@ pub fn annotate(mut expr: Expr, name: impl Into<String>, ann_expr: Expr) -> Expr
 pub fn annotate_type(expr: Expr, type_name: impl Into<String>) -> Expr {
     // #todo String is not good, we need a symbol/key-symbol that supports spaces.
     annotate(expr, "type", Expr::Type(type_name.into()))
+}
+
+pub fn has_type_annotation(expr: &Expr, type_name: &str) -> bool {
+    if let Some(typ) = expr.annotation("type") {
+        if let Some(name) = typ.as_stringable() {
+            name == type_name
+        } else {
+            false
+        }
+    } else {
+        false
+    }
 }
 
 #[must_use]
