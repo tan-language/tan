@@ -53,6 +53,8 @@ pub fn complex_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error>
 }
 
 pub fn complex_add(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    // #todo initialize with first arg, to save one op.
+
     let mut re_acc = 0.0;
     let mut im_acc = 0.0;
 
@@ -70,6 +72,36 @@ pub fn complex_add(args: &[Expr], _context: &mut Context) -> Result<Expr, Error>
     Ok(make_complex(re_acc, im_acc))
 }
 
+// (ac - bd) + (ad + bc)i.
+// #todo only supports 2 arguments for the moment.
+// #todo extract multiplication helper and support multiple arguments.
+pub fn complex_mul(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [c, z] = args else {
+        return Err(Error::invalid_arguments("requires two arguments", None));
+    };
+
+    let Some((a, b)) = try_complex(c) else {
+        return Err(Error::invalid_arguments(
+            &format!("{c} is not a Complex"),
+            c.range(),
+        ));
+    };
+
+    let Some((c, d)) = try_complex(z) else {
+        return Err(Error::invalid_arguments(
+            &format!("{z} is not a Complex"),
+            c.range(),
+        ));
+    };
+
+    // complex multiplication formula: (ac - bd) + (ad + bc)i.
+
+    let re = (a * c) - (b * d);
+    let im = (a * d) + (b * c);
+
+    Ok(make_complex(re, im))
+}
+
 pub fn setup_lib_math_complex(context: &mut Context) {
     // #todo skip the `math/` prefix?
     let module = require_module("math/complex", context);
@@ -83,6 +115,16 @@ pub fn setup_lib_math_complex(context: &mut Context) {
         "+$$Complex$$Complex",
         Expr::ForeignFunc(Arc::new(complex_add)),
     );
+    // #todo ugly!
+    module.insert(
+        "+$$Complex$$Complex$$Complex",
+        Expr::ForeignFunc(Arc::new(complex_add)),
+    );
+
+    module.insert(
+        "*$$Complex$$Complex",
+        Expr::ForeignFunc(Arc::new(complex_mul)),
+    );
 
     // #todo also consider Complex:one, Complex:zero ~~ (Complex :zero) -> Complex:zero
     // #todo `Complex/one`
@@ -91,8 +133,6 @@ pub fn setup_lib_math_complex(context: &mut Context) {
     // #todo `Complex/im`
     // #todo `(re c)`, `(re-of c)`, `(get-re c)`
     // #todo `(im c)`, `(im-of c)`, `(get-im c)`
-    // #todo (* c z)
-    // #todo (+ c z)
     // #todo (abs c)
 }
 
@@ -145,6 +185,34 @@ mod tests {
         let expr = eval_string(input, &mut context).unwrap();
         let value = format_value(expr);
         let expected = "[0.5 3.4]";
+        assert_eq!(value, expected);
+
+        let input = r#"
+        (let q (Complex 5.5 5.5))
+        (+ c z q)
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "[6 8.9]";
+        assert_eq!(value, expected);
+    }
+
+    #[test]
+    fn complex_mul_usage() {
+        let mut context = Context::new();
+
+        // complex multiplication formula: (ac - bd) + (ad + bc)i.
+        // 8 - 3 = 5
+        // 2 + 12 = 14
+        let input = r#"
+        (use [Complex *] /math/complex)
+        (let c (Complex 2.0 3.0))
+        (let z (Complex 4.0 1.0))
+        (* c z)
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "[5 14]";
         assert_eq!(value, expected);
     }
 }
