@@ -53,8 +53,8 @@ pub fn complex_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error>
 }
 
 pub fn complex_add(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
-    let mut re_sum = 0.0;
-    let mut im_sum = 0.0;
+    let mut re_acc = 0.0;
+    let mut im_acc = 0.0;
 
     for arg in args {
         let Some((re, im)) = try_complex(arg) else {
@@ -63,11 +63,11 @@ pub fn complex_add(args: &[Expr], _context: &mut Context) -> Result<Expr, Error>
                 arg.range(),
             ));
         };
-        re_sum += re;
-        im_sum += im;
+        re_acc += re;
+        im_acc += im;
     }
 
-    Ok(make_complex(re_sum, im_sum))
+    Ok(make_complex(re_acc, im_acc))
 }
 
 pub fn setup_lib_math_complex(context: &mut Context) {
@@ -97,3 +97,54 @@ pub fn setup_lib_math_complex(context: &mut Context) {
 }
 
 // #todo add unit tests.
+
+#[cfg(test)]
+mod tests {
+    use crate::{api::eval_string, context::Context, expr::format_value};
+
+    #[test]
+    fn complex_new_usage() {
+        let mut context = Context::new();
+
+        let input = r#"
+        (use [Complex] /math/complex)
+        (Complex)
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "[0 0]";
+        assert_eq!(value, expected);
+
+        let input = r#"
+        (Complex 3.1)
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "[3.1 0]";
+        assert_eq!(value, expected);
+
+        let input = r#"
+        (Complex 3.1 2.3)
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "[3.1 2.3]";
+        assert_eq!(value, expected);
+    }
+
+    #[test]
+    fn complex_add_usage() {
+        let mut context = Context::new();
+
+        let input = r#"
+        (use [Complex +] /math/complex)
+        (let c (Complex 1.0 2.3))
+        (let z (Complex -0.5 1.1))
+        (+ c z)
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "[0.5 3.4]";
+        assert_eq!(value, expected);
+    }
+}
