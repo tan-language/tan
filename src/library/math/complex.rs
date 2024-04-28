@@ -84,6 +84,7 @@ pub fn setup_lib_math_complex(context: &mut Context) {
         Expr::ForeignFunc(Arc::new(complex_add)),
     );
 
+    // #todo also consider Complex:one, Complex:zero ~~ (Complex :zero) -> Complex:zero
     // #todo `Complex/one`
     // #todo `Complex/zero`
     // #todo `Complex/re`
