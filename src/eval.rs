@@ -613,6 +613,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                 }
                 // #todo move all 'type-constructors' to external files.
                 Expr::Type(s) => match s.as_str() {
+                    // #todo extract!
                     "U8" => {
                         let Some(arg) = args.first() else {
                             return Err(Error::invalid_arguments(
@@ -620,6 +621,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 expr.range(),
                             ));
                         };
+
+                        let arg = eval(arg, context)?;
 
                         let Some(value) = arg.as_int() else {
                             return Err(Error::invalid_arguments(
@@ -646,6 +649,9 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 expr.range(),
                             ));
                         };
+
+                        // #todo should eval the argument!!! wrong!
+                        // #todo add unit tests.
 
                         let Some(c) = arg.as_string() else {
                             return Err(Error::invalid_arguments(
