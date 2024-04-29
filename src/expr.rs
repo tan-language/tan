@@ -22,6 +22,8 @@ use crate::{
     util::{expect_lock_read, expect_lock_write, fmt::format_float},
 };
 
+// #todo make some Expr variants non annotatable (e.g. U8)
+
 // #todo introduce Expr::Ref() with an Rc reference to avoid excessive cloning!
 
 // #insight
@@ -46,7 +48,7 @@ use crate::{
 
 // #todo (do ...) blocks should also have lexical scope.
 
-// #todo what would be the 'default'?
+// #todo what would be the 'default'? -> the 'Unit'/'One' type, Nil!
 // #todo consider parsing to 'simple' Expr, only List and Symbols
 // #todo optimize 'simple' Expr to 'execution' Expr
 // #todo introduce ForeignValue?
@@ -107,6 +109,8 @@ pub enum Expr {
     Comment(String, CommentKind), // #todo consider renaming to Remark (REM)
     TextSeparator,                // for the formatter.
     Bool(bool),                   // #todo remove?
+    // #todo consider `Byte`, `UInt8`?
+    U8(u8),
     Int(i64),
     Float(f64),
     #[cfg(feature = "dec")]
@@ -261,6 +265,7 @@ impl fmt::Debug for Expr {
             Expr::Type(s) => format!("Type({s})"),
             Expr::Char(c) => format!("Char({c})"),
             Expr::String(s) => format!("String(\"{s}\")"),
+            Expr::U8(num) => format!("U8({num})"),
             Expr::Int(num) => format!("Int({num})"),
             Expr::Float(num) => format!("Float({num})"),
             #[cfg(feature = "dec")]
@@ -309,6 +314,7 @@ impl fmt::Display for Expr {
                 Expr::Comment(s, _) => format!(r#"(rem "{s}")"#), // #todo what would be a good representation?
                 Expr::TextSeparator => "<TS>".to_owned(),
                 Expr::Bool(b) => b.to_string(),
+                Expr::U8(n) => n.to_string(),
                 Expr::Int(n) => n.to_string(),
                 Expr::Float(n) => n.to_string(),
                 #[cfg(feature = "dec")]

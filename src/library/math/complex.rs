@@ -1,6 +1,5 @@
 // #todo implement with Tan
 // #todo consider putting in Prelude.
-// #todo complex numbers, implement just enough to render mandelbrot.
 
 // (let z (Complex 1.0 0.3))
 // (let r (* z z))

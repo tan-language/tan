@@ -1,3 +1,5 @@
+// #todo investigate: https://htpy.dev/
+
 // #todo think a bit more about a good name
 // #todo probably should move out from std lib into platform lib
 // #todo also perform attribute and body escaping

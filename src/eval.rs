@@ -1,3 +1,5 @@
+// #todo move these external eval functions into library, e.g. library/lang?
+
 mod eval_assertions;
 mod eval_cond;
 mod eval_do;
@@ -609,7 +611,32 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         Ok(Expr::Nil)
                     }
                 }
+                // #todo move all 'type-constructors' to external files.
                 Expr::Type(s) => match s.as_str() {
+                    "U8" => {
+                        let Some(arg) = args.first() else {
+                            return Err(Error::invalid_arguments(
+                                "malformed U8 constructor, missing argument",
+                                expr.range(),
+                            ));
+                        };
+
+                        let Some(value) = arg.as_int() else {
+                            return Err(Error::invalid_arguments(
+                                "malformed U8 constructor, expected Int argument",
+                                expr.range(),
+                            ));
+                        };
+
+                        if !(0..256).contains(&value) {
+                            return Err(Error::invalid_arguments(
+                                "U8 values should be in 0..256",
+                                expr.range(),
+                            ));
+                        }
+
+                        Ok(Expr::U8(value as u8))
+                    }
                     "Char" => {
                         // #todo report more than 1 arguments.
 
