@@ -63,6 +63,8 @@ pub fn recognize_range(range_str: &str) -> Option<Expr> {
         return None;
     }
 
+    // #todo support parameters in range, e.g. start..end, 0..end, start..end, etc.
+
     // Parse the start and end values from the first part of the split
     let start_end: Vec<&str> = parts[0].split("..").collect();
     if start_end.len() != 2 {
