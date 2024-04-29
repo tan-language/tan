@@ -276,7 +276,9 @@ impl<'a> Parser<'a> {
                     match recognize_range(lexeme) {
                         Some(r) => Some(r),
                         None => {
-                            let error = Error::new(ErrorVariant::MalformedRange);
+                            let mut error = Error::new(ErrorVariant::MalformedRange);
+                            // #todo support range in error, not only in note.
+                            error.push_note("invalid range", Some(range));
                             self.errors.push(error);
                             None
                         }
