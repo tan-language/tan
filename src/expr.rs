@@ -394,8 +394,9 @@ impl fmt::Display for Expr {
                 }
                 Expr::Func(..) => "#<func>".to_owned(),
                 Expr::Macro(..) => "#<func>".to_owned(),
-                Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
-                Expr::ForeignStruct(..) => "#<foreign_struct>".to_owned(),
+                Expr::ForeignFunc(..) => "#<foreign-func>".to_owned(),
+                Expr::ForeignStruct(..) => "#<foreign-struct>".to_owned(),
+                Expr::ForeignStructMut(..) => "#<foreign-struct-mut>".to_owned(),
                 // #insight intentionally pass through the formatting.
                 Expr::Annotated(expr, _) => format!("{expr}"),
                 Expr::Module(module) => format!("Module({})", module.stem),
