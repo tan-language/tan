@@ -236,7 +236,7 @@ impl<'a> Parser<'a> {
                         // #insight no transformation performed here.
                         Ok(_) => Some(Expr::String(lexeme.clone())),
                         Err(errs) => {
-                            let mut error = Error::new(ErrorVariant::MalformedRange);
+                            let mut error = Error::new(ErrorVariant::MalformedStringTemplate);
                             for err in errs {
                                 error.push_note(&err.to_string(), Some(range.clone()));
                             }
