@@ -103,13 +103,6 @@ pub fn recognize_string_template(input: &str) -> Result<Expr, Vec<Error>> {
 // }
 
 // #todo should return Result.
-// #todo cleanup the implementation.
-// #todo move to another file.
-// #todo the `/step` part is conflicting with paths, e.g. in `use` statements, consider other separator.
-// #todo consider not supporting the step in the literal, instead: (with-step 3..10 2) <- THIS
-// #todo support 3..=10 literal
-// #todo consider swift-like range literals, closed: 2...3 and open 2..<3
-/// Parses a range string: start..end|step.
 fn parse_range_component(lexeme: &str) -> Option<Expr> {
     // if let Ok(n) = lexeme.parse::<i64>() {
     //     return Some(Expr::Int(n));
@@ -132,7 +125,16 @@ fn parse_range_component(lexeme: &str) -> Option<Expr> {
 }
 
 // #todo better return Result, so that exact error details can be emitted!
+// #todo cleanup the implementation.
+// #todo move to another file.
+// #todo the `/step` part is conflicting with paths, e.g. in `use` statements, consider other separator.
+// #todo consider not supporting the step in the literal, instead: (with-step 3..10 2) <- THIS
+// #todo support 3..=10 literal
+// #todo consider swift-like range literals, closed: 2...3 and open 2..<3
+/// Parses a range string: start..end|step.
 pub fn recognize_range(range_str: &str) -> Option<Expr> {
+    // #insight don't build a custom range expression to support dyn-time ranges.
+
     // #todo should convert to (Range start, end, step)
     let parts: Vec<&str> = range_str.split('|').collect();
 
