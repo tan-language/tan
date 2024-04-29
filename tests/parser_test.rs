@@ -5,7 +5,7 @@ use assert_matches::assert_matches;
 use tan::{
     api::{parse_string, parse_string_all},
     error::ErrorVariant,
-    expr::Expr,
+    expr::{format_value, Expr},
     lexer::{token::Token, Lexer},
     parser::Parser,
 };
@@ -426,19 +426,29 @@ fn parse_handles_int_range() {
         panic!("invalid form")
     };
 
-    assert_matches!(&exprs[2].unpack(), Expr::IntRange(start, end, step) if *start == 2 && *end == 30 && *step == 3);
+    // #insight we no longer build Range expressions in parser (to support dynamic expressions)
+    // assert_matches!(&exprs[2].unpack(), Expr::IntRange(start, end, step) if *start == 2 && *end == 30 && *step == 3);
+
+    let value = format_value(&exprs[2]);
+    let expected = "(Range 2 30 3)";
+    assert_eq!(value, expected);
 }
 
 #[test]
 fn parse_handles_float_range() {
-    let input = "(let a 2.0..30.0|3.0)";
+    let input = "(let a 2.1..30.2|0.1)";
     let result = parse_string(input).unwrap();
 
     let Expr::List(exprs) = result.unpack() else {
         panic!("invalid form")
     };
 
-    assert_matches!(&exprs[2].unpack(), Expr::FloatRange(start, end, step) if *start == 2.0 && *end == 30.0 && *step == 3.0);
+    // #insight we no longer build Range expressions in parser (to support dynamic expressions)
+    // assert_matches!(&exprs[2].unpack(), Expr::FloatRange(start, end, step) if *start == 2.0 && *end == 30.0 && *step == 3.0);
+
+    let value = format_value(&exprs[2]);
+    let expected = "(Range 2.1 30.2 0.1)";
+    assert_eq!(value, expected);
 }
 
 #[test]
