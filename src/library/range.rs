@@ -22,9 +22,9 @@ use crate::{context::Context, error::Error, expr::Expr, util::module_util::requi
 
 pub fn range_int_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo make some of the arguments optional, e.g. step.
-    let [start, end] = args else {
+    let [start, end, ..] = args else {
         return Err(Error::invalid_arguments(
-            "requires `start`, `end`, and `step` arguments",
+            "requires `start`, `end` arguments",
             None,
         ));
     };
@@ -64,7 +64,7 @@ pub fn range_int_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Erro
 
 pub fn range_float_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo make some of the arguments optional, e.g. step.
-    let [start, end] = args else {
+    let [start, end, ..] = args else {
         return Err(Error::invalid_arguments(
             "requires `start`, `end`, and `step` arguments",
             None,
