@@ -155,36 +155,12 @@ pub fn recognize_range(range_str: &str) -> Option<Expr> {
 
     let mut exprs = vec![Expr::symbol("Range")];
 
-    let start_expr = parse_range_component(start_end[0])?;
-    let end_expr = parse_range_component(start_end[1])?;
+    exprs.push(parse_range_component(start_end[0])?);
+    exprs.push(parse_range_component(start_end[1])?);
 
-    // Default step value is 1.0 if not provided
-    let step_expr = if parts.len() == 2 {
-        parse_range_component(parts[1])?
-    } else {
-        // #todo think more about start == end
-        if let Expr::Float(..) = start_expr {
-            let start = start_expr.as_float().unwrap();
-            let end = end_expr.as_float().unwrap();
-            if end >= start {
-                Expr::Float(1.0)
-            } else {
-                Expr::Float(-1.0)
-            }
-        } else {
-            let start = start_expr.as_int().unwrap();
-            let end = end_expr.as_int().unwrap();
-            if end >= start {
-                Expr::Int(1)
-            } else {
-                Expr::Int(-1)
-            }
-        }
-    };
-
-    exprs.push(start_expr);
-    exprs.push(end_expr);
-    exprs.push(step_expr);
+    if parts.len() == 2 {
+        exprs.push(parse_range_component(parts[1])?);
+    }
 
     Some(Expr::List(exprs))
 }

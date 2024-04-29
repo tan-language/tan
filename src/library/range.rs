@@ -22,7 +22,7 @@ use crate::{context::Context, error::Error, expr::Expr, util::module_util::requi
 
 pub fn range_int_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo make some of the arguments optional, e.g. step.
-    let [start, end, step] = args else {
+    let [start, end] = args else {
         return Err(Error::invalid_arguments(
             "requires `start`, `end`, and `step` arguments",
             None,
@@ -32,23 +32,30 @@ pub fn range_int_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Erro
     // #todo create a helper.
     let Some(start) = start.as_int() else {
         return Err(Error::invalid_arguments(
-            "expected Int argument",
+            &format!("start=`{start}` is not Int"),
             start.range(),
         ));
     };
 
     let Some(end) = end.as_int() else {
         return Err(Error::invalid_arguments(
-            "expected Int argument",
+            &format!("end=`{end}` is not Int"),
             end.range(),
         ));
     };
 
-    let Some(step) = step.as_int() else {
-        return Err(Error::invalid_arguments(
-            "expected Int argument",
-            step.range(),
-        ));
+    let step = if let Some(step) = args.get(2) {
+        let Some(step) = step.as_int() else {
+            return Err(Error::invalid_arguments(
+                &format!("step=`{step}` is not Int"),
+                step.range(),
+            ));
+        };
+        step
+    } else if end >= start {
+        1
+    } else {
+        -1
     };
 
     // #todo use Expr::ForeignStruct
@@ -57,7 +64,7 @@ pub fn range_int_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Erro
 
 pub fn range_float_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo make some of the arguments optional, e.g. step.
-    let [start, end, step] = args else {
+    let [start, end] = args else {
         return Err(Error::invalid_arguments(
             "requires `start`, `end`, and `step` arguments",
             None,
@@ -67,23 +74,30 @@ pub fn range_float_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Er
     // #todo create a helper.
     let Some(start) = start.as_float() else {
         return Err(Error::invalid_arguments(
-            "expected Float argument",
+            &format!("start=`{start}` is not Float"),
             start.range(),
         ));
     };
 
     let Some(end) = end.as_float() else {
         return Err(Error::invalid_arguments(
-            "expected Float argument",
+            &format!("end=`{end}` is not Float"),
             end.range(),
         ));
     };
 
-    let Some(step) = step.as_float() else {
-        return Err(Error::invalid_arguments(
-            "expected Float argument",
-            step.range(),
-        ));
+    let step = if let Some(step) = args.get(2) {
+        let Some(step) = step.as_float() else {
+            return Err(Error::invalid_arguments(
+                &format!("step=`{step}` is not Float"),
+                step.range(),
+            ));
+        };
+        step
+    } else if end >= start {
+        1.0
+    } else {
+        -1.0
     };
 
     // #todo use Expr::ForeignStruct
@@ -96,8 +110,16 @@ pub fn setup_lib_range(context: &mut Context) {
 
     module.insert("Range", Expr::ForeignFunc(Arc::new(range_int_new)));
     module.insert(
+        "Range$$Int$$Int",
+        Expr::ForeignFunc(Arc::new(range_int_new)),
+    );
+    module.insert(
         "Range$$Int$$Int$$Int",
         Expr::ForeignFunc(Arc::new(range_int_new)),
+    );
+    module.insert(
+        "Range$$Float$$Float",
+        Expr::ForeignFunc(Arc::new(range_float_new)),
     );
     module.insert(
         "Range$$Float$$Float$$Float",
