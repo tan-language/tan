@@ -246,7 +246,7 @@ pub fn not_eq_symbol(args: &[Expr], _context: &mut Context) -> Result<Expr, Erro
     Ok(Expr::Bool(a != b))
 }
 
-pub fn gt(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn int_gt(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo support multiple arguments.
     let [a, b] = args else {
         return Err(Error::invalid_arguments(
@@ -265,6 +265,32 @@ pub fn gt(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let Some(b) = b.as_int() else {
         return Err(Error::invalid_arguments(
             &format!("`{b}` is not an Int"),
+            b.range(),
+        ));
+    };
+
+    Ok(Expr::Bool(a > b))
+}
+
+pub fn float_gt(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    // #todo support multiple arguments.
+    let [a, b] = args else {
+        return Err(Error::invalid_arguments(
+            "`>` requires at least two arguments",
+            None,
+        ));
+    };
+
+    let Some(a) = a.as_float() else {
+        return Err(Error::invalid_arguments(
+            &format!("`{a}` is not a Float"),
+            a.range(),
+        ));
+    };
+
+    let Some(b) = b.as_float() else {
+        return Err(Error::invalid_arguments(
+            &format!("`{b}` is not a Float"),
             b.range(),
         ));
     };
@@ -336,6 +362,8 @@ pub fn setup_lib_eq(context: &mut Context) {
         Expr::ForeignFunc(Arc::new(not_eq_symbol)),
     );
 
-    module.insert(">", Expr::ForeignFunc(Arc::new(gt)));
+    module.insert(">", Expr::ForeignFunc(Arc::new(int_gt)));
+    module.insert(">$$Int$$Int", Expr::ForeignFunc(Arc::new(int_gt)));
+    module.insert(">$$Float$$Float", Expr::ForeignFunc(Arc::new(float_gt)));
     module.insert("<", Expr::ForeignFunc(Arc::new(lt)));
 }
