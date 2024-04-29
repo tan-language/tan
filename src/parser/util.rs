@@ -47,21 +47,104 @@ pub fn recognize_string_template(input: &str) -> Result<Expr, Vec<Error>> {
     Ok(Expr::List(exprs))
 }
 
-// #ai-generated
+// pub fn recognize_range_old(range_str: &str) -> Option<Expr> {
+//     // #todo should convert to (Range start, end, step)
+//     let parts: Vec<&str> = range_str.split('|').collect();
+
+//     if parts.len() > 2 {
+//         // If there are more than two parts, the input format is invalid
+//         return None;
+//     }
+
+//     // #todo support parameters in range, e.g. start..end, 0..end, start..end, etc.
+
+//     // Parse the start and end values from the first part of the split
+//     let start_end: Vec<&str> = parts[0].split("..").collect();
+//     if start_end.len() != 2 {
+//         // If the start-end part doesn't have exactly two elements, the input format is invalid
+//         return None;
+//     }
+
+//     if start_end[0].contains('.') {
+//         let start: f64 = start_end[0].parse().ok()?;
+//         let end: f64 = start_end[1].parse().ok()?;
+
+//         // Default step value is 1.0 if not provided
+//         let step: f64 = if parts.len() == 2 {
+//             parts[1].parse().ok()?
+//         } else {
+//             // #todo think more about start == end
+//             if end >= start {
+//                 1.0
+//             } else {
+//                 -1.0
+//             }
+//         };
+
+//         Some(Expr::FloatRange(start, end, step))
+//     } else {
+//         let start: i64 = start_end[0].parse().ok()?;
+//         let end: i64 = start_end[1].parse().ok()?;
+
+//         // Default step value is 1 if not provided
+//         let step: i64 = if parts.len() == 2 {
+//             parts[1].parse().ok()?
+//         } else {
+//             // #todo think more about start == end
+//             if end >= start {
+//                 1
+//             } else {
+//                 -1
+//             }
+//         };
+
+//         Some(Expr::IntRange(start, end, step))
+//     }
+// }
+
+// #todo should return Result.
+fn parse_range_component(lexeme: &str) -> Option<Expr> {
+    // if let Ok(n) = lexeme.parse::<i64>() {
+    //     return Some(Expr::Int(n));
+    // }
+    // if let Ok(n) = lexeme.parse::<f64>() {
+    //     return Some(Expr::Float(n));
+    // }
+    let expr = if is_potential_number(lexeme) {
+        if lexeme.contains('.') {
+            Expr::Float(lexeme.parse().ok()?)
+        } else {
+            Expr::Int(lexeme.parse().ok()?)
+        }
+    } else {
+        // #todo check that this is a valid symbol, reuse symbol parsing functionality!
+        Expr::symbol(lexeme)
+    };
+
+    Some(expr)
+}
+
+// #todo better return Result, so that exact error details can be emitted!
 // #todo cleanup the implementation.
 // #todo move to another file.
 // #todo the `/step` part is conflicting with paths, e.g. in `use` statements, consider other separator.
 // #todo consider not supporting the step in the literal, instead: (with-step 3..10 2) <- THIS
 // #todo support 3..=10 literal
 // #todo consider swift-like range literals, closed: 2...3 and open 2..<3
-/// Parses a range string: start..end/step.
+/// Parses a range string: start..end|step.
 pub fn recognize_range(range_str: &str) -> Option<Expr> {
+    // #insight don't build a custom range expression to support dyn-time ranges.
+
+    // #todo should convert to (Range start, end, step)
     let parts: Vec<&str> = range_str.split('|').collect();
 
     if parts.len() > 2 {
         // If there are more than two parts, the input format is invalid
         return None;
     }
+
+    // #todo support parameters in range, e.g. start..end, 0..end, start..end, etc.
+    // #todo support open intervals, e.g. start.. ..end
 
     // Parse the start and end values from the first part of the split
     let start_end: Vec<&str> = parts[0].split("..").collect();
@@ -70,41 +153,16 @@ pub fn recognize_range(range_str: &str) -> Option<Expr> {
         return None;
     }
 
-    if start_end[0].contains('.') {
-        let start: f64 = start_end[0].parse().ok()?;
-        let end: f64 = start_end[1].parse().ok()?;
+    let mut exprs = vec![Expr::symbol("Range")];
 
-        // Default step value is 1.0 if not provided
-        let step: f64 = if parts.len() == 2 {
-            parts[1].parse().ok()?
-        } else {
-            // #todo think more about start == end
-            if end >= start {
-                1.0
-            } else {
-                -1.0
-            }
-        };
+    exprs.push(parse_range_component(start_end[0])?);
+    exprs.push(parse_range_component(start_end[1])?);
 
-        Some(Expr::FloatRange(start, end, step))
-    } else {
-        let start: i64 = start_end[0].parse().ok()?;
-        let end: i64 = start_end[1].parse().ok()?;
-
-        // Default step value is 1 if not provided
-        let step: i64 = if parts.len() == 2 {
-            parts[1].parse().ok()?
-        } else {
-            // #todo think more about start == end
-            if end >= start {
-                1
-            } else {
-                -1
-            }
-        };
-
-        Some(Expr::IntRange(start, end, step))
+    if parts.len() == 2 {
+        exprs.push(parse_range_component(parts[1])?);
     }
+
+    Some(Expr::List(exprs))
 }
 
 // #todo force the `:` at the beginning
@@ -115,4 +173,34 @@ pub fn recognize_range(range_str: &str) -> Option<Expr> {
 #[inline(always)]
 pub fn is_key_symbol(lexeme: &str) -> bool {
     lexeme.contains(':')
+}
+
+// #insight it's actually a potential number!
+pub fn is_potential_number(lexeme: &str) -> bool {
+    let mut chars = lexeme.chars();
+
+    let Some(ch) = chars.next() else {
+        return false;
+    };
+    if ch == '-' {
+        let Some(ch1) = chars.next() else {
+            return false;
+        };
+        char::is_numeric(ch1)
+    } else {
+        char::is_numeric(ch)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::parser::util::is_potential_number;
+
+    #[test]
+    fn is_potential_number_usage() {
+        assert!(is_potential_number("1"));
+        assert!(is_potential_number("1.0"));
+        assert!(is_potential_number("-1.2"));
+        assert!(!is_potential_number("random-symbol"));
+    }
 }

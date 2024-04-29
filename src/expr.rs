@@ -33,6 +33,8 @@ use crate::{
 
 // #insight use structs for enum values, is more ..structured, readable and can have methods.
 
+// #insight Rc/Arc is used instead of Box to support Clone.
+
 // #todo separate variant for list and apply/call (can this be defined statically?)
 // #todo List, MaybeList, Call
 // #todo Expr::Range()
@@ -150,7 +152,12 @@ pub enum Expr {
     // #todo the ForeignFunc should probably store the Module environment.
     // #todo introduce a ForeignFuncMut for mutating scope? what would be a better name?
     ForeignFunc(Arc<ExprContextFn>), // #todo for some reason, Box is not working here!
-    ForeignStruct(Arc<RwLock<dyn Any + Send + Sync + 'static>>),
+    // #todo consider renaming to just `Foreign`,
+    // #todo consider adding type-name field?
+    // #todo to optimize consider using an index into a table of type-names.
+    // #todo support both mutable and immutable foreignStructs
+    ForeignStruct(Arc<dyn Any + Send + Sync + 'static>),
+    ForeignStructMut(Arc<RwLock<dyn Any + Send + Sync + 'static>>),
     // --- High-level ---
     // #todo do should contain the expressions also, pre-parsed!
     Do,
@@ -288,8 +295,9 @@ impl fmt::Debug for Expr {
             Expr::FloatRange(start, end, step) => format!("(Range Int {start} {end} {step})"),
             Expr::Func(..) => "#<func>".to_owned(),
             Expr::Macro(..) => "#<macro>".to_owned(),
-            Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
-            Expr::ForeignStruct(..) => "#<foreign_struct>".to_owned(),
+            Expr::ForeignFunc(..) => "#<foreign-func>".to_owned(),
+            Expr::ForeignStruct(..) => "#<foreign-struct>".to_owned(),
+            Expr::ForeignStructMut(..) => "#<foreign-struct-mut>".to_owned(),
             Expr::Let => "let".to_owned(),
             // #todo properly format do, let, if, etc.
             Expr::If(_, _, _) => "if".to_owned(),
@@ -386,8 +394,9 @@ impl fmt::Display for Expr {
                 }
                 Expr::Func(..) => "#<func>".to_owned(),
                 Expr::Macro(..) => "#<func>".to_owned(),
-                Expr::ForeignFunc(..) => "#<foreign_func>".to_owned(),
-                Expr::ForeignStruct(..) => "#<foreign_struct>".to_owned(),
+                Expr::ForeignFunc(..) => "#<foreign-func>".to_owned(),
+                Expr::ForeignStruct(..) => "#<foreign-struct>".to_owned(),
+                Expr::ForeignStructMut(..) => "#<foreign-struct-mut>".to_owned(),
                 // #insight intentionally pass through the formatting.
                 Expr::Annotated(expr, _) => format!("{expr}"),
                 Expr::Module(module) => format!("Module({})", module.stem),

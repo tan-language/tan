@@ -13,6 +13,7 @@ use super::eq::setup_lib_eq;
 use super::io::setup_lib_io;
 use super::lang::setup_lib_lang;
 use super::map::setup_lib_map;
+use super::range::setup_lib_range;
 use super::seq::setup_lib_seq;
 use super::string::setup_lib_string;
 
@@ -40,6 +41,7 @@ pub fn setup_lib_prelude(context: &mut Context) {
     setup_lib_seq(context);
     setup_lib_map(context);
     setup_lib_lang(context);
+    setup_lib_range(context);
 
     // #todo move this to lang.rs
     // #todo #temp #hack

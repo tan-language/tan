@@ -16,6 +16,7 @@ pub mod network;
 pub mod path;
 pub mod prelude;
 pub mod process;
+pub mod range;
 pub mod regex;
 pub mod rng;
 pub mod seq;
