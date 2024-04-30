@@ -23,6 +23,8 @@ pub fn setup_lib_float(context: &mut Context) {
     // #todo put in 'float' path, and import selected functionality to prelude.
     let module = require_module("prelude", context);
 
+    // #todo consider to-float instead?
+
     // #todo make `float_new` the default.
     module.insert("Float", Expr::ForeignFunc(Arc::new(float_int_new)));
     module.insert("Float$$Int", Expr::ForeignFunc(Arc::new(float_int_new)));
