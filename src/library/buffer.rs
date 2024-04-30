@@ -1,56 +1,39 @@
 // #todo consider other names: `Buf`, `Byte-Buffer`, etc.
 
+use std::sync::{Arc, RwLock};
+
 use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
 
 // #insight
 // size -> in bytes (maybe size-in-bytes ?)
 // length/count -> in items/elements (maybe size ?)
 
+// #todo use array instead of vec? can we have dynamic array, probably a slice.
+
 pub fn buffer_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
-    // // #todo make some of the arguments optional, e.g. step.
-    // let [start, end, ..] = args else {
-    //     return Err(Error::invalid_arguments(
-    //         "requires `start`, `end` arguments",
-    //         None,
-    //     ));
-    // };
+    // #todo also support a default-element/fill option.
 
-    // // #todo create a helper.
-    // let Some(start) = start.as_int() else {
-    //     return Err(Error::invalid_arguments(
-    //         &format!("start=`{start}` is not Int"),
-    //         start.range(),
-    //     ));
-    // };
+    let [length] = args else {
+        return Err(Error::invalid_arguments("requires `length` argument", None));
+    };
 
-    // let Some(end) = end.as_int() else {
-    //     return Err(Error::invalid_arguments(
-    //         &format!("end=`{end}` is not Int"),
-    //         end.range(),
-    //     ));
-    // };
+    // #todo create a helper.
+    let Some(length) = length.as_int() else {
+        return Err(Error::invalid_arguments(
+            &format!("length=`{length}` is not Int"),
+            length.range(),
+        ));
+    };
 
-    // let step = if let Some(step) = args.get(2) {
-    //     let Some(step) = step.as_int() else {
-    //         return Err(Error::invalid_arguments(
-    //             &format!("step=`{step}` is not Int"),
-    //             step.range(),
-    //         ));
-    //     };
-    //     step
-    // } else if end >= start {
-    //     1
-    // } else {
-    //     -1
-    // };
+    let length = length as usize;
+    let buf: Vec<u8> = Vec::with_capacity(length);
 
-    // // #todo use Expr::ForeignStruct
-    // Ok(Expr::IntRange(start, end, step))
-
-    Ok(Expr::Nil)
+    Ok(Expr::Buffer(length, Arc::new(RwLock::new(buf))))
 }
 
 pub fn setup_lib_buffer(context: &mut Context) {
     // #todo put in 'buffer' path, and import selected functionality to prelude.
     let module = require_module("prelude", context);
+
+    module.insert("Buffer", Expr::ForeignFunc(Arc::new(buffer_new)));
 }
