@@ -16,12 +16,12 @@ pub mod standard_names;
 
 // #todo better name? consider lock_borrow?
 // #todo should mention what type of expr we are trying to read?
-pub fn expect_lock_read<T>(v: &Arc<RwLock<T>>) -> std::sync::RwLockReadGuard<'_, T> {
+pub fn expect_lock_read<T: ?Sized>(v: &Arc<RwLock<T>>) -> std::sync::RwLockReadGuard<'_, T> {
     v.read().expect("lock should not be poisoned")
 }
 
 // #todo consider lock_borrow_mut?
-pub fn expect_lock_write<T>(v: &Arc<RwLock<T>>) -> std::sync::RwLockWriteGuard<'_, T> {
+pub fn expect_lock_write<T: ?Sized>(v: &Arc<RwLock<T>>) -> std::sync::RwLockWriteGuard<'_, T> {
     v.write().expect("lock should not be poisoned")
 }
 
