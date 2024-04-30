@@ -34,6 +34,8 @@ pub fn buffer_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
 
 // (put buf index value)
 pub fn buffer_put(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    // #todo enforce bounds!!
+
     let [buffer, index, value] = args else {
         return Err(Error::invalid_arguments(
             "requires `index` and `value` arguments",

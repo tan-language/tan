@@ -6,6 +6,7 @@ pub mod cmark; // #todo rename to common mark?
 pub mod cmp;
 pub mod css_expr;
 pub mod eq;
+pub mod float;
 pub mod fs;
 pub mod html;
 pub mod io;

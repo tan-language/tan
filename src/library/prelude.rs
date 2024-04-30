@@ -11,6 +11,7 @@ use super::buffer::setup_lib_buffer;
 use super::chrono;
 use super::cmp::setup_lib_cmp;
 use super::eq::setup_lib_eq;
+use super::float::setup_lib_float;
 use super::io::setup_lib_io;
 use super::lang::setup_lib_lang;
 use super::map::setup_lib_map;
@@ -44,6 +45,7 @@ pub fn setup_lib_prelude(context: &mut Context) {
     setup_lib_lang(context);
     setup_lib_range(context);
     setup_lib_buffer(context);
+    setup_lib_float(context);
 
     // #todo move this to lang.rs
     // #todo #temp #hack
