@@ -522,6 +522,13 @@ impl Expr {
         Some(*n)
     }
 
+    pub fn as_u8(&self) -> Option<u8> {
+        let Expr::U8(n) = self.unpack() else {
+            return None;
+        };
+        Some(*n)
+    }
+
     pub fn as_float(&self) -> Option<f64> {
         let Expr::Float(n) = self.unpack() else {
             return None;
@@ -643,6 +650,24 @@ impl Expr {
         Some(expect_lock_write(v))
     }
 
+    pub fn as_buffer(&self) -> Option<RwLockReadGuard<'_, Vec<u8>>> {
+        // #todo what to do with size/length?
+        let Expr::Buffer(_, v) = self.unpack() else {
+            return None;
+        };
+        // #todo what would be a good message?
+        // #todo extract as variable.
+        Some(expect_lock_read(v))
+    }
+
+    pub fn as_buffer_mut(&self) -> Option<RwLockWriteGuard<'_, Vec<u8>>> {
+        // #todo what to do with size/length?
+        let Expr::Buffer(_, v) = self.unpack() else {
+            return None;
+        };
+        Some(expect_lock_write(v))
+    }
+
     pub fn as_map(&self) -> Option<RwLockReadGuard<'_, HashMap<String, Expr>>> {
         let Expr::Map(map) = self.unpack() else {
             return None;
@@ -708,6 +733,7 @@ impl Expr {
         match self.unpack() {
             Expr::Never => Expr::typ("Zero"), // Never
             Expr::Nil => Expr::typ("One"),    // Unit
+            Expr::U8(_) => Expr::typ("U8"),
             Expr::Int(_) => Expr::typ("Int"),
             Expr::Float(_) => Expr::typ("Float"),
             Expr::Dec(_) => Expr::typ("Dec"),
@@ -715,6 +741,7 @@ impl Expr {
             Expr::Type(_) => Expr::typ("Type"),
             Expr::List(_) => Expr::typ("List"), // #todo return parameterized type
             Expr::Array(_) => Expr::typ("Array"), // #todo return parameterized type
+            Expr::Buffer(..) => Expr::typ("Buffer"), // #todo return parameterized type
             Expr::Map(_) => Expr::typ("Map"),   // #todo return parameterized type
             Expr::Set(_) => Expr::typ("Set"),   // #todo return parameterized type
             // #todo what about quoted Symbol?

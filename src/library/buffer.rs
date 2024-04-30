@@ -26,14 +26,59 @@ pub fn buffer_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
     };
 
     let length = length as usize;
-    let buf: Vec<u8> = Vec::with_capacity(length);
+    // #todo allow for custom initial value.
+    let buf: Vec<u8> = vec![0; length];
 
     Ok(Expr::Buffer(length, Arc::new(RwLock::new(buf))))
+}
+
+// (put buf index value)
+pub fn buffer_put(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [buffer, index, value] = args else {
+        return Err(Error::invalid_arguments(
+            "requires `index` and `value` arguments",
+            None,
+        ));
+    };
+
+    let Some(mut buffer) = buffer.as_buffer_mut() else {
+        return Err(Error::invalid_arguments(
+            &format!("buffer=`{buffer}` is not a Buffer"),
+            buffer.range(),
+        ));
+    };
+
+    let Some(index) = index.as_int() else {
+        return Err(Error::invalid_arguments(
+            &format!("index=`{index}` is not Int"),
+            index.range(),
+        ));
+    };
+
+    let Some(value) = value.as_u8() else {
+        return Err(Error::invalid_arguments(
+            &format!("value=`{value}` is not U8"),
+            value.range(),
+        ));
+    };
+
+    buffer[index as usize] = value;
+
+    // #todo what should we return?
+    Ok(Expr::Nil)
 }
 
 pub fn setup_lib_buffer(context: &mut Context) {
     // #todo put in 'buffer' path, and import selected functionality to prelude.
     let module = require_module("prelude", context);
 
+    // #todo consider `Buf`.
     module.insert("Buffer", Expr::ForeignFunc(Arc::new(buffer_new)));
+
+    // #todo also provide a put$$Int
+
+    module.insert(
+        "put$$Buffer$$Int$$U8",
+        Expr::ForeignFunc(Arc::new(buffer_put)),
+    );
 }
