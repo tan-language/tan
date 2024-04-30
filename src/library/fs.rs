@@ -1,8 +1,11 @@
 use std::fs;
+use std::io::Write;
 use std::path::Path;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 
 use crate::error::ErrorVariant;
+use crate::expr::annotate_type;
+use crate::util::expect_lock_write;
 use crate::util::module_util::require_module;
 use crate::{context::Context, error::Error, expr::Expr};
 
@@ -16,6 +19,57 @@ use crate::{context::Context, error::Error, expr::Expr};
 // File < Resource
 // #todo extract file-system-related functionality to `fs` or even the more general `rs` == resource space.
 // #todo consider mapping `:` to `__` and use #[allow(snake_case)]
+
+pub fn fs_create(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [path] = args else {
+        return Err(Error::invalid_arguments("requires a `path` argument", None));
+    };
+
+    let Some(path) = path.as_string() else {
+        return Err(Error::invalid_arguments(
+            "path=`{path}` is not a String",
+            path.range(),
+        ));
+    };
+
+    let file = std::fs::File::create(path)?;
+
+    let expr = Expr::ForeignStructMut(Arc::new(RwLock::new(file)));
+
+    Ok(annotate_type(expr, "File"))
+}
+
+// #todo implement fs/close -> should be the same as drop$$File
+
+pub fn file_write_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [file, string] = args else {
+        return Err(Error::invalid_arguments(
+            "requires `file` and `string` arguments",
+            None,
+        ));
+    };
+
+    let Expr::ForeignStructMut(s) = file.unpack() else {
+        return Err(Error::invalid_arguments("invalid File", None));
+    };
+
+    let s = expect_lock_write(s);
+
+    let Some(mut file) = s.downcast_ref::<std::fs::File>() else {
+        return Err(Error::invalid_arguments("invalid File", None));
+    };
+
+    let Some(string) = string.as_string() else {
+        return Err(Error::invalid_arguments(
+            "path=`{path}` is not a String",
+            string.range(),
+        ));
+    };
+
+    file.write_all(string.as_bytes())?;
+
+    Ok(Expr::Nil)
+}
 
 /// Reads the contents of a text file as a string.
 /// ```tan
@@ -372,6 +426,19 @@ pub fn fs_canonicalize(args: &[Expr], _context: &mut Context) -> Result<Expr, Er
 
 pub fn setup_lib_fs(context: &mut Context) {
     let module = require_module("fs", context);
+
+    module.insert("create", Expr::ForeignFunc(Arc::new(fs_create)));
+
+    // #todo should not be required.
+    module.insert(
+        "write-string",
+        Expr::ForeignFunc(Arc::new(file_write_string)),
+    );
+    module.insert(
+        "write-string$$File$$String",
+        Expr::ForeignFunc(Arc::new(file_write_string)),
+    );
+
     module.insert(
         "read-file-to-string",
         Expr::ForeignFunc(Arc::new(read_file_to_string)),
