@@ -128,7 +128,8 @@ pub enum Expr {
     // #todo add 'quoted' List -> Array!
     // #todo do we really need Vec here? Maybe Arc<[Expr]> is enough?
     List(Vec<Expr>),
-    Array(Arc<RwLock<Vec<Expr>>>), // #insight 'reference' type
+    Array(Arc<RwLock<Vec<Expr>>>),       // #insight 'reference' type
+    Buffer(usize, Arc<RwLock<Vec<u8>>>), // #insight 'reference' type
     // #todo different name?
     // #todo support Expr as keys?
     Map(Arc<RwLock<HashMap<String, Expr>>>),
@@ -288,6 +289,7 @@ impl fmt::Debug for Expr {
                         .join(",\n")
                 )
             }
+            Expr::Buffer(size, v) => format!("Buffer({size}, {v:?})"),
             Expr::Array(v) => format!("Array({v:?})"),
             Expr::Map(d) => format!("Map({d:?})"),
             Expr::Set(d) => format!("Set({d:?})"),
@@ -345,6 +347,14 @@ impl fmt::Display for Expr {
                             .collect::<Vec<String>>()
                             .join(" ")
                     )
+                }
+                Expr::Buffer(_size, bytes) => {
+                    let exprs = expect_lock_read(bytes)
+                        .iter()
+                        .map(|expr| expr.to_string())
+                        .collect::<Vec<String>>()
+                        .join(" ");
+                    format!("[{exprs}]")
                 }
                 Expr::Array(exprs) => {
                     let exprs = expect_lock_read(exprs)

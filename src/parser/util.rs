@@ -135,6 +135,8 @@ fn parse_range_component(lexeme: &str) -> Option<Expr> {
 pub fn recognize_range(range_str: &str) -> Option<Expr> {
     // #insight don't build a custom range expression to support dyn-time ranges.
 
+    // #todo #cool if bounds are static, build the specialized expression in parser or static-time pass.
+
     // #todo should convert to (Range start, end, step)
     let parts: Vec<&str> = range_str.split('|').collect();
 
