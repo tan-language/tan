@@ -8,6 +8,7 @@ use std::sync::{Arc, RwLock};
 
 use crate::{error::Error, range::Range};
 
+pub mod args;
 pub mod constants;
 pub mod fmt;
 pub mod module_util;

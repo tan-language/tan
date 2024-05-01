@@ -63,7 +63,7 @@ pub fn file_write_string(args: &[Expr], _context: &mut Context) -> Result<Expr, 
 
     let Some(string) = string.as_string() else {
         return Err(Error::invalid_arguments(
-            "path=`{path}` is not a String",
+            &format!("string=`{string}` is not a String"),
             string.range(),
         ));
     };
