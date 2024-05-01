@@ -46,6 +46,7 @@ pub fn png_coder_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Erro
     let data = PngCoderData {
         width: width as u32,
         height: height as u32,
+        // #todo set color_type based on encoding.
         color_type: ColorType::Grayscale,
         writable: expr_clone(writable),
     };
@@ -57,7 +58,6 @@ pub fn png_coder_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Erro
 
 pub fn png_coder_write(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let coder = unpack_foreign_struct_arg(args, 0, "coder", "Coder")?;
-    // let coder = expect_lock_read(&coder);
     let Some(coder) = coder.downcast_ref::<PngCoderData>() else {
         return Err(Error::invalid_arguments("invalid Coder", args[0].range()));
     };
@@ -78,12 +78,12 @@ pub fn png_coder_write(args: &[Expr], _context: &mut Context) -> Result<Expr, Er
 
     let writer = &mut BufWriter::new(writable);
     let mut encoder = png::Encoder::new(writer, coder.width, coder.height);
-    // #todo use the encoding parameter.
     encoder.set_color(coder.color_type);
     encoder.set_depth(png::BitDepth::Eight);
 
+    // #todo handle the errors without unwrap!
     let mut writer = encoder.write_header().unwrap();
-    writer.write_image_data(&data).unwrap(); // Save
+    writer.write_image_data(&data).unwrap();
 
     Ok(Expr::Nil)
 }
