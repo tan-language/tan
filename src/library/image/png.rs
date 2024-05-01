@@ -1,13 +1,15 @@
-use std::{fs::File, sync::Arc};
+use std::{fs::File, io::BufWriter, sync::Arc};
 
 use png::ColorType;
 
 use crate::{
     context::Context,
     error::Error,
-    expr::{expr_clone, Expr},
+    expr::{annotate_type, expr_clone, Expr},
     util::{
-        args::{unpack_foreign_struct_arg, unpack_int_arg, unpack_stringable_arg},
+        args::{
+            unpack_buffer_arg, unpack_foreign_struct_arg, unpack_int_arg, unpack_stringable_arg,
+        },
         expect_lock_write,
         module_util::require_module,
     },
@@ -16,8 +18,8 @@ use crate::{
 // #ref https://github.com/image-rs/image-png
 
 struct PngCoderData {
-    pub width: i64,
-    pub height: i64,
+    pub width: u32,
+    pub height: u32,
     pub color_type: ColorType,
     pub writable: Expr,
 }
@@ -42,17 +44,48 @@ pub fn png_coder_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Erro
     // };
 
     let data = PngCoderData {
-        width,
-        height,
+        width: width as u32,
+        height: height as u32,
         color_type: ColorType::Grayscale,
         writable: expr_clone(writable),
     };
 
-    Ok(Expr::ForeignStruct(Arc::new(data)))
+    let expr = Expr::ForeignStruct(Arc::new(data));
+
+    Ok(annotate_type(expr, "Coder"))
 }
 
 pub fn png_coder_write(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
-    todo!()
+    let coder = unpack_foreign_struct_arg(args, 0, "coder", "Coder")?;
+    // let coder = expect_lock_read(&coder);
+    let Some(coder) = coder.downcast_ref::<PngCoderData>() else {
+        return Err(Error::invalid_arguments("invalid Coder", args[0].range()));
+    };
+
+    let Expr::ForeignStructMut(writable) = coder.writable.unpack() else {
+        return Err(Error::invalid_arguments("invalid Writable", None));
+    };
+    let writable = expect_lock_write(writable);
+    // #todo temporarily forcing downcast to File! Should force to Write?
+    let Some(writable) = writable.downcast_ref::<File>() else {
+        return Err(Error::invalid_arguments(
+            "invalid Writable",
+            args[0].range(),
+        ));
+    };
+
+    let data = unpack_buffer_arg(args, 1, "data")?;
+
+    let writer = &mut BufWriter::new(writable);
+    let mut encoder = png::Encoder::new(writer, coder.width, coder.height);
+    // #todo use the encoding parameter.
+    encoder.set_color(coder.color_type);
+    encoder.set_depth(png::BitDepth::Eight);
+
+    let mut writer = encoder.write_header().unwrap();
+    writer.write_image_data(&data).unwrap(); // Save
+
+    Ok(Expr::Nil)
 }
 
 pub fn setup_lib_image_png(context: &mut Context) {
@@ -60,4 +93,8 @@ pub fn setup_lib_image_png(context: &mut Context) {
     let module = require_module("image/png", context);
 
     module.insert("Coder", Expr::ForeignFunc(Arc::new(png_coder_new)));
+    module.insert(
+        "write$$Coder$$Buffer",
+        Expr::ForeignFunc(Arc::new(png_coder_write)),
+    );
 }
