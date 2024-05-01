@@ -33,6 +33,7 @@ fn try_complex(expr: &Expr) -> Option<(f64, f64)> {
     Some((re, im))
 }
 
+#[inline(always)]
 fn make_complex(re: impl Into<Expr>, im: impl Into<Expr>) -> Expr {
     let expr = Expr::array(vec![re.into(), im.into()]);
     annotate_type(expr, "Complex")
