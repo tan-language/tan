@@ -33,6 +33,8 @@ pub fn png_coder_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Erro
         ));
     };
 
+    // #todo verify the type of the writable.
+
     // let writable = unpack_foreign_struct_arg(args, 3, "writable", "Writable")?;
     // let s = expect_lock_write(writable);
     // let Some(mut file) = s.downcast_ref::<std::fs::File>() else {
@@ -47,6 +49,10 @@ pub fn png_coder_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Erro
     };
 
     Ok(Expr::ForeignStruct(Arc::new(data)))
+}
+
+pub fn png_coder_write(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    todo!()
 }
 
 pub fn setup_lib_image_png(context: &mut Context) {
