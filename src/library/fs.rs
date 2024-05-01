@@ -16,6 +16,8 @@ use crate::{context::Context, error::Error, expr::Expr};
 
 // #todo consider relationship with a `shell` package.
 
+// #todo extract File functions to separate file?
+
 // File < Resource
 // #todo extract file-system-related functionality to `fs` or even the more general `rs` == resource space.
 // #todo consider mapping `:` to `__` and use #[allow(snake_case)]
