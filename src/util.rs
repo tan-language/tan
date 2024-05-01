@@ -8,6 +8,7 @@ use std::sync::{Arc, RwLock};
 
 use crate::{error::Error, range::Range};
 
+pub mod args;
 pub mod constants;
 pub mod fmt;
 pub mod module_util;
@@ -16,6 +17,7 @@ pub mod standard_names;
 
 // #todo better name? consider lock_borrow?
 // #todo should mention what type of expr we are trying to read?
+// #todo it's STUPID to pass &Arc!!!
 pub fn expect_lock_read<T: ?Sized>(v: &Arc<RwLock<T>>) -> std::sync::RwLockReadGuard<'_, T> {
     v.read().expect("lock should not be poisoned")
 }
