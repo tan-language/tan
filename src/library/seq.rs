@@ -243,7 +243,6 @@ pub fn array_map(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     };
 
     // let func = eval(func, context)?;
-
     // let seq = eval(seq, context)?;
 
     let Some(input_values) = seq.as_array() else {

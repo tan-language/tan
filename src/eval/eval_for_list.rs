@@ -62,7 +62,7 @@ pub fn eval_for_list(args: &[Expr], context: &mut Context) -> Result<Expr, Error
     let Some(iterator) = try_iterator_from(&value) else {
         // #todo proper error!
         return Err(Error::invalid_arguments(
-            "invalid for binding, the value is not iterable",
+            "invalid for-list binding, the value is not iterable",
             value.range(),
         ));
     };

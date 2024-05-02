@@ -18,6 +18,8 @@ use super::{eval, insert_binding, iterator::try_iterator_from};
 // #todo check racket.
 // #todo implement for->list, for->map, for->fold, etc.
 
+// #todo what should happen if variable source is nil?
+
 // (for [x 10] (writeln x))
 pub fn eval_for(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     // #todo reuse code from let
@@ -57,7 +59,7 @@ pub fn eval_for(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     let Some(iterator) = try_iterator_from(&value) else {
         // #todo proper error!
         return Err(Error::invalid_arguments(
-            "invalid for binding, the value is not iterable",
+            &format!("invalid for binding, `{value}` is not iterable"),
             value.range(),
         ));
     };
