@@ -576,6 +576,8 @@ mod tests {
         let expected = r#"["*(a 1)" "*(a 2)"]"#;
         assert_eq!(value, expected);
 
+        // #todo add a test for `(let items (map my-mapping-func items))`
+
         // #todo add more map tests.
     }
 
