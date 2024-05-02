@@ -259,12 +259,15 @@ impl Hash for Expr {
 }
 
 // #todo what is the Expr default? One (Unit/Any) or Zero (Noting/Never)
-// #todo use Sexp notation here, duh.
+// #todo
+// use Sexp notation here. actually not really, maybe it's good as it is,
+// it's more a view into the Rust/Foreign wold.
 impl fmt::Debug for Expr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let text = match self {
             Expr::Never => "⊥".to_owned(), // #todo maybe use an ASCII representation, e.g. `!` or `!!`
-            Expr::Nil => "()".to_owned(),
+            // #insight `Nil`` is more readable than `()` in the debug context.
+            Expr::Nil => "Nil".to_owned(),
             Expr::Comment(s, _) => format!("Comment({s})"),
             Expr::TextSeparator => "<TEXT-SEPARATOR>".to_owned(),
             Expr::Bool(b) => format!("Bool({b})"),
@@ -277,7 +280,7 @@ impl fmt::Debug for Expr {
             Expr::Int(num) => format!("Int({num})"),
             Expr::Float(num) => format!("Float({num})"),
             #[cfg(feature = "dec")]
-            Expr::Dec(num) => format!("(Dec {num})"),
+            Expr::Dec(num) => format!("Dec({num})"),
             Expr::Do => "do".to_owned(),
             Expr::List(terms) => {
                 format!(
@@ -293,13 +296,13 @@ impl fmt::Debug for Expr {
             Expr::Array(v) => format!("Array({v:?})"),
             Expr::Map(d) => format!("Map({d:?})"),
             Expr::Set(d) => format!("Set({d:?})"),
-            Expr::IntRange(start, end, step) => format!("(Range Int {start} {end} {step})"),
-            Expr::FloatRange(start, end, step) => format!("(Range Int {start} {end} {step})"),
-            Expr::Func(..) => "#<func>".to_owned(),
-            Expr::Macro(..) => "#<macro>".to_owned(),
-            Expr::ForeignFunc(..) => "#<foreign-func>".to_owned(),
-            Expr::ForeignStruct(..) => "#<foreign-struct>".to_owned(),
-            Expr::ForeignStructMut(..) => "#<foreign-struct-mut>".to_owned(),
+            Expr::IntRange(start, end, step) => format!("IntRange({start},{end},{step})"),
+            Expr::FloatRange(start, end, step) => format!("FloatRange({start},{end},{step})"),
+            Expr::Func(..) => "<FUNC>".to_owned(),
+            Expr::Macro(..) => "<MACRO>".to_owned(),
+            Expr::ForeignFunc(..) => "<FOREIGN-FUNC>".to_owned(),
+            Expr::ForeignStruct(..) => "<FOREIGN-STRUCT>".to_owned(),
+            Expr::ForeignStructMut(..) => "<FOREIGN-STRUCT-MUT>".to_owned(),
             Expr::Let => "let".to_owned(),
             // #todo properly format do, let, if, etc.
             Expr::If(_, _, _) => "if".to_owned(),
