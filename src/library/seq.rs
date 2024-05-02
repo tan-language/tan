@@ -3,7 +3,7 @@ use std::sync::Arc;
 use crate::{
     context::Context,
     error::Error,
-    eval::invoke_func,
+    eval::{invoke_func, invoke_func_inner},
     expr::{expr_clone, format_value, Expr},
     util::module_util::require_module,
 };
@@ -242,9 +242,6 @@ pub fn array_map(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
         ));
     };
 
-    // let func = eval(func, context)?;
-    // let seq = eval(seq, context)?;
-
     let Some(input_values) = seq.as_array() else {
         return Err(Error::invalid_arguments(
             "`seq` must be an `Array`",
@@ -259,7 +256,8 @@ pub fn array_map(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     for x in input_values.iter() {
         // #todo can we remove this clone somehow?
         let args = vec![expr_clone(x)];
-        output_values.push(invoke_func(func, &args, context)?);
+        // #todo #hack need to rething invoke_func/invoke_func_inner!!
+        output_values.push(invoke_func_inner(func, args, context)?);
     }
 
     Ok(Expr::array(output_values))
@@ -566,6 +564,19 @@ mod tests {
         let value = format_value(expr);
         let expected = "[6 7 8 9]";
         assert_eq!(value, expected);
+
+        // #regression-test-case
+        let input = r#"
+            (let arr ['(a 1) '(a 2)])
+            (map (Func [x] "*${x}") arr)
+        "#;
+        let mut context = Context::new();
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = r#"["*(a 1)" "*(a 2)"]"#;
+        assert_eq!(value, expected);
+
+        // #todo add more map tests.
     }
 
     #[test]
