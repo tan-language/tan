@@ -258,6 +258,22 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
     Ok(())
 }
 
+// #todo pass &[Expr] instead of Vec<Expr>
+pub fn invoke(invocable: &Expr, args: Vec<Expr>, context: &mut Context) -> Result<Expr, Error> {
+    // #todo support more invocable expressions, e.g. indexing!
+    match invocable.unpack() {
+        Expr::Func(..) => invoke_func(invocable, args, context),
+        Expr::ForeignFunc(foreign_function) => foreign_function(&args, context),
+        _ => {
+            // #todo return NonInvocable error!
+            Err(Error::invalid_arguments(
+                "not invocable: `{invocable}`",
+                invocable.range(),
+            ))
+        }
+    }
+}
+
 // #todo rename to eval_func?
 // #todo use this function in eval, later.
 // #todo pass &[Expr] instead of Vec<Expr>
@@ -544,6 +560,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                 Expr::Func(..) => {
                     let args = eval_args(args, context)?;
                     let result = invoke_func(&head, args, context);
+                    // #todo move this error handling inside invoke_func/invoke to be reused in other places also.
+                    // #todo need to anchor this!!
                     match result {
                         Err(ref error) => {
                             if let ErrorVariant::Panic(msg) = &error.variant {

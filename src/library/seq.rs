@@ -3,7 +3,7 @@ use std::sync::Arc;
 use crate::{
     context::Context,
     error::Error,
-    eval::invoke_func,
+    eval::{invoke, invoke_func},
     expr::{expr_clone, format_value, Expr},
     util::module_util::require_module,
 };
@@ -258,7 +258,7 @@ pub fn array_map(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
         // #todo can we remove this clone somehow?
         let args = vec![expr_clone(x)];
         // #todo #hack need to rething invoke_func/invoke_func_inner!!
-        output_values.push(invoke_func(func, args, context)?);
+        output_values.push(invoke(func, args, context)?);
     }
 
     Ok(Expr::array(output_values))
