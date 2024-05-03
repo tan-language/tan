@@ -238,3 +238,28 @@ pub fn setup_lib_lang(context: &mut Context) {
 
     module.insert("load-file", Expr::ForeignFunc(Arc::new(load_file)));
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{api::eval_string, context::Context, expr::format_value};
+
+    #[test]
+    fn type_of_usage() {
+        let mut context = Context::new();
+
+        let input = r#"(type-of 1)"#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "Int";
+        assert_eq!(value, expected);
+
+        let input = r#"
+            (let my-func (Func [x] (+ 1 x)))
+            (type-of my-func)
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "Func";
+        assert_eq!(value, expected);
+    }
+}

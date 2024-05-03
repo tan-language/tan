@@ -587,6 +587,10 @@ mod tests {
         let expected = "[2 3 4]";
         assert_eq!(value, expected);
 
+        // #todo introduce FuncMut?
+        // #todo test that map support ForeignFunc, ForeignFuncMut?
+        // #todo maybe it should emit warning for FuncMut/ForeignFuncMut
+
         // #todo add more map tests.
     }
 

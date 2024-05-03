@@ -759,6 +759,7 @@ impl Expr {
             // #todo keep the Range type parameter as a ...parameter
             Expr::IntRange(..) => Expr::typ("(Range Int)"),
             Expr::FloatRange(..) => Expr::typ("(Range Float)"),
+            Expr::Func(..) => Expr::typ("Func"),
             // #todo add more here!
             // #todo the wildcard is very error-prone, cover all cases!
             _ => {
