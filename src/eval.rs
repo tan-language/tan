@@ -571,30 +571,19 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             match head.unpack() {
                 Expr::Func(..) => {
                     let args = eval_args(args, context)?;
-                    // let result = invoke_func(&head, args, context);
+                    // #todo call invoke_func directly?
                     anchor(invoke(&head, args, context), expr)
-                    // // #todo move this error handling inside invoke_func/invoke to be reused in other places also.
-                    // // #todo need to anchor this!!
-                    // match result {
-                    //     Err(ref error) => {
-                    //         if let ErrorVariant::Panic(msg) = &error.variant {
-                    //             // #todo #hack this is a temp solution, maybe the Repl/Runner should install a custom panic handler?
-                    //             // #todo maybe put a flag in Context to stop further evaluation and unwind the stack?
-                    //             panic!("{}", msg);
-                    //         }
-                    //         result
-                    //     }
-                    //     Ok(_) => result,
-                    // }
                 }
-                Expr::ForeignFunc(foreign_function) => {
+                Expr::ForeignFunc(..) => {
                     // #todo do NOT pre-evaluate args for ForeignFunc, allow to implement 'macros'.
                     // Foreign Functions do NOT change the environment, hmm...
                     // #todo use RefCell / interior mutability instead, to allow for changing the environment (with Mutation Effect)
 
                     // Evaluate the arguments before calling the function.
                     let args = eval_args(args, context)?;
-                    anchor(foreign_function(&args, context), expr)
+                    // #todo call directly?
+                    // anchor(foreign_function(&args, context), expr)
+                    anchor(invoke(&head, args, context), expr)
                 }
                 Expr::Array(arr) => {
                     // Evaluate the arguments before calling the function.
