@@ -590,8 +590,7 @@ mod tests {
         assert_eq!(value, expected);
 
         // #todo introduce FuncMut?
-        // #todo test that map support ForeignFunc, ForeignFuncMut?
-        // #todo maybe it should emit warning for FuncMut/ForeignFuncMut
+        // #todo maybe (map ...) should emit warning for FuncMut/ForeignFuncMut
 
         let input = r#"
                 (let arr [false true false])

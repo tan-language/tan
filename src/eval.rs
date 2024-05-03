@@ -261,7 +261,7 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
 // #todo pass &[Expr] instead of Vec<Expr>
 pub fn invoke(invocable: &Expr, args: Vec<Expr>, context: &mut Context) -> Result<Expr, Error> {
     // #todo support more invocable expressions, e.g. indexing!
-    match invocable.unpack() {
+    let result = match invocable.unpack() {
         Expr::Func(..) => invoke_func(invocable, args, context),
         Expr::ForeignFunc(foreign_function) => foreign_function(&args, context),
         _ => {
@@ -271,6 +271,18 @@ pub fn invoke(invocable: &Expr, args: Vec<Expr>, context: &mut Context) -> Resul
                 invocable.range(),
             ))
         }
+    };
+
+    match result {
+        Err(ref error) => {
+            if let ErrorVariant::Panic(msg) = &error.variant {
+                // #todo #hack this is a temp solution, maybe the Repl/Runner should install a custom panic handler?
+                // #todo maybe put a flag in Context to stop further evaluation and unwind the stack?
+                panic!("{}", msg);
+            }
+            result
+        }
+        _ => result,
     }
 }
 
@@ -559,30 +571,29 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             match head.unpack() {
                 Expr::Func(..) => {
                     let args = eval_args(args, context)?;
-                    let result = invoke_func(&head, args, context);
-                    // #todo move this error handling inside invoke_func/invoke to be reused in other places also.
-                    // #todo need to anchor this!!
-                    match result {
-                        Err(ref error) => {
-                            if let ErrorVariant::Panic(msg) = &error.variant {
-                                // #todo #hack this is a temp solution, maybe the Repl/Runner should install a custom panic handler?
-                                // #todo maybe put a flag in Context to stop further evaluation and unwind the stack?
-                                panic!("{}", msg);
-                            }
-                            result
-                        }
-                        Ok(_) => result,
-                    }
+                    // let result = invoke_func(&head, args, context);
+                    anchor(invoke(&head, args, context), expr)
+                    // // #todo move this error handling inside invoke_func/invoke to be reused in other places also.
+                    // // #todo need to anchor this!!
+                    // match result {
+                    //     Err(ref error) => {
+                    //         if let ErrorVariant::Panic(msg) = &error.variant {
+                    //             // #todo #hack this is a temp solution, maybe the Repl/Runner should install a custom panic handler?
+                    //             // #todo maybe put a flag in Context to stop further evaluation and unwind the stack?
+                    //             panic!("{}", msg);
+                    //         }
+                    //         result
+                    //     }
+                    //     Ok(_) => result,
+                    // }
                 }
                 Expr::ForeignFunc(foreign_function) => {
-                    // #todo extract as `invoke_foreign_function`
                     // #todo do NOT pre-evaluate args for ForeignFunc, allow to implement 'macros'.
                     // Foreign Functions do NOT change the environment, hmm...
                     // #todo use RefCell / interior mutability instead, to allow for changing the environment (with Mutation Effect)
 
                     // Evaluate the arguments before calling the function.
                     let args = eval_args(args, context)?;
-
                     anchor(foreign_function(&args, context), expr)
                 }
                 Expr::Array(arr) => {
