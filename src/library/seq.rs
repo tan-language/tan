@@ -555,11 +555,12 @@ mod tests {
 
     #[test]
     fn array_map_usage() {
+        let mut context = Context::new();
+
         let input = r#"
             (let arr [1 2 3 4])
             (map (Func [x] (+ 5 x)) arr)
         "#;
-        let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
         let value = format_value(expr);
         let expected = "[6 7 8 9]";
@@ -570,13 +571,21 @@ mod tests {
             (let arr ['(a 1) '(a 2)])
             (map (Func [x] "*${x}") arr)
         "#;
-        let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
         let value = format_value(expr);
         let expected = r#"["*(a 1)" "*(a 2)"]"#;
         assert_eq!(value, expected);
 
-        // #todo add a test for `(let items (map my-mapping-func items))`
+        // #regression-test-case
+        let input = r#"
+                (let my-func (Func [x] (+ 1 x)))
+                (let arr [1 2 3])
+                (map my-func arr)
+            "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "[2 3 4]";
+        assert_eq!(value, expected);
 
         // #todo add more map tests.
     }
