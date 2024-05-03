@@ -254,6 +254,8 @@ pub fn array_map(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
 
     let mut output_values: Vec<Expr> = Vec::new();
 
+    // #todo make sure that errors in the mapping function are propagated.
+
     for x in input_values.iter() {
         // #todo can we remove this clone somehow?
         let args = vec![expr_clone(x)];

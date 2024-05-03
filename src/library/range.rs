@@ -127,4 +127,38 @@ pub fn setup_lib_range(context: &mut Context) {
     );
 }
 
-// #todo add unit tests.
+#[cfg(test)]
+mod tests {
+    use crate::{api::eval_string, context::Context, expr::format_value};
+
+    #[test]
+    fn range_new_usage() {
+        let mut context = Context::new();
+
+        let input = r#"
+            (let #mut vals [])
+            (for [i 0..5]
+                (push vals i)
+            )
+            vals
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = r#"[0 1 2 3 4]"#;
+        assert_eq!(value, expected);
+
+        let input = r#"
+            (let start 1)
+            (let end 4)
+            (let #mut vals [])
+            (for [i start..end]
+                (push vals i)
+            )
+            vals
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = r#"[1 2 3]"#;
+        assert_eq!(value, expected);
+    }
+}

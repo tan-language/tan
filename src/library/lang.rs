@@ -155,7 +155,9 @@ pub fn load_file(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
         Err(errors) => {
             // #todo precise formating is _required_ here!
             // eprintln!("{}", format_errors(&errors));
-            // dbg!(errors);
+            // #todo for some reason, errors are lost here.
+            // #todo seems that (map ...) drinks the errors.
+            dbg!(&errors);
             // #todo add note with information here!
             // #todo add custom error here, e.g. failed_file_load
             // println!("/////// {errors:?}");
