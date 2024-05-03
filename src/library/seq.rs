@@ -593,6 +593,15 @@ mod tests {
         // #todo test that map support ForeignFunc, ForeignFuncMut?
         // #todo maybe it should emit warning for FuncMut/ForeignFuncMut
 
+        let input = r#"
+                (let arr [false true false])
+                (map not arr)
+            "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "[true false true]";
+        assert_eq!(value, expected);
+
         // #todo add more map tests.
     }
 
