@@ -261,5 +261,14 @@ mod tests {
         let value = format_value(expr);
         let expected = "Func";
         assert_eq!(value, expected);
+
+        let input = r#"
+            (use [random] /rng)
+            (type-of random)
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "ForeignFunc";
+        assert_eq!(value, expected);
     }
 }

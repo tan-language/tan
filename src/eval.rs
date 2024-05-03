@@ -259,22 +259,10 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
 }
 
 // #todo rename to eval_func?
-// #todo a version where the arguments are pre-evaluated.
 // #todo use this function in eval, later.
-// #todo this uses invoke_func_inner! rething/refactor.
-pub fn invoke_func(func: &Expr, args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
-    // Evaluate the arguments before calling the function.
-    let args = eval_args(args, context)?;
-
-    invoke_func_inner(func, args, context)
-}
-
+// #todo pass &[Expr] instead of Vec<Expr>
 // #todo rethink this and the non-inner function above.
-pub fn invoke_func_inner(
-    func: &Expr,
-    args: Vec<Expr>,
-    context: &mut Context,
-) -> Result<Expr, Error> {
+pub fn invoke_func(func: &Expr, args: Vec<Expr>, context: &mut Context) -> Result<Expr, Error> {
     // #insight args are intentionally not evaluated!
 
     let Expr::Func(params, body, func_scope, file_path) = func.unpack() else {
@@ -356,7 +344,7 @@ pub fn invoke_func_inner(
                         // #todo find better ways for reporting the file, this is a temp solution.
                         // annotate errors thrown by function evaluation with the
                         // function file_path, for more precise error reporting.
-                        error.file_path = file_path.clone();
+                        error.file_path.clone_from(file_path);
                         return Err(error);
                     }
                 }
@@ -554,6 +542,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
             match head.unpack() {
                 Expr::Func(..) => {
+                    let args = eval_args(args, context)?;
                     let result = invoke_func(&head, args, context);
                     match result {
                         Err(ref error) => {

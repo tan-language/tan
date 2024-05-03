@@ -3,7 +3,7 @@ use std::sync::Arc;
 use crate::{
     context::Context,
     error::Error,
-    eval::{invoke_func, invoke_func_inner},
+    eval::invoke_func,
     expr::{expr_clone, format_value, Expr},
     util::module_util::require_module,
 };
@@ -242,6 +242,7 @@ pub fn array_map(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
         ));
     };
 
+    // #todo should relax to allow for Iterable.
     let Some(input_values) = seq.as_array() else {
         return Err(Error::invalid_arguments(
             "`seq` must be an `Array`",
@@ -257,7 +258,7 @@ pub fn array_map(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
         // #todo can we remove this clone somehow?
         let args = vec![expr_clone(x)];
         // #todo #hack need to rething invoke_func/invoke_func_inner!!
-        output_values.push(invoke_func_inner(func, args, context)?);
+        output_values.push(invoke_func(func, args, context)?);
     }
 
     Ok(Expr::array(output_values))
@@ -331,7 +332,8 @@ pub fn array_sort_mut(args: &[Expr], context: &mut Context) -> Result<Expr, Erro
 
     array_items.sort_by(|x, y| {
         // #todo how to handle errors here?
-        let tan_ordering = invoke_func(func, &[x.clone(), y.clone()], context).unwrap();
+        // #insight args are already evaluated!
+        let tan_ordering = invoke_func(func, vec![x.clone(), y.clone()], context).unwrap();
         rust_ordering_from_tan_ordering(&tan_ordering).unwrap()
     });
 

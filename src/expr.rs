@@ -22,6 +22,8 @@ use crate::{
     util::{expect_lock_read, expect_lock_write, fmt::format_float},
 };
 
+// #todo #important optimization, implement clone_from!
+
 // #todo make some Expr variants non annotatable (e.g. U8)
 
 // #todo introduce Expr::Ref() with an Rc reference to avoid excessive cloning!
@@ -760,6 +762,8 @@ impl Expr {
             Expr::IntRange(..) => Expr::typ("(Range Int)"),
             Expr::FloatRange(..) => Expr::typ("(Range Float)"),
             Expr::Func(..) => Expr::typ("Func"),
+            // #todo consider returning Func?
+            Expr::ForeignFunc(..) => Expr::typ("ForeignFunc"),
             // #todo add more here!
             // #todo the wildcard is very error-prone, cover all cases!
             _ => {

@@ -31,7 +31,7 @@ async fn run_server(options: HashMap<String, Expr>, handler: Expr, context: &mut
         let req = annotate_type(Expr::map(map), "http/Request");
 
         // #todo handle conversion of more return types.
-        if let Ok(value) = invoke_func(&handler, &[req], &mut context) {
+        if let Ok(value) = invoke_func(&handler, vec![req], &mut context) {
             // #todo set content type depending on output.
             if let Some(value) = value.as_stringable() {
                 return (
