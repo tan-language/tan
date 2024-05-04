@@ -665,12 +665,13 @@ impl Expr {
         Some(expect_lock_read(v))
     }
 
-    pub fn as_buffer_mut(&self) -> Option<RwLockWriteGuard<'_, Vec<u8>>> {
+    // #insight you _always_ need the length/size when mutating a buffer.
+    pub fn as_buffer_mut(&self) -> Option<(usize, RwLockWriteGuard<'_, Vec<u8>>)> {
         // #todo what to do with size/length?
-        let Expr::Buffer(_, v) = self.unpack() else {
+        let Expr::Buffer(length, v) = self.unpack() else {
             return None;
         };
-        Some(expect_lock_write(v))
+        Some((*length, expect_lock_write(v)))
     }
 
     pub fn as_map(&self) -> Option<RwLockReadGuard<'_, HashMap<String, Expr>>> {
