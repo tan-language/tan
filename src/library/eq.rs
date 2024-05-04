@@ -1,6 +1,11 @@
 use std::sync::Arc;
 
-use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
+use crate::{
+    context::Context,
+    error::Error,
+    expr::Expr,
+    util::{args::unpack_int_arg, module_util::require_module},
+};
 
 // #todo support all types!
 
@@ -10,26 +15,10 @@ pub fn eq_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo make equality a method of Expr?
     // #todo support non-Int types
     // #todo support multiple arguments.
-    let [a, b] = args else {
-        return Err(Error::invalid_arguments(
-            "`=` requires at least two arguments",
-            None,
-        ));
-    };
 
-    let Some(a) = a.as_int() else {
-        return Err(Error::invalid_arguments(
-            &format!("`{a}` is not an Int"),
-            a.range(),
-        ));
-    };
-
-    let Some(b) = b.as_int() else {
-        return Err(Error::invalid_arguments(
-            &format!("`{b}` is not an Int"),
-            b.range(),
-        ));
-    };
+    // #todo also pass the function name, or at least show the function name upstream.
+    let a = unpack_int_arg(args, 0, "a")?;
+    let b = unpack_int_arg(args, 1, "b")?;
 
     Ok(Expr::Bool(a == b))
 }

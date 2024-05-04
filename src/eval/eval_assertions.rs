@@ -42,6 +42,7 @@ pub fn eval_assert(op: &Expr, args: &[Expr], context: &mut Context) -> Result<Ex
 }
 
 pub fn eval_assert_eq(op: &Expr, args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+    // #todo there is not really left and right in Tan syntax.
     let [left_expr, right_expr] = args else {
         return Err(Error::invalid_arguments(
             "requires `left` and `right` arguments",
