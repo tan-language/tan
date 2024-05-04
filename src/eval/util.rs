@@ -5,7 +5,7 @@ use std::{
 };
 
 use crate::{
-    api::{has_tan_extension, resolve_string, strip_tan_extension},
+    api::{has_tan_extension, has_tan_extension_strict, resolve_string, strip_tan_extension},
     context::Context,
     error::Error,
     expr::Expr,
@@ -119,6 +119,7 @@ pub fn compute_module_file_paths(module_path: impl AsRef<Path>) -> std::io::Resu
     let module_path = module_path.as_ref();
 
     let mut module_file_paths: Vec<String> = Vec::new();
+
     // let mut buf: PathBuf;
 
     // if !module_path.exists() {
@@ -149,11 +150,18 @@ pub fn compute_module_file_paths(module_path: impl AsRef<Path>) -> std::io::Resu
 
         for file_path in file_paths {
             let file_path = file_path?.path();
-            if has_tan_extension(&file_path) {
+            // #insight
+            // we check for _strict_ extension, to avoid loading test files,
+            // data files, etc.
+            if has_tan_extension_strict(&file_path) {
                 module_file_paths.push(file_path.canonicalize()?.display().to_string());
             }
         }
     } else if has_tan_extension(module_path) {
+        // the module_path has an explicit "extension", treat is as a single-file module.
+        // #insight
+        // since we use an explicit extension extension here, no need to check
+        // for strict extension.
         module_file_paths.push(module_path.canonicalize()?.display().to_string());
     } else {
         return Err(std::io::Error::new(
@@ -255,6 +263,9 @@ pub fn eval_module(
     force: bool,
 ) -> Result<Expr, Vec<Error>> {
     // #todo support import_map style rewriting
+
+    // #todo explore trying module.TAN file if module directory is not found.
+    // #todo maybe allow .tan extension in module_path to explicitly load a module _file_.
 
     let result = canonicalize_module_path(&path, context);
 
@@ -365,7 +376,10 @@ pub fn get_current_file_path(context: &Context) -> String {
 }
 #[cfg(test)]
 mod tests {
-    use crate::{context::Context, expr::Expr, util::standard_names::CURRENT_MODULE_PATH};
+    use crate::{
+        context::Context, eval::util::compute_module_file_paths, expr::Expr,
+        util::standard_names::CURRENT_MODULE_PATH,
+    };
 
     use super::canonicalize_module_path;
 
@@ -375,6 +389,15 @@ mod tests {
         context.insert(CURRENT_MODULE_PATH, Expr::string("root"), false);
         let path = canonicalize_module_path("./hello/world", &context).unwrap();
         assert_eq!("root/hello/world", path);
+    }
+
+    #[test]
+    fn compute_module_file_paths_returns_only_strict_tan_files() {
+        let paths = compute_module_file_paths("tests/fixtures/dummy-module").unwrap();
+        assert_eq!(paths.len(), 2);
+        for path in paths {
+            assert!(!path.ends_with(".test.tan"));
+        }
     }
 
     // #todo add unit test for `../` paths.
