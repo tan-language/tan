@@ -9,7 +9,6 @@ use crate::{error::Error, expr::Expr};
 
 // #todo convert those to macros.
 // #todo think about proper name for these functions.
-// #todo #warning not used yet.
 
 pub fn unpack_int_arg(args: &[Expr], index: usize, name: &str) -> Result<i64, Error> {
     let Some(expr) = args.get(index) else {
