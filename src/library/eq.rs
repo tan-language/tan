@@ -5,7 +5,7 @@ use crate::{
     error::Error,
     expr::Expr,
     util::{
-        args::{unpack_float_arg, unpack_int_arg},
+        args::{unpack_float_arg, unpack_int_arg, unpack_stringable_arg},
         module_util::require_module,
     },
 };
@@ -45,26 +45,9 @@ pub fn eq_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo make equality a method of Expr?
     // #todo support non-Int types
     // #todo support multiple arguments.
-    let [a, b] = args else {
-        return Err(Error::invalid_arguments(
-            "`=` requires at least two arguments",
-            None,
-        ));
-    };
 
-    let Some(a) = a.as_string() else {
-        return Err(Error::invalid_arguments(
-            &format!("`{a}` is not a String"),
-            a.range(),
-        ));
-    };
-
-    let Some(b) = b.as_string() else {
-        return Err(Error::invalid_arguments(
-            &format!("`{b}` is not a String"),
-            b.range(),
-        ));
-    };
+    let a = unpack_stringable_arg(args, 0, "a")?;
+    let b = unpack_stringable_arg(args, 1, "b")?;
 
     Ok(Expr::Bool(a == b))
 }
@@ -99,6 +82,8 @@ pub fn eq_symbol(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 
     Ok(Expr::Bool(a == b))
 }
+
+// #todo implement not_eq_* with Tan? can be automatically generic!
 
 pub fn not_eq_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
@@ -342,3 +327,5 @@ pub fn setup_lib_eq(context: &mut Context) {
     module.insert(">$$Float$$Float", Expr::ForeignFunc(Arc::new(float_gt)));
     module.insert("<", Expr::ForeignFunc(Arc::new(lt)));
 }
+
+// #todo add unit tests!

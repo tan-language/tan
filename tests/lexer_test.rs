@@ -88,12 +88,26 @@ fn lex_parses_annotations() {
         #(inline 'always)
         (let #public (add x y) (+ x y))
     ";
-    let tokens = Lexer::new(input).lex();
-
-    let tokens = tokens.unwrap();
+    let tokens = Lexer::new(input).lex().unwrap();
 
     assert_matches!(tokens[0].kind(), TokenKind::Annotation(lexeme) if lexeme == "deprecated");
     assert_matches!(tokens[1].kind(), TokenKind::Annotation(lexeme) if lexeme == "(inline 'always)");
+    assert_matches!(tokens[4].kind(), TokenKind::Annotation(lexeme) if lexeme == "public");
+
+    let input = r#"
+        #(Func [Int Int] Int)
+        (let add (Func [x y] (+ x y))
+    "#;
+    let tokens = Lexer::new(input).lex().unwrap();
+    assert_matches!(tokens[0].kind(), TokenKind::Annotation(lexeme) if lexeme == "(Func [Int Int] Int)");
+
+    // #todo make this pass!
+    // let input = r#"
+    //     #{:doc "an example" :level 4}
+    //     (let a 5)
+    // "#;
+    // let tokens = Lexer::new(input).lex().unwrap();
+    // println!("---- {}", tokens[0]);
 }
 
 #[test]
