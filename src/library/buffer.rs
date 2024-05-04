@@ -70,9 +70,8 @@ pub fn buffer_put(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
     let i = i as usize;
 
     if i >= length {
-        // #todo separate error message for <0, >= length, give length in the later.
         return Err(Error::invalid_arguments(
-            &format!("buffer index=`{i}` must be less than the buffer length"),
+            &format!("buffer index=`{i}` must be less than the buffer length=`{length}`"),
             index.range(),
         ));
     }
@@ -143,7 +142,7 @@ mod tests {
         assert!(result.is_err());
         let error = &result.unwrap_err()[0];
         assert_eq!(
-            "buffer index=`15` must be less than the buffer length",
+            "buffer index=`15` must be less than the buffer length=`4`",
             error.notes[0].text
         );
     }
