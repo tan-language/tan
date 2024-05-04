@@ -6,7 +6,7 @@ pub fn eval_assert(op: &Expr, args: &[Expr], context: &mut Context) -> Result<Ex
     let [assert_expr] = args else {
         return Err(Error::invalid_arguments(
             "requires `predicate` argument",
-            None,
+            op.range(),
         ));
     };
 
@@ -46,7 +46,7 @@ pub fn eval_assert_eq(op: &Expr, args: &[Expr], context: &mut Context) -> Result
     let [left_expr, right_expr] = args else {
         return Err(Error::invalid_arguments(
             "requires `left` and `right` arguments",
-            None,
+            op.range(),
         ));
     };
 

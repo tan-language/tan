@@ -31,6 +31,26 @@ pub fn unpack_int_arg(args: &[Expr], index: usize, name: &str) -> Result<i64, Er
     Ok(n)
 }
 
+pub fn unpack_float_arg(args: &[Expr], index: usize, name: &str) -> Result<f64, Error> {
+    let Some(expr) = args.get(index) else {
+        // #todo introduce 'missing argument' error variant.
+        // #todo also report the index.
+        return Err(Error::invalid_arguments(
+            &format!("missing required Float argument `{name}`"),
+            None,
+        ));
+    };
+
+    let Some(n) = expr.as_float() else {
+        return Err(Error::invalid_arguments(
+            &format!("invalid Float argument: {name}=`{expr}`"),
+            expr.range(),
+        ));
+    };
+
+    Ok(n)
+}
+
 pub fn unpack_stringable_arg<'a>(
     args: &'a [Expr],
     index: usize,

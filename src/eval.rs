@@ -805,8 +805,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         "if" => anchor(eval_if(args, context), expr),
                         "cond" => anchor(eval_cond(args, context), expr),
                         // #todo #temp temporary solution.
-                        "assert" => eval_assert(op, args, context),
-                        "assert-eq" => eval_assert_eq(op, args, context),
+                        "assert" => anchor(eval_assert(op, args, context), expr),
+                        "assert-eq" => anchor(eval_assert_eq(op, args, context), expr),
                         // #todo for-each or overload for?
                         "for-each" => anchor(eval_for_each(args, context), expr),
                         "set!" => anchor(eval_set(args, context), expr),

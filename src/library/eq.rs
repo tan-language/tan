@@ -4,7 +4,10 @@ use crate::{
     context::Context,
     error::Error,
     expr::Expr,
-    util::{args::unpack_int_arg, module_util::require_module},
+    util::{
+        args::{unpack_float_arg, unpack_int_arg},
+        module_util::require_module,
+    },
 };
 
 // #todo support all types!
@@ -29,26 +32,9 @@ pub fn eq_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo make equality a method of Expr?
     // #todo support non-Int types
     // #todo support multiple arguments.
-    let [a, b] = args else {
-        return Err(Error::invalid_arguments(
-            "`=` requires at least two arguments",
-            None,
-        ));
-    };
 
-    let Some(a) = a.as_float() else {
-        return Err(Error::invalid_arguments(
-            &format!("`{a}` is not a Float"),
-            a.range(),
-        ));
-    };
-
-    let Some(b) = b.as_float() else {
-        return Err(Error::invalid_arguments(
-            &format!("`{b}` is not a Float"),
-            b.range(),
-        ));
-    };
+    let a = unpack_float_arg(args, 0, "a")?;
+    let b = unpack_float_arg(args, 1, "b")?;
 
     Ok(Expr::Bool(a == b))
 }
