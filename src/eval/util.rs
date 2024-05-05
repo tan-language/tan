@@ -115,7 +115,10 @@ pub fn canonicalize_path(path: String) -> String {
 }
 
 // #todo add unit test.
-pub fn compute_module_file_paths(module_path: impl AsRef<Path>) -> std::io::Result<Vec<String>> {
+pub fn compute_module_file_paths(
+    module_path: impl AsRef<Path>,
+    strict: bool,
+) -> std::io::Result<Vec<String>> {
     let module_path = module_path.as_ref();
 
     let mut module_file_paths: Vec<String> = Vec::new();
@@ -153,7 +156,14 @@ pub fn compute_module_file_paths(module_path: impl AsRef<Path>) -> std::io::Resu
             // #insight
             // we check for _strict_ extension, to avoid loading test files,
             // data files, etc.
-            if has_tan_extension_strict(&file_path) {
+            // #todo should specifically allow for test.tan, or bench.tan, etc!
+            let has_tan_extension = if strict {
+                has_tan_extension_strict(&file_path)
+            } else {
+                has_tan_extension(&file_path)
+            };
+
+            if has_tan_extension {
                 module_file_paths.push(file_path.canonicalize()?.display().to_string());
             }
         }
@@ -321,7 +331,8 @@ pub fn eval_module(
             .insert(CURRENT_MODULE_PATH, Expr::string(&module_path));
     }
 
-    let file_paths = compute_module_file_paths(&module_path);
+    let strict = !context.is_test_profile();
+    let file_paths = compute_module_file_paths(&module_path, strict);
 
     let Ok(file_paths) = file_paths else {
         return Err(vec![file_paths.unwrap_err().into()]);
@@ -393,11 +404,14 @@ mod tests {
 
     #[test]
     fn compute_module_file_paths_returns_only_strict_tan_files() {
-        let paths = compute_module_file_paths("tests/fixtures/dummy-module").unwrap();
+        let paths = compute_module_file_paths("tests/fixtures/dummy-module", true).unwrap();
         assert_eq!(paths.len(), 2);
         for path in paths {
             assert!(!path.ends_with(".test.tan"));
         }
+
+        let paths = compute_module_file_paths("tests/fixtures/dummy-module", false).unwrap();
+        assert_eq!(paths.len(), 3);
     }
 
     // #todo add unit test for `../` paths.

@@ -4,6 +4,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use crate::{
     eval::util::canonicalize_path, expr::Expr, library::setup_lib, module::Module, scope::Scope,
+    util::standard_names::PROFILE,
 };
 
 // #insight Context is the instance of a Tan 'machine'.
@@ -136,5 +137,17 @@ impl Context {
         } else {
             self.scope.get(name)
         }
+    }
+
+    // #todo have a get_profile methods that returns some kind of enum?
+
+    pub fn is_test_profile(&self) -> bool {
+        if let Some(profile) = self.top_scope.get(PROFILE) {
+            if let Some(profile) = profile.as_string() {
+                // #todo nasty, do something proper here.
+                return profile == "test";
+            }
+        }
+        false
     }
 }
