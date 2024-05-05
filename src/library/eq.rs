@@ -86,33 +86,7 @@ pub fn eq_symbol(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 // #todo implement not_eq_* with Tan? can be automatically generic!
 
 pub fn not_eq_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
-    // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
-    // #todo support overloading,
-    // #todo make equality a method of Expr?
-    // #todo support non-Int types
-    // #todo support multiple arguments.
-    let [a, b] = args else {
-        return Err(Error::invalid_arguments(
-            "`!=` requires at least two arguments", // #todo what should be the symbol?
-            None,
-        ));
-    };
-
-    let Some(a) = a.as_int() else {
-        return Err(Error::invalid_arguments(
-            &format!("`{a}` is not an Int"),
-            a.range(),
-        ));
-    };
-
-    let Some(b) = b.as_int() else {
-        return Err(Error::invalid_arguments(
-            &format!("`{b}` is not an Int"),
-            b.range(),
-        ));
-    };
-
-    Ok(Expr::Bool(a != b))
+    Ok(Expr::Bool(eq_int(args, _context)?.is_false()))
 }
 
 pub fn not_eq_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
@@ -328,4 +302,22 @@ pub fn setup_lib_eq(context: &mut Context) {
     module.insert("<", Expr::ForeignFunc(Arc::new(lt)));
 }
 
-// #todo add unit tests!
+#[cfg(test)]
+mod tests {
+    use assert_matches::assert_matches;
+
+    use crate::{api::eval_string, context::Context, expr::Expr};
+
+    #[test]
+    fn not_eq_usage() {
+        let mut context = Context::new();
+
+        let input = "(!= 4 5)";
+        let expr = eval_string(input, &mut context).unwrap();
+        assert_matches!(expr, Expr::Bool(true));
+
+        let input = "(!= 5 5)";
+        let expr = eval_string(input, &mut context).unwrap();
+        assert_matches!(expr, Expr::Bool(false));
+    }
+}

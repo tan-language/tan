@@ -508,6 +508,7 @@ impl Expr {
         }
     }
 
+    // #todo rename to is_none
     // #todo is_one/is_unit
     pub fn is_one(&self) -> bool {
         matches!(self.unpack(), Expr::Nil)
@@ -515,6 +516,13 @@ impl Expr {
 
     pub fn is_func(&self) -> bool {
         matches!(self.unpack(), Expr::Func(..))
+    }
+
+    // #insight
+    // We provide is_false() instead of is_true() as in the future we _may_
+    // consider all non-false values as true.
+    pub fn is_false(&self) -> bool {
+        matches!(self.unpack(), Expr::Bool(false))
     }
 
     // #todo is_invocable
@@ -943,5 +951,11 @@ mod tests {
     fn expr_string_display() {
         let expr = Expr::string("hello");
         assert_eq!("\"hello\"", format!("{expr}"));
+    }
+
+    #[test]
+    fn expr_is_false() {
+        assert!(Expr::Bool(false).is_false());
+        assert!(!Expr::Bool(true).is_false());
     }
 }
