@@ -284,10 +284,10 @@ pub fn eval_module(
         return Err(vec![result.unwrap_err().into()]);
     };
 
-    // #todo consider keepint module_path, not module_name.
     // #todo is this really needed?
     let module_path = strip_tan_extension(module_path);
 
+    // #todo add this check here.
     // println!("----1>> {module_path}");
     // if let Some(current_module_path) = context.top_scope.get(CURRENT_MODULE_PATH) {
     //     println!("----2>> {module_path}");
