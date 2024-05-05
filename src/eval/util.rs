@@ -26,6 +26,7 @@ use super::eval;
 /// If the result is an error, add a range from the 'anchor' expression.
 pub fn anchor(result: Result<Expr, Error>, expr: &Expr) -> Result<Expr, Error> {
     if let Err(mut error) = result {
+        // #todo consider anchoring all notes!
         // #todo notes in error is a hack, needs refactoring.
         if let Some(note) = error.notes.first_mut() {
             if note.range.is_none() {
@@ -283,8 +284,30 @@ pub fn eval_module(
         return Err(vec![result.unwrap_err().into()]);
     };
 
+    // #todo consider keepint module_path, not module_name.
     // #todo is this really needed?
-    let module_name = strip_tan_extension(&module_path);
+    let module_path = strip_tan_extension(module_path);
+
+    // println!("----1>> {module_path}");
+    // if let Some(current_module_path) = context.top_scope.get(CURRENT_MODULE_PATH) {
+    //     println!("----2>> {module_path}");
+    //     if let Some(current_module_path) = current_module_path.as_stringable() {
+    //         println!("----3>> {current_module_path} == {module_path}");
+    //         if current_module_path == module_path {
+    //             // #todo return some other kind of error!
+    //             // #todo rephrase this error.
+    //             println!("cannot load the same module as the current module");
+    //             return Err(vec![Error::invalid_arguments(
+    //                 "cannot load the same module as the current module",
+    //                 None,
+    //             )]);
+    //         }
+    //     }
+    // }
+
+    // context
+    //     .top_scope
+    //     .insert(CURRENT_MODULE_PATH, Expr::string(&module_path));
 
     // #insight module stem is used as prefix
     let module_stem = {
@@ -297,8 +320,9 @@ pub fn eval_module(
 
     // Lookup into the module_registry first.
 
-    let module = if context.module_registry.contains_key(&module_name) {
-        let module = context.module_registry.get(&module_name).unwrap().clone();
+    // #todo optimize this lookup, no need for contains_key!
+    let module = if context.module_registry.contains_key(&module_path) {
+        let module = context.module_registry.get(&module_path).unwrap().clone();
         if !force {
             // #insight if not in force mode, just returned the evaluated (cached) module.
             return Ok(Expr::Module(module));
@@ -308,6 +332,11 @@ pub fn eval_module(
         // The module is not registered, try to load it.
         Arc::new(Module::new(module_stem, context.top_scope.clone()))
     };
+
+    // #todo consider inserting the new module here to avoid recursive module evals.
+    // context
+    //     .module_registry
+    //     .insert(module_name.clone(), module.clone());
 
     let prev_scope = context.scope.clone();
     context.scope = module.scope.clone();
@@ -341,12 +370,15 @@ pub fn eval_module(
     // #todo return Expr::Module, add module metadata: name, path, exports, etc.
     // #todo collect errors from all module files!
 
+    // #todo prohibit recursive module_evals.
+
     for file_path in &file_paths {
         let _ = eval_file(file_path, context)?;
     }
 
     context.scope = prev_scope;
-    context.module_registry.insert(module_name, module.clone());
+    // #todo consider pre-inserting the module, see above!
+    context.module_registry.insert(module_path, module.clone());
 
     Ok(Expr::Module(module.clone()))
 }

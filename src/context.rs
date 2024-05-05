@@ -49,6 +49,8 @@ impl Context {
         let root_path = std::env::var(ROOT_PATH_ENV_VAR)
             .unwrap_or_else(|_| panic!("env variable `{ROOT_PATH_ENV_VAR}` should be set"));
 
+        let root_path = canonicalize_path(root_path);
+
         let top_scope = Arc::new(Scope::default());
 
         let mut context = Self {

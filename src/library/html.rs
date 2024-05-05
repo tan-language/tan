@@ -232,7 +232,7 @@ mod tests {
     #[test]
     fn should_close_script_tags() {
         let input =
-            r#"(use "html")(html/html-from-expr '(script {:src "https://example.com/script.js"}))"#;
+            r#"(use /html)(html/html-from-expr '(script {:src "https://example.com/script.js"}))"#;
         let mut context = Context::new();
         let expr = eval_string(input, &mut context).unwrap();
         let value = expr.as_string().unwrap();

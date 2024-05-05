@@ -78,7 +78,7 @@ mod tests {
 
         let expr = prune(expr).unwrap();
 
-        let s = format!("--- {expr}");
+        let s = format!("{expr}");
 
         assert!(s.contains("(do (let a (Array 1 2 3 4)) (writeln (+ 2 3)))"));
     }
