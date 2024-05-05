@@ -90,63 +90,11 @@ pub fn not_eq_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
 }
 
 pub fn not_eq_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
-    // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
-    // #todo support overloading,
-    // #todo make equality a method of Expr?
-    // #todo support non-Int types
-    // #todo support multiple arguments.
-    let [a, b] = args else {
-        return Err(Error::invalid_arguments(
-            "`!=` requires at least two arguments",
-            None,
-        ));
-    };
-
-    let Some(a) = a.as_float() else {
-        return Err(Error::invalid_arguments(
-            &format!("`{a}` is not a Float"),
-            a.range(),
-        ));
-    };
-
-    let Some(b) = b.as_float() else {
-        return Err(Error::invalid_arguments(
-            &format!("`{b}` is not a Float"),
-            b.range(),
-        ));
-    };
-
-    Ok(Expr::Bool(a != b))
+    Ok(Expr::Bool(eq_float(args, _context)?.is_false()))
 }
 
 pub fn not_eq_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
-    // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
-    // #todo support overloading,
-    // #todo make equality a method of Expr?
-    // #todo support non-Int types
-    // #todo support multiple arguments.
-    let [a, b] = args else {
-        return Err(Error::invalid_arguments(
-            "`!=` requires at least two arguments",
-            None,
-        ));
-    };
-
-    let Some(a) = a.as_string() else {
-        return Err(Error::invalid_arguments(
-            &format!("`{a}` is not a String"),
-            a.range(),
-        ));
-    };
-
-    let Some(b) = b.as_string() else {
-        return Err(Error::invalid_arguments(
-            &format!("`{b}` is not a String"),
-            b.range(),
-        ));
-    };
-
-    Ok(Expr::Bool(a != b))
+    Ok(Expr::Bool(eq_string(args, _context)?.is_false()))
 }
 
 // #insight handles both (quoted) Symbol and KeySymbol, they are the same thing anyway.
@@ -319,5 +267,13 @@ mod tests {
         let input = "(!= 5 5)";
         let expr = eval_string(input, &mut context).unwrap();
         assert_matches!(expr, Expr::Bool(false));
+
+        let input = "(!= 5.2 5.2)";
+        let expr = eval_string(input, &mut context).unwrap();
+        assert_matches!(expr, Expr::Bool(false));
+
+        let input = r#"(!= "george" "nadia")"#;
+        let expr = eval_string(input, &mut context).unwrap();
+        assert_matches!(expr, Expr::Bool(true));
     }
 }
