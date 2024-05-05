@@ -356,7 +356,8 @@ impl<'a> Lexer<'a> {
     fn scan_annotation(&mut self) -> Option<String> {
         let mut ann = String::new();
 
-        let mut nesting = 0;
+        let mut paren_nesting = 0;
+        let mut curly_nesting = 0;
 
         // #todo only allow one level of nesting?
 
@@ -366,10 +367,15 @@ impl<'a> Lexer<'a> {
             };
 
             if ch == '(' {
-                nesting += 1;
+                paren_nesting += 1;
             } else if ch == ')' {
-                nesting -= 1;
-            } else if nesting == 0 && (is_whitespace(ch) || is_eol(ch)) {
+                paren_nesting -= 1;
+            } else if ch == '{' {
+                curly_nesting += 1;
+            } else if ch == '}' {
+                curly_nesting -= 1;
+            } else if paren_nesting == 0 && curly_nesting == 0 && (is_whitespace(ch) || is_eol(ch))
+            {
                 self.put_back_char(ch);
                 break;
             }
@@ -377,14 +383,24 @@ impl<'a> Lexer<'a> {
             ann.push(ch);
         }
 
-        if nesting == 0 {
-            Some(ann)
-        } else {
+        if paren_nesting != 0 {
             let mut error = Error::new(ErrorVariant::UnterminatedAnnotation);
-            error.push_note("Annotation is not closed", Some(self.current_range())); // #todo refine the text.
+            error.push_note(
+                "annotation is not closed, missing closing `)`",
+                Some(self.current_range()),
+            ); // #todo refine the text.
             self.errors.push(error);
-
             None
+        } else if curly_nesting != 0 {
+            let mut error = Error::new(ErrorVariant::UnterminatedAnnotation);
+            error.push_note(
+                "annotation is not closed, missing closing `}`",
+                Some(self.current_range()),
+            ); // #todo refine the text.
+            self.errors.push(error);
+            None
+        } else {
+            Some(ann)
         }
     }
 
