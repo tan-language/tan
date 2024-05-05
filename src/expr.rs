@@ -220,6 +220,10 @@ impl PartialEq for Expr {
 impl Hash for Expr {
     fn hash<H: Hasher>(&self, state: &mut H) {
         match self {
+            Self::Int(n) => {
+                0.hash(state);
+                n.hash(state);
+            }
             Self::String(s) => {
                 0.hash(state);
                 s.hash(state);
@@ -254,7 +258,7 @@ impl Hash for Expr {
             // Expr::Annotated(_, _) => todo!(),
             // Expr::Module(_) => todo!(),
             _ => {
-                println!("******** OTHER");
+                println!("******** no hash computation: {self}");
             }
         }
     }
