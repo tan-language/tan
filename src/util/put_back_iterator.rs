@@ -21,6 +21,8 @@ impl<'a, T> Iterator for PutBackIterator<'a, T> {
             None
         }
     }
+
+    // #todo add has_next or something.
 }
 
 // #todo explain what this does.
