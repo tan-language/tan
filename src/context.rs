@@ -16,7 +16,11 @@ use crate::{
 
 const ROOT_PATH_ENV_VAR: &str = "TAN_ROOT";
 
+// #insight the Clone is used for the http-server
+// #todo consider removing the Clone, it will give more flexibility.
+
 // #todo consider process/thread context?
+// #todo then we could remove Arcs and simplify our life?
 /// An execution context
 #[derive(Clone, Debug)]
 pub struct Context {

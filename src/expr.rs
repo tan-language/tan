@@ -154,6 +154,7 @@ pub enum Expr {
     // #todo add file_path to ForeignFunc
     // #todo the ForeignFunc should probably store the Module environment.
     // #todo introduce a ForeignFuncMut for mutating scope? what would be a better name?
+    // #todo #optimization: I could use symbol table for foreing funcs and just put an integer index here!
     ForeignFunc(Arc<ExprContextFn>), // #todo for some reason, Box is not working here!
     // #todo consider renaming to just `Foreign`,
     // #todo consider adding type-name field?
