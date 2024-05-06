@@ -21,8 +21,9 @@
 
 use std::sync::Arc;
 
-use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
 use rand::Rng;
+
+use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
 
 /// (random 100) returns a random integer in the range 0..100
 pub fn random_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {

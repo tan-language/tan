@@ -1,12 +1,17 @@
 use std::{path::PathBuf, sync::Arc};
 
+use libloading::Library;
+
 use crate::{
     api::resolve_string,
     context::Context,
     error::Error,
     eval::{eval, util::eval_file},
     expr::{annotate, expr_clone, Expr},
-    util::{module_util::require_module, standard_names::CURRENT_MODULE_PATH},
+    util::{
+        args::unpack_stringable_arg, module_util::require_module,
+        standard_names::CURRENT_MODULE_PATH,
+    },
 };
 
 // #todo (if (= (get-type obj) Amount) ...) ; type, get-type, type-of
@@ -212,6 +217,37 @@ pub fn eval_string(args: &[Expr], context: &mut Context) -> Result<Expr, Error> 
     }
 }
 
+// #todo not working yet!
+// #todo find a better name, consider `use` or `load` instead of `install`.
+pub fn install_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+    let dyn_lib_path = unpack_stringable_arg(args, 0, "path")?;
+
+    unsafe {
+        let library = match Library::new(dyn_lib_path) {
+            Ok(library) => library,
+            Err(error) => {
+                return Err(Error::general(&format!(
+                    "cannot open foreign dyn lib `{dyn_lib_path}`: {error}"
+                )));
+            }
+        };
+
+        let install_foreign_dyn_lib =
+            match library.get::<unsafe fn(&mut Context) -> i32>(b"install_foreign_dyn_lib\0") {
+                Ok(install_foreign_dyn_lib) => install_foreign_dyn_lib,
+                Err(error) => {
+                    return Err(Error::general(&format!(
+                        "cannot get install_foreign_dyn_lib for `{dyn_lib_path}`: {error}"
+                    )));
+                }
+            };
+
+        install_foreign_dyn_lib(context);
+    }
+
+    Ok(Expr::Nil)
+}
+
 pub fn setup_lib_lang(context: &mut Context) {
     let module = require_module("prelude", context);
 
@@ -239,6 +275,11 @@ pub fn setup_lib_lang(context: &mut Context) {
     );
 
     module.insert("load-file", Expr::ForeignFunc(Arc::new(load_file)));
+
+    module.insert(
+        "install-foreign-dyn-lib",
+        Expr::ForeignFunc(Arc::new(install_foreign_dyn_lib)),
+    );
 }
 
 #[cfg(test)]
