@@ -1,7 +1,4 @@
-use std::{
-    path::PathBuf,
-    sync::{Arc, OnceLock},
-};
+use std::{path::PathBuf, sync::Arc};
 
 use libloading::Library;
 
@@ -10,14 +7,12 @@ use crate::{
     context::Context,
     error::Error,
     eval::{eval, util::eval_file},
-    expr::{annotate, expr_clone, Expr, ExprContextFn},
+    expr::{annotate, expr_clone, Expr},
     util::{
         args::unpack_stringable_arg, module_util::require_module,
         standard_names::CURRENT_MODULE_PATH,
     },
 };
-
-static FOREIGN_FUNC: OnceLock<Box<ExprContextFn>> = OnceLock::new();
 
 // #todo (if (= (get-type obj) Amount) ...) ; type, get-type, type-of
 // #todo implement `type?` e.g. (if (type? obj Amount) ...)
