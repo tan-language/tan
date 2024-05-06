@@ -243,61 +243,24 @@ pub fn install_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<E
 
         // #WARNING this is required!
         // #insight to make sure it's not dropped!
+        // #insight if the foreign function is used after the library id dropped
+        // it causes a core dump.
         context.dummy_library = Some(library.clone());
 
-        // let install_foreign_dyn_lib =
-        //     match library.get::<unsafe fn(&mut Context) -> i32>(b"install_foreign_dyn_lib\0") {
-        //         Ok(install_foreign_dyn_lib) => install_foreign_dyn_lib,
-        //         Err(error) => {
-        //             return Err(Error::general(&format!(
-        //                 "cannot get install_foreign_dyn_lib for `{dyn_lib_path}`: {error}"
-        //             )));
-        //         }
-        //     };
+        let install_foreign_dyn_lib =
+            match library.get::<unsafe fn(&mut Context) -> i32>(b"install_foreign_dyn_lib\0") {
+                Ok(install_foreign_dyn_lib) => install_foreign_dyn_lib,
+                Err(error) => {
+                    return Err(Error::general(&format!(
+                        "cannot get install_foreign_dyn_lib for `{dyn_lib_path}`: {error}"
+                    )));
+                }
+            };
 
-        // install_foreign_dyn_lib(context);
-
-        let get_foreign_dyn_lib_symbols = match library
-            .get::<unsafe fn() -> Vec<(String, Box<ExprContextFn>)>>(
-                b"get_foreign_dyn_lib_symbols\0",
-            ) {
-            Ok(get_foreign_dyn_lib_symbols) => get_foreign_dyn_lib_symbols,
-            Err(error) => {
-                return Err(Error::general(&format!(
-                    "cannot get get_foreign_dyn_lib_symbols for `{dyn_lib_path}`: {error}"
-                )));
-            }
-        };
-
-        let mut symbols = get_foreign_dyn_lib_symbols();
-        // dbg!(symbols);
-
-        let module = require_module("dummy", context);
-
-        let (name, func) = symbols.pop().unwrap();
-
-        // FOREIGN_FUNC.get_or_init(|| func);
-        module.insert(name, Expr::ForeignFunc(Arc::new(func)));
-
-        // for (name, func) in symbols {
-        //     // let ptr = NonNull::new(Box::into_raw(func)).unwrap();
-        //     // let arc = Arc::from_raw(ptr.as_ptr());
-        //     // println!("---->> {name} {:?}", arc(&[], context));
-        //     println!("---->> {name} {:?}", func(&[], context));
-
-        //     // #insight #IMPORTANT seems the Arc is causing the problem!
-
-        //     // module.insert(name, Expr::ForeignFunc(arc));
-        //     // module.insert(name, Expr::ForeignFunc(Arc::new(debug_expr)));
-        // }
+        install_foreign_dyn_lib(context);
     }
 
     Ok(Expr::Nil)
-}
-
-pub fn koko(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
-    let func = FOREIGN_FUNC.get().unwrap();
-    func(args, context)
 }
 
 pub fn setup_lib_lang(context: &mut Context) {
@@ -332,7 +295,6 @@ pub fn setup_lib_lang(context: &mut Context) {
         "install-foreign-dyn-lib",
         Expr::ForeignFunc(Arc::new(install_foreign_dyn_lib)),
     );
-    module.insert("koko", Expr::ForeignFunc(Arc::new(koko)));
 }
 
 #[cfg(test)]
