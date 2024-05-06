@@ -1,4 +1,7 @@
-use std::{path::PathBuf, sync::Arc};
+use std::{
+    path::PathBuf,
+    sync::{Arc, OnceLock},
+};
 
 use libloading::Library;
 
@@ -13,6 +16,8 @@ use crate::{
         standard_names::CURRENT_MODULE_PATH,
     },
 };
+
+static FOREIGN_FUNC: OnceLock<Box<ExprContextFn>> = OnceLock::new();
 
 // #todo (if (= (get-type obj) Amount) ...) ; type, get-type, type-of
 // #todo implement `type?` e.g. (if (type? obj Amount) ...)
@@ -222,6 +227,8 @@ pub fn eval_string(args: &[Expr], context: &mut Context) -> Result<Expr, Error> 
 pub fn install_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     let dyn_lib_path = unpack_stringable_arg(args, 0, "path")?;
 
+    // #todo maybe move the library into context to prevent dropping/unloading?
+
     unsafe {
         let library = match Library::new(dyn_lib_path) {
             Ok(library) => library,
@@ -231,6 +238,11 @@ pub fn install_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<E
                 )));
             }
         };
+
+        let library = Arc::new(library);
+
+        // #insight to make sure it's not dropped!
+        context.dummy_library = Some(library.clone());
 
         // let install_foreign_dyn_lib =
         //     match library.get::<unsafe fn(&mut Context) -> i32>(b"install_foreign_dyn_lib\0") {
@@ -256,25 +268,34 @@ pub fn install_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<E
             }
         };
 
-        let symbols = get_foreign_dyn_lib_symbols();
+        let mut symbols = get_foreign_dyn_lib_symbols();
         // dbg!(symbols);
 
         // let module = require_module("dummy", context);
 
-        for (name, func) in symbols {
-            // let ptr = NonNull::new(Box::into_raw(func)).unwrap();
-            // let arc = Arc::from_raw(ptr.as_ptr());
-            // println!("---->> {name} {:?}", arc(&[], context));
-            println!("---->> {name} {:?}", func(&[], context));
+        let (name, func) = symbols.pop().unwrap();
 
-            // #insight #IMPORTANT seems the Arc is causing the problem!
+        FOREIGN_FUNC.get_or_init(|| func);
 
-            // module.insert(name, Expr::ForeignFunc(arc));
-            // module.insert(name, Expr::ForeignFunc(Arc::new(debug_expr)));
-        }
+        // for (name, func) in symbols {
+        //     // let ptr = NonNull::new(Box::into_raw(func)).unwrap();
+        //     // let arc = Arc::from_raw(ptr.as_ptr());
+        //     // println!("---->> {name} {:?}", arc(&[], context));
+        //     println!("---->> {name} {:?}", func(&[], context));
+
+        //     // #insight #IMPORTANT seems the Arc is causing the problem!
+
+        //     // module.insert(name, Expr::ForeignFunc(arc));
+        //     // module.insert(name, Expr::ForeignFunc(Arc::new(debug_expr)));
+        // }
     }
 
     Ok(Expr::Nil)
+}
+
+pub fn koko(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+    let func = FOREIGN_FUNC.get().unwrap();
+    func(args, context)
 }
 
 pub fn setup_lib_lang(context: &mut Context) {
@@ -309,6 +330,7 @@ pub fn setup_lib_lang(context: &mut Context) {
         "install-foreign-dyn-lib",
         Expr::ForeignFunc(Arc::new(install_foreign_dyn_lib)),
     );
+    module.insert("koko", Expr::ForeignFunc(Arc::new(koko)));
 }
 
 #[cfg(test)]
