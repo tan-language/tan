@@ -241,6 +241,7 @@ pub fn install_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<E
 
         let library = Arc::new(library);
 
+        // #WARNING this is required!
         // #insight to make sure it's not dropped!
         context.dummy_library = Some(library.clone());
 
@@ -271,11 +272,12 @@ pub fn install_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<E
         let mut symbols = get_foreign_dyn_lib_symbols();
         // dbg!(symbols);
 
-        // let module = require_module("dummy", context);
+        let module = require_module("dummy", context);
 
         let (name, func) = symbols.pop().unwrap();
 
-        FOREIGN_FUNC.get_or_init(|| func);
+        // FOREIGN_FUNC.get_or_init(|| func);
+        module.insert(name, Expr::ForeignFunc(Arc::new(func)));
 
         // for (name, func) in symbols {
         //     // let ptr = NonNull::new(Box::into_raw(func)).unwrap();
