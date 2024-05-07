@@ -2,6 +2,8 @@
 
 use std::{collections::HashMap, sync::Arc};
 
+use libloading::Library;
+
 use crate::{
     eval::util::canonicalize_path, expr::Expr, library::setup_lib, module::Module, scope::Scope,
     util::standard_names::PROFILE,
@@ -36,6 +38,8 @@ pub struct Context {
     // #todo find better name, e.g. prelude_scope?
     // #todo what about `global_scope`? nah...
     pub top_scope: Arc<Scope>,
+
+    pub dummy_library: Option<Arc<Library>>,
 }
 
 impl Default for Context {
@@ -63,6 +67,7 @@ impl Context {
             scope: top_scope.clone(),
             dynamic_scope: Arc::new(Scope::default()),
             top_scope: top_scope.clone(),
+            dummy_library: None,
         };
 
         // #todo should setup_std externally!

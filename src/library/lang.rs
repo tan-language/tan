@@ -7,7 +7,7 @@ use crate::{
     context::Context,
     error::Error,
     eval::{eval, util::eval_file},
-    expr::{annotate, expr_clone, Expr, ExprContextFn},
+    expr::{annotate, expr_clone, Expr},
     util::{
         args::unpack_stringable_arg, module_util::require_module,
         standard_names::CURRENT_MODULE_PATH,
@@ -44,6 +44,8 @@ pub fn ann(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
         Ok(Expr::Nil)
     }
 }
+
+// #todo implement (with-ann ...)
 
 // #todo find better name.
 // #todo support multiple annotations (pass map)
@@ -222,6 +224,8 @@ pub fn eval_string(args: &[Expr], context: &mut Context) -> Result<Expr, Error> 
 pub fn install_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     let dyn_lib_path = unpack_stringable_arg(args, 0, "path")?;
 
+    // #todo maybe move the library into context to prevent dropping/unloading?
+
     unsafe {
         let library = match Library::new(dyn_lib_path) {
             Ok(library) => library,
@@ -232,46 +236,25 @@ pub fn install_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<E
             }
         };
 
-        // let install_foreign_dyn_lib =
-        //     match library.get::<unsafe fn(&mut Context) -> i32>(b"install_foreign_dyn_lib\0") {
-        //         Ok(install_foreign_dyn_lib) => install_foreign_dyn_lib,
-        //         Err(error) => {
-        //             return Err(Error::general(&format!(
-        //                 "cannot get install_foreign_dyn_lib for `{dyn_lib_path}`: {error}"
-        //             )));
-        //         }
-        //     };
+        let library = Arc::new(library);
 
-        // install_foreign_dyn_lib(context);
+        // #WARNING this is required!
+        // #insight to make sure it's not dropped!
+        // #insight if the foreign function is used after the library id dropped
+        // it causes a core dump.
+        context.dummy_library = Some(library.clone());
 
-        let get_foreign_dyn_lib_symbols = match library
-            .get::<unsafe fn() -> Vec<(String, Box<ExprContextFn>)>>(
-                b"get_foreign_dyn_lib_symbols\0",
-            ) {
-            Ok(get_foreign_dyn_lib_symbols) => get_foreign_dyn_lib_symbols,
-            Err(error) => {
-                return Err(Error::general(&format!(
-                    "cannot get get_foreign_dyn_lib_symbols for `{dyn_lib_path}`: {error}"
-                )));
-            }
-        };
+        let install_foreign_dyn_lib =
+            match library.get::<unsafe fn(&mut Context) -> i32>(b"install_foreign_dyn_lib\0") {
+                Ok(install_foreign_dyn_lib) => install_foreign_dyn_lib,
+                Err(error) => {
+                    return Err(Error::general(&format!(
+                        "cannot get install_foreign_dyn_lib for `{dyn_lib_path}`: {error}"
+                    )));
+                }
+            };
 
-        let symbols = get_foreign_dyn_lib_symbols();
-        // dbg!(symbols);
-
-        // let module = require_module("dummy", context);
-
-        for (name, func) in symbols {
-            // let ptr = NonNull::new(Box::into_raw(func)).unwrap();
-            // let arc = Arc::from_raw(ptr.as_ptr());
-            // println!("---->> {name} {:?}", arc(&[], context));
-            println!("---->> {name} {:?}", func(&[], context));
-
-            // #insight #IMPORTANT seems the Arc is causing the problem!
-
-            // module.insert(name, Expr::ForeignFunc(arc));
-            // module.insert(name, Expr::ForeignFunc(Arc::new(debug_expr)));
-        }
+        install_foreign_dyn_lib(context);
     }
 
     Ok(Expr::Nil)
