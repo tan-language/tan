@@ -38,8 +38,6 @@ pub struct Context {
     // #todo find better name, e.g. prelude_scope?
     // #todo what about `global_scope`? nah...
     pub top_scope: Arc<Scope>,
-
-    pub dummy_library: Option<Arc<Library>>,
 }
 
 impl Default for Context {
@@ -67,7 +65,6 @@ impl Context {
             scope: top_scope.clone(),
             dynamic_scope: Arc::new(Scope::default()),
             top_scope: top_scope.clone(),
-            dummy_library: None,
         };
 
         // #todo should setup_std externally!

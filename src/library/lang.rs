@@ -1,4 +1,8 @@
-use std::{path::PathBuf, sync::Arc};
+use std::{
+    collections::HashMap,
+    path::PathBuf,
+    sync::{Arc, Mutex, OnceLock},
+};
 
 use libloading::Library;
 
@@ -13,6 +17,9 @@ use crate::{
         standard_names::CURRENT_MODULE_PATH,
     },
 };
+
+// #todo move to another place.
+static FOREIGN_DYN_LIB_MAP: OnceLock<Mutex<HashMap<String, Library>>> = OnceLock::new();
 
 // #todo (if (= (get-type obj) Amount) ...) ; type, get-type, type-of
 // #todo implement `type?` e.g. (if (type? obj Amount) ...)
@@ -227,6 +234,16 @@ pub fn install_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<E
     // #todo maybe move the library into context to prevent dropping/unloading?
 
     unsafe {
+        // #insight #WARNING
+        // to make sure the (foreign) dynamic library is not dropped, move
+        // it to a static hashmap. If the library gets dropped, calling a function
+        // in the library would trigger a core dump.
+        let foreign_dyn_lib_map = FOREIGN_DYN_LIB_MAP.get_or_init(|| Mutex::new(HashMap::new()));
+        // #todo handle error instead of unwrap.
+        let mut foreign_dyn_lib_map = foreign_dyn_lib_map.lock().unwrap();
+
+        // #todo check if the library is already installed, and return early!
+
         let library = match Library::new(dyn_lib_path) {
             Ok(library) => library,
             Err(error) => {
@@ -235,14 +252,6 @@ pub fn install_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<E
                 )));
             }
         };
-
-        let library = Arc::new(library);
-
-        // #WARNING this is required!
-        // #insight to make sure it's not dropped!
-        // #insight if the foreign function is used after the library id dropped
-        // it causes a core dump.
-        context.dummy_library = Some(library.clone());
 
         let install_foreign_dyn_lib =
             match library.get::<unsafe fn(&mut Context) -> i32>(b"install_foreign_dyn_lib\0") {
@@ -255,6 +264,11 @@ pub fn install_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<E
             };
 
         install_foreign_dyn_lib(context);
+
+        // #insight
+        // to make sure the (foreign) dynamic library is not dropped, move
+        // it to a static hashmap.
+        foreign_dyn_lib_map.insert(dyn_lib_path.into(), library);
     }
 
     Ok(Expr::Nil)
