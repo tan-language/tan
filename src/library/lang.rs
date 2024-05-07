@@ -226,12 +226,12 @@ pub fn eval_string(args: &[Expr], context: &mut Context) -> Result<Expr, Error> 
     }
 }
 
-// #todo #WARNING not working yet!
+// #todo introduce uninstall_foreign_dyn_lib for completeness.
 // #todo find a better name, consider `use` or `load` instead of `install`.
 pub fn install_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     let dyn_lib_path = unpack_stringable_arg(args, 0, "path")?;
 
-    // #todo maybe move the library into context to prevent dropping/unloading?
+    // #todo add unit tests!
 
     unsafe {
         // #insight #WARNING
@@ -239,14 +239,27 @@ pub fn install_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<E
         // it to a static hashmap. If the library gets dropped, calling a function
         // in the library would trigger a core dump.
         let foreign_dyn_lib_map = FOREIGN_DYN_LIB_MAP.get_or_init(|| Mutex::new(HashMap::new()));
-        // #todo handle error instead of unwrap.
-        let mut foreign_dyn_lib_map = foreign_dyn_lib_map.lock().unwrap();
+
+        // #insight the MutexGuard is implicitly dropped.
+        if foreign_dyn_lib_map
+            .lock()
+            .expect("poisoned lock")
+            .contains_key(dyn_lib_path)
+        {
+            // #todo consider not throwing an error, and just nop?
+            // #todo consider just a warning (add support for warnings)
+            // #todo more specific error variant needed.
+            return Err(Error::general(&format!(
+                "foreign dyn lib `{dyn_lib_path}` is already installed"
+            )));
+        }
 
         // #todo check if the library is already installed, and return early!
 
         let library = match Library::new(dyn_lib_path) {
             Ok(library) => library,
             Err(error) => {
+                // #todo more specific error variant needed.
                 return Err(Error::general(&format!(
                     "cannot open foreign dyn lib `{dyn_lib_path}`: {error}"
                 )));
@@ -268,7 +281,10 @@ pub fn install_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<E
         // #insight
         // to make sure the (foreign) dynamic library is not dropped, move
         // it to a static hashmap.
-        foreign_dyn_lib_map.insert(dyn_lib_path.into(), library);
+        foreign_dyn_lib_map
+            .lock()
+            .expect("poisoned lock")
+            .insert(dyn_lib_path.into(), library);
     }
 
     Ok(Expr::Nil)

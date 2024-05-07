@@ -2,8 +2,6 @@
 
 use std::{collections::HashMap, sync::Arc};
 
-use libloading::Library;
-
 use crate::{
     eval::util::canonicalize_path, expr::Expr, library::setup_lib, module::Module, scope::Scope,
     util::standard_names::PROFILE,
