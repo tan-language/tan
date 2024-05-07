@@ -231,6 +231,8 @@ pub fn eval_string(args: &[Expr], context: &mut Context) -> Result<Expr, Error> 
 pub fn install_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     let dyn_lib_path = unpack_stringable_arg(args, 0, "path")?;
 
+    // #todo canonicalize the path, resolve paths relative to CURRENT_MODULE_PATH
+
     // #todo add unit tests!
 
     unsafe {
