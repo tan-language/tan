@@ -45,6 +45,8 @@ pub fn ann(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     }
 }
 
+// #todo implement (with-ann ...)
+
 // #todo find better name.
 // #todo support multiple annotations (pass map)
 // (ann! expr :type Amount)

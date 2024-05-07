@@ -869,6 +869,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     }
                 }
                 _ => Err(Error::not_invocable(
+                    // #todo add a more descriptive error!
                     &format!("expression `{head}`"),
                     head.range(),
                 )),
