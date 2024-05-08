@@ -231,9 +231,9 @@ pub fn eval_string(args: &[Expr], context: &mut Context) -> Result<Expr, Error> 
 }
 
 // #todo consider link_foreign_dyn_lib (and unlink_...)
-// #todo introduce uninstall_foreign_dyn_lib for completeness.
+// #todo introduce unlink_foreign_dyn_lib for completeness.
 // #todo find a better name, consider `use` or `load` instead of `install`.
-pub fn install_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+pub fn link_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     let dyn_lib_path = unpack_stringable_arg(args, 0, "path")?;
 
     // #todo find a better name for canonicalize_module_path.
@@ -266,11 +266,10 @@ pub fn install_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<E
             )));
         }
 
-        // #todo check if the library is already installed, and return early!
-
         let library = match Library::new(&dyn_lib_path) {
             Ok(library) => library,
             Err(error) => {
+                // #todo seems the error is not surfaced when used in a tab module, or something worse happens.
                 // #todo more specific error variant needed.
                 return Err(Error::general(&format!(
                     "cannot open foreign dyn lib `{dyn_lib_path}`: {error}"
@@ -278,17 +277,17 @@ pub fn install_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<E
             }
         };
 
-        let install_foreign_dyn_lib =
+        let link_foreign_dyn_lib =
             match library.get::<unsafe fn(&mut Context) -> i32>(b"install_foreign_dyn_lib\0") {
-                Ok(install_foreign_dyn_lib) => install_foreign_dyn_lib,
+                Ok(link_foreign_dyn_lib) => link_foreign_dyn_lib,
                 Err(error) => {
                     return Err(Error::general(&format!(
-                        "cannot get install_foreign_dyn_lib for `{dyn_lib_path}`: {error}"
+                        "cannot get link_foreign_dyn_lib for `{dyn_lib_path}`: {error}"
                     )));
                 }
             };
 
-        install_foreign_dyn_lib(context);
+        link_foreign_dyn_lib(context);
 
         // #insight
         // to make sure the (foreign) dynamic library is not dropped, move
@@ -331,8 +330,8 @@ pub fn setup_lib_lang(context: &mut Context) {
     module.insert("load-file", Expr::ForeignFunc(Arc::new(load_file)));
 
     module.insert(
-        "install-foreign-dyn-lib",
-        Expr::ForeignFunc(Arc::new(install_foreign_dyn_lib)),
+        "link-foreign-dyn-lib",
+        Expr::ForeignFunc(Arc::new(link_foreign_dyn_lib)),
     );
 }
 
