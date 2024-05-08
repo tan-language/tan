@@ -10,7 +10,10 @@ use crate::{
     api::resolve_string,
     context::Context,
     error::Error,
-    eval::{eval, util::eval_file},
+    eval::{
+        eval,
+        util::{canonicalize_module_path, eval_file},
+    },
     expr::{annotate, expr_clone, Expr},
     util::{
         args::unpack_stringable_arg, module_util::require_module,
@@ -129,6 +132,7 @@ pub fn load_file(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
         ));
     };
 
+    // #todo canonicalize path, support relative paths?
     // #todo similar code in eval "use", refactor!
 
     // #think: do we need a nested scope? I think not! should be an option or multiple functions
@@ -226,10 +230,15 @@ pub fn eval_string(args: &[Expr], context: &mut Context) -> Result<Expr, Error> 
     }
 }
 
+// #todo consider link_foreign_dyn_lib (and unlink_...)
 // #todo introduce uninstall_foreign_dyn_lib for completeness.
 // #todo find a better name, consider `use` or `load` instead of `install`.
 pub fn install_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     let dyn_lib_path = unpack_stringable_arg(args, 0, "path")?;
+
+    // #todo find a better name for canonicalize_module_path.
+    // #todo use another function, not module_path specific, don't rewrite if it starts with "/"
+    let dyn_lib_path = canonicalize_module_path(dyn_lib_path, context)?;
 
     // #todo canonicalize the path, resolve paths relative to CURRENT_MODULE_PATH
 
@@ -245,8 +254,9 @@ pub fn install_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<E
         // #insight the MutexGuard is implicitly dropped.
         if foreign_dyn_lib_map
             .lock()
+            // #todo abstract the handling of poisoned lock.
             .expect("poisoned lock")
-            .contains_key(dyn_lib_path)
+            .contains_key(&dyn_lib_path)
         {
             // #todo consider not throwing an error, and just nop?
             // #todo consider just a warning (add support for warnings)
@@ -258,7 +268,7 @@ pub fn install_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<E
 
         // #todo check if the library is already installed, and return early!
 
-        let library = match Library::new(dyn_lib_path) {
+        let library = match Library::new(&dyn_lib_path) {
             Ok(library) => library,
             Err(error) => {
                 // #todo more specific error variant needed.

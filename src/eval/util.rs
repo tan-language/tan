@@ -52,6 +52,7 @@ pub fn anchor(result: Result<Expr, Error>, expr: &Expr) -> Result<Expr, Error> {
 
 // #todo write unit tests!
 // #todo find another name, there is confusion with path_buf::canonicalize.
+// #todo remvoe the _module_ from name, used also for files and dyn-libs.
 pub fn canonicalize_module_path(
     path: impl AsRef<Path>,
     context: &Context,
@@ -108,6 +109,7 @@ pub fn canonicalize_module_path(
 
 // #todo why does it consume path? this is problematic.
 pub fn canonicalize_path(path: String) -> String {
+    // #todo should call canonicalize_module_path?
     if let Ok(canonical_path) = PathBuf::from(&path).canonicalize() {
         canonical_path.to_string_lossy().to_string()
     } else {
