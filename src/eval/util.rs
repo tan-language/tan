@@ -49,10 +49,12 @@ pub fn anchor(result: Result<Expr, Error>, expr: &Expr) -> Result<Expr, Error> {
 // }
 
 // #todo handle module_urls with https://, https://, ipfs://, etc, auto-download, like Deno.
-
+// #todo the implicit URL scheme is tan://, e.g. tan://math, tan://@group/util
+// #todo #think does the `@` mess with the url?
+// #todo #think does the leading `/` mess with the url?, e.g. `tan:///math`?
 // #todo write unit tests!
 // #todo find another name, there is confusion with path_buf::canonicalize.
-// #todo remvoe the _module_ from name, used also for files and dyn-libs.
+// #todo remove the _module_ from name, used also for files and dyn-libs.
 pub fn canonicalize_module_path(
     path: impl AsRef<Path>,
     context: &Context,
@@ -339,6 +341,11 @@ pub fn eval_module(
     // context
     //     .module_registry
     //     .insert(module_name.clone(), module.clone());
+
+    // #insight pre-inderting the module also enables dyn-libs.
+    context
+        .module_registry
+        .insert(module_path.clone(), module.clone());
 
     let prev_scope = context.scope.clone();
     context.scope = module.scope.clone();
