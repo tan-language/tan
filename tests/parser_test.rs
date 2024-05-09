@@ -213,18 +213,19 @@ fn parse_handles_annotations() {
 #[test]
 fn parse_handles_more_complex_annotations() {
     let input = r#"
-    (let a #(Func [Int Int] Int) (Func [x y] (+ x y)))
+    (let #(Func [Int Int] Int) a (Func [x y] (+ x y)))
     "#;
     let tokens = lex_tokens(input);
     let mut parser = Parser::new(&tokens);
 
     let expr = parser.parse().unwrap();
-    // dbg!(expr);
     let xs = expr[0].as_list().unwrap();
-    let x = &xs[2];
+    let x = &xs[1];
     let ann = x.annotations().unwrap();
-    dbg!(&ann);
-    // #todo fix! not correct values!
+    assert_eq!(
+        ann.get("type").unwrap().to_string(),
+        "(Func (Array Int Int) Int)"
+    );
 }
 
 #[test]

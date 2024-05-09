@@ -188,7 +188,19 @@ impl<'a> Parser<'a> {
                         let mut i = 1;
                         while i < ann_list.len() {
                             // #todo add error checking here!
-                            let k = ann_list[i].as_stringable().unwrap();
+                            let Some(k) = ann_list[i].as_stringable() else {
+                                let mut error = Error::new(ErrorVariant::MalformedAnnotation);
+                                error.push_note(
+                                    &format!(
+                                        "the annotation key should be a stringable `{}`",
+                                        annotation_token.lexeme()
+                                    ),
+                                    Some(annotation_token.range()),
+                                );
+                                self.errors.push(error);
+                                // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
+                                return expr;
+                            };
                             let v = ann_list[i + 1].clone();
                             expr = annotate(expr, k, v);
                             i += 2;
