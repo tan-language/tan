@@ -79,6 +79,16 @@ impl<'a> Parser<'a> {
 
         for annotation_token in buffered_annotations {
             let input = annotation_token.lexeme();
+
+            let Some(first_char) = input.chars().next() else {
+                // #todo can this happen?
+                // #todo emit warning/error?
+                continue;
+            };
+
+            // #todo a bit hackish way to detect a type expression.
+            let is_type_expression = first_char.is_uppercase() || first_char == '(';
+
             let mut lexer = Lexer::new(&input);
 
             let Ok(tokens) = lexer.lex() else {
@@ -154,9 +164,7 @@ impl<'a> Parser<'a> {
                     // #todo also handle parameterized types.
                     // #todo support more than symbols, e.g. KeySymbols or Strings.
 
-                    println!("**** {:?}", list);
-
-                    let Some(head) = list.first() else {
+                    let Some(..) = list.first() else {
                         // #inside empty annotation is considered as type annotation to the unit type?
                         // #todo it makes no sense, the annotation should just be ignored.
                         // #todo throw a warning?
@@ -164,52 +172,38 @@ impl<'a> Parser<'a> {
                         return expr;
                     };
 
-                    // #insight ultra-hack, {..} annotations have Map as Symbol.
-                    // #todo leverage the above hack!
-
-                    let Some(typ) = head.as_type() else {
-                        let mut error = Error::new(ErrorVariant::MalformedAnnotation);
-                        error.push_note(
-                            &format!(
-                                "list-style annotation should assign a type `{:?}` at `{}`",
-                                head.unpack(),
-                                annotation_token.lexeme(),
-                            ),
-                            Some(annotation_token.range()),
-                        );
-                        self.errors.push(error);
-                        // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
-                        return expr;
-                    };
-
-                    if typ == "Map" {
-                        // #todo differentiate between map-style annotation and map type-expression.
-                        // #insight just checking if the list is a type-expression can disambiguate.
-
-                        // #todo #IMPORTANT for the moment these annotation are ignored!!!
-                        // #todo convert the list to multiple annotations!
-                        return expr;
+                    if is_type_expression {
+                        // #todo #IMPORTANT verify that the type expression is valid
+                        // #todo investigate if some part of the annotation is missing from ann_expr!
+                        expr = annotate(expr, "type", ann_expr.clone());
+                    } else {
+                        // #todo convert to multiple annotations
+                        // #todo iterate the map
+                        // #todo #IMPORTANT implement me! this is placeholder.
+                        expr = annotate(expr, "todo", ann_expr.clone());
                     }
 
-                    // #todo #IMPORTANT verify that the type expression is valid
-
-                    // #todo investigate if some part of the annotation is missing from ann_expr!
-
-                    expr = annotate(expr, "type", ann_expr.clone());
-
-                    // if let Some(Expr::Type(sym)) = list.first().map(|x| x.unpack()) {
-                    //     expr = annotate(expr, sym.clone(), ann_expr.clone());
-                    // } else {
+                    // let Some(typ) = head.as_type() else {
                     //     let mut error = Error::new(ErrorVariant::MalformedAnnotation);
                     //     error.push_note(
                     //         &format!(
-                    //             "not a type definition, first term must be a type `{}`",
-                    //             annotation_token.lexeme()
+                    //             "list-style annotation should assign a type `{:?}` at `{}`",
+                    //             head.unpack(),
+                    //             annotation_token.lexeme(),
                     //         ),
                     //         Some(annotation_token.range()),
                     //     );
                     //     self.errors.push(error);
                     //     // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
+                    //     return expr;
+                    // };
+
+                    // if typ == "Map" {
+                    //     // #todo differentiate between map-style annotation and map type-expression.
+                    //     // #insight just checking if the list is a type-expression can disambiguate.
+
+                    //     // #todo #IMPORTANT for the moment these annotation are ignored!!!
+                    //     // #todo convert the list to multiple annotations!
                     //     return expr;
                     // }
                 }

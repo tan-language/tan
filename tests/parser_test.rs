@@ -191,13 +191,18 @@ fn parse_reports_unterminated_lists() {
 #[test]
 fn parse_handles_annotations() {
     let input = r#"
-    (let a #zonk #Int8 25 b #{:inline true} 1)
+    (let a #zonk #U8 1 b #{:inline true} 3)
     "#;
     let tokens = lex_tokens(input);
     let mut parser = Parser::new(&tokens);
 
-    let _expr = parser.parse().unwrap();
-    // dbg!(&expr);
+    let expr = parser.parse().unwrap();
+
+    let xs = &expr[0].as_list().unwrap();
+    let x = &xs[2];
+    let ann = x.annotations().unwrap();
+    assert_matches!(ann.get("type").unwrap(), Expr::Type(t) if t == "U8");
+    assert_matches!(ann.get("zonk").unwrap(), Expr::Bool(b) if *b);
 }
 
 #[test]
