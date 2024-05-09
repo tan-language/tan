@@ -191,7 +191,20 @@ fn parse_reports_unterminated_lists() {
 #[test]
 fn parse_handles_annotations() {
     let input = r#"
-    (let a #zonk #Int8 25 b #(inline true) 1)
+    (let a #zonk #Int8 25 b #{:inline true} 1)
+    "#;
+    let tokens = lex_tokens(input);
+    let mut parser = Parser::new(&tokens);
+
+    let _expr = parser.parse().unwrap();
+    // dbg!(&expr);
+}
+
+#[test]
+fn parse_handles_more_complex_annotations() {
+    let input = r#"
+    #(Func [Int Int] Int)
+    (let a 1)
     "#;
     let tokens = lex_tokens(input);
     let mut parser = Parser::new(&tokens);

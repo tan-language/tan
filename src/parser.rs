@@ -119,12 +119,17 @@ impl<'a> Parser<'a> {
 
             match &ann_expr {
                 Expr::Type(..) => {
-                    // #todo introduce another shortcut for types, e.b. #:String, #:(Array Int), :=String,
+                    // #insight
                     // Type shorthand: If the annotation starts with uppercase
-                    // letter, it's considered type annotations.
+                    // letter, it's considered a type annotation.
+                    // #insight
+                    // Don't use `:=` for type declarations, it's the assignment operator.
                     expr = annotate(expr, "type", ann_expr.clone());
                 }
                 Expr::Symbol(sym) => {
+                    // #insight
+                    // Type shorthand: If the annotation consists of a single
+                    // symbol, it's considered a boolean annotation.
                     if sym.is_empty() {
                         let mut error = Error::new(ErrorVariant::MalformedAnnotation);
                         error.push_note(
@@ -163,15 +168,17 @@ impl<'a> Parser<'a> {
                     // }
                 }
                 Expr::List(list) => {
+                    // #insight a 'List' annotation always represents a type!
+                    // #todo validate that the list is a correct type expression.
                     // #todo also handle parameterized types.
                     // #todo support more than symbols, e.g. KeySymbols or Strings.
-                    if let Some(Expr::Symbol(sym)) = list.first().map(|x| x.unpack()) {
+                    if let Some(Expr::Type(sym)) = list.first().map(|x| x.unpack()) {
                         expr = annotate(expr, sym.clone(), ann_expr.clone());
                     } else {
                         let mut error = Error::new(ErrorVariant::MalformedAnnotation);
                         error.push_note(
                             &format!(
-                                "First term must be a symbol `{}`",
+                                "not a type definition, first term must be a type `{}`",
                                 annotation_token.lexeme()
                             ),
                             Some(annotation_token.range()),
