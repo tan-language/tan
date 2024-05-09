@@ -176,11 +176,6 @@ impl<'a> Parser<'a> {
                         // #todo #IMPORTANT verify that the type expression is valid
                         // #todo investigate if some part of the annotation is missing from ann_expr!
                         expr = annotate(expr, "type", ann_expr.clone());
-                        println!(
-                            "$$$$$**** {} : {:?} ",
-                            format_value(&expr),
-                            expr.annotation("type")
-                        );
                     } else {
                         let Some(ann_list) = ann_expr.as_list() else {
                             let mut error = Error::new(ErrorVariant::MalformedAnnotation);
@@ -212,7 +207,6 @@ impl<'a> Parser<'a> {
                             expr = annotate(expr, k, v);
                             i += 2;
                         }
-                        println!("%%--%% {} : {:?}", format_value(&expr), expr.annotations());
                     }
                 }
                 _ => {

@@ -11,7 +11,9 @@ pub fn eval_let(op: &Expr, args: &[Expr], context: &mut Context) -> Result<Expr,
     // #todo also report some of these errors statically, maybe in a sema phase?
     // #todo use 'location' or 'lvalue' instead of name?
 
-    println!("@@@@@@@@@@---->> {op} {:?}", op.annotations());
+    // #insight 'pass-through' let annotations, only for ...def.
+
+    // println!("@@@@@@@@@@---->> {op} {:?}", op.annotations());
 
     let mut args = args.iter();
 
@@ -25,7 +27,7 @@ pub fn eval_let(op: &Expr, args: &[Expr], context: &mut Context) -> Result<Expr,
             break;
         };
 
-        let value = eval(value, context)?;
+        let value = Expr::maybe_annotated(eval(value, context)?, op.annotations());
 
         insert_binding(name, value, context)?
     }

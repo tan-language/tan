@@ -707,15 +707,24 @@ fn eval_should_support_non_literal_annotations() {
         r#"
         #{:inline true}
         (let add (Func [x y] (+ x y)))
-        (ann add)
+        ((ann add) :inline)
         "#,
     );
     let value = result.unwrap();
-    println!("..... {}", format_value(value));
-    // let value = value.as_map().unwrap();
-    // let value = value.borrow();
-    // assert!(value.contains_key("type"));
-    // assert_eq!(format_value(&value["type"]), "(Func [Int Int] Int)");
+    assert_eq!(format_value(&value), "true");
+
+    // #todo make this work (invalid dynamic type):
+    // (let add (Func [x y] (+ x y)))
+
+    let result = eval_input(
+        r#"
+        #Func
+        (let add (Func [x y] (+ x y)))
+        ((ann add) :type)
+        "#,
+    );
+    let value = result.unwrap();
+    assert_eq!(format_value(&value), "Func");
 }
 
 #[test]
