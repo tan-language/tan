@@ -175,7 +175,7 @@ impl<'a> Parser<'a> {
                     if is_type_expression {
                         // #todo #IMPORTANT verify that the type expression is valid
                         // #todo investigate if some part of the annotation is missing from ann_expr!
-                        expr = annotate(expr, "type", ann_expr.clone());
+                        expr = annotate(expr, "type", Expr::Type(format_value(ann_expr)));
                     } else {
                         let Some(ann_list) = ann_expr.as_list() else {
                             let mut error = Error::new(ErrorVariant::MalformedAnnotation);
