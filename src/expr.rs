@@ -624,6 +624,13 @@ impl Expr {
         }
     }
 
+    pub fn as_type(&self) -> Option<&str> {
+        let Expr::Type(s) = self.unpack() else {
+            return None;
+        };
+        Some(s)
+    }
+
     // #todo add an extra function to extract all string-
 
     pub fn as_char(&self) -> Option<char> {

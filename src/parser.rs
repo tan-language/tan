@@ -85,7 +85,7 @@ impl<'a> Parser<'a> {
                 let mut error = Error::new(ErrorVariant::MalformedAnnotation);
                 error.push_note(
                     &format!(
-                        "Lexical error in annotation `{}`",
+                        "lexical error in annotation `{}`",
                         annotation_token.lexeme()
                     ),
                     Some(annotation_token.range()),
@@ -102,7 +102,7 @@ impl<'a> Parser<'a> {
             if let Err(mut errors) = ann_expr {
                 let mut error = Error::new(ErrorVariant::MalformedAnnotation);
                 error.push_note(
-                    &format!("Parse error in annotation `{}`", annotation_token.lexeme()),
+                    &format!("parse error in annotation `{}`", annotation_token.lexeme()),
                     Some(annotation_token.range()),
                 );
                 self.errors.push(error);
@@ -112,6 +112,7 @@ impl<'a> Parser<'a> {
                 return expr;
             }
 
+            // #todo what is this?
             // #todo temp, support multiple expressions in annotation?
             let ann_expr = ann_expr.unwrap().swap_remove(0);
 
@@ -144,55 +145,79 @@ impl<'a> Parser<'a> {
                         return expr;
                     }
 
-                    // // #todo introduce another shortcut for types, e.b. #:String, #:(Array Int), :=String,
-                    // if sym.chars().next().unwrap().is_uppercase() {
-                    //     // Type shorthand: If the annotation starts with uppercase
-                    //     // letter, it's considered type annotations.
-                    //     // #insight convert the symbol to a string.
-                    //     let Some(typ) = ann_expr.as_stringable() else {
-                    //         let mut error = Error::new(ErrorVariant::MalformedAnnotation);
-                    //         error.push_note(
-                    //             &format!("invalid type annotation`{}`", annotation_token.lexeme()),
-                    //             Some(annotation_token.range()),
-                    //         );
-                    //         self.errors.push(error);
-
-                    //         // ignore buffered annotations, continue to find more errors.
-                    //         return expr;
-                    //     };
-                    //     expr = annotate(expr, "type", Expr::string(typ));
-                    // } else {
-                    // Bool=true shorthand: If the annotation starts with lowercase
-                    // letter, it's considered a boolean flag.
                     expr = annotate(expr, sym.clone(), Expr::Bool(true));
-                    // }
                 }
                 Expr::List(list) => {
+                    // #todo problem {...} is still (Map ...) at this point!
                     // #insight a 'List' annotation always represents a type!
                     // #todo validate that the list is a correct type expression.
                     // #todo also handle parameterized types.
                     // #todo support more than symbols, e.g. KeySymbols or Strings.
-                    if let Some(Expr::Type(sym)) = list.first().map(|x| x.unpack()) {
-                        expr = annotate(expr, sym.clone(), ann_expr.clone());
-                    } else {
+
+                    println!("**** {:?}", list);
+
+                    let Some(head) = list.first() else {
+                        // #inside empty annotation is considered as type annotation to the unit type?
+                        // #todo it makes no sense, the annotation should just be ignored.
+                        // #todo throw a warning?
+                        expr = annotate(expr, "type", Expr::Nil);
+                        return expr;
+                    };
+
+                    // #insight ultra-hack, {..} annotations have Map as Symbol.
+                    // #todo leverage the above hack!
+
+                    let Some(typ) = head.as_type() else {
                         let mut error = Error::new(ErrorVariant::MalformedAnnotation);
                         error.push_note(
                             &format!(
-                                "not a type definition, first term must be a type `{}`",
-                                annotation_token.lexeme()
+                                "list-style annotation should assign a type `{:?}` at `{}`",
+                                head.unpack(),
+                                annotation_token.lexeme(),
                             ),
                             Some(annotation_token.range()),
                         );
                         self.errors.push(error);
                         // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
                         return expr;
+                    };
+
+                    if typ == "Map" {
+                        // #todo differentiate between map-style annotation and map type-expression.
+                        // #insight just checking if the list is a type-expression can disambiguate.
+
+                        // #todo #IMPORTANT for the moment these annotation are ignored!!!
+                        // #todo convert the list to multiple annotations!
+                        return expr;
                     }
+
+                    // #todo #IMPORTANT verify that the type expression is valid
+
+                    // #todo investigate if some part of the annotation is missing from ann_expr!
+
+                    expr = annotate(expr, "type", ann_expr.clone());
+
+                    // if let Some(Expr::Type(sym)) = list.first().map(|x| x.unpack()) {
+                    //     expr = annotate(expr, sym.clone(), ann_expr.clone());
+                    // } else {
+                    //     let mut error = Error::new(ErrorVariant::MalformedAnnotation);
+                    //     error.push_note(
+                    //         &format!(
+                    //             "not a type definition, first term must be a type `{}`",
+                    //             annotation_token.lexeme()
+                    //         ),
+                    //         Some(annotation_token.range()),
+                    //     );
+                    //     self.errors.push(error);
+                    //     // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
+                    //     return expr;
+                    // }
                 }
                 _ => {
                     let mut error = Error::new(ErrorVariant::MalformedAnnotation);
                     error.push_note(
                         &format!(
-                            "An annotation should be either a symbol or a list `{}`",
+                            "an annotation should be either a symbol or a list `{}`",
                             annotation_token.lexeme()
                         ),
                         Some(annotation_token.range()),
