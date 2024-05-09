@@ -809,6 +809,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         "assert-eq" => anchor(eval_assert_eq(op, args, context), expr),
                         // #todo for-each or overload for?
                         "for-each" => anchor(eval_for_each(args, context), expr),
+                        // #todo use `assign` or even better `:=` instead of `set!`
                         "set!" => anchor(eval_set(args, context), expr),
                         "scope-update" => anchor(eval_scope_update(args, context), expr),
                         // #insight `op` seems to have range info, that `expr` lacks.

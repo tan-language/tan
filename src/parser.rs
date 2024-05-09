@@ -79,13 +79,23 @@ impl<'a> Parser<'a> {
 
         for annotation_token in buffered_annotations {
             let input = annotation_token.lexeme();
+
+            let Some(first_char) = input.chars().next() else {
+                // #todo can this happen?
+                // #todo emit warning/error?
+                continue;
+            };
+
+            // #todo a bit hackish way to detect a type expression.
+            let is_type_expression = first_char.is_uppercase() || first_char == '(';
+
             let mut lexer = Lexer::new(&input);
 
             let Ok(tokens) = lexer.lex() else {
                 let mut error = Error::new(ErrorVariant::MalformedAnnotation);
                 error.push_note(
                     &format!(
-                        "Lexical error in annotation `{}`",
+                        "lexical error in annotation `{}`",
                         annotation_token.lexeme()
                     ),
                     Some(annotation_token.range()),
@@ -102,7 +112,7 @@ impl<'a> Parser<'a> {
             if let Err(mut errors) = ann_expr {
                 let mut error = Error::new(ErrorVariant::MalformedAnnotation);
                 error.push_note(
-                    &format!("Parse error in annotation `{}`", annotation_token.lexeme()),
+                    &format!("parse error in annotation `{}`", annotation_token.lexeme()),
                     Some(annotation_token.range()),
                 );
                 self.errors.push(error);
@@ -112,6 +122,7 @@ impl<'a> Parser<'a> {
                 return expr;
             }
 
+            // #todo what is this?
             // #todo temp, support multiple expressions in annotation?
             let ann_expr = ann_expr.unwrap().swap_remove(0);
 
@@ -119,12 +130,17 @@ impl<'a> Parser<'a> {
 
             match &ann_expr {
                 Expr::Type(..) => {
-                    // #todo introduce another shortcut for types, e.b. #:String, #:(Array Int), :=String,
+                    // #insight
                     // Type shorthand: If the annotation starts with uppercase
-                    // letter, it's considered type annotations.
+                    // letter, it's considered a type annotation.
+                    // #insight
+                    // Don't use `:=` for type declarations, it's the assignment operator.
                     expr = annotate(expr, "type", ann_expr.clone());
                 }
                 Expr::Symbol(sym) => {
+                    // #insight
+                    // Type shorthand: If the annotation consists of a single
+                    // symbol, it's considered a boolean annotation.
                     if sym.is_empty() {
                         let mut error = Error::new(ErrorVariant::MalformedAnnotation);
                         error.push_note(
@@ -139,53 +155,63 @@ impl<'a> Parser<'a> {
                         return expr;
                     }
 
-                    // // #todo introduce another shortcut for types, e.b. #:String, #:(Array Int), :=String,
-                    // if sym.chars().next().unwrap().is_uppercase() {
-                    //     // Type shorthand: If the annotation starts with uppercase
-                    //     // letter, it's considered type annotations.
-                    //     // #insight convert the symbol to a string.
-                    //     let Some(typ) = ann_expr.as_stringable() else {
-                    //         let mut error = Error::new(ErrorVariant::MalformedAnnotation);
-                    //         error.push_note(
-                    //             &format!("invalid type annotation`{}`", annotation_token.lexeme()),
-                    //             Some(annotation_token.range()),
-                    //         );
-                    //         self.errors.push(error);
-
-                    //         // ignore buffered annotations, continue to find more errors.
-                    //         return expr;
-                    //     };
-                    //     expr = annotate(expr, "type", Expr::string(typ));
-                    // } else {
-                    // Bool=true shorthand: If the annotation starts with lowercase
-                    // letter, it's considered a boolean flag.
                     expr = annotate(expr, sym.clone(), Expr::Bool(true));
-                    // }
                 }
                 Expr::List(list) => {
+                    // #todo problem {...} is still (Map ...) at this point!
+                    // #insight a 'List' annotation always represents a type!
+                    // #todo validate that the list is a correct type expression.
                     // #todo also handle parameterized types.
                     // #todo support more than symbols, e.g. KeySymbols or Strings.
-                    if let Some(Expr::Symbol(sym)) = list.first().map(|x| x.unpack()) {
-                        expr = annotate(expr, sym.clone(), ann_expr.clone());
-                    } else {
-                        let mut error = Error::new(ErrorVariant::MalformedAnnotation);
-                        error.push_note(
-                            &format!(
-                                "First term must be a symbol `{}`",
-                                annotation_token.lexeme()
-                            ),
-                            Some(annotation_token.range()),
-                        );
-                        self.errors.push(error);
-                        // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
+
+                    let Some(..) = list.first() else {
+                        // #inside empty annotation is considered as type annotation to the unit type?
+                        // #todo it makes no sense, the annotation should just be ignored.
+                        // #todo throw a warning?
+                        expr = annotate(expr, "type", Expr::Nil);
                         return expr;
+                    };
+
+                    if is_type_expression {
+                        // #todo #IMPORTANT verify that the type expression is valid
+                        // #todo investigate if some part of the annotation is missing from ann_expr!
+                        expr = annotate(expr, "type", ann_expr.clone());
+                    } else {
+                        // #todo convert to multiple annotations
+                        // #todo iterate the map
+                        // #todo #IMPORTANT implement me! this is placeholder.
+                        let Some(ann_list) = ann_expr.as_list() else {
+                            // #todo report error!
+                            eprintln!("ERROR in annotation ERROR");
+                            return expr;
+                        };
+                        let mut i = 1;
+                        while i < ann_list.len() {
+                            // #todo add error checking here!
+                            let Some(k) = ann_list[i].as_stringable() else {
+                                let mut error = Error::new(ErrorVariant::MalformedAnnotation);
+                                error.push_note(
+                                    &format!(
+                                        "the annotation key should be a stringable `{}`",
+                                        annotation_token.lexeme()
+                                    ),
+                                    Some(annotation_token.range()),
+                                );
+                                self.errors.push(error);
+                                // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
+                                return expr;
+                            };
+                            let v = ann_list[i + 1].clone();
+                            expr = annotate(expr, k, v);
+                            i += 2;
+                        }
                     }
                 }
                 _ => {
                     let mut error = Error::new(ErrorVariant::MalformedAnnotation);
                     error.push_note(
                         &format!(
-                            "An annotation should be either a symbol or a list `{}`",
+                            "an annotation should be either a symbol or a list `{}`",
                             annotation_token.lexeme()
                         ),
                         Some(annotation_token.range()),
