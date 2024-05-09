@@ -180,32 +180,20 @@ impl<'a> Parser<'a> {
                         // #todo convert to multiple annotations
                         // #todo iterate the map
                         // #todo #IMPORTANT implement me! this is placeholder.
-                        expr = annotate(expr, "todo", ann_expr.clone());
+                        let Some(ann_list) = ann_expr.as_list() else {
+                            // #todo report error!
+                            eprintln!("ERROR in annotation ERROR");
+                            return expr;
+                        };
+                        let mut i = 1;
+                        while i < ann_list.len() {
+                            // #todo add error checking here!
+                            let k = ann_list[i].as_stringable().unwrap();
+                            let v = ann_list[i + 1].clone();
+                            expr = annotate(expr, k, v);
+                            i += 2;
+                        }
                     }
-
-                    // let Some(typ) = head.as_type() else {
-                    //     let mut error = Error::new(ErrorVariant::MalformedAnnotation);
-                    //     error.push_note(
-                    //         &format!(
-                    //             "list-style annotation should assign a type `{:?}` at `{}`",
-                    //             head.unpack(),
-                    //             annotation_token.lexeme(),
-                    //         ),
-                    //         Some(annotation_token.range()),
-                    //     );
-                    //     self.errors.push(error);
-                    //     // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
-                    //     return expr;
-                    // };
-
-                    // if typ == "Map" {
-                    //     // #todo differentiate between map-style annotation and map type-expression.
-                    //     // #insight just checking if the list is a type-expression can disambiguate.
-
-                    //     // #todo #IMPORTANT for the moment these annotation are ignored!!!
-                    //     // #todo convert the list to multiple annotations!
-                    //     return expr;
-                    // }
                 }
                 _ => {
                     let mut error = Error::new(ErrorVariant::MalformedAnnotation);

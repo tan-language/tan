@@ -191,31 +191,40 @@ fn parse_reports_unterminated_lists() {
 #[test]
 fn parse_handles_annotations() {
     let input = r#"
-    (let a #zonk #U8 1 b #{:inline true} 3)
+    (let a #zonk #U8 1 b #{:inline true :other 1} 3)
     "#;
     let tokens = lex_tokens(input);
     let mut parser = Parser::new(&tokens);
 
     let expr = parser.parse().unwrap();
 
-    let xs = &expr[0].as_list().unwrap();
+    let xs = expr[0].as_list().unwrap();
     let x = &xs[2];
     let ann = x.annotations().unwrap();
     assert_matches!(ann.get("type").unwrap(), Expr::Type(t) if t == "U8");
     assert_matches!(ann.get("zonk").unwrap(), Expr::Bool(b) if *b);
+
+    let x = &xs[4];
+    let ann = x.annotations().unwrap();
+    assert_matches!(ann.get("inline").unwrap().unpack(), Expr::Bool(b) if *b);
+    assert_matches!(ann.get("other").unwrap().unpack(), Expr::Int(n) if *n == 1);
 }
 
 #[test]
 fn parse_handles_more_complex_annotations() {
     let input = r#"
-    #(Func [Int Int] Int)
-    (let a 1)
+    (let a #(Func [Int Int] Int) (Func [x y] (+ x y)))
     "#;
     let tokens = lex_tokens(input);
     let mut parser = Parser::new(&tokens);
 
     let expr = parser.parse().unwrap();
-    dbg!(&expr);
+    // dbg!(expr);
+    let xs = expr[0].as_list().unwrap();
+    let x = &xs[2];
+    let ann = x.annotations().unwrap();
+    dbg!(&ann);
+    // #todo fix! not correct values!
 }
 
 #[test]
