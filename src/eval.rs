@@ -816,7 +816,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         // #todo add range info to expr (no unpack) and use it instead!!!
                         "use" => anchor(eval_use(args, context), expr),
                         "let-ds" => anchor(eval_let_ds(args, context), expr),
-                        "let" => anchor(eval_let(args, context), expr),
+                        "let" => anchor(eval_let(&head, args, context), expr),
                         "and" => {
                             // #insight `and` _is_ short-circuiting and cannot be implemented with a function
                             // #todo what about binary and?

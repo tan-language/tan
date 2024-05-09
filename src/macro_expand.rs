@@ -30,6 +30,8 @@ use crate::{
 
 // #todo maybe separate macro_def from macro_expand?
 
+// #todo #think this prematurely strips list annotations.
+
 /// Expands macro invocations, at compile time.
 pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, Error> {
     match expr.unpack() {
@@ -125,6 +127,7 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                     }
                 }
                 Expr::Symbol(sym) => {
+                    // #insight let-ds is not relevant for static-time macro expansion.
                     // #todo oof the checks here happen also in resolver and eval, fix!
                     // #todo actually we should use `def` for this purpose, instead of `let`.
                     if sym == "let" {
@@ -133,7 +136,9 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                         // #todo should be def, no loop. <-- IMPORTANT!!
                         // #todo make more similar to the corresponding eval code.
 
-                        let mut result_exprs = vec![Expr::Symbol("let".to_owned())];
+                        // #insight this was stripping the annotations from let!
+                        // let mut result_exprs = vec![Expr::Symbol("let".to_owned())];
+                        let mut result_exprs = vec![op.clone()];
 
                         loop {
                             let Some(binding_sym) = args.next() else {
@@ -190,7 +195,11 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                             }
                         }
 
-                        Ok(Some(Expr::List(result_exprs)))
+                        // #todo #WARNING annotations are stripped here!
+                        Ok(Some(Expr::maybe_annotated(
+                            Expr::List(result_exprs),
+                            expr.annotations(),
+                        )))
                     } else if sym == "quot" {
                         let [value] = tail else {
                             return Err(Error::invalid_arguments(

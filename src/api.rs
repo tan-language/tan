@@ -144,6 +144,8 @@ pub fn resolve_string(
         // #todo pass a dummy scope here? no need to polute the dyn-time environment with macro stuff.
         let expr = macro_expand(expr, context);
 
+        // #todo bug, macro_expand strips let annotation!
+
         // #todo temp hack until macro_expand returns multiple errors.
         let Ok(expr) = expr else {
             return Err(vec![expr.unwrap_err()]);

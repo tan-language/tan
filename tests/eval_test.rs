@@ -702,6 +702,23 @@ fn eval_should_support_literal_annotations() {
 }
 
 #[test]
+fn eval_should_support_non_literal_annotations() {
+    let result = eval_input(
+        r#"
+        #{:inline true}
+        (let add (Func [x y] (+ x y)))
+        (ann add)
+        "#,
+    );
+    let value = result.unwrap();
+    println!("..... {}", format_value(value));
+    // let value = value.as_map().unwrap();
+    // let value = value.borrow();
+    // assert!(value.contains_key("type"));
+    // assert_eq!(format_value(&value["type"]), "(Func [Int Int] Int)");
+}
+
+#[test]
 fn eval_should_support_type_constructor_definitions() {
     let result = eval_file("type-constructor.tan");
     assert!(result.is_ok());
