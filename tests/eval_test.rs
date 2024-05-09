@@ -693,6 +693,9 @@ fn eval_should_support_for_map() {
 
 #[test]
 fn eval_should_support_literal_annotations() {
+    // #todo make this pass:
+    // let result = eval_input("(let #Amount a 1)(ann a)");
+
     let result = eval_input("(let a #Amount 1)(ann a)");
     let value = result.unwrap();
     let value = value.as_map().unwrap();

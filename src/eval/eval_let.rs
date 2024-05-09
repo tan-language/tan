@@ -13,8 +13,6 @@ pub fn eval_let(op: &Expr, args: &[Expr], context: &mut Context) -> Result<Expr,
 
     // #insight 'pass-through' let annotations, only for ...def.
 
-    // println!("@@@@@@@@@@---->> {op} {:?}", op.annotations());
-
     let mut args = args.iter();
 
     loop {
