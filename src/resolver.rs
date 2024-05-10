@@ -41,7 +41,7 @@ pub fn compute_dyn_signature(args: &[Expr], context: &Context) -> String {
 }
 
 // -----------------------------------------------------------------------------
-// #WARN the resolver is temporarily disabled.
+// #WARNING the resolver is temporarily disabled.
 
 // #todo explain what the Resolver is doing.
 /// The resolver performs the following functions:

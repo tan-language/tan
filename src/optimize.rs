@@ -33,17 +33,6 @@ pub fn optimize_fn(expr: Expr) -> Expr {
                             map.insert(format_value(k), v);
                         }
                         return Expr::maybe_annotated(Expr::map(map), expr.annotations());
-                        // } else if s == "let" {
-                        //     // #think don't strip let annotations.
-                        //     // #todo think about this, maybe we should use (with-ann ...) for dyn-time annotations?
-                        //     // #experimental, keep the annotations.
-                        //     // #todo custom Expr::Let?
-                        //     println!(
-                        //         "~~~~ {} : {:?} ",
-                        //         format_value(&expr),
-                        //         expr.annotation("type")
-                        //     );
-                        //     return expr;
                     }
                 }
             }
