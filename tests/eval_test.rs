@@ -693,12 +693,38 @@ fn eval_should_support_for_map() {
 
 #[test]
 fn eval_should_support_literal_annotations() {
+    // #todo make this pass:
+    // let result = eval_input("(let #Amount a 1)(ann a)");
+
     let result = eval_input("(let a #Amount 1)(ann a)");
     let value = result.unwrap();
     let value = value.as_map().unwrap();
     let value = value.borrow();
     assert!(value.contains_key("type"));
     assert_eq!(format_value(&value["type"]), "Amount");
+}
+
+#[test]
+fn eval_should_support_non_literal_annotations() {
+    let result = eval_input(
+        r#"
+        #{:inline true}
+        (let add (Func [x y] (+ x y)))
+        ((ann add) :inline)
+        "#,
+    );
+    let value = result.unwrap();
+    assert_eq!(format_value(&value), "true");
+
+    let result = eval_input(
+        r#"
+        #(Func (Array Int Int) Int)
+        (let add (Func [x y] (+ x y)))
+        ((ann add) :type)
+        "#,
+    );
+    let value = result.unwrap();
+    assert_eq!(format_value(&value), "(Func (Array Int Int) Int)");
 }
 
 #[test]

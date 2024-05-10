@@ -468,8 +468,19 @@ impl Expr {
     // #todo handle case where expr already has annotations.
     pub fn maybe_annotated(expr: Expr, annotations: Option<&HashMap<String, Expr>>) -> Self {
         if let Some(annotations) = annotations {
-            // #todo do something about this clone!!
-            Expr::Annotated(Box::new(expr), annotations.clone())
+            // #insight don't override existing annotations.
+            let mut expr = expr;
+            if let Some(current_annotations) = expr.annotations_mut() {
+                for (k, v) in annotations {
+                    if !current_annotations.contains_key(k) {
+                        current_annotations.insert(k.clone(), v.clone());
+                    }
+                }
+                expr
+            } else {
+                // #todo do something about this clone!!
+                Expr::Annotated(Box::new(expr), annotations.clone())
+            }
         } else {
             expr
         }
@@ -478,6 +489,13 @@ impl Expr {
 
 impl Expr {
     pub fn annotations(&self) -> Option<&HashMap<String, Expr>> {
+        match self {
+            Expr::Annotated(_, ann) => Some(ann),
+            _ => None,
+        }
+    }
+
+    pub fn annotations_mut(&mut self) -> Option<&mut HashMap<String, Expr>> {
         match self {
             Expr::Annotated(_, ann) => Some(ann),
             _ => None,
@@ -788,7 +806,7 @@ impl Expr {
             // #todo add more here!
             // #todo the wildcard is very error-prone, cover all cases!
             _ => {
-                // eprintln!("---> {self:?}");
+                eprintln!("WARNING dyn-type unknown ---> {self:?}");
                 Expr::typ("Unknown")
             }
         }
