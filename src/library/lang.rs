@@ -295,7 +295,7 @@ pub fn link_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<Expr
         foreign_dyn_lib_map
             .lock()
             .expect("poisoned lock")
-            .insert(dyn_lib_path.into(), library);
+            .insert(dyn_lib_path, library);
     }
 
     Ok(Expr::Nil)

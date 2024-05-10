@@ -233,7 +233,7 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
 
                     Ok(Some(annotate_range(
                         Expr::List(terms),
-                        // #todo hmmmm this unwrap!!!
+                        // #todo remove this unwrap!!!
                         expr.range().unwrap(),
                     )))
                 }
