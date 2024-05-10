@@ -5,7 +5,7 @@ use rust_decimal::prelude::*;
 
 use crate::{
     error::{Error, ErrorVariant},
-    expr::{annotate, annotate_range, Expr},
+    expr::{annotate, annotate_range, format_value, Expr},
     lexer::{
         token::{Token, TokenKind},
         Lexer,
@@ -175,14 +175,16 @@ impl<'a> Parser<'a> {
                     if is_type_expression {
                         // #todo #IMPORTANT verify that the type expression is valid
                         // #todo investigate if some part of the annotation is missing from ann_expr!
-                        expr = annotate(expr, "type", ann_expr.clone());
+                        expr = annotate(expr, "type", Expr::Type(format_value(ann_expr)));
                     } else {
-                        // #todo convert to multiple annotations
-                        // #todo iterate the map
-                        // #todo #IMPORTANT implement me! this is placeholder.
                         let Some(ann_list) = ann_expr.as_list() else {
-                            // #todo report error!
-                            eprintln!("ERROR in annotation ERROR");
+                            let mut error = Error::new(ErrorVariant::MalformedAnnotation);
+                            error.push_note(
+                                &format!("cannot parse `{}`", annotation_token.lexeme()),
+                                Some(annotation_token.range()),
+                            );
+                            self.errors.push(error);
+                            // Ignore the buffered annotations, and continue parsing to find more syntactic errors.
                             return expr;
                         };
                         let mut i = 1;
