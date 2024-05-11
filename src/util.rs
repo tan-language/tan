@@ -53,6 +53,7 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
             | "let-ds"
             | "assign"
             | "<-"
+            | "+<-"
             | "if"
             | "cond"
             | "return"
