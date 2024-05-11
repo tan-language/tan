@@ -4,9 +4,9 @@ use crate::{
     context::Context,
     error::Error,
     eval::eval,
-    expr::{annotate_range, Expr},
+    expr::{annotate_range, expr_clone, Expr},
     scope::Scope,
-    util::is_reserved_symbol,
+    util::{args::unpack_arg, is_reserved_symbol},
 };
 
 // #insight it mutates the env which is used in eval also!
@@ -41,6 +41,7 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
 
             // Evaluate the head
             let Ok(op) = eval(head, context) else {
+                // #todo what exactly is happening here?
                 // Don't err if we cannot eval the head.
                 return Ok(Some(expr));
             };
@@ -214,6 +215,37 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                             Expr::Symbol("quot".to_owned()),
                             value.unpack().clone(),
                         ])))
+                    } else if sym == "+<-" {
+                        // Expand some assignment operators
+                        // #todo consider `assign-add` or `+assign` instead.
+                        // #todo assign+, assign-, assign*, assign/
+                        // #todo extract as helper for all assignment operators.
+                        // #todo think about this.
+                        // #todo maybe use "+=" as the operator?
+                        // #todo what is a better name than `accum`? `target`?
+                        let accum = unpack_arg(tail, 0, "accum")?;
+                        let value = unpack_arg(tail, 1, "value")?;
+
+                        // (+<- accum value) -> (<- accum (+ accum value))
+
+                        // #todo make sure we clone the correct ranges of the symbols.
+
+                        // #todo how can we remove clones?
+
+                        let expanded_expr = Expr::List(vec![
+                            Expr::symbol("<-"),
+                            accum.clone(),
+                            Expr::List(vec![
+                                Expr::symbol("+"),
+                                expr_clone(accum),
+                                expr_clone(value),
+                            ]),
+                        ]);
+
+                        Ok(Some(expanded_expr))
+
+                        // #todo
+                        // Add more assignment operators: `-<-`, `*<-`, `\<-`, `map<-`, etc
                     } else {
                         // Other kind of list with symbol head, macro-expand tail.
 
