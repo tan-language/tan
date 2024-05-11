@@ -1,6 +1,7 @@
 // #todo move these external eval functions into library, e.g. library/lang?
 
 mod eval_assertions;
+mod eval_assign;
 mod eval_cond;
 mod eval_do;
 mod eval_for;
@@ -11,7 +12,6 @@ mod eval_let;
 mod eval_let_ds;
 mod eval_panic;
 mod eval_scope_update;
-mod eval_set;
 mod eval_use;
 mod eval_while;
 pub mod iterator;
@@ -31,6 +31,7 @@ use crate::{
 
 use self::{
     eval_assertions::{eval_assert, eval_assert_eq},
+    eval_assign::eval_assign,
     eval_cond::eval_cond,
     eval_do::eval_do,
     eval_for::eval_for,
@@ -41,7 +42,6 @@ use self::{
     eval_let_ds::eval_let_ds,
     eval_panic::eval_panic,
     eval_scope_update::eval_scope_update,
-    eval_set::eval_set,
     eval_use::eval_use,
     eval_while::eval_while,
     util::{anchor, get_current_file_path},
@@ -809,8 +809,10 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         "assert-eq" => anchor(eval_assert_eq(op, args, context), expr),
                         // #todo for-each or overload for?
                         "for-each" => anchor(eval_for_each(args, context), expr),
-                        // #todo use `assign` or even better `:=` instead of `set!`
-                        "set!" => anchor(eval_set(args, context), expr),
+                        "assign" => anchor(eval_assign(args, context), expr),
+                        // #insight operator alias for assign
+                        "<-" => anchor(eval_assign(args, context), expr),
+                        // #todo, investigate, find a better name.
                         "scope-update" => anchor(eval_scope_update(args, context), expr),
                         // #insight `op` seems to have range info, that `expr` lacks.
                         // #todo add range info to expr (no unpack) and use it instead!!!

@@ -4,7 +4,9 @@
         (if (= x 5)
             (continue)
         )
-        (set! sum (+ sum x))
+        ; #todo introduce (incr x sum)
+        ; #insight alternative to (assign sum (+ sum x))
+        (<- sum (+ sum x))
     )
     sum
 ))

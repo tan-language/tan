@@ -4,7 +4,8 @@
         (if (= x 5)
             (break)
         )
-        (set! sum (+ sum x))
+        ; #insight could also use the `<-` operator?
+        (assign sum (+ sum x))
     )
     sum
 ))

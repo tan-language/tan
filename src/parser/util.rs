@@ -174,6 +174,11 @@ pub fn recognize_range(range_str: &str) -> Option<Expr> {
 /// A `KeySymbol` always evaluates to itself.
 #[inline(always)]
 pub fn is_key_symbol(lexeme: &str) -> bool {
+    // #todo the `:=` is not used yet, `<-` is provided instead.
+    // // The `:=` operator is a special case.
+    // if lexeme == ":=" {
+    //     return false;
+    // }
     lexeme.contains(':')
 }
 
