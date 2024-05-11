@@ -10,6 +10,19 @@ use crate::{error::Error, expr::Expr};
 // #todo convert those to macros.
 // #todo think about proper name for these functions.
 
+// #todo reduce this in the other functions here.
+pub fn unpack_arg<'a>(args: &'a [Expr], index: usize, name: &str) -> Result<&'a Expr, Error> {
+    let Some(expr) = args.get(index) else {
+        // #todo introduce 'missing argument' error variant.
+        return Err(Error::invalid_arguments(
+            &format!("missing required argument `{name}` at index ${index}"),
+            None,
+        ));
+    };
+
+    Ok(expr.unpack())
+}
+
 pub fn unpack_int_arg(args: &[Expr], index: usize, name: &str) -> Result<i64, Error> {
     let Some(expr) = args.get(index) else {
         // #todo introduce 'missing argument' error variant.
