@@ -4,7 +4,7 @@ use crate::{
     context::Context,
     error::Error,
     eval::eval,
-    expr::{annotate_range, expr_clone, format_value, Expr},
+    expr::{annotate_range, expr_clone, Expr},
     scope::Scope,
     util::{args::unpack_arg, is_reserved_symbol},
 };
@@ -226,6 +226,8 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
 
                         // (+<- accum value) -> (<- accum (+ accum value))
 
+                        // #todo make sure we clone the correct ranges of the symbols.
+
                         // #todo how can we remove clones?
 
                         let expanded_expr = Expr::List(vec![
@@ -239,6 +241,9 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                         ]);
 
                         Ok(Some(expanded_expr))
+
+                        // #todo
+                        // Add more assignment operators: `-<-`, `*<-`, `\<-`, `map<-`, etc
                     } else {
                         // Other kind of list with symbol head, macro-expand tail.
 
