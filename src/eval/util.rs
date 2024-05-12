@@ -5,7 +5,7 @@ use std::{
 };
 
 use crate::{
-    api::{has_tan_extension, has_tan_extension_strict, resolve_string, strip_tan_extension},
+    api::{compile_string, has_tan_extension, has_tan_extension_strict, strip_tan_extension},
     context::Context,
     error::Error,
     expr::Expr,
@@ -223,7 +223,7 @@ pub fn eval_file(path: &str, context: &mut Context) -> Result<Expr, Vec<Error>> 
         return Err(vec![input.unwrap_err().into()]);
     };
 
-    let result = resolve_string(input, context);
+    let result = compile_string(input, context);
 
     let Ok(exprs) = result else {
         let mut errors = result.unwrap_err();

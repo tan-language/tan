@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    api::resolve_string,
+    api::compile_string,
     context::Context,
     error::Error,
     expr::{format_value, Expr},
@@ -26,9 +26,9 @@ pub fn read_string(args: &[Expr], context: &mut Context) -> Result<Expr, Error> 
 
         // #todo think carefully which eval function to use.
         // let result = eval_string(input, &mut context);
-        let result = resolve_string(input_str, context);
+        let result = compile_string(input_str, context);
 
-        // #todo have a version of read_string tht returns ALL expressions?
+        // #todo have a version of read_string that returns ALL expressions?
         // #todo should return Expr::List(exprs) or a do block?
         if let Ok(exprs) = result {
             // #todo temp fix
@@ -65,7 +65,7 @@ pub fn read_string_all(args: &[Expr], context: &mut Context) -> Result<Expr, Err
 
         // #todo think carefully which eval function to use.
         // let result = eval_string(input, &mut context);
-        let result = resolve_string(input_str, context);
+        let result = compile_string(input_str, context);
 
         // #todo have a version of read_string tht returns ALL expressions?
         // #todo should return Expr::List(exprs) or a do block?

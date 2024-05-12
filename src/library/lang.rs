@@ -7,7 +7,7 @@ use std::{
 use libloading::Library;
 
 use crate::{
-    api::resolve_string,
+    api::compile_string,
     context::Context,
     error::Error,
     eval::{
@@ -200,7 +200,7 @@ pub fn eval_string(args: &[Expr], context: &mut Context) -> Result<Expr, Error> 
 
         // #todo think carefully which eval function to use.
         // let result = eval_string(input, &mut context);
-        let result = resolve_string(input_str, context);
+        let result = compile_string(input_str, context);
 
         if let Ok(exprs) = result {
             // #todo what would be the correct initialization?

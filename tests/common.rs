@@ -5,7 +5,7 @@
 // #todo consider moving these functions to api.rs
 
 use tan::{
-    api::{eval_string, lex_string, parse_string, resolve_string},
+    api::{compile_string, eval_string, lex_string, parse_string},
     context::Context,
     error::Error,
     expr::Expr,
@@ -29,7 +29,7 @@ pub fn parse_file(filename: &str) -> Result<Expr, Vec<Error>> {
 pub fn resolve_file(filename: &str) -> Result<Vec<Expr>, Vec<Error>> {
     let input = &read_file(filename);
     let mut context = Context::new();
-    resolve_string(input, &mut context)
+    compile_string(input, &mut context)
 }
 
 pub fn eval_file(filename: &str) -> Result<Expr, Vec<Error>> {

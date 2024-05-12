@@ -148,10 +148,10 @@ pub fn compile(expr: Expr, context: &mut Context) -> Result<Expr, Vec<Error>> {
 
 // #todo should it really update the context?
 // #todo should refactor
-// #todo what is a good name? maybe `prepare_string`? or even `compile_string`
-/// Reads a Tan expression encoded as a text string, and prepares it for execution.
+// #todo what is a good name? maybe `prepare_string`?
+/// Reads a Tan expression encoded as a text string, and 'compiles' it for evaluation.
 /// Updates the context with definitions.
-pub fn resolve_string(
+pub fn compile_string(
     input: impl AsRef<str>,
     context: &mut Context,
 ) -> Result<Vec<Expr>, Vec<Error>> {
@@ -174,24 +174,24 @@ pub fn resolve_string(
     //     }
     // }
 
-    let mut resolved_exprs = Vec::new();
+    let mut compiled_exprs = Vec::new();
 
     for expr in exprs {
         // #todo should return option.
         let expr = compile(expr, context)?;
         if !expr.is_none() {
-            resolved_exprs.push(expr);
+            compiled_exprs.push(expr);
         }
     }
 
-    Ok(resolved_exprs)
+    Ok(compiled_exprs)
 }
 
 // #todo a version where no context is passed, call it `exec_string` or `run_string`?
 // #todo this implements in essence a do block. Maybe no value should be returned?
 /// Evaluates a Tan expression encoded as a text string.
 pub fn eval_string(input: impl AsRef<str>, context: &mut Context) -> Result<Expr, Vec<Error>> {
-    let exprs = resolve_string(input, context)?;
+    let exprs = compile_string(input, context)?;
 
     let mut last_value = Expr::Nil;
 
