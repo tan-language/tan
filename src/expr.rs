@@ -103,13 +103,15 @@ pub enum Expr {
     // #insight In the Curry–Howard correspondence, an empty type corresponds to falsity.
     // #insight the Bottom type is the dual to the Top type (Any)
     Never,
-    // #todo consider renaming Nil to None? (more like Python, less like Lisp)
-    // `Nil` is the Unit type (One). It's a type with a single instance, and thus carries no information.
-    // The single instance of `Nil` is `()` (nil).
+    // `None` is the Unit type (One). It's a type with a single instance, and thus carries no information.
+    // The single instance of `None` is `()` (none).
+    // #insight Python also uses the term `None`.
     // #insight `()` is used to avoid reserving `nil`.
     // #insight Nil/Unit/One is the 'one' in algebraic sense (x+1 != 0, x*1 = x)
     // #insight Unit == One, and it _is_ 'one' in the algebraic sense
-    Nil,
+    // #insight None = (N)one
+    // #insight preferred None over nil to play well with Maybe{Some,None}
+    None,
     Comment(String, CommentKind), // #todo consider renaming to Remark (REM)
     TextSeparator,                // for the formatter.
     Bool(bool),                   // #todo remove?
@@ -274,7 +276,7 @@ impl fmt::Debug for Expr {
         let text = match self {
             Expr::Never => "⊥".to_owned(), // #todo maybe use an ASCII representation, e.g. `!` or `!!`
             // #insight `Nil`` is more readable than `()` in the debug context.
-            Expr::Nil => "Nil".to_owned(),
+            Expr::None => "Nil".to_owned(),
             Expr::Comment(s, _) => format!("Comment({s})"),
             Expr::TextSeparator => "<TEXT-SEPARATOR>".to_owned(),
             Expr::Bool(b) => format!("Bool({b})"),
@@ -330,7 +332,7 @@ impl fmt::Display for Expr {
         f.write_str(
             (match self {
                 Expr::Never => "⊥".to_owned(),
-                Expr::Nil => "()".to_owned(),
+                Expr::None => "()".to_owned(),
                 Expr::Comment(s, _) => format!(r#"(rem "{s}")"#), // #todo what would be a good representation?
                 Expr::TextSeparator => "<TS>".to_owned(),
                 Expr::Bool(b) => b.to_string(),
@@ -535,7 +537,7 @@ impl Expr {
     // #todo rename to is_none
     // #todo is_one/is_unit
     pub fn is_none(&self) -> bool {
-        matches!(self.unpack(), Expr::Nil)
+        matches!(self.unpack(), Expr::None)
     }
 
     pub fn is_func(&self) -> bool {
@@ -759,7 +761,7 @@ impl Expr {
     // }
 
     pub fn static_type(&self) -> &Expr {
-        self.annotation("type").unwrap_or(&Expr::Nil)
+        self.annotation("type").unwrap_or(&Expr::None)
     }
 
     // #todo we need a version that returns just a string.
@@ -777,7 +779,7 @@ impl Expr {
 
         match self.unpack() {
             Expr::Never => Expr::typ("Zero"), // Never
-            Expr::Nil => Expr::typ("One"),    // Unit
+            Expr::None => Expr::typ("One"),   // Unit
             Expr::U8(_) => Expr::typ("U8"),
             Expr::Int(_) => Expr::typ("Int"),
             Expr::Float(_) => Expr::typ("Float"),

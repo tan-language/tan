@@ -18,7 +18,7 @@ pub fn eval_let_ds(args: &[Expr], context: &mut Context) -> Result<Expr, Error> 
     }
 
     // #todo do should be 'monadic', propagate Eff (effect) wrapper.
-    let mut value = Expr::Nil;
+    let mut value = Expr::None;
 
     let bindings = args.first().unwrap();
     let body = &args[1..];

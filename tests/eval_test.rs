@@ -85,7 +85,7 @@ fn eval_processes_empty_list() {
     let mut context = Context::new();
     let value = eval(&expr, &mut context).unwrap();
 
-    assert_matches!(value.unpack(), Expr::Nil);
+    assert_matches!(value.unpack(), Expr::None);
 }
 
 #[test]

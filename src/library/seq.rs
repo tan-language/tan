@@ -79,7 +79,7 @@ pub fn array_push(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
     elements.push(element.unpack().clone()); // #todo hmm this clone!
 
     // #todo what to return?
-    Ok(Expr::Nil)
+    Ok(Expr::None)
 }
 
 // #todo generic Seq/extend, append on arrays, prepends on linked-lists.
@@ -108,7 +108,7 @@ pub fn array_concat_mut(args: &[Expr], _context: &mut Context) -> Result<Expr, E
     array1.append(&mut array2);
 
     // #todo what to return?
-    Ok(Expr::Nil)
+    Ok(Expr::None)
 }
 
 // #todo consider the name intercalate from haskell?

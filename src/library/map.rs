@@ -74,7 +74,7 @@ pub fn map_put(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     items.insert(key.clone(), value.unpack().clone()); // #todo hmm this clone!
 
     // #todo what to return?
-    Ok(Expr::Nil)
+    Ok(Expr::None)
 }
 
 // #todo how is this related with HTTP PATCH?
@@ -115,7 +115,7 @@ pub fn map_update_mut(args: &[Expr], _context: &mut Context) -> Result<Expr, Err
 
     // #todo what to return?
     // Ok(this.clone()) // #todo this is expensive, just use Rc/Arc everywhere.
-    Ok(Expr::Nil)
+    Ok(Expr::None)
 }
 
 // #todo temp method until we have Maybe

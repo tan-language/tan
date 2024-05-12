@@ -34,5 +34,5 @@ pub fn eval_scope_update(args: &[Expr], context: &mut Context) -> Result<Expr, E
         context.scope.insert(name, expr_clone(value));
     }
 
-    Ok(Expr::Nil)
+    Ok(Expr::None)
 }

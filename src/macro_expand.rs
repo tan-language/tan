@@ -76,7 +76,7 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                     // #todo this code is the same as in the (do ..) block, extract.
 
                     // #todo do should be 'monadic', propagate Eff (effect) wrapper.
-                    let mut value = Expr::Nil;
+                    let mut value = Expr::None;
 
                     for expr in body {
                         value = eval(expr, context)?;

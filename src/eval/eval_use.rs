@@ -100,7 +100,7 @@ pub fn eval_use(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
             }
 
             // #todo again consider returning the module here.
-            return Ok(Expr::Nil);
+            return Ok(Expr::None);
         } else if let Some(prefix) = arg.as_symbol() {
             module_prefix = prefix;
         } else {
@@ -135,5 +135,5 @@ pub fn eval_use(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
 
     // #todo what could we return here? the Expr::Module?
     // Ok(Expr::Module(module))
-    Ok(Expr::Nil)
+    Ok(Expr::None)
 }

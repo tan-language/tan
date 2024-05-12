@@ -40,5 +40,5 @@ pub fn eval_for_each(args: &[Expr], context: &mut Context) -> Result<Expr, Error
     context.scope = prev_scope;
 
     // #todo intentionally don't return a value, reconsider this?
-    Ok(Expr::Nil)
+    Ok(Expr::None)
 }

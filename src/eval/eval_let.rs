@@ -31,5 +31,5 @@ pub fn eval_let(op: &Expr, args: &[Expr], context: &mut Context) -> Result<Expr,
     }
 
     // #todo return last value, it would require some cloning currently.
-    Ok(Expr::Nil)
+    Ok(Expr::None)
 }

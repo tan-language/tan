@@ -52,7 +52,7 @@ pub fn eval_assign(args: &[Expr], context: &mut Context) -> Result<Expr, Error> 
     context.scope.update(name, value.clone());
 
     // #todo what should this return? One/Unit (i.e. nothing useful) or the actual value?
-    Ok(Expr::Nil)
+    Ok(Expr::None)
 }
 
 // #todo eval_assign_add (+<- value delta)

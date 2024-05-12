@@ -51,7 +51,7 @@ pub fn ann(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     } else {
         // #todo what to return here?
         // Ok(Expr::map(HashMap::new()))
-        Ok(Expr::Nil)
+        Ok(Expr::None)
     }
 }
 
@@ -204,7 +204,7 @@ pub fn eval_string(args: &[Expr], context: &mut Context) -> Result<Expr, Error> 
 
         if let Ok(exprs) = result {
             // #todo what would be the correct initialization?
-            let mut value = Expr::Nil;
+            let mut value = Expr::None;
             for expr in exprs {
                 value = eval(&expr, context)?;
                 // if let Err(mut error) = eval(&expr, context) {
@@ -298,7 +298,7 @@ pub fn link_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<Expr
             .insert(dyn_lib_path, library);
     }
 
-    Ok(Expr::Nil)
+    Ok(Expr::None)
 }
 
 pub fn setup_lib_lang(context: &mut Context) {

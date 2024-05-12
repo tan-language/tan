@@ -17,7 +17,7 @@ pub fn eval_cond(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     loop {
         if i >= args.len() {
             // #todo what should we return here? probably Never/Zero?
-            break Ok(Expr::Nil);
+            break Ok(Expr::None);
         }
 
         let Some(predicate) = args.get(i) else {

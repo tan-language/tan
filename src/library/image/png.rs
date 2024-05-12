@@ -85,7 +85,7 @@ pub fn png_coder_write(args: &[Expr], _context: &mut Context) -> Result<Expr, Er
     let mut writer = encoder.write_header().unwrap();
     writer.write_image_data(&data).unwrap();
 
-    Ok(Expr::Nil)
+    Ok(Expr::None)
 }
 
 pub fn setup_lib_image_png(context: &mut Context) {

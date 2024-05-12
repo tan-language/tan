@@ -109,7 +109,7 @@ pub fn compile(expr: Expr, context: &mut Context) -> Result<Expr, Vec<Error>> {
     let Some(expr) = prune(expr) else {
         // The expression is pruned (elided)
         // #todo what should be returned here?
-        return Ok(Expr::Nil);
+        return Ok(Expr::None);
     };
 
     // Expand macros.
@@ -129,7 +129,7 @@ pub fn compile(expr: Expr, context: &mut Context) -> Result<Expr, Vec<Error>> {
     let Some(expr) = expr else {
         // The expression is pruned (elided)
         // #insight elision can happen also in macro_expand!
-        return Ok(Expr::Nil);
+        return Ok(Expr::None);
     };
 
     // Optimization pass
@@ -193,7 +193,7 @@ pub fn compile_string(
 pub fn eval_string(input: impl AsRef<str>, context: &mut Context) -> Result<Expr, Vec<Error>> {
     let exprs = compile_string(input, context)?;
 
-    let mut last_value = Expr::Nil;
+    let mut last_value = Expr::None;
 
     for expr in exprs {
         let value = eval(&expr, context);

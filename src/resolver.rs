@@ -214,7 +214,7 @@ impl Resolver {
                                 expr.range(),
                             ));
                             // #todo what to return here?
-                            return Expr::Nil;
+                            return Expr::None;
                         };
 
                         let Some(module_path) = term.as_string() else {
@@ -223,7 +223,7 @@ impl Resolver {
                                 expr.range(),
                             ));
                             // #todo what to return here?
-                            return Expr::Nil;
+                            return Expr::None;
                         };
 
                         // #todo make sure paths are relative to the current file.
@@ -235,14 +235,14 @@ impl Resolver {
                             // dbg!(errors);
                             self.errors.push(Error::failed_use(module_path, errors)); // #todo add note with information here!
                                                                                       // #todo what to return here?
-                            return Expr::Nil;
+                            return Expr::None;
                         };
 
                         let Ok(Expr::Module(module)) = result else {
                             // #todo could use a panic here, this should never happen.
                             self.errors.push(Error::failed_use(module_path, vec![])); // #todo add note with information!
                                                                                       // #todo what to return here?
-                            return Expr::Nil;
+                            return Expr::None;
                         };
 
                         // Import public names from module scope into the current scope.
@@ -266,7 +266,7 @@ impl Resolver {
                         }
 
                         // #todo what could we return here? the Expr::Module?
-                        Expr::Nil
+                        Expr::None
                     } else if sym == "Func" {
                         // let mut resolved_tail = Vec::new();
                         // for term in tail {

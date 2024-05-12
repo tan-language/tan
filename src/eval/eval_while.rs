@@ -19,7 +19,7 @@ pub fn eval_while(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
         return Err(Error::invalid_arguments("missing for arguments", None));
     };
 
-    let mut value = Expr::Nil;
+    let mut value = Expr::None;
 
     loop {
         let predicate = eval(predicate, context)?;

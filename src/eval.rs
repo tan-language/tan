@@ -352,7 +352,7 @@ pub fn invoke_func(func: &Expr, args: Vec<Expr>, context: &mut Context) -> Resul
     // #todo this code is the same as in the (do ..) block, extract.
 
     // #todo do should be 'monadic', propagate Eff (effect) wrapper.
-    let mut value = Expr::Nil;
+    let mut value = Expr::None;
 
     for expr in body {
         // #todo what happens on `return` statement! should exit this loop and not evaluate the rest!
@@ -478,7 +478,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                 eval(false_clause, context)
             } else {
                 // #todo what should we return if there is no false-clause? Zero/Never?
-                Ok(Expr::Nil)
+                Ok(Expr::None)
             }
         }
         Expr::List(list) => {
@@ -491,7 +491,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                 // check is needed in the evaluator to handle the case where the
                 // expression is constructed programmatically (e.g. self-modifying code,
                 // dynamically constructed expression, homoiconicity, etc).
-                return Ok(Expr::Nil);
+                return Ok(Expr::None);
             }
 
             // The unwrap here is safe.
@@ -608,7 +608,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         Ok(value.clone())
                     } else {
                         // #todo introduce Maybe { Some, None }
-                        Ok(Expr::Nil)
+                        Ok(Expr::None)
                     }
                 }
                 Expr::Map(map) => {
@@ -627,7 +627,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         Ok(value.clone())
                     } else {
                         // #todo introduce Maybe { Some, None }
-                        Ok(Expr::Nil)
+                        Ok(Expr::None)
                     }
                 }
                 // #todo move all 'type-constructors' to external files.
@@ -758,7 +758,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             eval(&expr, context)
                         }
                         "return" => {
-                            let value = args.first().unwrap_or(&Expr::Nil);
+                            let value = args.first().unwrap_or(&Expr::None);
                             let value = eval(value, context)?;
                             Err(Error::return_cf(value))
                         }
@@ -771,7 +771,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         // #todo consider break without parentheses?
                         // #todo maybe should return some kind of Nothing/Never/Zero value?
                         "break" => {
-                            let value = args.first().unwrap_or(&Expr::Nil);
+                            let value = args.first().unwrap_or(&Expr::None);
                             let value = eval(value, context)?;
                             Err(Error::break_cf(value))
                         }

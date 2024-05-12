@@ -70,7 +70,7 @@ pub fn file_write_string(args: &[Expr], _context: &mut Context) -> Result<Expr, 
 
     file.write_all(string.as_bytes())?;
 
-    Ok(Expr::Nil)
+    Ok(Expr::None)
 }
 
 /// Reads the contents of a text file as a string.
@@ -132,7 +132,7 @@ pub fn write_string_to_file(args: &[Expr], _context: &mut Context) -> Result<Exp
 
     fs::write(path, content)?;
 
-    Ok(Expr::Nil)
+    Ok(Expr::None)
 }
 
 // #todo use walkdir crate instead!
@@ -372,7 +372,7 @@ pub fn fs_copy_directory(args: &[Expr], _context: &mut Context) -> Result<Expr, 
     copy_dir(source, target)?;
 
     // #todo what is a good return value?
-    Ok(Expr::Nil)
+    Ok(Expr::None)
 }
 
 // #todo consider `make-directory`? (make in process, create in system)
@@ -396,7 +396,7 @@ pub fn create_directory(args: &[Expr], _context: &mut Context) -> Result<Expr, E
     fs::create_dir_all(path)?;
 
     // #todo what to return?
-    Ok(Expr::Nil)
+    Ok(Expr::None)
 }
 
 // #todo add some kind of unit test for this.

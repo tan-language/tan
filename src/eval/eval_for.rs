@@ -103,5 +103,5 @@ pub fn eval_for(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     // #todo what happens to this if an error is thrown?
     context.scope = prev_scope;
 
-    Ok(Expr::Nil)
+    Ok(Expr::None)
 }

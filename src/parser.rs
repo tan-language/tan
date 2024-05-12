@@ -168,7 +168,7 @@ impl<'a> Parser<'a> {
                         // #inside empty annotation is considered as type annotation to the unit type?
                         // #todo it makes no sense, the annotation should just be ignored.
                         // #todo throw a warning?
-                        expr = annotate(expr, "type", Expr::Nil);
+                        expr = annotate(expr, "type", Expr::None);
                         return expr;
                     };
 
@@ -455,7 +455,7 @@ impl<'a> Parser<'a> {
                     // #insight this was causing a problem with Func with no params.
                     // #todo maybe as_list should return empty list?
                     // `()` == One/Unit   (unit is _not_ Top)
-                    Some(Expr::Nil)
+                    Some(Expr::None)
                 } else {
                     Some(Expr::List(terms))
 

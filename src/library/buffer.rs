@@ -86,7 +86,7 @@ pub fn buffer_put(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
     buffer[i] = value;
 
     // #todo what should we return?
-    Ok(Expr::Nil)
+    Ok(Expr::None)
 }
 
 pub fn setup_lib_buffer(context: &mut Context) {

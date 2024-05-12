@@ -6,7 +6,7 @@ use super::eval;
 
 pub fn eval_do(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     // #todo do should be 'monadic', propagate Eff (effect) wrapper.
-    let mut value = Expr::Nil;
+    let mut value = Expr::None;
 
     // #todo extract this.
 

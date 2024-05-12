@@ -154,7 +154,7 @@ fn parse_handles_one() {
 
     dbg!(&expr);
 
-    assert_matches!(expr.unpack(), Expr::Nil);
+    assert_matches!(expr.unpack(), Expr::None);
 }
 
 #[test]
