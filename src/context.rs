@@ -9,6 +9,10 @@ use crate::{
 
 // #insight Context is the instance of a Tan 'machine'.
 
+// #todo Context should provide access both to the compiler and the evaluator.
+// #todo should provide also (compile ...) and (eval ...) functions.
+// #todo (eval ...) should reuse (compile ...)
+
 // #todo consider renaming to Env again?
 // #todo rethink what Context is
 // #todo initialize *current-module-path*? e.g. to '.'
