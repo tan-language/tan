@@ -97,7 +97,7 @@ pub fn is_none(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
         return Err(Error::invalid_arguments("one argument expected", None));
     };
 
-    Ok(Expr::Bool(expr.is_one()))
+    Ok(Expr::Bool(expr.is_none()))
 }
 
 pub fn is_some(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
@@ -106,7 +106,7 @@ pub fn is_some(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
         return Err(Error::invalid_arguments("one argument expected", None));
     };
 
-    Ok(Expr::Bool(!expr.is_one()))
+    Ok(Expr::Bool(!expr.is_none()))
 }
 
 pub fn type_of(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {

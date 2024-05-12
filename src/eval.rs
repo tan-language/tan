@@ -710,7 +710,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         // #todo should check both for list and array (i.e. as_iterable)
                         let params = if let Some(params) = params.as_array() {
                             params.clone()
-                        } else if params.is_one() {
+                        } else if params.is_none() {
                             // #insight is_one as in is_unit
                             Vec::new()
                         } else {

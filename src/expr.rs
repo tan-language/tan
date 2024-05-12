@@ -531,9 +531,10 @@ impl Expr {
         }
     }
 
+    // #todo do we _really_ want Expr::Nil as value/variant?
     // #todo rename to is_none
     // #todo is_one/is_unit
-    pub fn is_one(&self) -> bool {
+    pub fn is_none(&self) -> bool {
         matches!(self.unpack(), Expr::Nil)
     }
 

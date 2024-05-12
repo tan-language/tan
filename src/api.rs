@@ -93,10 +93,64 @@ pub fn parse_string_all(input: impl AsRef<str>) -> Result<Vec<Expr>, Vec<Error>>
     Ok(exprs)
 }
 
+// #todo find a better name.
+pub fn compile(expr: Expr, context: &mut Context) -> Result<Expr, Vec<Error>> {
+    // #insight this is the main read/analysis pipeline, it consists of passes or stages.
+    // #todo better use the term `stage` (multi-stage programming)
+
+    // #insight
+    // Macro expansion should be performed before resolving.
+
+    // Prune pass
+
+    // #insight first prune pass needed before macro_expand.
+    // #todo find a better name for the `prune` stage.
+
+    let Some(expr) = prune(expr) else {
+        // The expression is pruned (elided)
+        // #todo what should be returned here?
+        return Ok(Expr::Nil);
+    };
+
+    // Expand macros.
+
+    // #todo pass a dummy scope here? no need to polute the dyn-time environment with macro stuff.
+    let expr = macro_expand(expr, context);
+
+    // #todo bug, macro_expand strips let annotation!
+
+    // #todo temp hack until macro_expand returns multiple errors.
+    let Ok(expr) = expr else {
+        return Err(vec![expr.unwrap_err()]);
+    };
+
+    // #todo maybe a second `prune` pass is needed?
+
+    let Some(expr) = expr else {
+        // The expression is pruned (elided)
+        // #insight elision can happen also in macro_expand!
+        return Ok(Expr::Nil);
+    };
+
+    // Optimization pass
+
+    // #todo should run after resolve?
+    let expr = optimize(expr);
+
+    // Resolve pass (typechecking, definitions, etc)
+
+    // #todo should we push a new env?
+    // let mut resolver = Resolver::new();
+    // let expr = resolver.resolve(expr, context)?;
+
+    Ok(expr)
+}
+
+// #todo should it really update the context?
 // #todo should refactor
-// #todo what is a good name?
-/// Reads and resolves a Tan expression encoded as a text string.
-/// Updates the environment with definitions.
+// #todo what is a good name? maybe `prepare_string`? or even `compile_string`
+/// Reads a Tan expression encoded as a text string, and prepares it for execution.
+/// Updates the context with definitions.
 pub fn resolve_string(
     input: impl AsRef<str>,
     context: &mut Context,
@@ -123,54 +177,11 @@ pub fn resolve_string(
     let mut resolved_exprs = Vec::new();
 
     for expr in exprs {
-        // #insight this is the main read/analysis pipeline, it consists of passes or stages.
-        // #todo better use the term `stage` (multi-stage programming)
-
-        // #insight
-        // Macro expansion should be performed before resolving.
-
-        // Prune pass
-
-        // #insight first prune pass needed before macro_expand.
-        // #todo find a better name for the `prune` stage.
-
-        let Some(expr) = prune(expr) else {
-            // The expression is pruned (elided)
-            continue;
-        };
-
-        // Expand macros.
-
-        // #todo pass a dummy scope here? no need to polute the dyn-time environment with macro stuff.
-        let expr = macro_expand(expr, context);
-
-        // #todo bug, macro_expand strips let annotation!
-
-        // #todo temp hack until macro_expand returns multiple errors.
-        let Ok(expr) = expr else {
-            return Err(vec![expr.unwrap_err()]);
-        };
-
-        // #todo maybe a second `prune` pass is needed?
-
-        let Some(expr) = expr else {
-            // The expression is pruned (elided)
-            // #insight elision can happen also in macro_expand!
-            continue;
-        };
-
-        // Optimization pass
-
-        // #todo should run after resolve?
-        let expr = optimize(expr);
-
-        // Resolve pass (typechecking, definitions, etc)
-
-        // #todo should we push a new env?
-        // let mut resolver = Resolver::new();
-        // let expr = resolver.resolve(expr, context)?;
-
-        resolved_exprs.push(expr);
+        // #todo should return option.
+        let expr = compile(expr, context)?;
+        if !expr.is_none() {
+            resolved_exprs.push(expr);
+        }
     }
 
     Ok(resolved_exprs)
