@@ -778,8 +778,9 @@ impl Expr {
         }
 
         match self.unpack() {
-            Expr::Never => Expr::typ("Zero"), // Never
-            Expr::None => Expr::typ("One"),   // Unit
+            Expr::Never => Expr::typ("Never"), // Never, Zero
+            Expr::None => Expr::typ("None"),   // Unit, One, Nil
+            Expr::Bool(_) => Expr::typ("Bool"),
             Expr::U8(_) => Expr::typ("U8"),
             Expr::Int(_) => Expr::typ("Int"),
             Expr::Float(_) => Expr::typ("Float"),
