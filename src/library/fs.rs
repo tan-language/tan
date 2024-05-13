@@ -13,6 +13,11 @@ use crate::{context::Context, error::Error, expr::Expr};
 
 // #todo do FFI functions really need an env?
 // #todo differentiate pure functions that do not change the env!
+// #todo add `symbolic-link?` or `sym-link?` or even `link?` (symbolic is confusing)
+// #todo how does windows name symbolic links?
+
+// #todo add a function for file-metadata
+// #todo add a function for sym-link target
 
 // #todo consider relationship with a `shell` package.
 
@@ -228,6 +233,8 @@ pub fn list(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(Expr::array(list))
 }
 
+// #todo can be SLOW for large directories!
+// #todo try to optimize!
 // #todo should return nested or flat structure?
 // #todo find a better name: walk-as-tree, build-tree
 // #todo implement as generator/iterator, or (and?) with callback.
