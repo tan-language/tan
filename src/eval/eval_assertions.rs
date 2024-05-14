@@ -1,4 +1,4 @@
-use crate::{context::Context, error::Error, expr::Expr, library::eq::eq_int};
+use crate::{context::Context, error::Error, expr::Expr, library::eq::eq_polymorphic};
 
 use super::{eval, util::get_current_file_path};
 
@@ -43,6 +43,8 @@ pub fn eval_assert(op: &Expr, args: &[Expr], context: &mut Context) -> Result<Ex
 
 // #todo make polymorphic, support Float, etc...
 pub fn eval_assert_eq(op: &Expr, args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+    // #todo skip in debug profile.
+
     // #todo there is not really left and right in Tan syntax.
     // #todo if we use (left, right), right is the ..'right' (correct/expected) value.
     let [left_expr, right_expr] = args else {
@@ -60,14 +62,8 @@ pub fn eval_assert_eq(op: &Expr, args: &[Expr], context: &mut Context) -> Result
     // #todo introduce generic cmp
 
     // #todo don't throw the error, include in failures!
-    let predicate = eq_int(&[left, right], context)?;
 
-    let Some(predicate) = predicate.as_bool() else {
-        return Err(Error::invalid_arguments(
-            &format!("`{}` is not a Bool", predicate.unpack()),
-            predicate.range(),
-        ));
-    };
+    let predicate = eq_polymorphic(&[left, right], context)?.as_bool().unwrap();
 
     if predicate {
         Ok(Expr::Bool(true))
@@ -89,3 +85,5 @@ pub fn eval_assert_eq(op: &Expr, args: &[Expr], context: &mut Context) -> Result
         Ok(Expr::Bool(false))
     }
 }
+
+// #todo add unit-tests!

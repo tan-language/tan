@@ -12,6 +12,22 @@ use crate::{
 
 // #todo support all types!
 
+// #todo add support for eq_array, eq_map
+
+// #todo #temp hackish polymorphism helper!
+pub fn eq_polymorphic(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+    let Some(expr) = args.first() else {
+        return Err(Error::invalid_arguments("malformed equality test", None));
+    };
+    match expr.unpack() {
+        Expr::Int(..) => eq_int(args, context),
+        Expr::Float(..) => eq_float(args, context),
+        Expr::String(..) => eq_string(args, context),
+        Expr::Symbol(..) => eq_symbol(args, context),
+        _ => Err(Error::invalid_arguments("malformed equality test", None)),
+    }
+}
+
 pub fn eq_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
     // #todo support overloading,
