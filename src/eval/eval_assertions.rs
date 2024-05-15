@@ -58,9 +58,6 @@ pub fn eval_assert_eq(op: &Expr, args: &[Expr], context: &mut Context) -> Result
     let left = eval(left_expr, context)?;
     let right = eval(right_expr, context)?;
 
-    // #todo at the moment only supports Int
-    // #todo introduce generic cmp
-
     // #todo don't throw the error, include in failures!
 
     let predicate = eq_polymorphic(&[left, right], context)?.as_bool().unwrap();
@@ -76,10 +73,18 @@ pub fn eval_assert_eq(op: &Expr, args: &[Expr], context: &mut Context) -> Result
                 } else {
                     String::new()
                 };
-                failures.push(Expr::string(format!(
-                    "{} != {}\n  at {}{}",
-                    left_expr, right_expr, file_path, location
-                )));
+                let left_value = eval(left_expr, context)?;
+                let right_value = eval(right_expr, context)?;
+                let mut msg = format!("{left_expr} == {right_expr}");
+                msg.push_str(&format!("\n  at {file_path}{location}"));
+                if format!("{left_expr}") != format!("{left_value}") {
+                    msg.push_str(&format!("\n    hint: {left_expr} -> {left_value}"));
+                }
+                if format!("{right_expr}") != format!("{right_value}") {
+                    msg.push_str(&format!("\n    hint: {right_expr} -> {right_value}"));
+                }
+                msg.push_str(&format!("\n>>> {left_value} != {right_value}"));
+                failures.push(Expr::string(msg));
             }
         }
         Ok(Expr::Bool(false))
