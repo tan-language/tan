@@ -70,7 +70,7 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
             | "quot"
             | "scope-update" // #todo rename to `let*` or `let..` or `let-all` or something.
             | "use" // #todo consider `using`
-            | "Char"
+            // | "Char"
             | "Func"
             | "Macro"
             | "List"

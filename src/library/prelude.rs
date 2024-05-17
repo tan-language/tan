@@ -8,6 +8,7 @@ use crate::util::module_util::require_module;
 use super::arithmetic::setup_lib_arithmetic;
 use super::bool::setup_lib_bool;
 use super::buffer::setup_lib_buffer;
+use super::char::setup_lib_char;
 use super::chrono;
 use super::cmp::setup_lib_cmp;
 use super::eq::setup_lib_eq;
@@ -45,6 +46,7 @@ pub fn setup_lib_prelude(context: &mut Context) {
     setup_lib_lang(context);
     setup_lib_range(context);
     setup_lib_buffer(context);
+    setup_lib_char(context);
     setup_lib_float(context);
 
     // #todo move this to lang.rs

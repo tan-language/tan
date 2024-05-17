@@ -1,6 +1,7 @@
 pub mod arithmetic;
 pub mod bool;
 pub mod buffer;
+pub mod char;
 pub mod chrono;
 pub mod cmp;
 pub mod css_expr;
