@@ -3,6 +3,7 @@
 mod eval_assertions;
 mod eval_assign;
 mod eval_cond;
+mod eval_def;
 mod eval_do;
 mod eval_for;
 mod eval_for_each;
@@ -33,6 +34,7 @@ use self::{
     eval_assertions::{eval_assert, eval_assert_eq},
     eval_assign::eval_assign,
     eval_cond::eval_cond,
+    eval_def::eval_def,
     eval_do::eval_do,
     eval_for::eval_for,
     eval_for_each::eval_for_each,
@@ -817,6 +819,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         // #insight `op` seems to have range info, that `expr` lacks.
                         // #todo add range info to expr (no unpack) and use it instead!!!
                         "use" => anchor(eval_use(args, context), expr),
+                        "def" => anchor(eval_def(&head, args, context), expr),
                         "let-ds" => anchor(eval_let_ds(args, context), expr),
                         "let" => anchor(eval_let(&head, args, context), expr),
                         "and" => {
