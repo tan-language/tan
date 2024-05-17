@@ -15,49 +15,56 @@ pub fn eval_def(op: &Expr, args: &[Expr], context: &mut Context) -> Result<Expr,
 
     // #insight 'pass-through' let annotations, only for ...def.
 
-    let mut args = args.iter();
-
     // #insight def does not support multiple definitions
     // #todo consider supporting multiple definitions with [...] syntax.
     // #todo align `def` with `use`.
 
-    loop {
-        let Some(name_expr) = args.next() else {
-            break;
-        };
+    // loop {
 
-        let Some(value) = args.next() else {
-            // #todo error?
-            break;
-        };
+    let Some(name_expr) = args.first() else {
+        return Err(Error::invalid_arguments("missing binding name", None));
+    };
 
-        let value = Expr::maybe_annotated(eval(value, context)?, op.annotations());
+    let Some(value) = args.get(1) else {
+        return Err(Error::invalid_arguments("missing binding value", None));
+    };
 
-        // #todo insert the binding into the current module/namespace, not the current scope!
-        // #todo maybe current scope is good though?
-
-        // #todo do not allow destructuring (reconsider this? like Scheme define?)
-
-        let Some(name) = name_expr.as_stringable() else {
-            return Err(Error::invalid_arguments(
-                "malformed def: name must be Stringable",
-                name_expr.range(),
-            ));
-        };
-
-        if context.scope.contains_name(name) {
-            // #insight
-            // One important difference between `def` and `let` is that `def`
-            // does not allow shadowing.
-            // #todo use a custom Error variant.
-            return Err(Error::invalid_arguments(
-                &format!("`{name_expr}` is already defined"),
-                name_expr.range(),
-            ));
-        }
-
-        context.scope.insert(name, value);
+    if args.len() > 2 {
+        return Err(Error::invalid_arguments(
+            "malformed def with multiple bindings",
+            None,
+        ));
     }
+
+    let value = Expr::maybe_annotated(eval(value, context)?, op.annotations());
+
+    // #todo insert the binding into the current module/namespace, not the current scope!
+    // #todo maybe current scope is good though?
+
+    // #insight def does not allow destructuring
+    // #todo reconsider this? like Scheme define?
+
+    let Some(name) = name_expr.as_stringable() else {
+        return Err(Error::invalid_arguments(
+            "malformed def: name must be Stringable",
+            name_expr.range(),
+        ));
+    };
+
+    if context.scope.contains_name(name) {
+        // #insight
+        // One important difference between `def` and `let` is that `def`
+        // does not allow shadowing.
+        // #todo use a custom Error variant.
+        return Err(Error::invalid_arguments(
+            &format!("`{name_expr}` is already defined"),
+            name_expr.range(),
+        ));
+    }
+
+    context.scope.insert(name, value);
+
+    // }
 
     // #todo return last value, it would require some cloning currently.
     Ok(Expr::None)

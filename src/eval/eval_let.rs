@@ -16,6 +16,7 @@ pub fn eval_let(op: &Expr, args: &[Expr], context: &mut Context) -> Result<Expr,
     let mut args = args.iter();
 
     loop {
+        // #todo report `(let)` as error.
         let Some(name) = args.next() else {
             break;
         };
