@@ -100,7 +100,8 @@ impl Context {
         context
     }
 
-    // #todo get_module_mut
+    // #todo get_current_module
+
     // #todo require_module
     pub fn get_module(&self, path: &str) -> Option<&Arc<Module>> {
         // #todo this is a hack.

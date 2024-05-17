@@ -66,6 +66,15 @@ impl Scope {
             .insert(name.into(), value.into())
     }
 
+    // #todo consider `contains_symbol`
+    // #todo think about name <> symbol.
+    pub fn contains_name(&self, name: impl AsRef<str>) -> bool {
+        self.bindings
+            .read()
+            .expect("poisoned lock")
+            .contains_key(name.as_ref())
+    }
+
     pub fn get(&self, name: impl AsRef<str>) -> Option<Arc<Expr>> {
         let bindings = self.bindings.read().expect("poisoned lock");
 
