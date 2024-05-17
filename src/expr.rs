@@ -50,8 +50,6 @@ use crate::{
 // #insight
 // No need for a Zero/Never/Nothing Expr variant?
 
-// #todo (do ...) blocks should also have lexical scope.
-
 // #todo what would be the 'default'? -> the 'Unit'/'One' type, Nil!
 // #todo consider parsing to 'simple' Expr, only List and Symbols
 // #todo optimize 'simple' Expr to 'execution' Expr
@@ -71,6 +69,7 @@ use crate::{
 
 // #insight the `+ Send + Sync + 'static` suffix allows Expr to be Sync.
 
+// #todo considere renaming to ExprContextMutFn and also provide an ExprContextFn.
 /// A function that accepts a list of Exprs and a mut Context, returns maybe an Expr.
 pub type ExprContextFn =
     dyn Fn(&[Expr], &mut Context) -> Result<Expr, Error> + Send + Sync + 'static;
@@ -92,7 +91,7 @@ pub type ExprFn = dyn Fn(&[Expr]) -> Result<Expr, Error> + Send + Sync + 'static
 /// A symbolic expression. This is the 'universal' data type in the language,
 /// all values are expressions (and expressions are values). Evaluation is expression
 /// rewriting to a fixed point.
-#[derive(Clone)]
+#[derive(Default, Clone)]
 pub enum Expr {
     // --- Low-level ---
     // #todo Any <> Nothing or even Anything <> Nothing, better keep the shorter Any
@@ -111,6 +110,8 @@ pub enum Expr {
     // #insight Unit == One, and it _is_ 'one' in the algebraic sense
     // #insight None = (N)one
     // #insight preferred None over nil to play well with Maybe{Some,None}
+    // #insight None is the default Expr value.
+    #[default]
     None,
     Comment(String, CommentKind), // #todo consider renaming to Remark (REM)
     TextSeparator,                // for the formatter.
