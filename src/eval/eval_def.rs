@@ -42,6 +42,7 @@ pub fn eval_def(op: &Expr, args: &[Expr], context: &mut Context) -> Result<Expr,
     // #todo maybe current scope is good though?
 
     // #insight def does not allow destructuring
+    // #todo actually destructuring is useful, check mandelbrot example! can better do with multiple def.
     // #todo reconsider this? like Scheme define?
 
     let Some(name) = name_expr.as_stringable() else {

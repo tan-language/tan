@@ -56,11 +56,14 @@ pub fn ann(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
 }
 
 // #todo implement (with-ann ...)
+// #insight clojure passes the expression as the first argument.
+// (with-ann expr {:type Amount})
 
 // #todo find better name.
 // #todo support multiple annotations (pass map)
-// (ann! expr :type Amount)
-pub fn set_ann(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+// #todo consider 'inverse' design, e.g. (with-ann anns expr)
+// (with-ann expr anns)
+pub fn with_ann(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [target, key, value] = args else {
         // #todo better error
         return Err(Error::invalid_arguments("invalid arguments", None));
@@ -307,7 +310,7 @@ pub fn setup_lib_lang(context: &mut Context) {
     // #todo separate read/read-string.
 
     module.insert("ann", Expr::ForeignFunc(Arc::new(ann)));
-    module.insert("ann!", Expr::ForeignFunc(Arc::new(set_ann)));
+    module.insert("with-ann", Expr::ForeignFunc(Arc::new(with_ann)));
 
     // #todo the `!` is confusing here.
     module.insert("dbg!", Expr::ForeignFunc(Arc::new(debug_expr)));
