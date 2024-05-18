@@ -2,6 +2,8 @@ use crate::{context::Context, error::Error, expr::Expr, library::eq::eq_polymorp
 
 use super::{eval, util::get_current_file_path};
 
+// #todo introduce assert-some, or assert-some?
+
 pub fn eval_assert(op: &Expr, args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     let [assert_expr] = args else {
         return Err(Error::invalid_arguments(

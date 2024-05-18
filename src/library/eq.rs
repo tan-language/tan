@@ -23,7 +23,7 @@ pub fn eq_polymorphic(args: &[Expr], context: &mut Context) -> Result<Expr, Erro
         Expr::Int(..) => eq_int(args, context),
         Expr::Float(..) => eq_float(args, context),
         Expr::String(..) => eq_string(args, context),
-        Expr::Symbol(..) => eq_symbol(args, context),
+        Expr::Symbol(..) | Expr::KeySymbol(..) | Expr::Type(..) => eq_symbol(args, context),
         _ => Err(Error::invalid_arguments("malformed equality test", None)),
     }
 }
