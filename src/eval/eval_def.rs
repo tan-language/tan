@@ -3,6 +3,7 @@ use crate::{context::Context, error::Error, expr::Expr};
 use super::eval;
 
 // #todo pass-through the annotations.
+// #todo implement undef (useful in REPL, only include in REPL?)
 
 // #warning still researching the final state between def and let.
 

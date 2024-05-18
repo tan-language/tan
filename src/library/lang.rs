@@ -16,7 +16,8 @@ use crate::{
     },
     expr::{annotate, expr_clone, Expr},
     util::{
-        args::unpack_stringable_arg, module_util::require_module,
+        args::{unpack_arg, unpack_map_arg, unpack_stringable_arg},
+        module_util::require_module,
         standard_names::CURRENT_MODULE_PATH,
     },
 };
@@ -55,27 +56,20 @@ pub fn ann(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     }
 }
 
-// #todo implement (with-ann ...)
 // #insight clojure passes the expression as the first argument.
-// (with-ann expr {:type Amount})
-
-// #todo find better name.
-// #todo support multiple annotations (pass map)
 // #todo consider 'inverse' design, e.g. (with-ann anns expr)
-// (with-ann expr anns)
+// (with-ann expr {:type Amount})
 pub fn with_ann(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
-    let [target, key, value] = args else {
-        // #todo better error
-        return Err(Error::invalid_arguments("invalid arguments", None));
-    };
+    let target = unpack_arg(args, 0, "target")?;
+    let annotations = unpack_map_arg(args, 1, "annotations")?;
+    Ok(Expr::annotated(expr_clone(target), &annotations))
+}
 
-    let Some(key) = key.as_stringable() else {
-        // #todo better error.
-        return Err(Error::invalid_arguments("invalid arguments", None));
-    };
-
-    // #todo remove the clones.
-    Ok(annotate(expr_clone(target), key, expr_clone(value)))
+// #todo implement (with-type ...) with Tan code?
+pub fn with_type(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let target = unpack_arg(args, 0, "target")?;
+    let type_expr = unpack_arg(args, 1, "type")?;
+    Ok(annotate(expr_clone(target), "type", type_expr.clone()))
 }
 
 pub fn debug_expr(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
@@ -311,8 +305,10 @@ pub fn setup_lib_lang(context: &mut Context) {
 
     module.insert("ann", Expr::ForeignFunc(Arc::new(ann)));
     module.insert("with-ann", Expr::ForeignFunc(Arc::new(with_ann)));
+    module.insert("with-type", Expr::ForeignFunc(Arc::new(with_type)));
 
     // #todo the `!` is confusing here.
+    // #todo `dbg` is not following naming conventions, but maybe OK for this case?
     module.insert("dbg!", Expr::ForeignFunc(Arc::new(debug_expr)));
 
     // #todo use is-some? to make more like a verb?

@@ -464,26 +464,25 @@ impl Expr {
     //     Expr::ForeignFunc(Arc::new(*f))
     // }
 
-    pub fn annotated(expr: Expr) -> Self {
-        Expr::Annotated(Box::new(expr), HashMap::new())
+    pub fn annotated(expr: Expr, annotations: &HashMap<String, Expr>) -> Self {
+        // #insight don't override existing annotations.
+        let mut expr = expr;
+        if let Some(current_annotations) = expr.annotations_mut() {
+            for (k, v) in annotations {
+                if !current_annotations.contains_key(k) {
+                    current_annotations.insert(k.clone(), v.clone());
+                }
+            }
+            expr
+        } else {
+            // #todo do something about this clone!!
+            Expr::Annotated(Box::new(expr), annotations.clone())
+        }
     }
 
-    // #todo handle case where expr already has annotations.
     pub fn maybe_annotated(expr: Expr, annotations: Option<&HashMap<String, Expr>>) -> Self {
         if let Some(annotations) = annotations {
-            // #insight don't override existing annotations.
-            let mut expr = expr;
-            if let Some(current_annotations) = expr.annotations_mut() {
-                for (k, v) in annotations {
-                    if !current_annotations.contains_key(k) {
-                        current_annotations.insert(k.clone(), v.clone());
-                    }
-                }
-                expr
-            } else {
-                // #todo do something about this clone!!
-                Expr::Annotated(Box::new(expr), annotations.clone())
-            }
+            Self::annotated(expr, annotations)
         } else {
             expr
         }
