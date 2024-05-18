@@ -339,6 +339,21 @@ mod tests {
     use crate::{api::eval_string, context::Context, expr::format_value};
 
     #[test]
+    fn with_type_usage() {
+        let mut context = Context::new();
+
+        // #todo hmm, this (with-type ...) seems reverse.
+        let input = r#"
+        (def a (with-type "George" First-Name))
+        (type-of a)
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = format_value(expr);
+        let expected = "First-Name";
+        assert_eq!(value, expected);
+    }
+
+    #[test]
     fn type_of_usage() {
         let mut context = Context::new();
 
