@@ -60,15 +60,15 @@ pub fn ann(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
 // #todo consider 'inverse' design, e.g. (with-ann anns expr)
 // (with-ann expr {:type Amount})
 pub fn with_ann(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
-    let target = unpack_arg(args, 0, "target")?;
-    let annotations = unpack_map_arg(args, 1, "annotations")?;
+    let annotations = unpack_map_arg(args, 0, "annotations")?;
+    let target = unpack_arg(args, 1, "target")?;
     Ok(Expr::annotated(expr_clone(target), &annotations))
 }
 
 // #todo implement (with-type ...) with Tan code?
 pub fn with_type(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
-    let target = unpack_arg(args, 0, "target")?;
-    let type_expr = unpack_arg(args, 1, "type")?;
+    let type_expr = unpack_arg(args, 0, "type")?;
+    let target = unpack_arg(args, 1, "target")?;
     Ok(annotate(expr_clone(target), "type", type_expr.clone()))
 }
 
@@ -344,7 +344,7 @@ mod tests {
 
         // #todo hmm, this (with-type ...) seems reverse.
         let input = r#"
-        (def a (with-type "George" First-Name))
+        (def a (with-type First-Name "George"))
         (type-of a)
         "#;
         let expr = eval_string(input, &mut context).unwrap();
