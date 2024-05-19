@@ -526,7 +526,6 @@ impl Expr {
     }
 
     pub fn annotation(&self, name: impl Into<String>) -> Option<&Expr> {
-        // #todo dangerous method, emit a warning if it's called on a non-annotated Expr !!!
         match self {
             Expr::Annotated(_, ann) => ann.get(&name.into()),
             _ => None,

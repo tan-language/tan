@@ -3,7 +3,7 @@ use crate::{
     error::Error,
     eval::{eval, util::eval_module},
     expr::{annotate, annotate_type, Expr},
-    util::is_reserved_symbol,
+    util::{is_reserved_symbol, method::compute_signature},
 };
 
 // #todo resolver should handle 'use'!!! and _strip_ use expressions.
@@ -13,32 +13,6 @@ use crate::{
 // #todo it currently includes the optimize pass, split!
 
 // #insight resolve_type and resolve_invocable should be combined, cannot be separate passes.
-
-// #todo signature should also encode the return type!!
-// #todo how to handle VARARG functions ?!?!
-pub fn compute_signature(args: &[Expr]) -> String {
-    let mut signature = Vec::new();
-
-    for arg in args {
-        signature.push(arg.static_type().to_string())
-    }
-
-    signature.join("$$")
-}
-
-pub fn compute_dyn_signature(args: &[Expr], context: &Context) -> String {
-    let mut signature = Vec::new();
-
-    for arg in args {
-        let typ = arg.dyn_type(context);
-        let Expr::Type(typ) = typ else {
-            panic!("invalid dynamic type: {typ:?}");
-        };
-        signature.push(typ)
-    }
-
-    signature.join("$$")
-}
 
 // -----------------------------------------------------------------------------
 // #WARNING the resolver is temporarily disabled.

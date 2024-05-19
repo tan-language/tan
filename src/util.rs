@@ -11,6 +11,7 @@ use crate::{error::Error, range::Range};
 pub mod args;
 pub mod constants;
 pub mod fmt;
+pub mod method;
 pub mod module_util;
 pub mod put_back_iterator;
 pub mod standard_names;

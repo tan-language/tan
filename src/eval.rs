@@ -25,9 +25,11 @@ use crate::{
     error::{Error, ErrorVariant},
     expr::{annotate, expr_clone, format_value, Expr},
     range::Range,
-    resolver::compute_dyn_signature,
     scope::Scope,
-    util::{is_dynamically_scoped, is_ellipsis, is_reserved_symbol, try_lock_read},
+    util::{
+        is_dynamically_scoped, is_ellipsis, is_reserved_symbol, method::compute_dyn_signature,
+        try_lock_read,
+    },
 };
 
 use self::{
