@@ -14,6 +14,18 @@ use crate::{
 
 // #insight resolve_type and resolve_invocable should be combined, cannot be separate passes.
 
+// #todo implement this!
+// pub fn resolve_method(op: &Expr) -> Expr {
+//     let signature = compute_dyn_signature(&args, context);
+//     let head = annotate(
+//         // #todo #hack think about this!!!!!
+//         // #insight we don't use .clone() here, so that Expr::Type is converted to Expr::Symbol()
+//         Expr::symbol(name),
+//         "method",
+//         Expr::String(format!("{name}$${signature}")),
+//     );
+// }
+
 // -----------------------------------------------------------------------------
 // #WARNING the resolver is temporarily disabled.
 

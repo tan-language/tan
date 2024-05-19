@@ -512,7 +512,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     // #todo super nasty hack!!!!
                     let args = eval_args(args, context)?;
 
-                    // #odo we don't support dynamic scoping in this position, reconsider
+                    // #todo we don't support dynamic scoping in this position, reconsider
                     if let Some(value) = context.scope.get(name) {
                         if let Expr::Func(params, ..) = value.unpack() {
                             // #todo extract utility function to invoke a function.
@@ -534,6 +534,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             }
 
                             let signature = compute_dyn_signature(&args, context);
+                            // #todo optimize! this creates a new Expr.
                             let head = annotate(
                                 // #todo #hack think about this!!!!!
                                 // #insight we don't use .clone() here, so that Expr::Type is converted to Expr::Symbol()
@@ -548,6 +549,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             head
                         } else if let Expr::ForeignFunc(_) = value.unpack() {
                             let signature = compute_dyn_signature(&args, context);
+                            // #todo optimize! this creates a new Expr.
                             let head = annotate(
                                 // #todo #hack think about this!!!!!
                                 // #insight we don't use .clone() here, so that Expr::Type is converted to Expr::Symbol()
