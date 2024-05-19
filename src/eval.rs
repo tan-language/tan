@@ -23,13 +23,11 @@ use std::{collections::HashMap, sync::Arc};
 use crate::{
     context::Context,
     error::{Error, ErrorVariant},
-    expr::{annotate, expr_clone, format_value, Expr},
+    expr::{expr_clone, format_value, Expr},
     range::Range,
+    resolver::resolve_op_method,
     scope::Scope,
-    util::{
-        is_dynamically_scoped, is_ellipsis, is_reserved_symbol, method::compute_dyn_signature,
-        try_lock_read,
-    },
+    util::{is_dynamically_scoped, is_ellipsis, is_reserved_symbol, try_lock_read},
 };
 
 use self::{
@@ -533,31 +531,15 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 context.scope.insert(param, arg.clone());
                             }
 
-                            let signature = compute_dyn_signature(&args, context);
-                            // #todo optimize! this creates a new Expr.
-                            let head = annotate(
-                                // #todo #hack think about this!!!!!
-                                // #insight we don't use .clone() here, so that Expr::Type is converted to Expr::Symbol()
-                                Expr::symbol(name),
-                                "method",
-                                Expr::String(format!("{name}$${signature}")),
-                            );
-                            let head = eval(&head, context)?;
+                            // #todo optimize the resolve_op_method.
+                            let head = resolve_op_method(name, &args, context)?;
 
                             context.scope = prev_scope;
 
                             head
                         } else if let Expr::ForeignFunc(_) = value.unpack() {
-                            let signature = compute_dyn_signature(&args, context);
-                            // #todo optimize! this creates a new Expr.
-                            let head = annotate(
-                                // #todo #hack think about this!!!!!
-                                // #insight we don't use .clone() here, so that Expr::Type is converted to Expr::Symbol()
-                                Expr::symbol(name),
-                                "method",
-                                Expr::String(format!("{name}$${signature}")),
-                            );
-                            eval(&head, context)?
+                            // #todo optimize the resolve_op_method.
+                            resolve_op_method(name, &args, context)?
                         } else {
                             eval(op, context)?
                         }

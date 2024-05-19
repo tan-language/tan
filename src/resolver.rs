@@ -3,7 +3,10 @@ use crate::{
     error::Error,
     eval::{eval, util::eval_module},
     expr::{annotate, annotate_type, Expr},
-    util::{is_reserved_symbol, method::compute_signature},
+    util::{
+        is_reserved_symbol,
+        method::{compute_dyn_signature, compute_signature},
+    },
 };
 
 // #todo resolver should handle 'use'!!! and _strip_ use expressions.
@@ -14,17 +17,27 @@ use crate::{
 
 // #insight resolve_type and resolve_invocable should be combined, cannot be separate passes.
 
-// #todo implement this!
-// pub fn resolve_method(op: &Expr) -> Expr {
-//     let signature = compute_dyn_signature(&args, context);
-//     let head = annotate(
-//         // #todo #hack think about this!!!!!
-//         // #insight we don't use .clone() here, so that Expr::Type is converted to Expr::Symbol()
-//         Expr::symbol(name),
-//         "method",
-//         Expr::String(format!("{name}$${signature}")),
-//     );
-// }
+// #todo temporary helper.
+// #todo mutate the existing Expr
+pub fn resolve_op_method(name: &str, args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+    let signature = compute_dyn_signature(args, context);
+
+    // #todo #optimize
+    // No need to create a new annotated symbol, just perform
+    // the lookup for the actual method.
+
+    let op = annotate(
+        // #todo #hack think about this!!!!!
+        // #insight we don't use .clone() here, so that Expr::Type is converted to Expr::Symbol()
+        Expr::symbol(name),
+        "method",
+        Expr::String(format!("{name}$${signature}")),
+    );
+
+    // #todo no need for a full eval here, we know that op is symbol.
+    let op = eval(&op, context)?;
+    Ok(op)
+}
 
 // -----------------------------------------------------------------------------
 // #WARNING the resolver is temporarily disabled.
