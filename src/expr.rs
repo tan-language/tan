@@ -539,8 +539,13 @@ impl Expr {
         matches!(self.unpack(), Expr::None)
     }
 
+    // #todo do we really need this? or we should always use `is_invocable`?
     pub fn is_func(&self) -> bool {
         matches!(self.unpack(), Expr::Func(..))
+    }
+
+    pub fn is_invocable(&self) -> bool {
+        matches!(self.unpack(), Expr::Func(..) | Expr::ForeignFunc(..))
     }
 
     // #insight
@@ -549,8 +554,6 @@ impl Expr {
     pub fn is_false(&self) -> bool {
         matches!(self.unpack(), Expr::Bool(false))
     }
-
-    // #todo is_invocable
 
     // #todo consider #[inline]
     pub fn as_int(&self) -> Option<i64> {
