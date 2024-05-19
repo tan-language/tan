@@ -82,6 +82,23 @@ fn insert_symbol_binding(
     value: Expr,
     context: &mut Context,
 ) -> Result<(), Error> {
+    // #todo this is a temp hack!
+    // #todo take invocable signatures into account!
+    // #todo automatically infer the signature from type annotations.
+    let sym = if value.is_invocable() {
+        if let Some(signature) = value.annotation("signature") {
+            let signature = format_value(signature);
+            // #todo this is temp convention!
+            format!("{sym}$${signature}")
+        } else {
+            sym.to_owned()
+        }
+    } else {
+        sym.to_owned()
+    };
+    // #todo #hack workaround for Rust borrow checker, fix.
+    let sym = &sym;
+
     // #todo also is_reserved_symbol is slow, optimize.
     // #todo do we really want this? Maybe convert to a lint?
     if is_reserved_symbol(sym) {
