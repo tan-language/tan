@@ -27,7 +27,10 @@ use crate::{
     range::Range,
     resolver::resolve_op_method,
     scope::Scope,
-    util::{is_dynamically_scoped, is_ellipsis, is_reserved_symbol, try_lock_read},
+    util::{
+        is_dynamically_scoped, is_ellipsis, is_reserved_symbol,
+        method::compute_signature_from_annotations, try_lock_read,
+    },
 };
 
 use self::{
@@ -76,32 +79,28 @@ pub fn eval_args(args: &[Expr], context: &mut Context) -> Result<Vec<Expr>, Erro
     Ok(values)
 }
 
+// #todo add unit test.
 fn insert_symbol_binding(
     sym: &str,
     range: &Option<Range>,
     value: Expr,
     context: &mut Context,
 ) -> Result<(), Error> {
+    // #todo move this up-stream to insert_binding.
     // #todo this is a temp hack!
-    // #todo take invocable signatures into account!
-    // #todo automatically infer the signature from type annotations.
     let sym = if value.is_invocable() {
-        if let Some(signature) = value.annotation("signature") {
-            let signature = format_value(signature);
-            // #todo this is temp convention!
-            format!("{sym}$${signature}")
+        if let Some(signature) = compute_signature_from_annotations(&value) {
+            format!("{sym}{signature}")
         } else {
             sym.to_owned()
         }
     } else {
         sym.to_owned()
     };
-    // #todo #hack workaround for Rust borrow checker, fix.
-    let sym = &sym;
 
     // #todo also is_reserved_symbol is slow, optimize.
     // #todo do we really want this? Maybe convert to a lint?
-    if is_reserved_symbol(sym) {
+    if is_reserved_symbol(&sym) {
         return Err(Error::invalid_arguments(
             &format!("cannot shadow the reserved symbol `{sym}`"),
             range.clone(),

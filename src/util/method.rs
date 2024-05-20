@@ -2,7 +2,24 @@
 
 // method-related utility functions.
 
-use crate::{context::Context, expr::Expr};
+use crate::{
+    context::Context,
+    expr::{format_value, Expr},
+};
+
+// #todo automatically infer the signature from type annotations.
+// #insight only apply on invocable exprs.
+pub fn compute_signature_from_annotations(expr: &Expr) -> Option<String> {
+    // #todo the signature annotation is super-low-level, remove?
+    if let Some(signature) = expr.annotation("signature") {
+        // #todo validate that signature is a string.
+        let signature = format_value(signature);
+        // #todo this is temp convention!
+        Some(format!("$${signature}"))
+    } else {
+        None
+    }
+}
 
 // #todo signature should also encode the return type!!
 // #todo how to handle VARARG functions ?!?!
