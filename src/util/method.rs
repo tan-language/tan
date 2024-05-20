@@ -28,12 +28,12 @@ pub fn compute_signature_from_annotations(expr: &Expr) -> Option<String> {
         None
     }
 
-    // // if let Some(signature) = expr.annotation("signature") {
-    // //     // #todo validate that signature is a string.
-    // //     let signature = format_value(signature);
-    // //     // #todo this is temp convention!
-    // //     Some(format!("$${signature}"))
-    // // } else {
+    // if let Some(signature) = expr.annotation("signature") {
+    //     // #todo validate that signature is a string.
+    //     let signature = format_value(signature);
+    //     // #todo this is temp convention!
+    //     Some(format!("$${signature}"))
+    // } else {
     //     None
     // }
 }
@@ -66,6 +66,23 @@ pub fn compute_dyn_signature(args: &[Expr], context: &Context) -> String {
 
 #[cfg(test)]
 mod tests {
+    use crate::{api::eval_string, context::Context};
+
     #[test]
-    fn compute_signature_from_annotations_usage() {}
+    fn compute_signature_from_annotations_usage() {
+        let mut context = Context::new();
+
+        let input = r#"
+        #(Func [Vec2 Vec2] Vec2)
+        (let + (Func [a b]
+            (Vec2
+                (+ (a 0) (b 0))
+                (+ (a 1) (b 1))
+            )
+        ))
+        "#;
+        let _ = eval_string(input, &mut context);
+        let expr = context.scope.get("+$$Vec2$$Vec2");
+        assert!(expr.is_some());
+    }
 }
