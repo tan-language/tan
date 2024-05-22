@@ -229,6 +229,22 @@ fn parse_handles_more_complex_annotations() {
 }
 
 #[test]
+fn parse_handles_explicit_type_annotations() {
+    let input = r#"
+    (let #{:type (Func [Int Int] Int)} a (Func [x y] (+ x y)))
+    "#;
+    let tokens = lex_tokens(input);
+    let mut parser = Parser::new(&tokens);
+
+    let expr = parser.parse().unwrap();
+    let xs = expr[0].as_list().unwrap();
+    let x = &xs[1];
+    let ann = x.annotation("type").unwrap();
+
+    assert_eq!(format_value(ann), "(Func (Array Int Int) Int)");
+}
+
+#[test]
 fn parse_keeps_correct_range_annotations() {
     // Test that the parser keeps the range information passed by the lexer.
 

@@ -65,12 +65,19 @@ impl<'a> Parser<'a> {
         self.tokens.put_back(token);
     }
 
+    // #todo when attaching the annotations ignore some Exprs like Comment, etc.
     /// Wrap the `expr` with the buffered (prefix) annotations. The annotations
     /// are parsed into an Expr representation. Also attaches the range of the
     /// expression as an annotation.
     fn attach_buffered_annotations(&mut self, expr: Expr, range: Range) -> Expr {
+        // #todo consider not annotating transients with range?
         // Annotate the expression with the range, by default.
         let mut expr = annotate_range(expr, range);
+
+        if expr.is_transient() {
+            // Annotations should 'pass through' transient expressions.
+            return expr;
+        }
 
         let Some(buffered_annotations) = self.buffered_annotations.take() else {
             // No annotations for the expression.
