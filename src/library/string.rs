@@ -268,6 +268,8 @@ pub fn string_to_lower_case(args: &[Expr], _context: &mut Context) -> Result<Exp
 // #todo make this a String constructor?
 // #todo 'join' and 'format' versions?
 
+// #idea just use the String constructor: (String "hello " num " guys"), or even (Str "hello " num " guys")
+// #todo support: (Str (HTML-Expr (p "This is a nice paragraph!")))
 // #todo use (to-string ..) instead of format-value
 // #todo find another name, this is too common: `fmt`? `stringf`?
 pub fn format(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
