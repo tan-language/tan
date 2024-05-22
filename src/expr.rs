@@ -548,6 +548,15 @@ impl Expr {
         matches!(self.unpack(), Expr::Func(..) | Expr::ForeignFunc(..))
     }
 
+    // #todo remove TextSeparator concept.
+    // #todo find a better name.
+    // Returns true if the expresion is 'transient'/'inept' i.e. it will
+    // be stripped before evaluation. Transient helpers are currently used
+    // for analysis, not evaluation.
+    pub fn is_transient(&self) -> bool {
+        matches!(self.unpack(), Expr::Comment(..) | Expr::TextSeparator)
+    }
+
     // #insight
     // We provide is_false() instead of is_true() as in the future we _may_
     // consider all non-false values as true.
