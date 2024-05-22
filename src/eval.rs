@@ -663,38 +663,6 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                         Ok(Expr::U8(value as u8))
                     }
-                    // "Char" => {
-                    //     // #todo report more than 1 arguments.
-
-                    //     let Some(arg) = args.first() else {
-                    //         return Err(Error::invalid_arguments(
-                    //             "malformed Char constructor, missing argument",
-                    //             expr.range(),
-                    //         ));
-                    //     };
-
-                    //     // #todo should eval the argument!!! wrong!
-                    //     // #todo add unit tests.
-
-                    //     let Some(c) = arg.as_string() else {
-                    //         return Err(Error::invalid_arguments(
-                    //             "malformed Char constructor, expected String argument",
-                    //             expr.range(),
-                    //         ));
-                    //     };
-
-                    //     if c.len() != 1 {
-                    //         // #todo better error message.
-                    //         return Err(Error::invalid_arguments(
-                    //             "the Char constructor requires a single-char string",
-                    //             expr.range(),
-                    //         ));
-                    //     }
-
-                    //     let c = c.chars().next().unwrap();
-
-                    //     Ok(Expr::Char(c))
-                    // }
                     "List" => {
                         let args = eval_args(args, context)?;
                         Ok(Expr::List(args))
