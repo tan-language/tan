@@ -24,6 +24,7 @@ pub mod seq;
 pub mod set;
 pub mod string;
 pub mod testing;
+pub mod u8;
 pub mod uuid;
 
 use crate::context::Context;

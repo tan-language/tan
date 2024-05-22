@@ -720,7 +720,7 @@ fn eval_should_support_non_literal_annotations() {
         r#"
         #(Func (Array Int Int) Int)
         (let add (Func [x y] (+ x y)))
-        ((ann add) :type)
+        ((ann add$$Int$$Int) :type) ; #todo temporary hack, until we implement multimethods / op-bundles.
         "#,
     );
     let value = result.unwrap();

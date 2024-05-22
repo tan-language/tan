@@ -636,33 +636,6 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                 }
                 // #todo move all 'type-constructors' to external files.
                 Expr::Type(s) => match s.as_str() {
-                    // #todo extract!
-                    "U8" => {
-                        let Some(arg) = args.first() else {
-                            return Err(Error::invalid_arguments(
-                                "malformed U8 constructor, missing argument",
-                                expr.range(),
-                            ));
-                        };
-
-                        let arg = eval(arg, context)?;
-
-                        let Some(value) = arg.as_int() else {
-                            return Err(Error::invalid_arguments(
-                                "malformed U8 constructor, expected Int argument",
-                                expr.range(),
-                            ));
-                        };
-
-                        if !(0..256).contains(&value) {
-                            return Err(Error::invalid_arguments(
-                                "U8 values should be in 0..256",
-                                expr.range(),
-                            ));
-                        }
-
-                        Ok(Expr::U8(value as u8))
-                    }
                     "List" => {
                         let args = eval_args(args, context)?;
                         Ok(Expr::List(args))

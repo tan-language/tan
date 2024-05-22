@@ -19,6 +19,7 @@ use super::map::setup_lib_map;
 use super::range::setup_lib_range;
 use super::seq::setup_lib_seq;
 use super::string::setup_lib_string;
+use super::u8::setup_lib_u8;
 
 // #todo temporarily here, move to String?
 /// Formats an expression into a string.
@@ -47,6 +48,7 @@ pub fn setup_lib_prelude(context: &mut Context) {
     setup_lib_range(context);
     setup_lib_buffer(context);
     setup_lib_char(context);
+    setup_lib_u8(context);
     setup_lib_float(context);
 
     // #todo move this to lang.rs
