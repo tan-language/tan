@@ -15,6 +15,17 @@ use crate::{
 // #todo (to-lowercase str) or (lowercased str)
 // #todo (to-uppercase str) or (uppercased str)
 
+// #idea just use the String constructor: (String "hello " num " guys"), or even (Str "hello " num " guys")
+// #todo support: (Str (HTML-Expr (p "This is a nice paragraph!")))
+pub fn string_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let output = args.iter().fold(String::new(), |mut str, x| {
+        str.push_str(&format_value(x));
+        str
+    });
+
+    Ok(Expr::String(output))
+}
+
 // #todo better name: `size`?
 // #insight `count` is not a good name for length/len, better to be used as verb
 pub fn string_get_length(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
@@ -505,8 +516,13 @@ pub fn string_compare(args: &[Expr], _context: &mut Context) -> Result<Expr, Err
 pub fn setup_lib_string(context: &mut Context) {
     let module = require_module("prelude", context);
 
+    module.insert("String", Expr::ForeignFunc(Arc::new(string_new)));
+
+    // #insight it's OK if it's not short, it's not often used.
+    // #todo consider a shorter name, e.g. `Str/from`, `Str/from-chars`
+    // #todo implement as String constructor method/override?, e.g. `(Str [(Char "h")(Char "i")])`
     module.insert(
-        "String",
+        "String/from-chars",
         Expr::ForeignFunc(Arc::new(string_constructor_from_chars)),
     );
     // env.insert("String$$Array", Expr::ForeignFunc(Arc::new(string_constructor_from_chars)));
@@ -584,6 +600,29 @@ pub fn setup_lib_string(context: &mut Context) {
 #[cfg(test)]
 mod tests {
     use crate::{api::eval_string, context::Context, expr::format_value};
+
+    #[test]
+    fn string_new_usage() {
+        let mut context = Context::new();
+        let input = r#"
+            (let name "George")
+            (String "hello, " name "!")
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = expr.as_string().unwrap();
+        assert_eq!(value, "hello, George!");
+    }
+
+    #[test]
+    fn string_from_chars_usage() {
+        let mut context = Context::new();
+        let input = r#"
+            (String/from-chars [(Char "h") (Char "i")])
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        let value = expr.as_string().unwrap();
+        assert_eq!(value, "hi");
+    }
 
     #[test]
     fn get_length_usage() {
