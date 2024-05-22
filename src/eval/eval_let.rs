@@ -2,6 +2,9 @@ use crate::{context::Context, error::Error, expr::Expr};
 
 use super::{eval, insert_binding};
 
+// #todo correctly implement the let-rules
+// #todo correctly implement the let shadowing rules
+
 // #todo pass-through the annotations.
 
 pub fn eval_let(op: &Expr, args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
