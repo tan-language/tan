@@ -1,8 +1,13 @@
 use std::{collections::HashMap, sync::Arc};
 
-use serde_json::Value;
+use serde_json::{json, Map, Value};
 
-use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
+use crate::{
+    context::Context,
+    error::Error,
+    expr::Expr,
+    util::{args::unpack_arg, expect_lock_read, module_util::require_module},
+};
 
 // #todo text/json or codec/json?
 // #todo support json with comments.
@@ -37,6 +42,46 @@ fn json_value_to_expr(json: Value) -> Expr {
     }
 }
 
+// #todo try to use ExprIter / fold -> maybe not the best use-case.
+// #todo add comprehensive unit tests.
+/// Converts a symbolic Expr to a JSON Value.
+fn expr_to_json_value(expr: impl AsRef<Expr>) -> Value {
+    let expr = expr.as_ref();
+
+    // #todo support multi-line strings
+    // #todo support Null
+    // #todo somehow encode annotations.
+    // #todo strip comments!
+
+    match expr {
+        Expr::Array(exprs) => {
+            let mut arr = Vec::new();
+            // #todo should use try_lock_read?
+            let exprs = expect_lock_read(exprs);
+            for x in exprs.iter() {
+                arr.push(expr_to_json_value(x));
+            }
+            Value::Array(arr)
+        }
+        Expr::Map(map) => {
+            let mut obj = Map::new();
+            // #todo should use try_lock_read?
+            let map = expect_lock_read(map);
+            for (k, v) in map.iter() {
+                obj.insert(k.to_string(), expr_to_json_value(v));
+            }
+            Value::Object(obj)
+        }
+        Expr::String(s) => Value::String(s.clone()),
+        Expr::Symbol(s) => Value::String(s.clone()),
+        Expr::KeySymbol(s) => Value::String(s.clone()),
+        Expr::Int(n) => json!(n),
+        Expr::Float(n) => json!(n),
+        Expr::Bool(b) => Value::Bool(*b),
+        _ => Value::String("Unsupported".to_string()), // #todo remove!
+    }
+}
+
 // #todo implement write/encode.
 
 // #todo find a better name.
@@ -68,6 +113,14 @@ pub fn json_read_string(args: &[Expr], _context: &mut Context) -> Result<Expr, E
     Ok(json_value_to_expr(value))
 }
 
+// #todo support (Str #JSON "{...}")
+
+pub fn expr_to_json_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let expr = unpack_arg(args, 0, "expr")?;
+    let json_value = expr_to_json_value(expr);
+    Ok(Expr::string(json_value.to_string()))
+}
+
 pub fn setup_lib_codec_json(context: &mut Context) {
     // #todo find a good path and name.
     // #todo codec or serder? codec is more general.
@@ -75,10 +128,18 @@ pub fn setup_lib_codec_json(context: &mut Context) {
 
     let module = require_module("codec/json-codec", context);
 
+    // #todo find better name.
     // (use codec/json-codec)
     // (let value (json-codec/read json))
     module.insert("read", Expr::ForeignFunc(Arc::new(json_read_string)));
+    // #todo find better name
+    module.insert(
+        "to-string",
+        Expr::ForeignFunc(Arc::new(expr_to_json_string)),
+    );
 }
+
+// #todo add more unit tests.
 
 #[cfg(test)]
 mod tests {
