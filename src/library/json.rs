@@ -52,7 +52,7 @@ fn expr_to_json_value(expr: impl AsRef<Expr>) -> Value {
     // #todo support Null
     // #todo somehow encode annotations.
     // #todo strip comments!
-
+    // #todo write unit test!
     match expr {
         Expr::Array(exprs) => {
             let mut arr = Vec::new();
@@ -68,7 +68,7 @@ fn expr_to_json_value(expr: impl AsRef<Expr>) -> Value {
             // #todo should use try_lock_read?
             let map = expect_lock_read(map);
             for (k, v) in map.iter() {
-                obj.insert(k.to_string(), expr_to_json_value(v));
+                obj.insert(k.to_string(), expr_to_json_value(v.unpack()));
             }
             Value::Object(obj)
         }
@@ -78,7 +78,10 @@ fn expr_to_json_value(expr: impl AsRef<Expr>) -> Value {
         Expr::Int(n) => json!(n),
         Expr::Float(n) => json!(n),
         Expr::Bool(b) => Value::Bool(*b),
-        _ => Value::String("Unsupported".to_string()), // #todo remove!
+        _ => {
+            dbg!(&expr);
+            Value::String("Unsupported".to_string()) // #todo remove!
+        }
     }
 }
 
@@ -151,6 +154,20 @@ mod tests {
         expr::{format_value, Expr},
         util::expect_lock_read,
     };
+
+    #[test]
+    fn expr_to_json_string_usage() {
+        let mut context = Context::new();
+
+        // #insight notice the use of a variable.
+        let input = r#"
+        (use jc /codec/json-codec)
+        (let name "George")
+        (jc/to-string {:name name})
+        "#;
+        let expr = eval_string(input, &mut context).unwrap();
+        assert_eq!(format_value(expr), r#"{"name":"George"}"#);
+    }
 
     #[test]
     fn json_read_string_usage() {
