@@ -1,8 +1,10 @@
 use std::collections::HashMap;
 
-use crate::{context::Context, eval::eval, util::expect_lock_read};
+use crate::{context::Context, error::Error, eval::eval, util::expect_lock_read};
 
 use super::Expr;
+
+// #todo these should be functions, not Expr methods!
 
 impl Expr {
     // #todo this is some kind of map-reduce, try to use some kind of interator.
@@ -28,6 +30,29 @@ impl Expr {
         }
     }
 
+    // #todo add unit-test
+    // #todo return a list of errors?
+    pub fn try_transform<F>(self, f: &F) -> Result<Self, Error>
+    where
+        F: Fn(Self) -> Result<Self, Error>,
+    {
+        match self.extract() {
+            (Expr::List(terms), ann) => {
+                // #todo investigate this clone!!!!
+                // let terms = terms.iter().map(|t| t.clone().transform(f)).collect();
+                let mut mapped_terms = Vec::new();
+                for t in terms.iter() {
+                    mapped_terms.push(t.clone().try_transform(f)?);
+                }
+                let list = Expr::maybe_annotated(Expr::List(mapped_terms), ann);
+                f(list)
+            }
+            // #todo ARGHHHHHH does not handle Map, Array, etc.
+            _ => f(self),
+        }
+    }
+
+    // #todo what does transform_mut do?
     pub fn transform_mut<F>(self, f: &mut F) -> Self
     where
         F: FnMut(Self) -> Self,

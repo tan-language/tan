@@ -40,6 +40,7 @@ pub fn optimize_fn(expr: Expr) -> Expr {
                             // user ; => {:name "George" :role :admin}
                             // #todo should move to another place.
                             // #todo move error checking and inference to parser?
+                            // #insight here it handles both {...} and (Map ...)
                             if k == "_" {
                                 if let Expr::Symbol(sym) = &v {
                                     k.clone_from(sym);

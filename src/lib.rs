@@ -1,4 +1,5 @@
 pub mod api;
+pub mod check;
 pub mod context;
 pub mod error;
 pub mod eval;

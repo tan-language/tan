@@ -3,6 +3,7 @@
 use std::path::Path;
 
 use crate::{
+    check::check,
     context::Context,
     error::Error,
     eval::eval,
@@ -130,6 +131,15 @@ pub fn compile(expr: Expr, context: &mut Context) -> Result<Expr, Vec<Error>> {
         // The expression is pruned (elided)
         // #insight elision can happen also in macro_expand!
         return Ok(Expr::None);
+    };
+
+    // Check pass
+    // #todo confusion with upcoming `unchecked` keyword/concept.
+    // #todo find a better name (validation?)
+    // #todo move check after optimize? in resolve?
+    let expr = check(expr);
+    let Ok(expr) = expr else {
+        return Err(vec![expr.unwrap_err()]);
     };
 
     // Optimization pass
