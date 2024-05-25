@@ -13,6 +13,8 @@ use crate::expr::{format_value, Expr};
 
 // #todo #think hm, we NEED the annotations, especially in let expressions!
 
+// #todo combine in one pass with e.g. check?
+
 pub fn optimize_fn(expr: Expr) -> Expr {
     // #todo let annotations are lost here.
     match expr.unpack() {
@@ -26,7 +28,6 @@ pub fn optimize_fn(expr: Expr) -> Expr {
                         return Expr::maybe_annotated(Expr::array(items), expr.annotations());
                     } else if s == "Map" {
                         // #todo we loose support for (Map ...)
-                        // #todo how to report an error here? e.g. if k,v don't match?
                         let items: Vec<Expr> =
                             terms[1..].iter().map(|ax| ax.unpack().clone()).collect();
                         let mut map = HashMap::new();
@@ -39,7 +40,7 @@ pub fn optimize_fn(expr: Expr) -> Expr {
                             // (let user {_ name _ role})
                             // user ; => {:name "George" :role :admin}
                             // #todo should move to another place.
-                            // #todo move error checking and inference to parser?
+                            // #todo move inference to parser?
                             // #insight here it handles both {...} and (Map ...)
                             if k == "_" {
                                 if let Expr::Symbol(sym) = &v {
