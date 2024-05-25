@@ -35,7 +35,9 @@ pub fn optimize_fn(expr: Expr) -> Expr {
                             let v = pair[1].clone();
                             // #insight
                             // Map key inference:
-                            // (let m {_ name _ role})
+                            // (let name "George" role :admin)
+                            // (let user {_ name _ role})
+                            // user ; => {:name "George" :role :admin}
                             // #todo should move to another place.
                             // #todo move error checking and inference to parser?
                             if k == "_" {
