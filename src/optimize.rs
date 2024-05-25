@@ -20,17 +20,20 @@ pub fn optimize_fn(expr: Expr) -> Expr {
             if !terms.is_empty() {
                 if let Expr::Symbol(s) = &terms[0].unpack() {
                     if s == "Array" {
+                        // #todo we loose support for (Array ...)
                         let items: Vec<Expr> =
                             terms[1..].iter().map(|ax| ax.unpack().clone()).collect();
                         return Expr::maybe_annotated(Expr::array(items), expr.annotations());
                     } else if s == "Map" {
+                        // #todo we loose support for (Map ...)
+                        // #todo how to report an error here? e.g. if k,v don't match?
                         let items: Vec<Expr> =
                             terms[1..].iter().map(|ax| ax.unpack().clone()).collect();
                         let mut map = HashMap::new();
                         for pair in items.chunks(2) {
-                            let k = pair[0].clone();
+                            let k = format_value(&pair[0]);
                             let v = pair[1].clone();
-                            map.insert(format_value(k), v);
+                            map.insert(k, v);
                         }
                         return Expr::maybe_annotated(Expr::map(map), expr.annotations());
                     }

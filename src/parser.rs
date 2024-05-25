@@ -499,6 +499,7 @@ impl<'a> Parser<'a> {
 
                 let exprs = self.parse_many(TokenKind::RightBracket, start_position)?;
 
+                // #todo maybe should be Expr::typ?
                 let mut items = vec![annotate_range(Expr::symbol("Array"), range)];
 
                 // #todo add error checking!
@@ -521,8 +522,11 @@ impl<'a> Parser<'a> {
                 // #todo add error checking!
                 // #todo optimize.
 
+                // #insight error checking and inference will happen in (Map ...) eval.
+
                 let exprs = self.parse_many(TokenKind::RightBrace, start_position)?;
 
+                // #todo maybe should be Expr::typ?
                 let mut items = vec![annotate_range(Expr::symbol("Map"), range)];
 
                 for expr in exprs {

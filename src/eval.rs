@@ -130,6 +130,7 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
             insert_symbol_binding(sym, &name.range(), value, context)?;
         }
         Expr::List(names) => {
+            // list destructuring.
             if names.len() != 2 {
                 return Err(Error::invalid_arguments(
                     "malformed List destructuring, needs two names",
@@ -183,6 +184,7 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
             // #todo add unit tests.
         }
         Expr::Array(names) => {
+            // array destructuring.
             // #todo temp, nasty code.
             // ensure that the values is also an Array.
             let Some(values) = value.as_array() else {
@@ -223,6 +225,7 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
             }
         }
         Expr::Map(items) => {
+            // map destructuring.
             // #todo temp, nasty code.
             // ensure that the values are also a Map.
             let Some(values) = value.as_map() else {
