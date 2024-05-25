@@ -31,8 +31,19 @@ pub fn optimize_fn(expr: Expr) -> Expr {
                             terms[1..].iter().map(|ax| ax.unpack().clone()).collect();
                         let mut map = HashMap::new();
                         for pair in items.chunks(2) {
-                            let k = format_value(&pair[0]);
+                            let mut k = format_value(&pair[0]);
                             let v = pair[1].clone();
+                            // #insight
+                            // Map key inference:
+                            // (let m {_ name _ role})
+                            // #todo should move to another place.
+                            // #todo move error checking and inference to parser?
+                            if k == "_" {
+                                if let Expr::Symbol(sym) = &v {
+                                    k.clone_from(sym);
+                                }
+                                // #todo report error/warning if we cannot infere!
+                            }
                             map.insert(k, v);
                         }
                         return Expr::maybe_annotated(Expr::map(map), expr.annotations());
