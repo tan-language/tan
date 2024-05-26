@@ -1,0 +1,4 @@
+(do
+(let [x ...rest] [1 2 3 4 5])
+    (count rest)
+)

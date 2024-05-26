@@ -1,3 +1,5 @@
+#![allow(clippy::manual_strip)]
+
 // #todo move these external eval functions into library, e.g. library/lang?
 
 mod eval_assertions;
@@ -210,18 +212,29 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
                 if sym == "_" {
                     continue;
                 }
+
                 // #insight '...' is called `ellipsis`.
+
+                // #todo consider `..._` for ignoring?
                 if sym == "..." {
                     break;
                 }
 
-                // #todo support "...", "...rest"
-                insert_symbol_binding(
-                    sym,
-                    &name.range(),
-                    expr_clone(values.get(i).unwrap()),
-                    context,
-                )?;
+                if sym.starts_with("...") {
+                    insert_symbol_binding(
+                        &sym[3..],
+                        &names[i].range(),
+                        Expr::array(&values[i..]),
+                        context,
+                    )?;
+                } else {
+                    insert_symbol_binding(
+                        sym,
+                        &name.range(),
+                        expr_clone(values.get(i).unwrap()),
+                        context,
+                    )?;
+                }
             }
         }
         Expr::Map(items) => {

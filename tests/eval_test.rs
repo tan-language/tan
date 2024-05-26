@@ -659,6 +659,13 @@ fn eval_should_support_array_destructuring() {
 }
 
 #[test]
+fn eval_should_support_array_rest_destructuring() {
+    let result = eval_file("array-destruct-rest.tan");
+    let value = result.unwrap().as_int().unwrap();
+    assert_eq!(value, 4);
+}
+
+#[test]
 fn eval_should_support_list_destructuring() {
     let expr = eval_file("list-destruct.tan").unwrap();
     let value = format_value(expr);
