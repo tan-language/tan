@@ -525,6 +525,14 @@ impl Expr {
         }
     }
 
+    #[inline]
+    pub fn unpack_consuming(self) -> Self {
+        match self {
+            Expr::Annotated(expr, _) => *expr,
+            _ => self,
+        }
+    }
+
     pub fn annotation(&self, name: impl Into<String>) -> Option<&Expr> {
         match self {
             Expr::Annotated(_, ann) => ann.get(&name.into()),
@@ -628,6 +636,20 @@ impl Expr {
         }
     }
 
+    // #insight useful for optimizations.
+    pub fn as_stringable_consuming(self) -> Option<String> {
+        // #todo try to optimize away the unpacks.
+        let expr = self.unpack_consuming();
+
+        match expr {
+            Expr::Symbol(s) => Some(s),
+            Expr::KeySymbol(s) => Some(s),
+            Expr::String(s) => Some(s),
+            Expr::Type(s) => Some(s),
+            _ => None,
+        }
+    }
+
     pub fn as_symbol(&self) -> Option<&str> {
         let Expr::Symbol(s) = self.unpack() else {
             return None;
@@ -686,6 +708,13 @@ impl Expr {
         // #todo what would be a good message?
         // #todo extract as variable.
         Some(expect_lock_read(v))
+    }
+
+    pub fn as_array_consuming(self) -> Option<Arc<RwLock<Vec<Expr>>>> {
+        let Expr::Array(v) = self.unpack_consuming() else {
+            return None;
+        };
+        Some(v)
     }
 
     // // #todo try to find a better name.
