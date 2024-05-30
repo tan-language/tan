@@ -320,6 +320,10 @@ pub fn setup_lib_lang(context: &mut Context) {
 
     module.insert("type-of", Expr::ForeignFunc(Arc::new(type_of)));
 
+    // #todo we also need an (eval ...) function.
+
+    // #todo hmm, needs a differerent name
+    // #todo use `(eval (read string))` instead?
     module.insert("eval-string", Expr::ForeignFunc(Arc::new(eval_string)));
     module.insert(
         "eval-string$$String",
