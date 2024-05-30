@@ -6,7 +6,7 @@ use crate::{
     context::Context,
     error::Error,
     expr::{annotate_type, Expr},
-    util::module_util::require_module,
+    util::{args::unpack_stringable_arg, module_util::require_module},
 };
 
 // #todo have more sophisticated patterns and matching.
@@ -79,33 +79,14 @@ pub fn regex_is_matching(args: &[Expr], _context: &mut Context) -> Result<Expr, 
 // #todo support named captures? nah, too much.
 // #todo capture-one <> capture-many, or capture <> capture*, or use xxxx* for generators/coroutines?
 pub fn regex_capture(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
-    let [this, string] = args else {
-        return Err(Error::invalid_arguments(
-            "requires `this` and `string` arguments",
-            None,
-        ));
-    };
-
-    // #todo verify that is Regex, not just string?
-    let Some(re_pattern) = this.as_string() else {
-        return Err(Error::invalid_arguments(
-            "`this` argument should be a Regex",
-            this.range(),
-        ));
-    };
-
-    let Some(string) = string.as_stringable() else {
-        return Err(Error::invalid_arguments(
-            "`string` argument should be a Stringable",
-            string.range(),
-        ));
-    };
+    let re_pattern = unpack_stringable_arg(args, 0, "re")?;
+    let string = unpack_stringable_arg(args, 1, "string")?;
 
     // #todo proper error reporting here!
     let Ok(re) = Regex::new(re_pattern) else {
         return Err(Error::invalid_arguments(
             &format!("invalid regex pattern: {re_pattern}"),
-            this.range(),
+            args[0].range(),
         ));
     };
 
