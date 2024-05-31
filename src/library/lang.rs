@@ -184,6 +184,7 @@ pub fn load_file(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
 
 // #insight plain eval is already provided as a builtin/special form.
 
+// #todo this is not really needed, can use `(eval (read string))` instead.
 pub fn eval_string(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     // #todo support all `Stringable`s
 
