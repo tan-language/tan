@@ -30,7 +30,7 @@ static FOREIGN_DYN_LIB_MAP: OnceLock<Mutex<HashMap<String, Library>>> = OnceLock
 // #todo op to set annotation.
 
 // #todo consider meta instead of ann
-// #todo consider get-ann?
+// #todo consider get-ann? or (better ann-of)
 // #todo where is this used?
 // #todo extract *_impl function.
 pub fn ann(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
