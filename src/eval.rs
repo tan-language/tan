@@ -467,11 +467,23 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                 context
                     .get(symbol, is_dynamically_scoped(symbol))
                     .ok_or_else::<Error, _>(|| {
-                        Error::undefined_symbol(
+                        let mut error = Error::undefined_symbol(
                             symbol,
                             &format!("symbol not defined: `{symbol}`"),
                             expr.range(),
-                        )
+                        );
+
+                        if symbol.contains(',') {
+                            error.push_note("you added a comma by mistake?", None)
+                        }
+
+                        if symbol.contains('`') {
+                            // #todo better hint needed.
+                            // #todo mark as hint, not a general note?
+                            error.push_note("you used ` instead of ' by mistake?", None)
+                        }
+
+                        error
                     })?
             };
 
