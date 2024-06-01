@@ -473,6 +473,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             expr.range(),
                         );
 
+                        // #todo add unit test for ',', '`' hints.
+
                         if symbol.contains(',') {
                             error.push_note("you added a comma by mistake?", None)
                         }

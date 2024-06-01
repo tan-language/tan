@@ -72,6 +72,8 @@ pub fn with_type(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(annotate(expr_clone(target), "type", type_expr.clone()))
 }
 
+// #insight this function returns a string, it does not write to stdout.
+// #todo also have a version that prints to stdout?
 pub fn debug_expr(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [expr, ..] = args else {
         // #todo better error
@@ -312,6 +314,7 @@ pub fn setup_lib_lang(context: &mut Context) {
 
     // #todo the `!` is confusing here.
     // #todo `dbg` is not following naming conventions, but maybe OK for this case?
+    // #insight this function returns a string, it does not write to stdout!
     module.insert("dbg!", Expr::ForeignFunc(Arc::new(debug_expr)));
 
     // #todo use is-some? to make more like a verb?
