@@ -62,6 +62,7 @@ pub fn eval_when(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
                 }
             }
             Expr::List(terms) => {
+                // #todo pattern matching needs to be recursive!
                 // #todo #temp manual, dummy implementation.
                 // #todo check () -> None!
                 match value.unpack() {

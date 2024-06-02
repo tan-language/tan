@@ -8,6 +8,8 @@ use crate::{
 };
 
 // #todo error wrap.
+// #todo error pretty-print / format-pretty
+// #todo error variant (don't use the word `kind` reserved for type-system)
 
 pub fn error_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let reason = unpack_stringable_arg(args, 0, "reason")?;
