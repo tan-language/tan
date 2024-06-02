@@ -80,6 +80,20 @@ pub fn eval_when(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
                         }
                     }
                     Expr::Float(_n) => todo!(),
+                    Expr::Error(reason) => {
+                        // #todo extract as function.
+                        if let Some(typ) = terms[0].as_stringable() {
+                            if typ == "Error" {
+                                if let Some(name) = terms[1].as_stringable() {
+                                    if name != "_" {
+                                        // #todo #IMPORTANT should create nested context.
+                                        context.scope.insert(name, Expr::string(reason));
+                                    }
+                                } // #todo raise error.
+                                break eval(clause, context);
+                            }
+                        }
+                    }
                     _ => {}
                 }
             }
@@ -134,5 +148,16 @@ mod tests {
         "#;
         let value = eval_string(input, &mut context).unwrap();
         assert_eq!(format_value(&value), "integer: 5");
+
+        let input = r#"
+        (let result (Error "invalid value"))
+        (when result
+            (Error reason)
+                "error: ${reason}"
+            _   "OK"
+        )
+        "#;
+        let value = eval_string(input, &mut context).unwrap();
+        assert_eq!(format_value(&value), "error: invalid value");
     }
 }
