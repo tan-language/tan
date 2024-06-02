@@ -56,6 +56,7 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
             | "<-"
             | "+<-"
             | "if"
+            | "when"
             | "cond"
             | "return"
             | "continue"

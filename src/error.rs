@@ -295,6 +295,7 @@ impl Error {
         Self::new(ErrorVariant::ContinueCF)
     }
 
+    // #todo could also take a range!
     pub fn panic(text: &str) -> Self {
         Self::new(ErrorVariant::Panic(text.to_owned()))
     }

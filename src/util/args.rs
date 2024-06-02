@@ -8,6 +8,7 @@ use std::{
 
 use crate::{error::Error, expr::Expr};
 
+// #todo move to eval/utils or something.
 // #todo convert those to macros.
 // #todo think about proper name for these functions.
 
