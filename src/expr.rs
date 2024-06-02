@@ -165,6 +165,7 @@ pub enum Expr {
     // #todo support both mutable and immutable foreignStructs
     ForeignStruct(Arc<dyn Any + Send + Sync + 'static>),
     ForeignStructMut(Arc<RwLock<dyn Any + Send + Sync + 'static>>),
+    Error(String),
     // --- High-level ---
     // #todo do should contain the expressions also, pre-parsed!
     Do,
@@ -313,6 +314,10 @@ impl fmt::Debug for Expr {
             Expr::ForeignFunc(..) => "<FOREIGN-FUNC>".to_owned(),
             Expr::ForeignStruct(..) => "<FOREIGN-STRUCT>".to_owned(),
             Expr::ForeignStructMut(..) => "<FOREIGN-STRUCT-MUT>".to_owned(),
+            // #todo find a better name than `reason`.
+            // #todo add support for wrapping upstream errors
+            // #todo add support for wrapping foreign (rust) errors
+            Expr::Error(reason) => format!("Error({reason})"),
             Expr::Let => "let".to_owned(),
             // #todo properly format do, let, if, etc.
             Expr::If(_, _, _) => "if".to_owned(),
@@ -347,6 +352,7 @@ impl fmt::Display for Expr {
                 Expr::Type(s) => s.clone(),
                 Expr::Char(c) => format!(r#"(Char "{c}")"#), // #todo no char literal?
                 Expr::String(s) => format!("\"{s}\""),
+                Expr::Error(reason) => format!(r#"(Error "{reason}")"#),
                 Expr::Do => "do".to_owned(),
                 Expr::Let => "let".to_owned(),
                 // #todo properly format if!
