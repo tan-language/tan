@@ -1,4 +1,9 @@
-use crate::{context::Context, error::Error, expr::Expr, util::args::unpack_arg};
+use crate::{
+    context::Context,
+    error::Error,
+    expr::{has_dyn_type, has_type_annotation, Expr},
+    util::args::unpack_arg,
+};
 
 use super::eval;
 
@@ -42,13 +47,14 @@ pub fn eval_when(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
         let pattern = unpack_arg(args, i, "pattern")?;
         let clause = unpack_arg(args, i + 1, "clause")?;
 
-        println!("===== {pattern}");
-
         match pattern {
             Expr::Symbol(sym) => {
-                println!("--1 Symbol");
-                println!("--2");
                 if sym == "_" {
+                    break eval(clause, context);
+                }
+            }
+            Expr::Type(type_name) => {
+                if has_dyn_type(value, type_name, context) {
                     break eval(clause, context);
                 }
             }
@@ -85,5 +91,25 @@ mod tests {
         "#;
         let value = eval_string(input, &mut context).unwrap();
         assert_eq!(format_value(&value), "unknown");
+
+        let input = r#"
+        (let value ())
+        (when value
+            None "nothing"
+            _    "unknown"
+        )
+        "#;
+        let value = eval_string(input, &mut context).unwrap();
+        assert_eq!(format_value(&value), "nothing");
+
+        // let input = r#"
+        // (let value 5)
+        // (when value
+        //     (Int n) "integer: ${n}"
+        //     _       "unknown"
+        // )
+        // "#;
+        // let value = eval_string(input, &mut context).unwrap();
+        // assert_eq!(format_value(&value), "integer: 5");
     }
 }

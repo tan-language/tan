@@ -806,10 +806,11 @@ impl Expr {
 
     // #todo we need a version that returns just a string.
 
+    // #todo introduce a version that does not look-through Symbol, no Context required.
     // #todo how about return &Expr to avoid clones?
     // #todo alternatively consider key-symbol instead of String
     // #insight use string for the type to support parameterized types, e.g (Map String Any)
-    // Returns the dynamic (run-time) type of the expression.
+    // Returns the dynamic (eval-time) type of the expression.
     pub fn dyn_type(&self, context: &Context) -> Expr {
         // #todo make constant out of "type".
         if let Some(typ) = self.annotation("type") {
@@ -834,9 +835,11 @@ impl Expr {
             Expr::Set(_) => Expr::typ("Set"),   // #todo return parameterized type
             // #todo what about quoted Symbol?
             Expr::Symbol(name) => {
+                // #todo it's weird that we look through symbols.
                 if let Some(value) = context.scope.get(name) {
                     value.dyn_type(context)
                 } else {
+                    // #todo could use symbol here!
                     Expr::typ("Unknown")
                 }
             }
@@ -899,13 +902,26 @@ pub fn annotate_type(expr: Expr, type_name: impl Into<String>) -> Expr {
     annotate(expr, "type", Expr::Type(type_name.into()))
 }
 
+// #insight it checks exclusively for annotation, maybe too error-prone.
 pub fn has_type_annotation(expr: &Expr, type_name: &str) -> bool {
+    // #todo should also check, dyn_type.
     if let Some(typ) = expr.annotation("type") {
         if let Some(name) = typ.as_stringable() {
             name == type_name
         } else {
             false
         }
+    } else {
+        false
+    }
+}
+
+// #todo we need a version without Context, duh!
+pub fn has_dyn_type(expr: &Expr, type_name: &str, context: &Context) -> bool {
+    let typ = expr.dyn_type(context);
+
+    if let Some(name) = typ.as_stringable() {
+        name == type_name
     } else {
         false
     }
