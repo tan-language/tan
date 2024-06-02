@@ -16,6 +16,7 @@ mod eval_let_ds;
 mod eval_panic;
 mod eval_scope_update;
 mod eval_use;
+mod eval_when;
 mod eval_while;
 pub mod iterator;
 pub mod util;
@@ -779,6 +780,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         "while" => anchor(eval_while(args, context), expr),
                         "if" => anchor(eval_if(args, context), expr),
                         "cond" => anchor(eval_cond(args, context), expr),
+                        "when" => anchor(eval_when(args, context), expr),
                         // #todo #temp temporary solution.
                         "assert" => anchor(eval_assert(op, args, context), expr),
                         "assert-eq" => anchor(eval_assert_eq(op, args, context), expr),
