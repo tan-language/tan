@@ -276,8 +276,8 @@ impl fmt::Debug for Expr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let text = match self {
             Expr::Never => "⊥".to_owned(), // #todo maybe use an ASCII representation, e.g. `!` or `!!`
-            // #insight `Nil`` is more readable than `()` in the debug context.
-            Expr::None => "Nil".to_owned(),
+            // #insight `None` is more readable than `()` in the debug context.
+            Expr::None => "None".to_owned(),
             Expr::Comment(s, _) => format!("Comment({s})"),
             Expr::TextSeparator => "<TEXT-SEPARATOR>".to_owned(),
             Expr::Bool(b) => format!("Bool({b})"),

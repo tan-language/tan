@@ -2,11 +2,7 @@ use crate::{context::Context, error::Error, expr::Expr, util::args::unpack_arg};
 
 use super::eval;
 
-// #todo IMPLEMENT ME
-
-// #todo is this different enough from `if`?
-// #todo replace `cond` with `if`?
-// #todo introduce `when` and `unless`?
+// #todo should reserve `when` for one-leg if? (inverse of `unless`)?
 
 // #insight
 // The `when` keyword is inspired by Kotlin. The more common `match`, `switch`,
@@ -20,6 +16,8 @@ use super::eval;
 //   _ (...)
 // )
 pub fn eval_when(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+    // #todo can use returns instead of breaks.
+
     let value = unpack_arg(args, 0, "value")?;
 
     let mut i = 1;
@@ -44,28 +42,27 @@ pub fn eval_when(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
         let pattern = unpack_arg(args, i, "pattern")?;
         let clause = unpack_arg(args, i + 1, "clause")?;
 
-        // #todo handle else close!
+        println!("===== {pattern}");
 
-        // if let Expr::Symbol(sym) = predicate.unpack() {
-        //     if sym == "else" {
-        //         break eval(clause, context);
-        //     }
-        // }
-
-        // let predicate = eval(predicate, context)?;
-
-        // let Some(predicate) = predicate.as_bool() else {
-        //     return Err(Error::invalid_arguments(
-        //         "the cond predicate is not a boolean value",
-        //         predicate.range(),
-        //     ));
-        // };
-
-        let predicate = true;
-
-        if predicate {
-            break eval(clause, context);
+        match pattern {
+            Expr::Symbol(sym) => {
+                println!("--1 Symbol");
+                println!("--2");
+                if sym == "_" {
+                    break eval(clause, context);
+                }
+            }
+            Expr::List(terms) => {
+                println!("--1 List");
+                println!("--2");
+            }
+            _ => {
+                // #todo what is the correct error to return?
+                return Err(Error::panic("unhandled `when` case"));
+            }
         }
+
+        // #todo handle else clause!
 
         i += 2;
     }
@@ -75,8 +72,18 @@ pub fn eval_when(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
 mod tests {
     use crate::{api::eval_string, context::Context, expr::format_value};
 
-    // #insight `+<-` and other assignment operators are expanded in macro_expand.
-    // #insight `plus` is a more general name than `add` for the operator.
     #[test]
-    fn eval_assign_plus_usage() {}
+    fn eval_when_usage() {
+        let mut context = Context::new();
+
+        let input = r#"
+        (let value "not-int")
+        (when value
+            (Int n) "integer: ${n}"
+            _       "unknown"
+        )
+        "#;
+        let value = eval_string(input, &mut context).unwrap();
+        assert_eq!(format_value(&value), "unknown");
+    }
 }

@@ -23,6 +23,8 @@ pub mod util;
 
 use std::{collections::HashMap, sync::Arc};
 
+use eval_when::eval_when;
+
 use crate::{
     context::Context,
     error::{Error, ErrorVariant},
