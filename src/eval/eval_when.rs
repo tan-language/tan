@@ -129,7 +129,7 @@ mod tests {
         (let value 5)
         (when value
             (Int n) "integer: ${n}"
-            _       "unknown"
+                  _ "unknown" ; <-- #insight interesting formatting!
         )
         "#;
         let value = eval_string(input, &mut context).unwrap();
