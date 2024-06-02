@@ -6,6 +6,7 @@ pub mod chrono;
 pub mod cmp;
 pub mod css_expr;
 pub mod eq;
+pub mod error;
 pub mod float;
 pub mod fs;
 pub mod html;

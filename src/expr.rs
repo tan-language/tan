@@ -450,6 +450,10 @@ impl Expr {
         Expr::String(s.into())
     }
 
+    pub fn error(s: impl Into<String>) -> Self {
+        Expr::Error(s.into())
+    }
+
     pub fn typ(s: impl Into<String>) -> Self {
         Expr::Type(s.into())
     }

@@ -12,6 +12,7 @@ use super::char::setup_lib_char;
 use super::chrono;
 use super::cmp::setup_lib_cmp;
 use super::eq::setup_lib_eq;
+use super::error::setup_lib_error;
 use super::float::setup_lib_float;
 use super::io::setup_lib_io;
 use super::lang::setup_lib_lang;
@@ -50,6 +51,7 @@ pub fn setup_lib_prelude(context: &mut Context) {
     setup_lib_char(context);
     setup_lib_u8(context);
     setup_lib_float(context);
+    setup_lib_error(context);
 
     // #todo move this to lang.rs
     // #todo #temp #hack
