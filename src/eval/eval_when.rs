@@ -1,7 +1,7 @@
 use crate::{
     context::Context,
     error::Error,
-    expr::{has_dyn_type, has_type_annotation, Expr},
+    expr::{has_dyn_type, Expr},
     util::args::unpack_arg,
 };
 
@@ -25,9 +25,12 @@ pub fn eval_when(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
 
     let value = unpack_arg(args, 0, "value")?;
 
+    let value = eval(value, context)?;
+
     let mut i = 1;
 
     // #todo use args as iterator.
+    // #todo #IMPORTANT should create nested context!
 
     // #insight
     // All cases should be handled, at least with a 'wildcard' `_` clause.
@@ -54,13 +57,31 @@ pub fn eval_when(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
                 }
             }
             Expr::Type(type_name) => {
-                if has_dyn_type(value, type_name, context) {
+                if has_dyn_type(&value, type_name, context) {
                     break eval(clause, context);
                 }
             }
             Expr::List(terms) => {
-                println!("--1 List");
-                println!("--2");
+                // #todo #temp manual, dummy implementation.
+                // #todo check () -> None!
+                match value.unpack() {
+                    Expr::Int(n) => {
+                        // #todo extract as function.
+                        if let Some(typ) = terms[0].as_stringable() {
+                            if typ == "Int" {
+                                if let Some(name) = terms[1].as_stringable() {
+                                    if name != "_" {
+                                        // #todo #IMPORTANT should create nested context.
+                                        context.scope.insert(name, Expr::Int(*n));
+                                    }
+                                } // #todo raise error.
+                                break eval(clause, context);
+                            }
+                        }
+                    }
+                    Expr::Float(_n) => todo!(),
+                    _ => {}
+                }
             }
             _ => {
                 // #todo what is the correct error to return?
@@ -73,6 +94,8 @@ pub fn eval_when(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
         i += 2;
     }
 }
+
+// #todo also add tan tests.
 
 #[cfg(test)]
 mod tests {
@@ -102,14 +125,14 @@ mod tests {
         let value = eval_string(input, &mut context).unwrap();
         assert_eq!(format_value(&value), "nothing");
 
-        // let input = r#"
-        // (let value 5)
-        // (when value
-        //     (Int n) "integer: ${n}"
-        //     _       "unknown"
-        // )
-        // "#;
-        // let value = eval_string(input, &mut context).unwrap();
-        // assert_eq!(format_value(&value), "integer: 5");
+        let input = r#"
+        (let value 5)
+        (when value
+            (Int n) "integer: ${n}"
+            _       "unknown"
+        )
+        "#;
+        let value = eval_string(input, &mut context).unwrap();
+        assert_eq!(format_value(&value), "integer: 5");
     }
 }
