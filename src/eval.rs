@@ -344,8 +344,14 @@ pub fn invoke_func(func: &Expr, args: Vec<Expr>, context: &mut Context) -> Resul
     // actually we implement static (lexical) scoping here, as we base the new
     // scope on the lexical function scope.
 
+    // #todo avoid the func_scope.clone()
     let prev_scope = context.scope.clone();
     context.scope = Arc::new(Scope::new(func_scope.clone())); // #insight notice we use func_scope here!
+                                                              // #insight #IMPORTANT make sure the scope is restored before all exit points of this function!!!
+                                                              // #todo need a push_scope helper on context that uses Drop to emulate defer?
+                                                              // #todo e.g. it could return a prev_scope ScopeGuard!
+                                                              // #insight notice we use func_scope here!
+                                                              // let prev_scope = std::mem::replace(&mut context.scope, func_scope.clone());
 
     // #todo consider args.into_iter();
 
@@ -353,6 +359,7 @@ pub fn invoke_func(func: &Expr, args: Vec<Expr>, context: &mut Context) -> Resul
 
     for param in params {
         let Some(param_name) = param.as_symbol() else {
+            context.scope = prev_scope;
             return Err(Error::invalid_arguments(
                 "parameter is not a symbol",
                 param.range(),
@@ -409,6 +416,7 @@ pub fn invoke_func(func: &Expr, args: Vec<Expr>, context: &mut Context) -> Resul
                         // #todo find better ways for reporting the file, this is a temp solution.
                         // annotate errors thrown by function evaluation with the
                         // function file_path, for more precise error reporting.
+                        context.scope = prev_scope;
                         error.file_path.clone_from(file_path);
                         return Err(error);
                     }
@@ -419,7 +427,6 @@ pub fn invoke_func(func: &Expr, args: Vec<Expr>, context: &mut Context) -> Resul
 
     // #todo what happens to this if an error is thrown??!!
     context.scope = prev_scope;
-
     Ok(value)
 }
 

@@ -1,5 +1,5 @@
 use std::{
-    fs, mem,
+    fs,
     path::{Path, PathBuf},
     sync::Arc,
 };
@@ -343,18 +343,18 @@ pub fn eval_module(
     //     .module_registry
     //     .insert(module_name.clone(), module.clone());
 
-    // #insight pre-inderting the module also enables dyn-libs.
+    // #insight pre-inserting the module also enables dyn-libs.
     context
         .module_registry
         .insert(module_path.clone(), module.clone());
 
     // #todo avoid the module.scope.clone()
-    // let prev_scope = context.scope.clone();
-    // context.scope = module.scope.clone();
+    let prev_scope = context.scope.clone();
+    context.scope = module.scope.clone();
     // #insight #IMPORTANT make sure the scope is restored before all exit points of this function!!!
     // #todo need a push_scope helper on context that uses Drop to emulate defer?
     // #todo e.g. it could return a prev_scope ScopeGuard!
-    let prev_scope = mem::replace(&mut context.scope, module.scope.clone());
+    // let prev_scope = std::mem::replace(&mut context.scope, module.scope.clone());
 
     if has_tan_extension(&module_path) {
         // #todo use context.insert_special!
