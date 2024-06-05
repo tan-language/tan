@@ -24,7 +24,7 @@ use super::eval;
 
 // #todo find a good name, consider `ground`.
 /// If the result is an error, add a range from the 'anchor' expression.
-pub fn anchor(result: Result<Expr, Error>, expr: &Expr) -> Result<Expr, Error> {
+pub fn anchor_error(result: Result<Expr, Error>, expr: &Expr) -> Result<Expr, Error> {
     if let Err(mut error) = result {
         // #todo consider anchoring all notes!
         // #todo notes in error is a hack, needs refactoring.

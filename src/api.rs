@@ -81,6 +81,7 @@ pub fn parse_string(input: impl AsRef<str>) -> Result<Expr, Vec<Error>> {
     Ok(expr)
 }
 
+// #insight use the compile* functions if you don't need transient expressions in the AST.
 /// Parses a Tan expression encoded as a text string, returns all expressions parsed.
 pub fn parse_string_all(input: impl AsRef<str>) -> Result<Vec<Expr>, Vec<Error>> {
     let input = input.as_ref();
@@ -158,7 +159,6 @@ pub fn compile(expr: Expr, context: &mut Context) -> Result<Expr, Vec<Error>> {
 
 // #todo should it really update the context?
 // #todo should refactor
-// #todo what is a good name? maybe `prepare_string`?
 /// Reads a Tan expression encoded as a text string, and 'compiles' it for evaluation.
 /// Updates the context with definitions.
 pub fn compile_string(

@@ -11,7 +11,7 @@ mod eval_for;
 mod eval_for_each;
 mod eval_for_list;
 mod eval_if;
-mod eval_let;
+pub mod eval_let;
 mod eval_let_ds;
 mod eval_panic;
 mod eval_scope_update;
@@ -54,7 +54,7 @@ use self::{
     eval_scope_update::eval_scope_update,
     eval_use::eval_use,
     eval_while::eval_while,
-    util::{anchor, get_current_file_path},
+    util::{anchor_error, get_current_file_path},
 };
 
 // #insight
@@ -616,7 +616,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                 Expr::Func(..) => {
                     let args = eval_args(args, context)?;
                     // #todo call invoke_func directly?
-                    anchor(invoke(&head, args, context), expr)
+                    anchor_error(invoke(&head, args, context), expr)
                 }
                 Expr::ForeignFunc(..) => {
                     // #todo do NOT pre-evaluate args for ForeignFunc, allow to implement 'macros'.
@@ -627,7 +627,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     let args = eval_args(args, context)?;
                     // #todo call directly?
                     // anchor(foreign_function(&args, context), expr)
-                    anchor(invoke(&head, args, context), expr)
+                    anchor_error(invoke(&head, args, context), expr)
                 }
                 Expr::Array(arr) => {
                     // Evaluate the arguments before calling the function.
@@ -779,33 +779,33 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         // special term
                         // #todo the low-level handling of special forms should use the above high-level cases.
                         // #todo use the `optimize`/`raise` function, here to prepare high-level expression for evaluation, to avoid duplication.
-                        "do" => anchor(eval_do(args, context), expr),
+                        "do" => anchor_error(eval_do(args, context), expr),
                         // #insight `head` seems to have range info, that `expr` lacks.
                         // #todo add range info to expr (no unpack) and use it instead!!!
-                        "panic!" => anchor(eval_panic(args, context), &head),
-                        "for" => anchor(eval_for(args, context), expr),
+                        "panic!" => anchor_error(eval_panic(args, context), &head),
+                        "for" => anchor_error(eval_for(args, context), expr),
                         // #todo consider the name `for*` or something similar?
-                        "for->list" => anchor(eval_for_list(args, context), expr),
-                        "while" => anchor(eval_while(args, context), expr),
-                        "if" => anchor(eval_if(args, context), expr),
-                        "cond" => anchor(eval_cond(args, context), expr),
-                        "when" => anchor(eval_when(args, context), expr),
+                        "for->list" => anchor_error(eval_for_list(args, context), expr),
+                        "while" => anchor_error(eval_while(args, context), expr),
+                        "if" => anchor_error(eval_if(args, context), expr),
+                        "cond" => anchor_error(eval_cond(args, context), expr),
+                        "when" => anchor_error(eval_when(args, context), expr),
                         // #todo #temp temporary solution.
-                        "assert" => anchor(eval_assert(op, args, context), expr),
-                        "assert-eq" => anchor(eval_assert_eq(op, args, context), expr),
+                        "assert" => anchor_error(eval_assert(op, args, context), expr),
+                        "assert-eq" => anchor_error(eval_assert_eq(op, args, context), expr),
                         // #todo for-each or overload for?
-                        "for-each" => anchor(eval_for_each(args, context), expr),
-                        "assign" => anchor(eval_assign(args, context), expr),
+                        "for-each" => anchor_error(eval_for_each(args, context), expr),
+                        "assign" => anchor_error(eval_assign(args, context), expr),
                         // #insight operator alias for assign
-                        "<-" => anchor(eval_assign(args, context), expr),
+                        "<-" => anchor_error(eval_assign(args, context), expr),
                         // #todo, investigate, find a better name.
-                        "scope-update" => anchor(eval_scope_update(args, context), expr),
+                        "scope-update" => anchor_error(eval_scope_update(args, context), expr),
                         // #insight `op` seems to have range info, that `expr` lacks.
                         // #todo add range info to expr (no unpack) and use it instead!!!
-                        "use" => anchor(eval_use(args, context), expr),
-                        "def" => anchor(eval_def(&head, args, context), expr),
-                        "let-ds" => anchor(eval_let_ds(args, context), expr),
-                        "let" => anchor(eval_let(&head, args, context), expr),
+                        "use" => anchor_error(eval_use(args, context), expr),
+                        "def" => anchor_error(eval_def(&head, args, context), expr),
+                        "let-ds" => anchor_error(eval_let_ds(args, context), expr),
+                        "let" => anchor_error(eval_let(&head, args, context), expr),
                         "and" => {
                             // #insight `and` _is_ short-circuiting and cannot be implemented with a function
                             // #todo what about binary and?
