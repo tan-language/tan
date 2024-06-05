@@ -1,13 +1,20 @@
-use crate::{context::Context, error::Error, expr::Expr};
+use crate::{
+    context::Context,
+    error::Error,
+    expr::{annotate_range, expr_clone, Expr},
+};
 
 use super::util::{eval_module, get_bindings_with_prefix};
+
+// #todo annotate imported values with range
+// #todo add extra annotation that this is imported.
+// #todo consider also inserting the module in scope?
 
 pub fn eval_use(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     // #insight modules are (currently) directories, _not_ files.
 
     // #todo add unit tests for all cases.
     // #todo support single-file modules (xxx.mod.tan, xxx.module.tan)
-    // #todo extract as function
     // #insight this code is temporarily(?) moved from `resolver` here.
     // #todo also introduce a dynamic version of `use`.
 
@@ -25,6 +32,9 @@ pub fn eval_use(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
             return Err(Error::invalid_arguments("malformed use expression", None));
         }
     };
+
+    // #todo is it safe to call unwrap here?
+    let use_range = module_path.range().unwrap();
 
     // #todo the formatter should convert string paths to symbols.
 
@@ -87,7 +97,15 @@ pub fn eval_use(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
 
                 for binding in bindings {
                     // eprintln!("======> {} = {}", binding.0, binding.1);
-                    context.scope.insert(binding.0, binding.1);
+                    // let value = update_annotation(
+                    //     &mut Arc::get_mut(binding.1).unwrap(),
+                    //     "range",
+                    //     _use_range,
+                    // );
+                    // #todo should move to comp-time.
+                    // #insight it's relatively OK to call expr_clone here (use).
+                    let value = annotate_range(expr_clone(&binding.1), use_range.clone());
+                    context.scope.insert(binding.0, value);
                 }
 
                 // let Some(value) = module.scope.get(name) else {
@@ -127,8 +145,11 @@ pub fn eval_use(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
 
         let name = format!("{}/{}", module_prefix, name);
 
+        // #todo add a unit test to verify range annotations.
         // #todo assign as top-level bindings!
-        context.scope.insert(name, value.clone());
+
+        let value = annotate_range(expr_clone(value), use_range.clone());
+        context.scope.insert(name, value);
     }
 
     // #todo allow for embedding explicit symbols, non-namespaced!

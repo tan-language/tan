@@ -1,5 +1,5 @@
 use std::{
-    fs,
+    fs, mem,
     path::{Path, PathBuf},
     sync::Arc,
 };
@@ -209,6 +209,7 @@ pub fn compute_module_file_paths(
 
 // #todo maybe rename both to load_file, load_module?
 
+// #todo used in load_file/(load ...)
 pub fn eval_file(path: &str, context: &mut Context) -> Result<Expr, Vec<Error>> {
     // #todo keep all inputs in magic variable in env, associate url/key with error.
 
@@ -347,8 +348,13 @@ pub fn eval_module(
         .module_registry
         .insert(module_path.clone(), module.clone());
 
-    let prev_scope = context.scope.clone();
-    context.scope = module.scope.clone();
+    // #todo avoid the module.scope.clone()
+    // let prev_scope = context.scope.clone();
+    // context.scope = module.scope.clone();
+    // #insight #IMPORTANT make sure the scope is restored before all exit points of this function!!!
+    // #todo need a push_scope helper on context that uses Drop to emulate defer?
+    // #todo e.g. it could return a prev_scope ScopeGuard!
+    let prev_scope = mem::replace(&mut context.scope, module.scope.clone());
 
     if has_tan_extension(&module_path) {
         // #todo use context.insert_special!
@@ -373,6 +379,9 @@ pub fn eval_module(
     let file_paths = compute_module_file_paths(&module_path, strict);
 
     let Ok(file_paths) = file_paths else {
+        // #todo argh! we need something like defer here!
+        // #todo could use defer_lite crate and the defer! macro!!
+        context.scope = prev_scope;
         return Err(vec![file_paths.unwrap_err().into()]);
     };
 
@@ -382,8 +391,13 @@ pub fn eval_module(
     // #todo prohibit recursive module_evals.
 
     for file_path in &file_paths {
-        let _ = eval_file(file_path, context)?;
+        if let Err(error) = eval_file(file_path, context) {
+            context.scope = prev_scope;
+            return Err(error);
+        }
     }
+
+    // #todo #IMPORTANT add a unit test to verify that the original scope is restored!
 
     context.scope = prev_scope;
     // #todo consider pre-inserting the module, see above!
