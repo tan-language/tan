@@ -123,6 +123,7 @@ pub fn map_update_mut(args: &[Expr], _context: &mut Context) -> Result<Expr, Err
 // #todo this should be a special form, not evaluate the default value if not needed (short-circuit).
 // #todo consider making default optional.
 pub fn map_get_or(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    // #todo rename `default_value` to `fallback`, more descriptive.
     let [map, key, default_value] = args else {
         return Err(Error::invalid_arguments(
             "requires `this` and `key` argument",
