@@ -17,6 +17,7 @@ use super::float::setup_lib_float;
 use super::io::setup_lib_io;
 use super::lang::setup_lib_lang;
 use super::map::setup_lib_map;
+use super::maybe::setup_lib_maybe;
 use super::range::setup_lib_range;
 use super::seq::setup_lib_seq;
 use super::string::setup_lib_string;
@@ -51,6 +52,7 @@ pub fn setup_lib_prelude(context: &mut Context) {
     setup_lib_char(context);
     setup_lib_u8(context);
     setup_lib_float(context);
+    setup_lib_maybe(context);
     setup_lib_error(context);
 
     // #todo move this to lang.rs

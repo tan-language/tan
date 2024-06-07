@@ -15,6 +15,7 @@ pub mod json;
 pub mod lang;
 pub mod map;
 pub mod math;
+pub mod maybe;
 pub mod path;
 pub mod prelude;
 pub mod process;
