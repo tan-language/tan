@@ -118,6 +118,7 @@ pub fn map_update_mut(args: &[Expr], _context: &mut Context) -> Result<Expr, Err
     Ok(Expr::None)
 }
 
+// #todo could be replaced with `some-or` or Maybe functions.
 // #todo temp method until we have Maybe
 // #todo (map :key <default>) could accept a default value.
 // #todo this should be a special form, not evaluate the default value if not needed (short-circuit).

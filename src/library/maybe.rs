@@ -29,10 +29,10 @@ pub fn is_some(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(Expr::Bool(!expr.is_none()))
 }
 
+// #todo #IMPORTANT this should be a special form, not evaluate the default value if not needed (short-circuit).
 // #todo implement with tan!
 pub fn some_or(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let expr = unpack_arg(args, 0, "expr")?;
-    // let fallback = unpack_arg(args, 1, "fallback")?;
 
     if expr.is_none() {
         let fallback = unpack_arg(args, 1, "fallback")?;
