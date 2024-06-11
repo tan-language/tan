@@ -76,6 +76,28 @@ pub fn regex_is_matching(args: &[Expr], _context: &mut Context) -> Result<Expr, 
     Ok(Expr::Bool(re.is_match(string)))
 }
 
+pub fn regex_split(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    // #todo What would be a good name? What about `re_pattern`?
+    let regex = unpack_stringable_arg(args, 0, "regex")?;
+    // #todo Consider the name `input`.
+    let text = unpack_stringable_arg(args, 1, "text")?;
+
+    // #todo Verify that is Regex, not just string?
+    // #todo Extract the above as function (as_regex).
+
+    // #todo proper error reporting here!
+    let Ok(re) = Regex::new(regex) else {
+        return Err(Error::invalid_arguments(
+            &format!("invalid regex pattern: `{regex}`"),
+            args[0].range(),
+        ));
+    };
+
+    let parts: Vec<Expr> = re.split(text).map(Expr::string).collect();
+
+    Ok(Expr::array(parts))
+}
+
 // #todo support named captures? nah, too much.
 // #todo capture-one <> capture-many, or capture <> capture*, or use xxxx* for generators/coroutines?
 pub fn regex_capture(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
@@ -113,10 +135,13 @@ pub fn setup_lib_regex(context: &mut Context) {
 
     // #todo consider is-matching?, nah, let's make the `?` suffix useful.
     module.insert("matching?", Expr::ForeignFunc(Arc::new(regex_is_matching)));
+    module.insert("split$$Regex$$String", Expr::ForeignFunc(Arc::new(regex_split)));
 
     //
     module.insert("capture", Expr::ForeignFunc(Arc::new(regex_capture)));
 }
+
+// #todo move these tests to Tan.
 
 #[cfg(test)]
 mod tests {
