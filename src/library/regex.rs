@@ -78,7 +78,7 @@ pub fn regex_is_matching(args: &[Expr], _context: &mut Context) -> Result<Expr, 
 
 pub fn regex_split(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo What would be a good name? What about `re_pattern`?
-    let regex = unpack_stringable_arg(args, 0, "regex")?;
+    let regex = unpack_stringable_arg(args, 0, "sep-regex")?;
     // #todo Consider the name `input`.
     let text = unpack_stringable_arg(args, 1, "text")?;
 
@@ -94,6 +94,35 @@ pub fn regex_split(args: &[Expr], _context: &mut Context) -> Result<Expr, Error>
     };
 
     let parts: Vec<Expr> = re.split(text).map(Expr::string).collect();
+
+    Ok(Expr::array(parts))
+}
+
+// #todo introduce find/find-all that return matches.
+
+// #insight the regext matches the parts, not the separator.
+// #todo this is a peculiar function that probably should go away.
+pub fn regex_split_matches(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    // #todo What would be a good name? What about `re_pattern`?
+    let regex = unpack_stringable_arg(args, 0, "match-regex")?;
+    // #todo Consider the name `input`.
+    let text = unpack_stringable_arg(args, 1, "text")?;
+
+    // #todo Verify that is Regex, not just string?
+    // #todo Extract the above as function (as_regex).
+
+    // #todo proper error reporting here!
+    let Ok(re) = Regex::new(regex) else {
+        return Err(Error::invalid_arguments(
+            &format!("invalid regex pattern: `{regex}`"),
+            args[0].range(),
+        ));
+    };
+
+    let parts: Vec<Expr> = re
+        .find_iter(text)
+        .map(|m| Expr::string(m.as_str()))
+        .collect();
 
     Ok(Expr::array(parts))
 }
@@ -135,7 +164,14 @@ pub fn setup_lib_regex(context: &mut Context) {
 
     // #todo consider is-matching?, nah, let's make the `?` suffix useful.
     module.insert("matching?", Expr::ForeignFunc(Arc::new(regex_is_matching)));
-    module.insert("split$$Regex$$String", Expr::ForeignFunc(Arc::new(regex_split)));
+    module.insert(
+        "split$$Regex$$String",
+        Expr::ForeignFunc(Arc::new(regex_split)),
+    );
+    module.insert(
+        "split-matches",
+        Expr::ForeignFunc(Arc::new(regex_split_matches)),
+    );
 
     //
     module.insert("capture", Expr::ForeignFunc(Arc::new(regex_capture)));
