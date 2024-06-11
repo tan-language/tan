@@ -233,10 +233,10 @@ pub fn string_constructor_from_chars(args: &[Expr], _context: &mut Context) -> R
 
 // #todo overload for string and char!
 
-pub fn char_uppercased(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn char_to_upper_case(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [this] = args else {
         return Err(Error::invalid_arguments(
-            "`uppercased` requires `this` argument",
+            "`to-upper-case` requires `this` argument",
             None,
         ));
     };
@@ -533,10 +533,10 @@ pub fn setup_lib_string(context: &mut Context) {
     module.insert("chars$$String", Expr::ForeignFunc(Arc::new(string_chars)));
 
     // #todo rename to `to-uppercase`, more consistent?
-    module.insert("uppercased", Expr::ForeignFunc(Arc::new(char_uppercased)));
+    module.insert("to-upper-case", Expr::ForeignFunc(Arc::new(char_to_upper_case)));
     module.insert(
-        "uppercased$$Char",
-        Expr::ForeignFunc(Arc::new(char_uppercased)),
+        "to-upper-case$$Char",
+        Expr::ForeignFunc(Arc::new(char_to_upper_case)),
     );
 
     module.insert(
