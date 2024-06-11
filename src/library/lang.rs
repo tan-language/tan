@@ -16,7 +16,7 @@ use crate::{
     },
     expr::{annotate, expr_clone, Expr},
     util::{
-        args::{unpack_arg, unpack_map_arg, unpack_stringable_arg},
+        args::{unpack_arg, unpack_map_arg, unpack_stringable_arg, unpack_symbolic_arg},
         module_util::require_module,
         standard_names::CURRENT_MODULE_PATH,
     },
@@ -97,6 +97,21 @@ pub fn type_of(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     Ok(expr.dyn_type(context))
 }
 
+pub fn is_a(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+    let typ = unpack_symbolic_arg(args, 0, "typ")?;
+    let expr = unpack_arg(args, 1, "expr")?;
+
+    let dyn_type = expr.dyn_type(context);
+    let Some(dyn_typ) = dyn_type.as_type() else {
+        // #todo add range here.
+        return Err(Error::general("cannot compute dyn type"));
+    };
+
+    Ok(Expr::Bool(typ == dyn_typ))
+}
+
+// #todo implement read from Port, and provide variant where a Port is a File.
+// #insight could replace with (eval (read file-contents))
 // #todo maybe should be just eval_module?
 // #todo consider naming just `load`.
 pub fn load_file(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
@@ -298,6 +313,7 @@ pub fn setup_lib_lang(context: &mut Context) {
     module.insert("dbg!", Expr::ForeignFunc(Arc::new(debug_expr)));
 
     module.insert("type-of", Expr::ForeignFunc(Arc::new(type_of)));
+    module.insert("is-a?", Expr::ForeignFunc(Arc::new(is_a)));
 
     // #todo we also need an (eval ...) function.
 

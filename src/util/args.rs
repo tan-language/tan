@@ -89,6 +89,30 @@ pub fn unpack_stringable_arg<'a>(
     Ok(s)
 }
 
+pub fn unpack_symbolic_arg<'a>(
+    args: &'a [Expr],
+    index: usize,
+    name: &str,
+) -> Result<&'a str, Error> {
+    let Some(expr) = args.get(index) else {
+        // #todo introduce 'missing argument' error variant.
+        // #todo also report the index.
+        return Err(Error::invalid_arguments(
+            &format!("missing required Symbolic argument `{name}`"),
+            None,
+        ));
+    };
+
+    let Some(s) = expr.as_symbolic() else {
+        return Err(Error::invalid_arguments(
+            &format!("invalid Symbolic argument: {name}=`{expr}`"),
+            expr.range(),
+        ));
+    };
+
+    Ok(s)
+}
+
 pub fn unpack_map_arg<'a>(
     args: &'a [Expr],
     index: usize,

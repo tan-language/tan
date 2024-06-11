@@ -278,6 +278,7 @@ impl Error {
         error
     }
 
+    // #todo add range!
     // placeholder error!
     pub fn general(text: &str) -> Self {
         Self::new(ErrorVariant::General(text.to_owned()))
