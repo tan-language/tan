@@ -63,6 +63,7 @@ pub fn setup_lib_prelude(context: &mut Context) {
         Expr::ForeignFunc(Arc::new(expr_to_string)), // #todo #temp
     );
     // #todo it is NASTY that we have to add this here!!!
+    // #todo should be Str$$Date
     module.insert(
         "to-string$$Date",
         Expr::ForeignFunc(Arc::new(chrono::chrono_date_to_string)),

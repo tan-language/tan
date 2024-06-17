@@ -6,7 +6,7 @@ use crate::{
     context::Context,
     error::Error,
     expr::{annotate_type, Expr},
-    util::module_util::require_module,
+    util::{args::unpack_map_arg, module_util::require_module},
 };
 
 // #todo support rfc-399 and rfc-2822
@@ -180,6 +180,8 @@ pub fn chrono_date_now(_args: &[Expr], _context: &mut Context) -> Result<Expr, E
     Ok(tan_date_from_rust_date(date))
 }
 
+// #todo support construction from [year month day]
+
 // #todo support optional format string.
 pub fn chrono_date_from_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [this] = args else {
@@ -209,6 +211,12 @@ pub fn chrono_date(args: &[Expr], _context: &mut Context) -> Result<Expr, Error>
     } else {
         chrono_date_from_string(args, _context)
     }
+}
+
+pub fn chrono_date_from_map(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let map = unpack_map_arg(args, 0, "components")?;
+    let expr = Expr::map(map.clone());
+    Ok(annotate_type(expr, "Date"))
 }
 
 pub fn chrono_date_to_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
@@ -342,6 +350,11 @@ pub fn setup_lib_chrono(context: &mut Context) {
     // );
 
     module.insert("Date", Expr::ForeignFunc(Arc::new(chrono_date)));
+    module.insert(
+        "Date$$Map",
+        Expr::ForeignFunc(Arc::new(chrono_date_from_map)),
+    );
+
     // #todo implement with duration and `+`.
     module.insert(
         "add-days",

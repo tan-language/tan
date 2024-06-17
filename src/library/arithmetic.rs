@@ -193,6 +193,24 @@ pub fn mul_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(Expr::Float(product))
 }
 
+pub fn div_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    // #todo optimize!
+    let mut quotient = unpack_int_arg(args, 0, "n")?;
+
+    for arg in args.into_iter().skip(1) {
+        let Some(n) = arg.as_int() else {
+            return Err(Error::invalid_arguments(
+                &format!("{arg} is not an Int"),
+                arg.range(),
+            ));
+        };
+
+        quotient /= n;
+    }
+
+    Ok(Expr::Int(quotient))
+}
+
 // #todo support int/float.
 pub fn div_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo optimize!
@@ -413,6 +431,10 @@ pub fn setup_lib_arithmetic(context: &mut Context) {
     module.insert(
         "/",
         annotate_type(Expr::ForeignFunc(Arc::new(div_float)), "Float"),
+    );
+    module.insert(
+        "/$$Int$$Int",
+        annotate_type(Expr::ForeignFunc(Arc::new(div_int)), "Int"),
     );
     // #todo ultra-hack
     module.insert(
