@@ -7,7 +7,10 @@ use crate::{
     context::Context,
     error::Error,
     expr::{annotate_type, Expr},
-    util::{args::unpack_int_arg, module_util::require_module},
+    util::{
+        args::{unpack_float_arg, unpack_int_arg},
+        module_util::require_module,
+    },
 };
 
 // #todo rename rust implementations to {type}_{func}.
@@ -273,6 +276,22 @@ pub fn powi_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
     Ok(Expr::Float(n.powi(e as i32)))
 }
 
+pub fn mod_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    // #todo what are good variable names.
+    let x = unpack_int_arg(args, 0, "x")?;
+    let y = unpack_int_arg(args, 1, "y")?;
+
+    Ok(Expr::Int(x % y))
+}
+
+pub fn mod_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    // #todo what are good variable names.
+    let x = unpack_float_arg(args, 0, "x")?;
+    let y = unpack_float_arg(args, 1, "y")?;
+
+    Ok(Expr::Float(x % y))
+}
+
 // #todo should be associated with `Ordering` and `Comparable`.
 pub fn int_compare(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo support multiple arguments.
@@ -309,6 +328,8 @@ pub fn int_compare(args: &[Expr], _context: &mut Context) -> Result<Expr, Error>
 
 pub fn setup_lib_arithmetic(context: &mut Context) {
     let module = require_module("prelude", context);
+
+    // #todo notice the use of annotate_type.
 
     // #todo forget the mangling, implement with a dispatcher function, multi-function.
     module.insert(
@@ -414,6 +435,19 @@ pub fn setup_lib_arithmetic(context: &mut Context) {
     module.insert(
         "**",
         annotate_type(Expr::ForeignFunc(Arc::new(powi_float)), "Float"),
+    );
+    // #todo shouldn't be required.
+    module.insert(
+        "%",
+        annotate_type(Expr::ForeignFunc(Arc::new(mod_int)), "Int"),
+    );
+    module.insert(
+        "%$$Int$$Int",
+        annotate_type(Expr::ForeignFunc(Arc::new(mod_int)), "Int"),
+    );
+    module.insert(
+        "%$$Float$$Float",
+        annotate_type(Expr::ForeignFunc(Arc::new(mod_float)), "Float"),
     );
 }
 
