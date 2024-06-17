@@ -7,7 +7,7 @@ use crate::{
     context::Context,
     error::Error,
     expr::{annotate_type, Expr},
-    util::module_util::require_module,
+    util::{args::unpack_int_arg, module_util::require_module},
 };
 
 // #todo rename rust implementations to {type}_{func}.
@@ -86,30 +86,48 @@ pub fn add_dec(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 // #todo keep separate, optimized version with just 2 arguments!
 // #todo should support variable args.
 // #todo should return the error without range and range should be added by caller.
+// pub fn sub_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+//     // #todo support multiple arguments.
+//     let [a, b] = args else {
+//         return Err(Error::invalid_arguments(
+//             "- requires at least two arguments",
+//             None,
+//         ));
+//     };
+
+//     let Some(a) = a.as_int() else {
+//         return Err(Error::invalid_arguments(
+//             &format!("{a} is not an Int"),
+//             a.range(),
+//         ));
+//     };
+//
+//     let Some(b) = b.as_int() else {
+//         return Err(Error::invalid_arguments(
+//             &format!("{b} is not an Int"),
+//             b.range(),
+//         ));
+//     };
+//
+//     Ok(Expr::Int(a - b))
+// }
+
 pub fn sub_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
-    // #todo support multiple arguments.
-    let [a, b] = args else {
-        return Err(Error::invalid_arguments(
-            "- requires at least two arguments",
-            None,
-        ));
-    };
+    // #todo what if there is a single argument?
 
-    let Some(a) = a.as_int() else {
-        return Err(Error::invalid_arguments(
-            &format!("{a} is not an Int"),
-            a.range(),
-        ));
-    };
+    let mut diff = unpack_int_arg(args, 0, "n")?;
 
-    let Some(b) = b.as_int() else {
-        return Err(Error::invalid_arguments(
-            &format!("{b} is not an Int"),
-            b.range(),
-        ));
-    };
+    for arg in args.into_iter().skip(1) {
+        let Some(n) = arg.as_int() else {
+            return Err(Error::invalid_arguments(
+                &format!("{arg} is not an Int"),
+                arg.range(),
+            ));
+        };
+        diff -= n;
+    }
 
-    Ok(Expr::Int(a - b))
+    Ok(Expr::Int(diff))
 }
 
 pub fn sub_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
@@ -339,6 +357,15 @@ pub fn setup_lib_arithmetic(context: &mut Context) {
     module.insert("-", Expr::ForeignFunc(Arc::new(sub_int)));
     module.insert(
         "-$$Int$$Int",
+        annotate_type(Expr::ForeignFunc(Arc::new(sub_int)), "Int"),
+    );
+    // #todo #hack implement a version of module.insert that automatically adds a few methods/overloads.
+    module.insert(
+        "-$$Int$$Int$$Int",
+        annotate_type(Expr::ForeignFunc(Arc::new(sub_int)), "Int"),
+    );
+    module.insert(
+        "-$$Int$$Int$$Int$$Int",
         annotate_type(Expr::ForeignFunc(Arc::new(sub_int)), "Int"),
     );
     module.insert(
