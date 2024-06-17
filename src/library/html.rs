@@ -1,5 +1,8 @@
 // #todo investigate: https://htpy.dev/
 
+// #todo #fix handle empty text, i.e. `""` that currently causes nesting
+// #todo #idea join all trailing child elements with ' ', no need to put a string. REALLY TRY THIS ONE!
+
 // #todo think a bit more about a good name
 // #todo probably should move out from std lib into platform lib
 // #todo also perform attribute and body escaping

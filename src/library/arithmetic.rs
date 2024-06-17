@@ -301,8 +301,30 @@ pub fn setup_lib_arithmetic(context: &mut Context) {
         "+$$Int$$Int",
         annotate_type(Expr::ForeignFunc(Arc::new(add_int)), "Int"),
     );
+    // #todo #temp hack to support multiple args.
+    module.insert(
+        "+$$Int$$Int$$Int",
+        annotate_type(Expr::ForeignFunc(Arc::new(add_int)), "Int"),
+    );
+    module.insert(
+        "+$$Int$$Int$$Int$$Int",
+        annotate_type(Expr::ForeignFunc(Arc::new(add_int)), "Int"),
+    );
     module.insert(
         "+$$Float$$Float",
+        // #todo add the proper type: (Func Float Float Float)
+        // #todo even better: (Func (Many Float) Float)
+        annotate_type(Expr::ForeignFunc(Arc::new(add_float)), "Float"),
+    );
+    // #todo #temp hack to support multiple args.
+    module.insert(
+        "+$$Float$$Float$$Float",
+        // #todo add the proper type: (Func Float Float Float)
+        // #todo even better: (Func (Many Float) Float)
+        annotate_type(Expr::ForeignFunc(Arc::new(add_float)), "Float"),
+    );
+    module.insert(
+        "+$$Float$$Float$$Float$$Float",
         // #todo add the proper type: (Func Float Float Float)
         // #todo even better: (Func (Many Float) Float)
         annotate_type(Expr::ForeignFunc(Arc::new(add_float)), "Float"),
