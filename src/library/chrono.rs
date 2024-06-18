@@ -6,7 +6,10 @@ use crate::{
     context::Context,
     error::Error,
     expr::{annotate_type, Expr},
-    util::{args::unpack_map_arg, module_util::require_module},
+    util::{
+        args::{unpack_int_arg, unpack_map_arg},
+        module_util::require_module,
+    },
 };
 
 // #todo support rfc-399 and rfc-2822
@@ -123,22 +126,42 @@ pub fn chrono_date_time_to_rfc399(args: &[Expr], context: &mut Context) -> Resul
     chrono_date_time_to_string(args, context)
 }
 
-pub fn tan_date_from_rust_date(rust_date: NaiveDate) -> Expr {
+pub fn tan_date_from_components(year: i64, month: i64, day: i64) -> Expr {
     // #todo month0, day0 is an interesting idea.
     let mut map = HashMap::new();
     // #todo add helpers to initialize Expr::Int
-    map.insert("year".to_string(), Expr::Int(rust_date.year() as i64));
-    map.insert(
-        "month".to_string(),
-        Expr::Int((rust_date.month0() + 1) as i64),
-    );
-    map.insert("day".to_string(), Expr::Int((rust_date.day0() + 1) as i64));
+    map.insert("year".to_string(), Expr::Int(year));
+    map.insert("month".to_string(), Expr::Int(month));
+    map.insert("day".to_string(), Expr::Int(day));
 
     // #todo support annotation with multiple types/traits, e.g. both Date + Map.
 
     let expr = Expr::map(map);
 
     annotate_type(expr, "Date")
+}
+
+pub fn tan_date_from_rust_date(rust_date: NaiveDate) -> Expr {
+    tan_date_from_components(
+        rust_date.year() as i64,
+        (rust_date.month0() + 1) as i64,
+        (rust_date.day0() + 1) as i64,
+    )
+    // // #todo month0, day0 is an interesting idea.
+    // let mut map = HashMap::new();
+    // // #todo add helpers to initialize Expr::Int
+    // map.insert("year".to_string(), Expr::Int(rust_date.year() as i64));
+    // map.insert(
+    //     "month".to_string(),
+    //     Expr::Int((rust_date.month0() + 1) as i64),
+    // );
+    // map.insert("day".to_string(), Expr::Int((rust_date.day0() + 1) as i64));
+
+    // // #todo support annotation with multiple types/traits, e.g. both Date + Map.
+
+    // let expr = Expr::map(map);
+
+    // annotate_type(expr, "Date")
 }
 
 // #todo as un-optimized as it gets.
@@ -211,6 +234,13 @@ pub fn chrono_date(args: &[Expr], _context: &mut Context) -> Result<Expr, Error>
     } else {
         chrono_date_from_string(args, _context)
     }
+}
+
+pub fn chrono_date_from_components(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let year = unpack_int_arg(args, 0, "year")?;
+    let month = unpack_int_arg(args, 1, "month")?;
+    let day = unpack_int_arg(args, 2, "day")?;
+    Ok(tan_date_from_components(year, month, day))
 }
 
 pub fn chrono_date_from_map(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
@@ -353,6 +383,10 @@ pub fn setup_lib_chrono(context: &mut Context) {
     module.insert(
         "Date$$Map",
         Expr::ForeignFunc(Arc::new(chrono_date_from_map)),
+    );
+    module.insert(
+        "Date$$Int$$Int$$Int",
+        Expr::ForeignFunc(Arc::new(chrono_date_from_components)),
     );
 
     // #todo implement with duration and `+`.
