@@ -215,7 +215,9 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                             Expr::Symbol("quot".to_owned()),
                             value.unpack().clone(),
                         ])))
-                    } else if sym == "+<-" {
+                    } else if sym == "+<-" || sym == "*<-" {
+                        // #todo Use `ends_with("<-")` instead?
+
                         // Expand some assignment operators
                         // #todo consider `assign-add` or `+assign` instead.
                         // #todo assign+, assign-, assign*, assign/
@@ -232,11 +234,14 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
 
                         // #todo how can we remove clones?
 
+                        // Get the basic operator part from the assignment symbol.
+                        let basic_op = &sym[..(sym.len() - 2)];
+
                         let expanded_expr = Expr::List(vec![
                             Expr::symbol("<-"),
                             accum.clone(),
                             Expr::List(vec![
-                                Expr::symbol("+"),
+                                Expr::symbol(basic_op),
                                 expr_clone(accum),
                                 expr_clone(value),
                             ]),
