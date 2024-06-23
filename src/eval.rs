@@ -15,6 +15,7 @@ pub mod eval_let;
 mod eval_let_ds;
 mod eval_panic;
 mod eval_scope_update;
+mod eval_unless;
 mod eval_use;
 mod eval_when;
 mod eval_while;
@@ -23,6 +24,7 @@ pub mod util;
 
 use std::{collections::HashMap, sync::Arc};
 
+use eval_unless::eval_unless;
 use eval_when::eval_when;
 
 use crate::{
@@ -788,6 +790,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         "for->list" => anchor_error(eval_for_list(args, context), expr),
                         "while" => anchor_error(eval_while(args, context), expr),
                         "if" => anchor_error(eval_if(args, context), expr),
+                        // #todo #temp Implement with macro.
+                        "unless" => anchor_error(eval_unless(args, context), expr),
                         "cond" => anchor_error(eval_cond(args, context), expr),
                         "when" => anchor_error(eval_when(args, context), expr),
                         // #todo #temp temporary solution.
