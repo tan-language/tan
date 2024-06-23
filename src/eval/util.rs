@@ -28,6 +28,9 @@ pub fn anchor_error(result: Result<Expr, Error>, expr: &Expr) -> Result<Expr, Er
     if let Err(mut error) = result {
         // #todo consider anchoring all notes!
         // #todo notes in error is a hack, needs refactoring.
+
+        // #todo #important #fix It seems that expr some times don't have range here, WHY?
+
         if let Some(note) = error.notes.first_mut() {
             if note.range.is_none() {
                 note.range = expr.range()

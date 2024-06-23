@@ -7,6 +7,7 @@ mod eval_assign;
 mod eval_cond;
 mod eval_def;
 mod eval_do;
+mod eval_else;
 mod eval_for;
 mod eval_for_each;
 mod eval_for_list;
@@ -24,6 +25,7 @@ pub mod util;
 
 use std::{collections::HashMap, sync::Arc};
 
+use eval_else::eval_else;
 use eval_unless::eval_unless;
 use eval_when::eval_when;
 
@@ -792,6 +794,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         "if" => anchor_error(eval_if(args, context), expr),
                         // #todo #temp Implement with macro.
                         "unless" => anchor_error(eval_unless(args, context), expr),
+                        // #todo #fix else has no range here, wtf!
+                        "else" => anchor_error(eval_else(args, context), expr),
                         "cond" => anchor_error(eval_cond(args, context), expr),
                         "when" => anchor_error(eval_when(args, context), expr),
                         // #todo #temp temporary solution.

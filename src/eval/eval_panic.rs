@@ -19,7 +19,5 @@ pub fn eval_panic(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
         ));
     };
 
-    // #todo encode location.
-
     Err(Error::panic_with_context(msg, context))
 }

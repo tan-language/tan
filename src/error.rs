@@ -306,6 +306,8 @@ impl Error {
 
     // #todo could also take a range!
     pub fn panic_with_context(text: &str, context: &Context) -> Self {
+        // #todo encode location.
+
         let mut error = Self {
             variant: crate::error::ErrorVariant::Panic(text.to_string()),
             file_path: get_current_file_path(context),

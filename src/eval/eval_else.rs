@@ -1,7 +1,9 @@
-use crate::{context::Context, error::Error, expr::Expr, util::args::unpack_arg};
+use crate::{context::Context, error::Error, expr::Expr};
 
-use super::{eval, eval_do::eval_do};
-
-pub fn eval_else(_args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
-    todo!()
+pub fn eval_else(_args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+    let err = Error::panic_with_context(
+        "`eval` can only be used within a conditional block, e.g. `if`, `unless`, etc.",
+        context,
+    );
+    Err(err)
 }
