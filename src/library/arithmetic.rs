@@ -133,6 +133,11 @@ pub fn sub_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(Expr::Int(diff))
 }
 
+pub fn neg_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let n = unpack_int_arg(args, 0, "n")?;
+    Ok(Expr::Int(-n))
+}
+
 pub fn sub_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo support multiple arguments.
     let [a, b] = args else {
@@ -157,6 +162,11 @@ pub fn sub_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     };
 
     Ok(Expr::Float(a - b))
+}
+
+pub fn neg_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let n = unpack_float_arg(args, 0, "n")?;
+    Ok(Expr::Float(-n))
 }
 
 pub fn mul_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
@@ -395,6 +405,10 @@ pub fn setup_lib_arithmetic(context: &mut Context) {
     );
     module.insert("-", Expr::ForeignFunc(Arc::new(sub_int)));
     module.insert(
+        "-$$Int",
+        annotate_type(Expr::ForeignFunc(Arc::new(neg_int)), "Int"),
+    );
+    module.insert(
         "-$$Int$$Int",
         annotate_type(Expr::ForeignFunc(Arc::new(sub_int)), "Int"),
     );
@@ -406,6 +420,10 @@ pub fn setup_lib_arithmetic(context: &mut Context) {
     module.insert(
         "-$$Int$$Int$$Int$$Int",
         annotate_type(Expr::ForeignFunc(Arc::new(sub_int)), "Int"),
+    );
+    module.insert(
+        "-$$Float",
+        annotate_type(Expr::ForeignFunc(Arc::new(neg_float)), "Float"),
     );
     module.insert(
         "-$$Float$$Float",
@@ -458,6 +476,11 @@ pub fn setup_lib_arithmetic(context: &mut Context) {
         "**",
         annotate_type(Expr::ForeignFunc(Arc::new(powi_float)), "Float"),
     );
+    module.insert(
+        "**$$Float$$Int",
+        annotate_type(Expr::ForeignFunc(Arc::new(powi_float)), "Float"),
+    );
+    // #todo Add support for float exponentiation.
     // #todo shouldn't be required.
     module.insert(
         "%",
