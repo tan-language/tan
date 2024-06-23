@@ -5,7 +5,7 @@ use crate::{
     error::Error,
     expr::Expr,
     util::{
-        args::{unpack_float_arg, unpack_int_arg, unpack_stringable_arg},
+        args::{unpack_bool_arg, unpack_float_arg, unpack_int_arg, unpack_stringable_arg},
         module_util::require_module,
     },
 };
@@ -21,6 +21,7 @@ pub fn eq_polymorphic(args: &[Expr], context: &mut Context) -> Result<Expr, Erro
     };
     match expr.unpack() {
         Expr::Int(..) => eq_int(args, context),
+        Expr::Bool(..) => eq_bool(args, context),
         Expr::Float(..) => eq_float(args, context),
         Expr::String(..) => eq_string(args, context),
         Expr::Symbol(..) | Expr::KeySymbol(..) | Expr::Type(..) => eq_symbol(args, context),
@@ -51,6 +52,16 @@ pub fn eq_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 
     let a = unpack_float_arg(args, 0, "a")?;
     let b = unpack_float_arg(args, 1, "b")?;
+
+    Ok(Expr::Bool(a == b))
+}
+
+pub fn eq_bool(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    // #todo check comments in other eq_* functions.
+
+    // #todo also pass the function name, or at least show the function name upstream.
+    let a = unpack_bool_arg(args, 0, "a")?;
+    let b = unpack_bool_arg(args, 1, "b")?;
 
     Ok(Expr::Bool(a == b))
 }

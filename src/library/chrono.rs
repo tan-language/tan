@@ -7,7 +7,7 @@ use crate::{
     error::Error,
     expr::{annotate_type, Expr},
     util::{
-        args::{unpack_int_arg, unpack_map_arg},
+        args::{unpack_arg, unpack_int_arg, unpack_map_arg},
         module_util::require_module,
     },
 };
@@ -164,6 +164,7 @@ pub fn tan_date_from_rust_date(rust_date: NaiveDate) -> Expr {
     // annotate_type(expr, "Date")
 }
 
+// #todo Should throw errors.
 // #todo as un-optimized as it gets.
 pub fn rust_date_from_tan_date(tan_date: &Expr) -> NaiveDate {
     let map = tan_date.as_map().unwrap();
@@ -241,6 +242,14 @@ pub fn chrono_date_from_components(args: &[Expr], _context: &mut Context) -> Res
     let month = unpack_int_arg(args, 1, "month")?;
     let day = unpack_int_arg(args, 2, "day")?;
     Ok(tan_date_from_components(year, month, day))
+}
+
+// #insight Returns weekday in 0..7
+pub fn chrono_date_weekday_of(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    // #todo Check that this is a valid Date.
+    let tan_date = unpack_arg(args, 0, "date")?;
+    let rust_date = rust_date_from_tan_date(tan_date);
+    Ok(Expr::Int(rust_date.weekday().num_days_from_monday() as i64))
 }
 
 pub fn chrono_date_from_map(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
@@ -359,6 +368,28 @@ pub fn chrono_date_add_days(args: &[Expr], _context: &mut Context) -> Result<Exp
     Ok(tan_date_from_rust_date(new_rust_date))
 }
 
+// #todo replace with + Duration
+pub fn chrono_date_add_weeks(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let [this, weeks] = args else {
+        return Err(Error::invalid_arguments("requires `this` argument", None));
+    };
+
+    // #todo check dyn_type.
+
+    let Some(weeks) = weeks.as_int() else {
+        return Err(Error::invalid_arguments(
+            "`weeks` argument should be an Int",
+            this.range(),
+        ));
+    };
+
+    let rust_date = rust_date_from_tan_date(this);
+
+    let new_rust_date = rust_date + Duration::weeks(weeks);
+
+    Ok(tan_date_from_rust_date(new_rust_date))
+}
+
 pub fn setup_lib_chrono(context: &mut Context) {
     let module = require_module("chrono", context);
 
@@ -389,10 +420,19 @@ pub fn setup_lib_chrono(context: &mut Context) {
         Expr::ForeignFunc(Arc::new(chrono_date_from_components)),
     );
 
+    module.insert(
+        "weekday-of",
+        Expr::ForeignFunc(Arc::new(chrono_date_weekday_of)),
+    );
+
     // #todo implement with duration and `+`.
     module.insert(
         "add-days",
         Expr::ForeignFunc(Arc::new(chrono_date_add_days)),
+    );
+    module.insert(
+        "add-weeks",
+        Expr::ForeignFunc(Arc::new(chrono_date_add_weeks)),
     );
     // #insight spec comes first for more 'natural' currying.
     // #todo maybe just pass optional parameters to to-string?
