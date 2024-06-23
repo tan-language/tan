@@ -11,6 +11,8 @@ pub fn eval_do(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     let mut value = Expr::None;
 
     // #todo extract this.
+    // #todo handle return, continue, break!
+    // #todo reuse in for, if, while, etc.
 
     let prev_scope = context.scope.clone();
     context.scope = Arc::new(Scope::new(prev_scope.clone()));
