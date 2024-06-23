@@ -1,11 +1,6 @@
-use crate::{
-    context::Context,
-    error::Error,
-    expr::Expr,
-    util::args::{unpack_arg, unpack_bool_arg},
-};
+use crate::{context::Context, error::Error, expr::Expr, util::args::unpack_arg};
 
-use super::eval;
+use super::{eval, eval_do::eval_do};
 
 // #todo Somehow mark that this is lazy evaluation.
 pub fn eval_unless(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
@@ -23,19 +18,42 @@ pub fn eval_unless(args: &[Expr], context: &mut Context) -> Result<Expr, Error> 
         ));
     };
 
-    // #todo check for else clause.
+    let body = &args[1..];
 
-    if !predicate {
-        let body = &args[1..];
-        // #todo eval all exprs!
-        // #todo support return?
-        for expr in body {
-            eval(expr, context)?;
+    // #todo Make (else ...) raise error if not in the last position of if/else.
+
+    let else_clause = if let Some(last_clause) = body.last() {
+        if let Some(last_clause) = last_clause.as_list() {
+            if last_clause.len() > 1 {
+                if let Some(op) = last_clause.first().unwrap().as_symbol() {
+                    if op == "else" {
+                        Some(last_clause)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        } else {
+            None
         }
-        // #todo What should be the return value?
-        Ok(Expr::Never)
     } else {
-        // #todo check for else clause.
-        Ok(Expr::Never)
-    }
+        None
+    };
+
+    let value = if !predicate {
+        // #todo Extract common code between this, do, for, etc.
+        eval_do(body, context)?
+    } else if let Some(else_clause) = else_clause {
+        // #insight Note that (else ...) is like (do ...)!
+        eval_do(&else_clause[1..], context)?
+    } else {
+        // #todo What should be the return value?
+        Expr::None
+    };
+
+    Ok(value)
 }
