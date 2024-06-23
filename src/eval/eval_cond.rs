@@ -33,7 +33,8 @@ pub fn eval_cond(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
         // #todo introduce a helper to check for specific symbol.
 
         if let Expr::Symbol(sym) = predicate.unpack() {
-            if sym == "else" {
+            // #todo Very confusing, don't allow else like this, use '_'.
+            if sym == "_" || sym == "else" {
                 break eval(clause, context);
             }
         }
