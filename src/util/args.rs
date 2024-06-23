@@ -25,6 +25,26 @@ pub fn unpack_arg<'a>(args: &'a [Expr], index: usize, name: &str) -> Result<&'a 
     Ok(expr.unpack())
 }
 
+pub fn unpack_bool_arg(args: &[Expr], index: usize, name: &str) -> Result<bool, Error> {
+    let Some(expr) = args.get(index) else {
+        // #todo introduce 'missing argument' error variant.
+        // #todo also report the index.
+        return Err(Error::invalid_arguments(
+            &format!("missing required Bool argument `{name}`"),
+            None,
+        ));
+    };
+
+    let Some(n) = expr.as_bool() else {
+        return Err(Error::invalid_arguments(
+            &format!("invalid Bool argument: {name}=`{expr}`"),
+            expr.range(),
+        ));
+    };
+
+    Ok(n)
+}
+
 pub fn unpack_int_arg(args: &[Expr], index: usize, name: &str) -> Result<i64, Error> {
     let Some(expr) = args.get(index) else {
         // #todo introduce 'missing argument' error variant.

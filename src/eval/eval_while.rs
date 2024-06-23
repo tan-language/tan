@@ -10,13 +10,14 @@ use super::eval;
 // `for` is related with `do`
 // `for` is monadic
 
+// #todo #fix It seems that the current version of (while ...) requires a do!
 pub fn eval_while(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     // #todo
     // try to merge `while` with `for` (maybe `for` is implemented on top of `while`?)
 
     let [predicate, body] = args else {
         // #todo proper error!
-        return Err(Error::invalid_arguments("missing for arguments", None));
+        return Err(Error::invalid_arguments("missing while arguments", None));
     };
 
     let mut value = Expr::None;
