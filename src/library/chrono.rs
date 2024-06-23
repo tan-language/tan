@@ -161,29 +161,6 @@ pub fn tan_date_from_rust_date(rust_date: NaiveDate) -> Expr {
     // annotate_type(expr, "Date")
 }
 
-pub fn tan_date_from_rust_date(rust_date: NaiveDate) -> Expr {
-    tan_date_from_components(
-        rust_date.year() as i64,
-        (rust_date.month0() + 1) as i64,
-        (rust_date.day0() + 1) as i64,
-    )
-    // // #todo month0, day0 is an interesting idea.
-    // let mut map = HashMap::new();
-    // // #todo add helpers to initialize Expr::Int
-    // map.insert("year".to_string(), Expr::Int(rust_date.year() as i64));
-    // map.insert(
-    //     "month".to_string(),
-    //     Expr::Int((rust_date.month0() + 1) as i64),
-    // );
-    // map.insert("day".to_string(), Expr::Int((rust_date.day0() + 1) as i64));
-
-    // // #todo support annotation with multiple types/traits, e.g. both Date + Map.
-
-    // let expr = Expr::map(map);
-
-    // annotate_type(expr, "Date")
-}
-
 // #todo Should throw errors.
 // #todo as un-optimized as it gets.
 pub fn rust_date_from_tan_date(tan_date: &Expr) -> NaiveDate {
