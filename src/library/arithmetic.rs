@@ -134,6 +134,7 @@ pub fn sub_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 }
 
 pub fn neg_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    // #todo What about 0?
     let n = unpack_int_arg(args, 0, "n")?;
     Ok(Expr::Int(-n))
 }
