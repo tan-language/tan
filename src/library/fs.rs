@@ -239,7 +239,7 @@ pub fn list(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 // #todo find a better name: walk-as-tree, build-tree
 // #todo implement as generator/iterator, or (and?) with callback.
 // (let tree (fs/list-as-tree "./source/"))
-pub fn list_as_tree(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn list_as_tree(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     let [path] = args else {
         return Err(Error::invalid_arguments(
             "`list_as_tree` requires a `path` argument",
@@ -262,10 +262,10 @@ pub fn list_as_tree(args: &[Expr], _context: &mut Context) -> Result<Expr, Error
             // in the future it should return a Tan 'Result' for the caller to handle.
             // for the moment we just panic.
             // Err(Error::io(io_error, &format!("path: {path}"), None))
-            Err(Error::panic(&format!(
-                "while walking `{path}`: {}",
-                io_error
-            )))
+            Err(Error::panic_with_context(
+                &format!("while walking `{path}`: {}", io_error),
+                context,
+            ))
         }
     }
 }

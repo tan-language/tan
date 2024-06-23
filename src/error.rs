@@ -1,6 +1,9 @@
 use std::fmt;
 
-use crate::{expr::Expr, range::Range, util::constants::INPUT_PSEUDO_FILE_PATH};
+use crate::{
+    context::Context, eval::util::get_current_file_path, expr::Expr, range::Range,
+    util::constants::INPUT_PSEUDO_FILE_PATH,
+};
 
 // #todo emit the correct file of the error!
 
@@ -296,9 +299,22 @@ impl Error {
         Self::new(ErrorVariant::ContinueCF)
     }
 
-    // #todo could also take a range!
+    #[deprecated]
     pub fn panic(text: &str) -> Self {
         Self::new(ErrorVariant::Panic(text.to_owned()))
+    }
+
+    // #todo could also take a range!
+    pub fn panic_with_context(text: &str, context: &Context) -> Self {
+        let mut error = Self {
+            variant: crate::error::ErrorVariant::Panic(text.to_string()),
+            file_path: get_current_file_path(context),
+            notes: vec![],
+        };
+
+        error.push_note(text, None);
+
+        error
     }
 
     pub fn variant(&self) -> &ErrorVariant {

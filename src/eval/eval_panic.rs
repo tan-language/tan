@@ -1,7 +1,5 @@
 use crate::{context::Context, error::Error, expr::Expr};
 
-use super::util::get_current_file_path;
-
 // #todo make this anchor-compatible.
 // #todo could be made a ForeignFunc actually, not performance sensitive.
 // #todo extract to special_forms or something.
@@ -23,14 +21,5 @@ pub fn eval_panic(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
 
     // #todo encode location.
 
-    // #todo add panic constructor.
-    let mut error = Error {
-        variant: crate::error::ErrorVariant::Panic(msg.to_string()),
-        file_path: get_current_file_path(context),
-        notes: vec![],
-    };
-
-    error.push_note(msg, None);
-
-    Err(error)
+    Err(Error::panic_with_context(msg, context))
 }

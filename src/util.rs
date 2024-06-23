@@ -57,6 +57,7 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
             | "+<-"
             | "if"
             | "unless" // #todo Remove, implement with macro, convert to negated (if ...)
+            | "else"
             | "when"
             | "cond"
             | "return"

@@ -100,7 +100,7 @@ pub fn eval_when(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
             }
             _ => {
                 // #todo what is the correct error to return?
-                return Err(Error::panic("unhandled `when` case"));
+                return Err(Error::panic_with_context("unhandled `when` case", context));
             }
         }
 

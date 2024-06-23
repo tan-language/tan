@@ -1,6 +1,6 @@
 (do
-    (let my_if (Macro (condition then else)
-        (List 'if condition then else)
+    (let my_if (Macro (condition then-clause else-clause)
+        (List 'if condition then-clause else-clause)
     ))
 
     (let fact (Func [x]
