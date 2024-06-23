@@ -240,6 +240,7 @@ pub fn setup_lib_eq(context: &mut Context) {
 
     module.insert("=", Expr::ForeignFunc(Arc::new(eq_int)));
     module.insert("=$$Int$$Int", Expr::ForeignFunc(Arc::new(eq_int)));
+    module.insert("=$$Bool$$Bool", Expr::ForeignFunc(Arc::new(eq_bool)));
     module.insert("=$$Float$$Float", Expr::ForeignFunc(Arc::new(eq_float)));
     module.insert("=$$String$$String", Expr::ForeignFunc(Arc::new(eq_string)));
     // module.insert("=$$Symbol$$Symbol", Expr::ForeignFunc(Arc::new(eq_symbol)));
