@@ -44,6 +44,13 @@ pub fn eval_unless(args: &[Expr], context: &mut Context) -> Result<Expr, Error> 
         None
     };
 
+    let body = if else_clause.is_some() {
+        // Remove the else_clause from the main_clause.
+        &body[..(body.len() - 1)]
+    } else {
+        body
+    };
+
     let value = if !predicate {
         // #todo Extract common code between this, do, for, etc.
         eval_do(body, context)?

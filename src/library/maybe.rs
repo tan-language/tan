@@ -50,7 +50,7 @@ pub fn setup_lib_maybe(context: &mut Context) {
     //. #todo move to `maybe` namespace?
     let module = require_module("prelude", context);
 
-    // #todo use is-some? to make more like a verb?
+    // #todo use is-some? to make it a verb, `is` is a linking verb.
     // (if (some? user) ...)
     // (if (is-some? user) ...)
     // (if (is-some user) ...)
