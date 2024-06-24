@@ -17,6 +17,8 @@ use crate::{
 
 use self::util::{is_key_symbol, recognize_range};
 
+// #todo Implement separate, analysis parser, keeps comments, annotations, etc.
+
 // #todo no need to keep iterator as state in parser!
 // #todo can the parser be just a function? -> yes, if we use a custom iterator to keep the parsing state.
 // #todo think some more how annotations should be handled.
