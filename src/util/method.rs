@@ -82,6 +82,7 @@ mod tests {
         ))
         "#;
         let _ = eval_string(input, &mut context);
+        // dbg!(&context.scope);
         let expr = context.scope.get("+$$Vec2$$Vec2");
         assert!(expr.is_some());
     }
