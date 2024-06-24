@@ -208,7 +208,7 @@ pub fn div_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo optimize!
     let mut quotient = unpack_int_arg(args, 0, "n")?;
 
-    for arg in args.into_iter().skip(1) {
+    for arg in args.iter().skip(1) {
         let Some(n) = arg.as_int() else {
             return Err(Error::invalid_arguments(
                 &format!("{arg} is not an Int"),

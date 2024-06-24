@@ -239,7 +239,7 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
 
                         let expanded_expr = Expr::List(vec![
                             Expr::symbol("<-"),
-                            accum.clone(),
+                            expr_clone(accum),
                             Expr::List(vec![
                                 Expr::symbol(basic_op),
                                 expr_clone(accum),
