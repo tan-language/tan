@@ -18,6 +18,7 @@ use crate::{
 use self::util::{is_key_symbol, recognize_range};
 
 // #todo Implement separate, analysis parser, keeps comments, annotations, etc.
+// #todo Or implement an 'analysis mode', and remove the prune stage.
 
 // #todo no need to keep iterator as state in parser!
 // #todo can the parser be just a function? -> yes, if we use a custom iterator to keep the parsing state.
@@ -401,7 +402,8 @@ impl<'a> Parser<'a> {
 
                 self.buffered_annotations.as_mut().unwrap().push(token);
 
-                None
+                // None
+                Some(Expr::Annotation(token.lexeme()))
             }
             TokenKind::Quote => {
                 // #insight in the parser we just replace the quoting sigil with a `quot` function invocation

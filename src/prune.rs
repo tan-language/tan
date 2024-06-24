@@ -30,6 +30,11 @@ pub fn prune_fn(expr: Expr) -> Option<Expr> {
             // Prune TextSeparator expressions.
             None
         }
+        Expr::Annotation(..) => {
+            // #todo move prune elsewhere.
+            // Prune Comment expressions.
+            None
+        }
         Expr::String(str) => {
             // #insight
             // only apply the transformation, error checking happened in the

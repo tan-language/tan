@@ -113,9 +113,14 @@ pub enum Expr {
     // #insight None is the default Expr value.
     #[default]
     None,
+    // #todo Rethink the transient concept.
+    // #insight Add these variants to is_transient.
+    // Transient/Analysis variants {
     Comment(String, CommentKind), // #todo consider renaming to Remark (REM)
     TextSeparator,                // for the formatter.
-    Bool(bool),                   // #todo remove?
+    Annotation(String),
+    // } Transient/Analysis
+    Bool(bool), // #todo remove?
     // #todo consider `Byte`, `UInt8`?
     U8(u8),
     Int(i64),
@@ -325,6 +330,7 @@ impl fmt::Debug for Expr {
             // Expr::Annotated(expr, ann) => format!("ANN({expr:?}, {ann:?})"),
             // #insight intentionally ignore annotations in formatting the formatting.
             Expr::Annotated(expr, _ann) => format!("Ann({expr:?})"), // #skip annotations.
+            Expr::Annotation(ann) => format!("#{ann}"),
             Expr::Module(module) => format!("Module({})", module.stem),
         };
 
@@ -428,6 +434,7 @@ impl fmt::Display for Expr {
                 Expr::ForeignStructMut(..) => "#<foreign-struct-mut>".to_owned(),
                 // #insight intentionally pass through the formatting.
                 Expr::Annotated(expr, _) => format!("{expr}"),
+                Expr::Annotation(ann) => format!("#{ann}"),
                 Expr::Module(module) => format!("Module({})", module.stem),
             })
             .as_str(),
@@ -572,7 +579,10 @@ impl Expr {
     // be stripped before evaluation. Transient helpers are currently used
     // for analysis, not evaluation.
     pub fn is_transient(&self) -> bool {
-        matches!(self.unpack(), Expr::Comment(..) | Expr::TextSeparator)
+        matches!(
+            self.unpack(),
+            Expr::Comment(..) | Expr::TextSeparator | Expr::Annotation(..)
+        )
     }
 
     // #insight
