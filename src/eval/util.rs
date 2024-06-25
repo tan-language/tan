@@ -281,6 +281,9 @@ pub fn eval_module(
     context: &mut Context,
     force: bool,
 ) -> Result<Expr, Vec<Error>> {
+    // #insight Useful for debugging.
+    // println!("***** {}", path.as_ref().to_string_lossy());
+
     // #todo support import_map style rewriting
 
     // #todo explore trying module.TAN file if module directory is not found.
