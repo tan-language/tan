@@ -50,12 +50,10 @@ pub fn setup_lib_maybe(context: &mut Context) {
     //. #todo move to `maybe` namespace?
     let module = require_module("prelude", context);
 
-    // #todo use is-some? to make it a verb, `is` is a linking verb.
-    // (if (some? user) ...)
+    // #insight Use `is-some?` instead of `some?` to make it a verb, `is` is a linking verb.
     // (if (is-some? user) ...)
-    // (if (is-some user) ...)
-    module.insert("some?", Expr::ForeignFunc(Arc::new(is_some)));
-    module.insert("none?", Expr::ForeignFunc(Arc::new(is_none)));
+    module.insert("is-some?", Expr::ForeignFunc(Arc::new(is_some)));
+    module.insert("is-none?", Expr::ForeignFunc(Arc::new(is_none)));
     module.insert("some-or", Expr::ForeignFunc(Arc::new(some_or)));
 }
 
