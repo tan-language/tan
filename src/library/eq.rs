@@ -237,7 +237,7 @@ pub fn float_lt(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo support multiple arguments.
 
     let a = unpack_float_arg(args, 0, "a")?;
-    let b = unpack_float_arg(args, 0, "b")?;
+    let b = unpack_float_arg(args, 1, "b")?;
 
     Ok(Expr::Bool(a < b))
 }
