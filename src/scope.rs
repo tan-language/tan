@@ -66,6 +66,7 @@ impl Scope {
             .insert(name.into(), value.into())
     }
 
+    // #todo We need a recursive version!
     // #todo consider `contains_symbol`
     // #todo think about name <> symbol.
     pub fn contains_name(&self, name: impl AsRef<str>) -> bool {
@@ -75,6 +76,19 @@ impl Scope {
             .contains_key(name.as_ref())
     }
 
+    // #todo Have delegate in Context?
+    // #todo Find a better postfix than recursive.
+    pub fn contains_name_recursive(&self, name: impl AsRef<str>) -> bool {
+        if self.contains_name(name.as_ref()) {
+            true
+        } else if let Some(parent) = &self.parent {
+            parent.contains_name(name.as_ref())
+        } else {
+            false
+        }
+    }
+
+    // #todo Add non-recursive version?
     pub fn get(&self, name: impl AsRef<str>) -> Option<Arc<Expr>> {
         let bindings = self.bindings.read().expect("poisoned lock");
 

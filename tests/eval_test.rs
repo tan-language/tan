@@ -5,6 +5,7 @@ use std::borrow::Borrow;
 use assert_matches::assert_matches;
 
 use tan::{
+    api::eval_string,
     context::Context,
     error::{Error, ErrorVariant},
     eval::{eval, util::eval_module},
@@ -750,4 +751,14 @@ fn eval_should_iterate_ranges() {
 fn eval_should_handle_rest_parameters() {
     let value = eval_file("rest-parameter.tan").unwrap();
     assert_eq!(format_value(value), "5");
+}
+
+#[test]
+fn eval_should_handle_func_def_with_annotation() {
+    let input = &read_file("func-with-ann.tan");
+    let mut context = Context::new();
+    let _ = eval_string(input, &mut context);
+    assert!(context.scope.contains_name("relu$$Float"));
+    // #insight Verifies hack-fix for method lookup.
+    assert!(context.scope.contains_name("relu"));
 }

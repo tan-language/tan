@@ -95,10 +95,28 @@ fn insert_symbol_binding(
     value: Expr,
     context: &mut Context,
 ) -> Result<(), Error> {
+    // #insight reserved words are not polymorphic, so we can check before signature, rething about this.
+    // #todo also is_reserved_symbol is slow, optimize.
+    // #todo do we really want this? Maybe convert to a lint?
+    if is_reserved_symbol(sym) {
+        return Err(Error::invalid_arguments(
+            &format!("cannot shadow the reserved symbol `{sym}`"),
+            range.clone(),
+        ));
+    }
+
     // #todo move this up-stream to insert_binding.
     // #todo this is a temp hack!
     let sym = if value.is_invocable() {
         if let Some(signature) = compute_signature_from_annotations(&value) {
+            // Make sure the symbol without a signature exists.
+            // #todo #hack This is a temp fix until we properly implement multi-methods/overloaded ops.
+            // #insight We cannot avoid this recursive contains check, and we cannot just force the insertion of a 'sentinel' value.
+            if !context.scope.contains_name_recursive(sym) {
+                // #todo #optimize Could just put a dummy value here? e.g. Expr::Never, probably not?
+                context.scope.insert(sym, expr_clone(&value));
+            }
+
             format!("{sym}{signature}")
         } else {
             sym.to_owned()
@@ -107,14 +125,14 @@ fn insert_symbol_binding(
         sym.to_owned()
     };
 
-    // #todo also is_reserved_symbol is slow, optimize.
-    // #todo do we really want this? Maybe convert to a lint?
-    if is_reserved_symbol(&sym) {
-        return Err(Error::invalid_arguments(
-            &format!("cannot shadow the reserved symbol `{sym}`"),
-            range.clone(),
-        ));
-    }
+    // // #todo also is_reserved_symbol is slow, optimize.
+    // // #todo do we really want this? Maybe convert to a lint?
+    // if is_reserved_symbol(&sym) {
+    //     return Err(Error::invalid_arguments(
+    //         &format!("cannot shadow the reserved symbol `{sym}`"),
+    //         range.clone(),
+    //     ));
+    // }
 
     // #todo notify about overrides? use `set`?
     context.scope.insert(sym, value);
@@ -124,7 +142,7 @@ fn insert_symbol_binding(
 
 // #todo find a better name.
 fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(), Error> {
-    // #todo consider special op/syntax for destructuring?
+    // #todo consider special op/syntax for destructuring? e.g. ~[a b], `~` operator.
 
     // #todo handle potential relevant annotations.
 

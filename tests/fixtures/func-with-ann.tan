@@ -1,0 +1,7 @@
+#(Func [Float] Float)
+(let relu (Func [x]
+    (if (< x 0.0)
+        0.0
+        x
+    ))
+)
