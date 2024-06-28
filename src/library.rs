@@ -10,6 +10,7 @@ pub mod error;
 pub mod float;
 pub mod fs;
 pub mod html;
+pub mod int;
 pub mod io;
 pub mod json;
 pub mod lang;

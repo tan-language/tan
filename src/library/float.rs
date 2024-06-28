@@ -1,9 +1,14 @@
 use std::sync::Arc;
 
-use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
+use crate::{
+    context::Context,
+    error::Error,
+    expr::Expr,
+    util::{args::unpack_bool_arg, module_util::require_module},
+};
 
-pub fn float_int_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
-    // #todo make some of the arguments optional, e.g. step.
+// #todo Implement with Tan.
+pub fn float_from_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [value] = args else {
         return Err(Error::invalid_arguments("requires `value` argument", None));
     };
@@ -19,6 +24,13 @@ pub fn float_int_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Erro
     Ok(Expr::Float(value as f64))
 }
 
+// #todo Implement with Tan.
+pub fn float_from_bool(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let value = unpack_bool_arg(args, 0, "value")?;
+
+    Ok(Expr::Float(if value { 1.0 } else { 0.0 }))
+}
+
 pub fn setup_lib_float(context: &mut Context) {
     // #todo put in 'float' path, and import selected functionality to prelude.
     let module = require_module("prelude", context);
@@ -26,6 +38,7 @@ pub fn setup_lib_float(context: &mut Context) {
     // #todo consider to-float instead?
 
     // #todo make `float_new` the default.
-    module.insert("Float", Expr::ForeignFunc(Arc::new(float_int_new)));
-    module.insert("Float$$Int", Expr::ForeignFunc(Arc::new(float_int_new)));
+    module.insert("Float", Expr::ForeignFunc(Arc::new(float_from_int)));
+    module.insert("Float$$Int", Expr::ForeignFunc(Arc::new(float_from_int)));
+    module.insert("Float$$Bool", Expr::ForeignFunc(Arc::new(float_from_bool)));
 }
