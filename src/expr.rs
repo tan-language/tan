@@ -330,7 +330,7 @@ impl fmt::Debug for Expr {
             // Expr::Annotated(expr, ann) => format!("ANN({expr:?}, {ann:?})"),
             // #insight intentionally ignore annotations in formatting the formatting.
             Expr::Annotated(expr, _ann) => format!("Ann({expr:?})"), // #skip annotations.
-            Expr::Annotation(ann) => format!("#{ann}"),
+            Expr::Annotation(ann) => format!("Annotation(#{ann})"),
             Expr::Module(module) => format!("Module({})", module.stem),
         };
 

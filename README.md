@@ -15,7 +15,7 @@ Here is an example of Tan:
     )
 ))
 
-(writeln (fib 10))
+(echo (fib 10))
 ```
 
 ## Status
