@@ -241,9 +241,14 @@ pub fn setup_lib_map(context: &mut Context) {
     module.insert("put$$Map", Expr::ForeignFunc(Arc::new(map_put)));
     module.insert("update!", Expr::ForeignFunc(Arc::new(map_update_mut)));
     module.insert("get-or", Expr::ForeignFunc(Arc::new(map_get_or)));
+    // #todo Remove older get-* functions {
     module.insert("get-keys", Expr::ForeignFunc(Arc::new(map_get_keys)));
     module.insert("get-values", Expr::ForeignFunc(Arc::new(map_get_values)));
     module.insert("get-entries", Expr::ForeignFunc(Arc::new(map_get_entries)));
+    // }
+    module.insert("keys-of", Expr::ForeignFunc(Arc::new(map_get_keys)));
+    module.insert("values-of", Expr::ForeignFunc(Arc::new(map_get_values)));
+    module.insert("entries-of", Expr::ForeignFunc(Arc::new(map_get_entries)));
 }
 
 #[cfg(test)]
