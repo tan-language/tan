@@ -576,7 +576,9 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
             // The unwrap here is safe.
             let op = list.first().unwrap();
-            let args = &list[1..];
+            // let args = &list[1..];
+            // #todo Try to avoid Vec::from()
+            let mut args = Vec::from(&list[1..]);
 
             // #todo could check special forms before the eval
 
@@ -586,11 +588,13 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             let head = if let Some(name) = op.as_symbolic() {
                 if !is_reserved_symbol(name) {
                     // #todo super nasty hack!!!!
-                    let args = eval_args(args, context)?;
 
                     // #todo we don't support dynamic scoping in this position, reconsider
                     if let Some(value) = context.scope.get(name) {
                         if let Expr::Func(params, ..) = value.unpack() {
+                            // 'Cache' the evaluated args, to avoid double evaluation.
+                            args = eval_args(&args, context)?;
+
                             // #todo extract utility function to invoke a function.
                             // #todo ultra-hack to kill shared ref to `env`.
                             let params = params.clone();
@@ -616,12 +620,15 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                             head
                         } else if let Expr::ForeignFunc(_) = value.unpack() {
+                            args = eval_args(&args, context)?;
                             // #todo optimize the resolve_op_method.
                             resolve_op_method(name, &args, context)?
                         } else {
+                            args = eval_args(&args, context)?;
                             eval(op, context)?
                         }
                     } else {
+                        // #insight No need to eval_args here!
                         eval(op, context)?
                     }
                 } else {
@@ -636,7 +643,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
             match head.unpack() {
                 Expr::Func(..) => {
-                    let args = eval_args(args, context)?;
+                    // #todo #fails library::html::tests::html_from_expr_usage
+                    // #insight The args are already evaluated here!
                     // #todo call invoke_func directly?
                     anchor_error(invoke(&head, args, context), expr)
                 }
@@ -645,15 +653,14 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     // Foreign Functions do NOT change the environment, hmm...
                     // #todo use RefCell / interior mutability instead, to allow for changing the environment (with Mutation Effect)
 
-                    // Evaluate the arguments before calling the function.
-                    let args = eval_args(args, context)?;
                     // #todo call directly?
-                    // anchor(foreign_function(&args, context), expr)
+                    // #insight The args are already evaluated here!
                     anchor_error(invoke(&head, args, context), expr)
                 }
                 Expr::Array(arr) => {
+                    // #todo What about dynamic type here?
                     // Evaluate the arguments before calling the function.
-                    let args = eval_args(args, context)?;
+                    let args = eval_args(&args, context)?;
 
                     // #todo optimize this!
                     // #todo error checking, one arg, etc.
@@ -679,7 +686,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                 }
                 Expr::Map(map) => {
                     // Evaluate the arguments before calling the function.
-                    let args = eval_args(args, context)?;
+                    let args = eval_args(&args, context)?;
 
                     // #todo optimize this!
                     // #todo error checking, one arg, stringable, etc.
@@ -699,7 +706,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                 // #todo move all 'type-constructors' to external files.
                 Expr::Type(s) => match s.as_str() {
                     "List" => {
-                        let args = eval_args(args, context)?;
+                        let args = eval_args(&args, context)?;
                         Ok(Expr::List(args))
                     }
                     "Func" => {
@@ -752,7 +759,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     match s.as_str() {
                         "eval" => {
                             // #todo also support eval-all/eval-many? (auto wrap with do?)
-                            let [expr] = args else {
+                            let Some(expr) = args.first() else {
                                 return Err(Error::invalid_arguments(
                                     "missing expression to be evaluated",
                                     expr.range(),
@@ -787,7 +794,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo doesn't quote all exprs, e.g. the if expression.
                             // #todo optimize with custom exprs, e.g Expr::Quot, Expr::QuasiQuot, etc.
 
-                            let [value] = args else {
+                            let Some(value) = args.first() else {
                                 return Err(Error::invalid_arguments(
                                     "missing quote target",
                                     expr.range(),
@@ -801,37 +808,37 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         // special term
                         // #todo the low-level handling of special forms should use the above high-level cases.
                         // #todo use the `optimize`/`raise` function, here to prepare high-level expression for evaluation, to avoid duplication.
-                        "do" => anchor_error(eval_do(args, context), expr),
+                        "do" => anchor_error(eval_do(&args, context), expr),
                         // #insight `head` seems to have range info, that `expr` lacks.
                         // #todo add range info to expr (no unpack) and use it instead!!!
-                        "panic!" => anchor_error(eval_panic(args, context), &head),
-                        "for" => anchor_error(eval_for(args, context), expr),
+                        "panic!" => anchor_error(eval_panic(&args, context), &head),
+                        "for" => anchor_error(eval_for(&args, context), expr),
                         // #todo consider the name `for*` or something similar?
-                        "for->list" => anchor_error(eval_for_list(args, context), expr),
-                        "while" => anchor_error(eval_while(args, context), expr),
-                        "if" => anchor_error(eval_if(args, context), expr),
+                        "for->list" => anchor_error(eval_for_list(&args, context), expr),
+                        "while" => anchor_error(eval_while(&args, context), expr),
+                        "if" => anchor_error(eval_if(&args, context), expr),
                         // #todo #temp Implement with macro.
-                        "unless" => anchor_error(eval_unless(args, context), expr),
+                        "unless" => anchor_error(eval_unless(&args, context), expr),
                         // #todo #fix else has no range here, wtf!
-                        "else" => anchor_error(eval_else(args, context), expr),
-                        "cond" => anchor_error(eval_cond(args, context), expr),
-                        "when" => anchor_error(eval_when(args, context), expr),
+                        "else" => anchor_error(eval_else(&args, context), expr),
+                        "cond" => anchor_error(eval_cond(&args, context), expr),
+                        "when" => anchor_error(eval_when(&args, context), expr),
                         // #todo #temp temporary solution.
-                        "assert" => anchor_error(eval_assert(op, args, context), expr),
-                        "assert-eq" => anchor_error(eval_assert_eq(op, args, context), expr),
+                        "assert" => anchor_error(eval_assert(op, &args, context), expr),
+                        "assert-eq" => anchor_error(eval_assert_eq(op, &args, context), expr),
                         // #todo for-each or overload for?
-                        "for-each" => anchor_error(eval_for_each(args, context), expr),
-                        "assign" => anchor_error(eval_assign(args, context), expr),
+                        "for-each" => anchor_error(eval_for_each(&args, context), expr),
+                        "assign" => anchor_error(eval_assign(&args, context), expr),
                         // #insight operator alias for assign
-                        "<-" => anchor_error(eval_assign(args, context), expr),
+                        "<-" => anchor_error(eval_assign(&args, context), expr),
                         // #todo, investigate, find a better name.
-                        "scope-update" => anchor_error(eval_scope_update(args, context), expr),
+                        "scope-update" => anchor_error(eval_scope_update(&args, context), expr),
                         // #insight `op` seems to have range info, that `expr` lacks.
                         // #todo add range info to expr (no unpack) and use it instead!!!
-                        "use" => anchor_error(eval_use(args, context), expr),
-                        "def" => anchor_error(eval_def(&head, args, context), expr),
-                        "let-ds" => anchor_error(eval_let_ds(args, context), expr),
-                        "let" => anchor_error(eval_let(&head, args, context), expr),
+                        "use" => anchor_error(eval_use(&args, context), expr),
+                        "def" => anchor_error(eval_def(&head, &args, context), expr),
+                        "let-ds" => anchor_error(eval_let_ds(&args, context), expr),
+                        "let" => anchor_error(eval_let(&head, &args, context), expr),
                         "and" => {
                             // #insight `and` _is_ short-circuiting and cannot be implemented with a function
                             // #todo what about binary and?
@@ -841,7 +848,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo should these 'special forms' get added in scope/env?
 
                             for arg in args {
-                                let value = eval(arg, context)?;
+                                let value = eval(&arg, context)?;
                                 let Some(predicate) = value.as_bool() else {
                                     return Err(Error::invalid_arguments(
                                         "`and` argument should be boolean",
@@ -863,7 +870,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // #todo make a macro.
 
                             for arg in args {
-                                let value = eval(arg, context)?;
+                                let value = eval(&arg, context)?;
                                 let Some(predicate) = value.as_bool() else {
                                     return Err(Error::invalid_arguments(
                                         "`or` argument should be boolean",
