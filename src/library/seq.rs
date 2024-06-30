@@ -259,6 +259,7 @@ pub fn array_map(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     for x in input_values.iter() {
         // #todo can we remove this clone somehow?
         let args = vec![expr_clone(x)];
+        // let args = vec![eval(x, context)?];
         // #todo #hack need to rething invoke_func/invoke_func_inner!!
         output_values.push(invoke(func, args, context)?);
     }
@@ -334,8 +335,11 @@ pub fn array_sort_mut(args: &[Expr], context: &mut Context) -> Result<Expr, Erro
 
     array_items.sort_by(|x, y| {
         // #todo how to handle errors here?
+        // #todo should we evaluate array items?
         // #insight args are already evaluated!
-        let tan_ordering = invoke_func(func, vec![x.clone(), y.clone()], context).unwrap();
+        // let args = vec![eval(x, context).unwrap(), eval(y, context).unwrap()];
+        let args = vec![x.clone(), y.clone()];
+        let tan_ordering = invoke_func(func, args, context).unwrap();
         rust_ordering_from_tan_ordering(&tan_ordering).unwrap()
     });
 
