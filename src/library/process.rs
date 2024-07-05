@@ -246,7 +246,13 @@ pub fn setup_lib_process(context: &mut Context) {
     module.insert("args", Expr::ForeignFunc(Arc::new(process_args)));
     module.insert("args$$", Expr::ForeignFunc(Arc::new(process_args))); // #todo is this needed?
 
-    // (let tan-path (process/env :TANPATH))
+    // #todo
+    // Better API:
+    // - process/env -> Map with all variables
+    // - process/env-var -> Query a variable by name, e.g. `(let var (process/env-var "VAR-NAME"))`
+
+    // #todo (let tan-path (process/env :TANPATH))
+    // (let tan-path ((process/env-vars) :TANPATH))
     module.insert("env-vars", Expr::ForeignFunc(Arc::new(process_env_vars)));
     module.insert("env-vars$$", Expr::ForeignFunc(Arc::new(process_env_vars))); // #todo is this needed?
 

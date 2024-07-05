@@ -1,0 +1,4 @@
+#V2
+use @group/libs/kraken/sign
+sign/compute-nonce
+sign

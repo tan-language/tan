@@ -13,7 +13,13 @@ pub fn require_module<'a>(path: &str, context: &'a mut Context) -> &'a mut Arc<M
     // #todo support leading `/`.
     // #todo extract the url generation.
     // #todo this is a hack.
-    let url = format!("{}/@std/{path}", context.root_path);
+    // #todo #temp very hackish, non-general.
+    let url = if path.starts_with('@') {
+        format!("{}/{path}", context.root_path)
+    } else {
+        format!("{}/@std/{path}", context.root_path)
+    };
+
     // #insight weird sym-linking can fuckup this cannonicalization
     // #todo need more robust canonicalization soultion.
     // #todo rethink about this canonicalization.
