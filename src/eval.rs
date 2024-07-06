@@ -299,6 +299,13 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
                 // (let {:name _ :age _} user)
                 let sym = if sym == "_" { key } else { sym };
 
+                if !values.contains_key(key) {
+                    return Err(Error::invalid_arguments(
+                        "malformed destructuring bind, map does not contain key",
+                        name.range(),
+                    ));
+                }
+
                 // #insight no need for ellipsis/rest here!
                 insert_symbol_binding(
                     sym,
