@@ -12,6 +12,7 @@ mod eval_for;
 mod eval_for_each;
 mod eval_for_list;
 mod eval_if;
+mod eval_is_defined;
 pub mod eval_let;
 mod eval_let_ds;
 mod eval_panic;
@@ -26,6 +27,7 @@ pub mod util;
 use std::{collections::HashMap, sync::Arc};
 
 use eval_else::eval_else;
+use eval_is_defined::eval_is_defined;
 use eval_unless::eval_unless;
 use eval_when::eval_when;
 
@@ -826,6 +828,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         // #todo #temp temporary solution.
                         "assert" => anchor_error(eval_assert(op, &args, context), expr),
                         "assert-eq" => anchor_error(eval_assert_eq(op, &args, context), expr),
+                        "is-defined?" => anchor_error(eval_is_defined(&args, context), expr),
                         // #todo for-each or overload for?
                         "for-each" => anchor_error(eval_for_each(&args, context), expr),
                         "assign" => anchor_error(eval_assign(&args, context), expr),

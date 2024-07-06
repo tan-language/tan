@@ -161,4 +161,8 @@ impl Context {
         }
         false
     }
+
+    pub fn contains_name(&self, name: impl AsRef<str>) -> bool {
+        self.scope.contains_name_recursive(name.as_ref())
+    }
 }
