@@ -266,7 +266,12 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
         }
         Expr::Map(items) => {
             // map destructuring.
+            // (let {:name name :age age} user)
+            // (let {:name _ :age _} user)
+
             // #todo temp, nasty code.
+            // #todo Add example usage!
+            // #todo Add unit tests!
             // ensure that the values are also a Map.
             let Some(values) = value.as_map() else {
                 // #todo better error message.
@@ -290,16 +295,11 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
                         name.range(),
                     ));
                 };
-                // // #todo what todo about  '_'?
-                // if sym == "_" {
-                //     continue;
-                // }
-                // // #todo what todo about '...'?
-                // // #insight '...' is called `ellipsis`.
-                // if sym == "..." {
-                //     break;
-                // }
-                // #todo support "...", "...rest"
+
+                // (let {:name _ :age _} user)
+                let sym = if sym == "_" { key } else { sym };
+
+                // #insight no need for ellipsis/rest here!
                 insert_symbol_binding(
                     sym,
                     &name.range(),
