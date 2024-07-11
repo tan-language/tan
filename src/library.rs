@@ -5,6 +5,7 @@ pub mod char;
 pub mod chrono;
 pub mod cmp;
 pub mod css_expr;
+pub mod dec;
 pub mod eq;
 pub mod error;
 pub mod float;
@@ -29,6 +30,8 @@ pub mod string;
 pub mod testing;
 pub mod u8;
 pub mod uuid;
+
+use dec::setup_lib_dec;
 
 use crate::context::Context;
 
@@ -81,6 +84,7 @@ pub fn setup_lib(context: &mut Context) {
     setup_lib_uuid(context);
     setup_lib_regex(context);
     setup_lib_set(context);
+    setup_lib_dec(context);
 
     setup_lib_prelude(context);
 }
