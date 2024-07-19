@@ -52,6 +52,8 @@ pub fn setup_lib_float(context: &mut Context) {
 
     // #todo consider to-float instead?
 
+    // #todo #think having so many overloads can cover issues, e.g. use the wrong implicit overload.
+
     // #todo make `float_new` the default.
     module.insert("Float", Expr::ForeignFunc(Arc::new(float_from_int)));
     module.insert("Float$$Int", Expr::ForeignFunc(Arc::new(float_from_int)));
