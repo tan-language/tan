@@ -4,7 +4,7 @@ use crate::{
     context::Context,
     error::Error,
     expr::{format_value, Expr},
-    util::module_util::require_module,
+    util::{args::unpack_stringable_arg, module_util::require_module},
 };
 
 // #todo string push/append/concat, make similar to array: push one char, append/concat another string, ++ handles both.
@@ -300,30 +300,14 @@ pub fn format(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 // (Func (this separator) ..)
 // (Func (#String this #String separator) String)
 pub fn string_split(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
-    let [this, separator] = args else {
-        return Err(Error::invalid_arguments(
-            "`split` requires `this` and `separator` arguments",
-            None,
-        ));
-    };
-
-    let Some(this) = this.as_string() else {
-        return Err(Error::invalid_arguments(
-            "`this` argument should be a String",
-            this.range(),
-        ));
-    };
-
-    let Some(separator) = separator.as_string() else {
-        return Err(Error::invalid_arguments(
-            "`separator` argument should be a String",
-            separator.range(),
-        ));
-    };
+    // #todo Consider different order of arguments.
+    // #todo Don't use `this` name.
+    let string = unpack_stringable_arg(args, 0, "this")?;
+    let separator = unpack_stringable_arg(args, 1, "separator")?;
 
     // #todo should return iterator
 
-    let parts: Vec<Expr> = this.split(separator).map(Expr::string).collect();
+    let parts: Vec<Expr> = string.split(separator).map(Expr::string).collect();
 
     Ok(Expr::array(parts))
 }
@@ -533,7 +517,10 @@ pub fn setup_lib_string(context: &mut Context) {
     module.insert("chars$$String", Expr::ForeignFunc(Arc::new(string_chars)));
 
     // #todo rename to `to-uppercase`, more consistent?
-    module.insert("to-upper-case", Expr::ForeignFunc(Arc::new(char_to_upper_case)));
+    module.insert(
+        "to-upper-case",
+        Expr::ForeignFunc(Arc::new(char_to_upper_case)),
+    );
     module.insert(
         "to-upper-case$$Char",
         Expr::ForeignFunc(Arc::new(char_to_upper_case)),
