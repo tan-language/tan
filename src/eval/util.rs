@@ -214,6 +214,7 @@ pub fn eval_file(path: &str, context: &mut Context) -> Result<Expr, Vec<Error>> 
     // #todo keep all inputs in magic variable in env, associate url/key with error.
 
     // #todo add CURRENT_FILE_PATH to scope? no -> tan code will be able to access the special variables.
+    // #todo Still, add to scope but make special variables in-accessible or read-only.
     let old_current_file_path = context.top_scope.get(CURRENT_FILE_PATH);
     context
         .top_scope
@@ -230,7 +231,9 @@ pub fn eval_file(path: &str, context: &mut Context) -> Result<Expr, Vec<Error>> 
         let mut errors = result.unwrap_err();
 
         for error in &mut errors {
-            error.file_path = path.to_string();
+            if !error.has_file_path() {
+                error.file_path = path.to_string();
+            }
         }
 
         // #todo better error handling here!
