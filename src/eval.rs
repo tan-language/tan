@@ -391,11 +391,13 @@ pub fn invoke_func(func: &Expr, args: Vec<Expr>, context: &mut Context) -> Resul
 
     for param in params {
         let Some(param_name) = param.as_symbol() else {
+            let mut error = Error::invalid_arguments("parameter is not a symbol", param.range());
+            if !error.has_file_path() {
+                error.file_path.clone_from(file_path);
+            }
+            // #insight Restore the scope (and current_file_path) after creating the error.
             context.scope = prev_scope;
-            return Err(Error::invalid_arguments(
-                "parameter is not a symbol",
-                param.range(),
-            ));
+            return Err(error);
         };
 
         // #todo consider other syntax, e.g. `&rest` like Clojure.
@@ -412,6 +414,7 @@ pub fn invoke_func(func: &Expr, args: Vec<Expr>, context: &mut Context) -> Resul
         // #todo consider making missing parameters an error!
         // #todo or maybe just a warning?
         // let Some(arg) = args.next() else {
+        // #todo correctly restore the scope!
         //     return Err(Error::invalid_arguments(
         //         &format!("no argument for parameter `{param}`"),
         //         param.range(),
@@ -448,11 +451,11 @@ pub fn invoke_func(func: &Expr, args: Vec<Expr>, context: &mut Context) -> Resul
                         // #todo find better ways for reporting the file, this is a temp solution.
                         // annotate errors thrown by function evaluation with the
                         // function file_path, for more precise error reporting.
-                        context.scope = prev_scope;
                         // #todo Why is this needed here?
                         if !error.has_file_path() {
                             error.file_path.clone_from(file_path);
                         }
+                        context.scope = prev_scope;
                         return Err(error);
                     }
                 }
