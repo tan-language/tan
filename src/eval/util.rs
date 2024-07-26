@@ -11,10 +11,7 @@ use crate::{
     expr::Expr,
     module::Module,
     scope::Scope,
-    util::{
-        constants::INPUT_PSEUDO_FILE_PATH,
-        standard_names::{CURRENT_FILE_PATH, CURRENT_MODULE_PATH},
-    },
+    util::standard_names::{CURRENT_FILE_PATH, CURRENT_MODULE_PATH},
 };
 
 use super::eval;
@@ -251,7 +248,7 @@ pub fn eval_file(path: &str, context: &mut Context) -> Result<Expr, Vec<Error>> 
             Err(mut error) => {
                 // #todo add a unit test to check that the file_path is added here!
                 // #todo just make error.file_path optional and avoid this hack here!!!
-                if error.file_path == INPUT_PSEUDO_FILE_PATH {
+                if !error.has_file_path() {
                     error.file_path = path.to_string();
                 }
 
@@ -261,6 +258,7 @@ pub fn eval_file(path: &str, context: &mut Context) -> Result<Expr, Vec<Error>> 
         }
     }
 
+    // #todo The manual current_file_path stack handling is not needed any more, put in nested scopes.
     if let Some(old_current_file_path) = old_current_file_path {
         // #insight we should revert the previous current file, in case of 'use'
         context
@@ -435,10 +433,15 @@ pub fn get_bindings_with_prefix(
 }
 
 pub fn get_current_file_path(context: &Context) -> String {
+    // #insight
+    // In the past we were looking straight into top_scope, but this was not
+    // helpful with nested functions. In any case this function doesn't need
+    // to be very performant.
+    // #todo Remove the manual stack handling around CURRENT_FILE_NAME.
     // #todo optimize!
     context
-        .top_scope
-        .get(CURRENT_FILE_PATH)
+        // .top_scope
+        .get(CURRENT_FILE_PATH, false)
         // #todo think about how to best handle this.
         // #insight use unwrap_or_else to be more fault tolerant, when no file is available (eval_string, repl, etc...)
         .unwrap_or_else(|| Arc::new(Expr::string("UNKNOWN")))

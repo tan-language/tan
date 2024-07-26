@@ -40,7 +40,8 @@ use crate::{
     scope::Scope,
     util::{
         is_dynamically_scoped, is_ellipsis, is_reserved_symbol,
-        method::compute_signature_from_annotations, try_lock_read,
+        method::compute_signature_from_annotations, standard_names::CURRENT_FILE_PATH,
+        try_lock_read,
     },
 };
 
@@ -448,7 +449,10 @@ pub fn invoke_func(func: &Expr, args: Vec<Expr>, context: &mut Context) -> Resul
                         // annotate errors thrown by function evaluation with the
                         // function file_path, for more precise error reporting.
                         context.scope = prev_scope;
-                        error.file_path.clone_from(file_path);
+                        // #todo Why is this needed here?
+                        if !error.has_file_path() {
+                            error.file_path.clone_from(file_path);
+                        }
                         return Err(error);
                     }
                 }
@@ -745,12 +749,16 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                         // #insight captures the static (lexical scope)
 
+                        let func_file_path = get_current_file_path(context);
+                        let func_scope = context.scope.clone();
+                        func_scope.insert(CURRENT_FILE_PATH, Expr::string(&func_file_path));
+
                         // #todo optimize
                         Ok(Expr::Func(
                             params,
                             body.into(),
-                            context.scope.clone(),
-                            get_current_file_path(context),
+                            func_scope,
+                            func_file_path, // #todo is this really needed here?
                         ))
                     }
                     // #todo lookup constructor function
