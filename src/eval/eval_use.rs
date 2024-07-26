@@ -58,8 +58,7 @@ pub fn eval_use(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     };
 
     let Ok(Expr::Module(module)) = result else {
-        // #todo could use a panic here, this should never happen.
-        panic!("invalid module for `{}`", module_path);
+        unreachable!("invalid module for `{}`", module_path);
     };
 
     // #insight

@@ -212,13 +212,16 @@ pub fn compute_module_file_paths(
 // #todo used in load_file/(load ...)
 pub fn eval_file(path: &str, context: &mut Context) -> Result<Expr, Vec<Error>> {
     // #todo keep all inputs in magic variable in env, associate url/key with error.
-
     // #todo add CURRENT_FILE_PATH to scope? no -> tan code will be able to access the special variables.
     // #todo Still, add to scope but make special variables in-accessible or read-only.
-    let old_current_file_path = context.top_scope.get(CURRENT_FILE_PATH);
-    context
-        .top_scope
-        .insert(CURRENT_FILE_PATH, Expr::string(path));
+
+    // let old_current_file_path = context.top_scope.get(CURRENT_FILE_PATH);
+    // context
+    //     .top_scope
+    //     .insert(CURRENT_FILE_PATH, Expr::string(path));
+
+    let prev_current_file_path = get_current_file_path(context);
+    set_current_file_path(context, path);
 
     let input = std::fs::read_to_string(path);
     let Ok(input) = input else {
@@ -262,12 +265,14 @@ pub fn eval_file(path: &str, context: &mut Context) -> Result<Expr, Vec<Error>> 
     }
 
     // #todo The manual current_file_path stack handling is not needed any more, put in nested scopes.
-    if let Some(old_current_file_path) = old_current_file_path {
-        // #insight we should revert the previous current file, in case of 'use'
-        context
-            .top_scope
-            .insert(CURRENT_FILE_PATH, old_current_file_path.unpack().clone());
-    }
+    // if let Some(old_current_file_path) = old_current_file_path {
+    //     // #insight we should revert the previous current file, in case of 'use'
+    //     context
+    //         .top_scope
+    //         .insert(CURRENT_FILE_PATH, old_current_file_path.unpack().clone());
+    // }
+
+    set_current_file_path(context, &prev_current_file_path);
 
     if errors.is_empty() {
         Ok(value)
@@ -398,9 +403,10 @@ pub fn eval_module(
     // #todo prohibit recursive module_evals.
 
     for file_path in &file_paths {
-        if let Err(error) = eval_file(file_path, context) {
+        if let Err(errors) = eval_file(file_path, context) {
+            // #todo Investigate if errors are muted here!
             context.scope = prev_scope;
-            return Err(error);
+            return Err(errors);
         }
     }
 
@@ -452,6 +458,12 @@ pub fn get_current_file_path(context: &Context) -> String {
         .unwrap()
         .to_string()
 }
+
+// #todo Consider returning the previous value.
+pub fn set_current_file_path(context: &Context, path: &str) {
+    context.insert(CURRENT_FILE_PATH, Expr::string(path), false);
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{
