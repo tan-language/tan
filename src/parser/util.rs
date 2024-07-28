@@ -1,4 +1,4 @@
-use crate::{api::parse_string, error::Error, expr::Expr};
+use crate::{api::parse_string_with_position, error::Error, expr::Expr, range::Position};
 
 // #insight `recognize_` is used instead of e.g. `parse_` to avoid confusion with `parse_string` and other helpers.
 
@@ -13,7 +13,10 @@ use crate::{api::parse_string, error::Error, expr::Expr};
 // #todo could use (String ...) constructor instead of (format ...)? (format <> scan)
 // #ai-generated
 // Parses string templates, e.g. "name: ${name}, age: ${age}."
-pub fn recognize_string_template(input: &str) -> Result<Expr, Vec<Error>> {
+pub fn recognize_string_template(
+    input: &str,
+    start_position: Position,
+) -> Result<Expr, Vec<Error>> {
     let mut exprs = vec![Expr::symbol("format")];
 
     let mut previous_end = 0;
@@ -30,7 +33,10 @@ pub fn recognize_string_template(input: &str) -> Result<Expr, Vec<Error>> {
             // #todo make sure that interpolation error contains correct range!
             // #todo what happens if the interpolation contains an }?
             // Add the interpolation itself.
-            exprs.push(parse_string(&input[(start + 2)..(end - 1)])?);
+            exprs.push(parse_string_with_position(
+                &input[(start + 2)..(end - 1)],
+                start_position,
+            )?);
 
             previous_end = end;
         } else {

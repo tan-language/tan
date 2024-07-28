@@ -36,31 +36,29 @@ pub fn prune_fn(expr: Expr) -> Option<Expr> {
             None
         }
         Expr::String(str) => {
+            // Resolve string-template / interpolated-string.
             // #insight
-            // only apply the transformation, error checking happened in the
+            // Only apply the transformation, error checking happened in the
             // parsing stage.
             if str.contains("${") {
-                match recognize_string_template(str) {
-                    Ok(format_expr) => {
-                        // #todo extract a helper function.
-                        if let Some(annotations) = annotations {
-                            Some(Expr::Annotated(Box::new(format_expr), annotations.clone()))
-                        } else {
-                            Some(format_expr)
-                        }
-                    }
+                // #todo what about this unwrap?
+                let range = expr.range().unwrap_or_default();
+                let start_position = range.start;
+
+                match recognize_string_template(str, start_position) {
+                    Ok(format_expr) => Some(Expr::maybe_annotated(format_expr, annotations)),
                     Err(_) => {
                         // #todo what should be done here?
                         // #insight this state should not be valid.
-                        panic!("invalid state");
+                        unreachable!("malformed interpolated string");
                     }
                 }
             } else {
                 Some(expr)
             }
         }
-        // #todo resolve quoting+interpolation here? i.e. quasiquoting
-        // #todo maybe even resolve string interpolation here?
+        // #todo Resolve quoting+interpolation here? i.e. quasiquoting
+        // #todo Maybe even resolve string interpolation here?
         _ => Some(expr),
     }
 }

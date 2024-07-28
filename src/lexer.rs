@@ -82,6 +82,14 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    pub fn with_position(self, position: Position) -> Self {
+        Self {
+            current_position: position,
+            start_position: position,
+            ..self
+        }
+    }
+
     /// Returns the input text as a String.
     pub fn input(&self) -> String {
         self.chars.clone().collect()

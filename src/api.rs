@@ -14,6 +14,7 @@ use crate::{
     optimize::optimize,
     parser::Parser,
     prune::prune,
+    range::Position,
 };
 
 pub const TAN_FILE_EXTENSION: &str = "tan";
@@ -73,6 +74,25 @@ pub fn parse_string(input: impl AsRef<str>) -> Result<Expr, Vec<Error>> {
     let tokens = lexer.lex()?;
 
     let mut parser = Parser::new(&tokens);
+    let mut expr = parser.parse()?;
+
+    // #todo temp solution
+    let expr = expr.swap_remove(0);
+
+    Ok(expr)
+}
+
+// #todo Merge with parse_string.
+pub fn parse_string_with_position(
+    input: impl AsRef<str>,
+    start_position: Position,
+) -> Result<Expr, Vec<Error>> {
+    let input = input.as_ref();
+
+    let mut lexer = Lexer::new(input).with_position(start_position);
+    let tokens = lexer.lex()?;
+
+    let mut parser = Parser::new(&tokens).with_position(start_position);
     let mut expr = parser.parse()?;
 
     // #todo temp solution

@@ -66,6 +66,13 @@ impl<'a> Parser<'a> {
         }
     }
 
+    pub fn with_position(self, position: Position) -> Self {
+        Self {
+            current_position: position,
+            ..self
+        }
+    }
+
     fn next_token(&mut self) -> Option<&'a Token> {
         let maybe_token = self.tokens.next();
 
@@ -282,7 +289,7 @@ impl<'a> Parser<'a> {
                     // formatting. Only error checking happens here.
 
                     // #todo this should happen at a later stage to not affect formatting!
-                    match recognize_string_template(lexeme) {
+                    match recognize_string_template(lexeme, start_position) {
                         // Ok(format_expr) => Some(format_expr),
                         // #insight no transformation performed here.
                         Ok(_) => Some(Expr::String(lexeme.clone())),
