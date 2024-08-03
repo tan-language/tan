@@ -1,38 +1,70 @@
-use crate::{context::Context, error::Error, expr::Expr};
+use crate::{context::Context, error::Error, expr::Expr, util::args::unpack_arg};
 
-use super::eval;
+use super::{eval, eval_do::eval_do};
 
+// #todo Consider (additionally) supporting `_` instead of `else`.
+// #todo Remove the duplication between if and unless. Make unless call !eval_if.
+// #todo Add special support to formatter for if/unless.
+
+// #todo Somehow mark that this is lazy evaluation.
 pub fn eval_if(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
-    // #todo this is a temp hack!
-    let Some(predicate) = args.first() else {
-        return Err(Error::invalid_arguments("malformed if predicate", None));
-    };
-
-    let Some(true_clause) = args.get(1) else {
-        return Err(Error::invalid_arguments("malformed if true clause", None));
-    };
-
-    // #todo don't get false_clause if not required?
-    let false_clause = args.get(2);
+    // #insight If is not comp-time.
+    // #insight Cannot use unpack_bool_arg, this has lazy evaluation.
+    // #todo Is the name `predicate` relevant here?
+    let predicate = unpack_arg(args, 0, "predicate")?;
 
     let predicate = eval(predicate, context)?;
 
     let Some(predicate) = predicate.as_bool() else {
         return Err(Error::invalid_arguments(
-            "the if predicate is not a boolean value",
+            "the predicate is not a boolean value",
             predicate.range(),
         ));
     };
 
-    if predicate {
-        eval(true_clause, context)
-    } else if let Some(false_clause) = false_clause {
-        eval(false_clause, context)
+    let body = &args[1..];
+
+    // #todo Make (else ...) raise error if not in the last position of if/else.
+
+    let else_clause = if let Some(last_clause) = body.last() {
+        if let Some(last_clause) = last_clause.as_list() {
+            if last_clause.len() > 1 {
+                if let Some(op) = last_clause.first().unwrap().as_symbol() {
+                    if op == "else" {
+                        Some(last_clause)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        } else {
+            None
+        }
     } else {
-        // #insight In the Curry–Howard correspondence, an empty type corresponds to falsity.
-        // #insight
-        // Zero / Never disallows this:
-        // (let flag (if predicate (+ 1 2))) ; compile error: cannot assign Never
-        Ok(Expr::Never)
-    }
+        None
+    };
+
+    let body = if else_clause.is_some() {
+        // Remove the else_clause from the main_clause.
+        &body[..(body.len() - 1)]
+    } else {
+        body
+    };
+
+    let value = if predicate {
+        // #todo Extract common code between this, do, for, etc.
+        eval_do(body, context)?
+    } else if let Some(else_clause) = else_clause {
+        // #insight Note that (else ...) is like (do ...)!
+        eval_do(&else_clause[1..], context)?
+    } else {
+        // #todo What should be the return value?
+        Expr::None
+    };
+
+    Ok(value)
 }
