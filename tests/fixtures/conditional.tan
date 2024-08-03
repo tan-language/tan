@@ -1,8 +1,6 @@
 ; A conditional
-(do
-    (let a 5)
-    (if (> a 2)
-        (+ 1 a)
-        (+ 2 a)
-    )
+(let a 5)
+(if (> a 2)
+    (+ 1 a)
+    (else (+ 2 a))
 )

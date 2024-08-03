@@ -149,7 +149,9 @@ fn render_expr(expr: &Expr) -> Result<Expr, Error> {
             }
         }
         // #todo is there a better way to do this?
-        // #insight Nothing/Zero expressions should be skipped.
+        // #insight None (unit) expressions should be skipped.
+        Expr::None => Ok(Expr::string("")),
+        // #todo Is Never case needed here?
         Expr::Never => Ok(Expr::string("")),
         _ => Ok(Expr::string(format_value(expr))),
     }
