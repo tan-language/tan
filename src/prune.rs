@@ -45,6 +45,7 @@ pub fn prune_fn(expr: Expr) -> Option<Expr> {
                 let range = expr.range().unwrap_or_default();
                 let start_position = range.start;
 
+                // #todo The interpolated-string range is still not accurate.
                 match recognize_string_template(str, start_position) {
                     Ok(format_expr) => Some(Expr::maybe_annotated(format_expr, annotations)),
                     Err(_) => {
