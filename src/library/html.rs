@@ -189,6 +189,7 @@ mod tests {
 
     // #todo add a test with arrays and conditionals.
 
+    // #todo #fix This is failing, investigate.
     #[test]
     fn html_from_expr_usage() {
         // #todo extract as fixture.
