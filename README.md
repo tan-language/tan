@@ -7,7 +7,8 @@ Tan is a uniform language for Humans and Machines.
 Here is an example of Tan:
 
 ```tan
-; Computes the fibonacci function.
+; Compute the fibonacci function.
+
 (let fib (Func x
     (if (< x 3)
         1
@@ -24,11 +25,14 @@ This is an _experimental_ project, not intended for production use.
 
 ## Contributing
 
-Pull requests, issues, and comments are welcome! Make sure to add tests for new features and bug fixes.
+Pull requests, issues, and comments are welcome! Make sure to add tests for new
+features and bug fixes.
 
 ## License
 
-This work is licensed under the Apache-2.0 License with LLVM Exceptions. See [LICENSE.txt](LICENSE.txt) or <https://spdx.org/licenses/LLVM-exception.html> for details.
+This work is licensed under the Apache-2.0 License with LLVM Exceptions. See
+[LICENSE.txt](LICENSE.txt) or <https://spdx.org/licenses/LLVM-exception.html>
+for details.
 
 ## Copyright
 

@@ -2,4 +2,5 @@
 /Cargo.lock
 /.vscode
 /.tan_history.txt
+/.tan-history.txt
 /install.sh
