@@ -737,13 +737,19 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                         // #todo move handling of Expr::None to as_list?
 
+                        // #todo Remove the clones!
                         // #todo should check both for list and array (i.e. as_iterable)
                         let params = if let Some(params) = params.as_array() {
                             params.clone()
+                        } else if params.is_symbol() {
+                            // Also allow a single parameter without the array.
+                            // #todo For the moment we just convert it to an array here, we should leave it as is though.
+                            vec![params.clone()]
                         } else if params.is_none() {
-                            // #insight is_one as in is_unit
+                            // #insight None == One == Unit
                             Vec::new()
                         } else {
+                            println!("=== {params:?}");
                             return Err(Error::invalid_arguments(
                                 "malformed func parameters definition",
                                 params.range(),

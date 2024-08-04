@@ -8,7 +8,7 @@ Here is an example of Tan:
 
 ```tan
 ; Computes the fibonacci function.
-(let fib (Func [x]
+(let fib (Func x
     (if (< x 3)
         1
         (else (+ (fib (- x 1)) (fib (- x 2))))
