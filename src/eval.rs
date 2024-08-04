@@ -766,7 +766,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     }
                     // #todo lookup constructor function
                     _ => Err(Error::not_invocable(
-                        &format!("not invocable constructor `{head}`"),
+                        &format!("not invocable constructor `{head}`, the type is `{s}`"),
                         head.range(),
                     )),
                 },

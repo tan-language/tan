@@ -87,6 +87,7 @@ pub fn read_string_all(args: &[Expr], context: &mut Context) -> Result<Expr, Err
 // #todo do FFI functions really need an env?
 // #todo differentiate pure functions that do not change the env!
 
+// #todo Not that write can also write bytes and does not interspence spaces.
 // #todo (write ...) should take one string parameter and an optional stream/port parameter, like scheme
 // #todo it could also get an Array/Seq parameter and join it, like JavaScript console.log
 /// Writes one or more expressions to the STDOUT sink/stream.
@@ -117,6 +118,28 @@ pub fn writeln(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     write(&[Expr::string("\n")], context)
 }
 
+// #insight Note that `echo` is different than `writeln`.
+// #todo #think Actually writeln can only work on strings.
+pub fn echo(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let output: Vec<String> = args.iter().map(format_value).collect();
+    // #insight Intersperse spaces to emulate JavaScript's `console.log`` behavior.
+    let output = output.join(" ") + "\n";
+
+    // #todo shenanigans to handle `\n` in string, how can we do this better?
+    for line in output.split_inclusive("\\n") {
+        if line.ends_with("\\n") {
+            let mut line: String = line.to_owned();
+            line.pop();
+            line.pop();
+            println!("{line}");
+        } else {
+            print!("{line}");
+        }
+    }
+
+    Ok(Expr::None)
+}
+
 pub fn setup_lib_io(context: &mut Context) {
     let module = require_module("prelude", context);
 
@@ -141,6 +164,6 @@ pub fn setup_lib_io(context: &mut Context) {
     module.insert("writeln$$String", Expr::ForeignFunc(Arc::new(writeln)));
 
     // #todo temp implementation echo is different than writeln.
-    module.insert("echo", Expr::ForeignFunc(Arc::new(writeln)));
-    module.insert("echo$$String", Expr::ForeignFunc(Arc::new(writeln)));
+    module.insert("echo", Expr::ForeignFunc(Arc::new(echo)));
+    module.insert("echo$$String", Expr::ForeignFunc(Arc::new(echo)));
 }
