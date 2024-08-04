@@ -670,6 +670,12 @@ impl Expr {
         }
     }
 
+    // #todo Add more is_XXX helpers!
+
+    pub fn is_symbol(&self) -> bool {
+        matches!(self.unpack(), Expr::Symbol(..))
+    }
+
     pub fn as_symbol(&self) -> Option<&str> {
         let Expr::Symbol(s) = self.unpack() else {
             return None;
