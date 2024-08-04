@@ -119,9 +119,11 @@ pub fn writeln(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
 }
 
 // #insight Note that `echo` is different than `writeln`.
+// #todo offer a version that returns a string and does not print, similar to `join`. Maybe `join-all`?
 // #todo #think Actually writeln can only work on strings.
 pub fn echo(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let output: Vec<String> = args.iter().map(format_value).collect();
+    // #insight Don't make the separator customizable, just use string interpolation or (intersperse ...) instead.
     // #insight Intersperse spaces to emulate JavaScript's `console.log`` behavior.
     let output = output.join(" ") + "\n";
 
