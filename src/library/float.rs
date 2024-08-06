@@ -1,3 +1,4 @@
+use core::f64;
 use std::sync::Arc;
 
 use crate::{
@@ -46,6 +47,49 @@ pub fn float_from_string(args: &[Expr], _context: &mut Context) -> Result<Expr, 
     Ok(Expr::Float(value))
 }
 
+// #todo Introduce Float/+Infinity, Float/-Infinity.
+
+// #todo Consider skipping the prelude for min?
+// #todo What could be another name instead of min? `min-of`? `minimum`?
+pub fn float_min(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let mut min = f64::MAX;
+
+    for arg in args {
+        let Some(n) = arg.as_float() else {
+            return Err(Error::invalid_arguments(
+                &format!("{arg} is not a Float"),
+                arg.range(),
+            ));
+        };
+        if n < min {
+            min = n;
+        }
+    }
+
+    Ok(Expr::Float(min))
+}
+
+pub fn float_max(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let mut max = f64::MIN;
+
+    for arg in args {
+        let Some(n) = arg.as_float() else {
+            return Err(Error::invalid_arguments(
+                &format!("{arg} is not a Float"),
+                arg.range(),
+            ));
+        };
+        if n > max {
+            max = n;
+        }
+    }
+
+    Ok(Expr::Float(max))
+}
+
+// #todo Introduce max
+// #todo Introduce clamp
+
 pub fn setup_lib_float(context: &mut Context) {
     // #todo put in 'float' path, and import selected functionality to prelude.
     let module = require_module("prelude", context);
@@ -61,5 +105,17 @@ pub fn setup_lib_float(context: &mut Context) {
     module.insert(
         "Float$$String",
         Expr::ForeignFunc(Arc::new(float_from_string)),
+    );
+    module.insert("min", Expr::ForeignFunc(Arc::new(float_min)));
+    module.insert(
+        "min$$Float$$Float",
+        // annotate_type(Expr::ForeignFunc(Arc::new(add_float)), "Float"),
+        Expr::ForeignFunc(Arc::new(float_min)),
+    );
+    module.insert("max", Expr::ForeignFunc(Arc::new(float_max)));
+    module.insert(
+        "max$$Float$$Float",
+        // annotate_type(Expr::ForeignFunc(Arc::new(add_float)), "Float"),
+        Expr::ForeignFunc(Arc::new(float_max)),
     );
 }
