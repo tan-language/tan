@@ -3,7 +3,7 @@
 use std::{
     any::Any,
     collections::HashMap,
-    sync::{Arc, RwLockReadGuard},
+    sync::{Arc, RwLockReadGuard, RwLockWriteGuard},
 };
 
 use crate::{error::Error, expr::Expr};
@@ -148,6 +148,30 @@ pub fn unpack_map_arg<'a>(
     };
 
     let Some(map) = expr.as_map() else {
+        return Err(Error::invalid_arguments(
+            &format!("invalid Map argument: {name}=`{expr}`"),
+            expr.range(),
+        ));
+    };
+
+    Ok(map)
+}
+
+pub fn unpack_map_mut_arg<'a>(
+    args: &'a [Expr],
+    index: usize,
+    name: &str,
+) -> Result<RwLockWriteGuard<'a, HashMap<String, Expr>>, Error> {
+    let Some(expr) = args.get(index) else {
+        // #todo introduce 'missing argument' error variant.
+        // #todo also report the index.
+        return Err(Error::invalid_arguments(
+            &format!("missing required Map argument `{name}`"),
+            None,
+        ));
+    };
+
+    let Some(map) = expr.as_map_mut() else {
         return Err(Error::invalid_arguments(
             &format!("invalid Map argument: {name}=`{expr}`"),
             expr.range(),

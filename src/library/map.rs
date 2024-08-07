@@ -4,7 +4,10 @@ use crate::{
     context::Context,
     error::Error,
     expr::{expr_clone, format_value, Expr},
-    util::module_util::require_module,
+    util::{
+        args::{unpack_map_mut_arg, unpack_stringable_arg},
+        module_util::require_module,
+    },
 };
 
 // #todo implement some of those functions: https://www.programiz.com/python-programming/methods/mapionary
@@ -165,6 +168,19 @@ pub fn map_get_or(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
     }
 }
 
+// #todo Also consider the name `delete` (or even `yank`)?
+pub fn map_remove(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let mut map = unpack_map_mut_arg(args, 0, "map")?;
+    let key = unpack_stringable_arg(args, 1, "key")?;
+
+    // #todo Should return None if nothing removed!
+    // #todo Should this return the value? -> Yes make maximally useful!
+    let value = map.remove(key);
+
+    // #insight Returning the value is cheap.
+    Ok(value.unwrap_or(Expr::None))
+}
+
 // #todo consider name `keys-of` to avoid clash with variable keys? -> get-keys
 // #todo document the above in a decision file
 // #todo keys is problematic if it's in the prelude!
@@ -241,6 +257,10 @@ pub fn setup_lib_map(context: &mut Context) {
     module.insert("put$$Map", Expr::ForeignFunc(Arc::new(map_put)));
     module.insert("update!", Expr::ForeignFunc(Arc::new(map_update_mut)));
     module.insert("get-or", Expr::ForeignFunc(Arc::new(map_get_or)));
+
+    // #(Func [(Map T) Hashable] T)
+    module.insert("remove", Expr::ForeignFunc(Arc::new(map_remove)));
+
     // #todo Remove older get-* functions {
     module.insert("get-keys", Expr::ForeignFunc(Arc::new(map_get_keys)));
     module.insert("get-values", Expr::ForeignFunc(Arc::new(map_get_values)));
