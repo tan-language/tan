@@ -118,4 +118,14 @@ pub fn setup_lib_float(context: &mut Context) {
         // annotate_type(Expr::ForeignFunc(Arc::new(add_float)), "Float"),
         Expr::ForeignFunc(Arc::new(float_max)),
     );
+
+    // Constants.
+
+    // #warning Don't use those yet!
+    // #todo Fix Float/max, it self-evaluates, duh!
+    // #todo Mark as constant / make immutable?
+    // #todo Should we skip `Float/` prefix?
+    // #todo Rename to max-value?
+    module.insert("float/max", Expr::Float(f64::MAX));
+    module.insert("float/infinity", Expr::Float(f64::INFINITY));
 }
