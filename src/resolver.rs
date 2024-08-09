@@ -1,3 +1,5 @@
+// #WARNING the resolver is temporarily disabled, some functions are used though.
+
 use crate::{
     context::Context,
     error::Error,

@@ -27,9 +27,10 @@ use crate::{context::Context, expr::Expr};
 
 /// Terminates the current process with the specified exit code.
 pub fn process_exit(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
-    // #todo Consider flushing STDOUT and STDERR?
-    // std::io::stdout().flush().expect("stdout flushed");
-    // std::io::stderr().flush().expect("stderr flushed");
+    // #todo Investigate if using Tokio in FFI somehow messes the flushing of streams, especially compiler errors.
+    // Flush the standard streams.
+    std::io::stdout().flush().expect("stdout flushed");
+    std::io::stderr().flush().expect("stderr flushed");
 
     if let Some(code) = args.first() {
         let Some(code) = code.as_int() else {
