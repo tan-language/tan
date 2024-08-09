@@ -78,6 +78,7 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
             | "use" // #todo consider `using`
             // | "Char"
             | "Func"
+            | "Trait"
             | "Macro"
             | "List"
             | "Array"

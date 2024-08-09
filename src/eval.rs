@@ -725,6 +725,17 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         let args = eval_args(&args, context)?;
                         Ok(Expr::List(args))
                     }
+                    "Trait" => {
+                        // Example:
+                        // (let Semigroup (Trait T
+                        //   #(Func [T T] T) combine
+                        // ))
+                        //
+                        // #insight Just accepts the syntax for the moment.
+                        // #todo Implement me!
+                        // #todo We need a Trait Expr?
+                        Ok(Expr::None)
+                    }
                     "Func" => {
                         let Some(params) = args.first() else {
                             return Err(Error::invalid_arguments(
