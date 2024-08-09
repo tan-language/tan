@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 // use std::io::{BufRead, BufReader};
+use std::io::Write;
 use std::process::Stdio;
 use std::sync::Arc;
 
@@ -26,6 +27,10 @@ use crate::{context::Context, expr::Expr};
 
 /// Terminates the current process with the specified exit code.
 pub fn process_exit(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    // #todo Consider flushing STDOUT and STDERR?
+    // std::io::stdout().flush().expect("stdout flushed");
+    // std::io::stderr().flush().expect("stderr flushed");
+
     if let Some(code) = args.first() {
         let Some(code) = code.as_int() else {
             return Err(Error::invalid_arguments(
