@@ -1,6 +1,6 @@
 use crate::{api::parse_string_with_position, error::Error, expr::Expr, range::Position};
 
-pub const STRING_INTERPOLATION_FUNC: &str = "format-string";
+pub const STRING_INTERPOLATION_FUNC: &str = "String";
 
 // #insight `recognize_` is used instead of e.g. `parse_` to avoid confusion with `parse_string` and other helpers.
 
