@@ -1,6 +1,6 @@
 (do
     (let format-quote (Func [quote]
-        (format "quote: " quote)
+        (String "quote: " quote)
     ))
 
     (let get-map (Func [quote]

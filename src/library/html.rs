@@ -20,6 +20,7 @@ use crate::{
     error::Error,
     eval::util::eval_module,
     expr::{format_value, Expr},
+    parser::util::STRING_INTERPOLATION_FUNC,
     util::{module_util::require_module, try_lock_read},
 };
 
@@ -74,7 +75,7 @@ fn render_expr(expr: &Expr) -> Result<Expr, Error> {
                 }
 
                 // #todo #hack this is a temp fix
-                if sym == "format" {
+                if sym == STRING_INTERPOLATION_FUNC {
                     // #todo just use String/format
                     let output = terms.iter().skip(1).fold(String::new(), |mut str, x| {
                         str.push_str(&format_value(x));

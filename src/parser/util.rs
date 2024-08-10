@@ -1,5 +1,7 @@
 use crate::{api::parse_string_with_position, error::Error, expr::Expr, range::Position};
 
+pub const STRING_INTERPOLATION_FUNC: &str = "format-string";
+
 // #insight `recognize_` is used instead of e.g. `parse_` to avoid confusion with `parse_string` and other helpers.
 
 // #todo add unit-tests for these functions.
@@ -18,7 +20,7 @@ pub fn recognize_string_template(
     input: &str,
     start_position: Position,
 ) -> Result<Expr, Vec<Error>> {
-    let mut exprs = vec![Expr::symbol("String")];
+    let mut exprs = vec![Expr::symbol(STRING_INTERPOLATION_FUNC)];
 
     let mut previous_end = 0;
 

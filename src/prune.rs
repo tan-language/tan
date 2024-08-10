@@ -72,7 +72,9 @@ pub fn prune(expr: Expr) -> Option<Expr> {
 mod tests {
     use assert_matches::assert_matches;
 
-    use crate::{api::parse_string, expr::Expr, prune::prune};
+    use crate::{
+        api::parse_string, expr::Expr, parser::util::STRING_INTERPOLATION_FUNC, prune::prune,
+    };
 
     #[test]
     fn prune_removes_comments() {
@@ -104,7 +106,7 @@ mod tests {
             panic!("assertion failed: invalid form")
         };
 
-        assert_matches!(&exprs[0].unpack(), Expr::Symbol(s) if s == "String");
+        assert_matches!(&exprs[0].unpack(), Expr::Symbol(s) if s == STRING_INTERPOLATION_FUNC);
         assert_eq!(exprs.len(), 5);
     }
 }

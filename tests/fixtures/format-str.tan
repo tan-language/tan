@@ -1,1 +1,1 @@
-(format "has \\\"escaped\\\" chars")
+(String "has \\\"escaped\\\" chars")

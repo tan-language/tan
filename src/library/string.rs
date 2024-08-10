@@ -279,12 +279,9 @@ pub fn string_to_lower_case(args: &[Expr], _context: &mut Context) -> Result<Exp
 // #todo make this a String constructor?
 // #todo 'join' and 'format' versions?
 
-// #todo remove format.
-// #todo when removing, notice that format is used in interpolations.
-// #idea just use the String constructor: (String "hello " num " guys"), or even (Str "hello " num " guys")
-// #todo support: (Str (HTML-Expr (p "This is a nice paragraph!")))
 // #todo use (to-string ..) instead of format-value
 // #todo find another name, this is too common: `fmt`? `stringf`?
+// (format-string "hello {} {:.5}" name price)
 pub fn string_format(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let output = args.iter().fold(String::new(), |mut str, x| {
         str.push_str(&format_value(x));
@@ -535,7 +532,7 @@ pub fn setup_lib_string(context: &mut Context) {
         Expr::ForeignFunc(Arc::new(string_to_lower_case)),
     );
 
-    module.insert("format", Expr::ForeignFunc(Arc::new(string_format)));
+    module.insert("format-string", Expr::ForeignFunc(Arc::new(string_format)));
 
     module.insert("split", Expr::ForeignFunc(Arc::new(string_split)));
 
