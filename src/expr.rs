@@ -294,7 +294,7 @@ impl fmt::Debug for Expr {
             Expr::String(s) => format!("String(\"{s}\")"),
             Expr::U8(num) => format!("U8({num})"),
             Expr::Int(num) => format!("Int({num})"),
-            Expr::Float(num) => format!("Float({num})"),
+            Expr::Float(num) => format!("Float({})", format_float(*num)),
             #[cfg(feature = "dec")]
             Expr::Dec(num) => format!("Dec({num})"),
             Expr::Do => "do".to_owned(),
@@ -350,7 +350,7 @@ impl fmt::Display for Expr {
                 Expr::Bool(b) => b.to_string(),
                 Expr::U8(n) => n.to_string(),
                 Expr::Int(n) => n.to_string(),
-                Expr::Float(n) => n.to_string(),
+                Expr::Float(n) => format_float(*n),
                 #[cfg(feature = "dec")]
                 Expr::Dec(n) => format!("(Dec {n})"), // #todo 'literal', e.f. 1.23d or #Dec 1.23
                 Expr::Symbol(s) => s.clone(),
@@ -1067,6 +1067,12 @@ mod tests {
     fn expr_string_display() {
         let expr = Expr::string("hello");
         assert_eq!("\"hello\"", format!("{expr}"));
+    }
+
+    #[test]
+    fn expr_float_display() {
+        let expr = Expr::Float(3.21);
+        assert_eq!("3.21", format!("{expr}"));
     }
 
     #[test]

@@ -178,7 +178,7 @@ mod tests {
         "#;
         let expr = eval_string(input, &mut context).unwrap();
         let value = format_value(expr);
-        let expected = "[0 0]";
+        let expected = "[0.0 0.0]";
         assert_eq!(value, expected);
 
         let input = r#"
@@ -186,7 +186,7 @@ mod tests {
         "#;
         let expr = eval_string(input, &mut context).unwrap();
         let value = format_value(expr);
-        let expected = "[3.1 0]";
+        let expected = "[3.1 0.0]";
         assert_eq!(value, expected);
 
         let input = r#"
@@ -219,7 +219,7 @@ mod tests {
         "#;
         let expr = eval_string(input, &mut context).unwrap();
         let value = format_value(expr);
-        let expected = "[6 8.9]";
+        let expected = "[6.0 8.9]";
         assert_eq!(value, expected);
     }
 
@@ -235,7 +235,7 @@ mod tests {
         "#;
         let expr = eval_string(input, &mut context).unwrap();
         let value = format_value(expr);
-        let expected = "[5 14]";
+        let expected = "[5.0 14.0]";
         assert_eq!(value, expected);
     }
 
