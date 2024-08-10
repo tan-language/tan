@@ -9,15 +9,16 @@ use crate::{api::parse_string_with_position, error::Error, expr::Expr, range::Po
 // #todo allow whitespace and some non-symbol characters to delineate the interpolation to allow e.g. "$name hello!!".
 // #todo support 'toggle' interpolation with %{..}
 
-// #todo refactor, this is a temp implementation.
-// #todo could use (String ...) constructor instead of (format ...)? (format <> scan)
+// #todo Refactor, this is a temp implementation.
+// #todo Don't use the template name here.
+// #todo Could use (String ...) constructor instead of (format ...)? (format <> scan)
 // #ai-generated
 // Parses string templates, e.g. "name: ${name}, age: ${age}."
 pub fn recognize_string_template(
     input: &str,
     start_position: Position,
 ) -> Result<Expr, Vec<Error>> {
-    let mut exprs = vec![Expr::symbol("format")];
+    let mut exprs = vec![Expr::symbol("String")];
 
     let mut previous_end = 0;
 

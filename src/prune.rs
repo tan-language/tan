@@ -104,7 +104,7 @@ mod tests {
             panic!("assertion failed: invalid form")
         };
 
-        assert_matches!(&exprs[0].unpack(), Expr::Symbol(s) if s == "format");
+        assert_matches!(&exprs[0].unpack(), Expr::Symbol(s) if s == "String");
         assert_eq!(exprs.len(), 5);
     }
 }

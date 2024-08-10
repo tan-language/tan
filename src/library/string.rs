@@ -285,7 +285,7 @@ pub fn string_to_lower_case(args: &[Expr], _context: &mut Context) -> Result<Exp
 // #todo support: (Str (HTML-Expr (p "This is a nice paragraph!")))
 // #todo use (to-string ..) instead of format-value
 // #todo find another name, this is too common: `fmt`? `stringf`?
-pub fn format(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn string_format(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let output = args.iter().fold(String::new(), |mut str, x| {
         str.push_str(&format_value(x));
         str
@@ -535,7 +535,7 @@ pub fn setup_lib_string(context: &mut Context) {
         Expr::ForeignFunc(Arc::new(string_to_lower_case)),
     );
 
-    module.insert("format", Expr::ForeignFunc(Arc::new(format)));
+    module.insert("format", Expr::ForeignFunc(Arc::new(string_format)));
 
     module.insert("split", Expr::ForeignFunc(Arc::new(string_split)));
 
