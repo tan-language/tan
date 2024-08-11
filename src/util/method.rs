@@ -27,15 +27,6 @@ pub fn compute_signature_from_annotations(expr: &Expr) -> Option<String> {
     } else {
         None
     }
-
-    // if let Some(signature) = expr.annotation("signature") {
-    //     // #todo validate that signature is a string.
-    //     let signature = format_value(signature);
-    //     // #todo this is temp convention!
-    //     Some(format!("$${signature}"))
-    // } else {
-    //     None
-    // }
 }
 
 // #todo signature should also encode the return type!!
