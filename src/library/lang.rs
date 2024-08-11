@@ -227,6 +227,59 @@ pub fn eval_string(args: &[Expr], context: &mut Context) -> Result<Expr, Error> 
     }
 }
 
+/// #todo Find a good name for this function.
+fn curry(params: &[Expr], body: &[Expr]) -> Option<(Vec<Expr>, Vec<Expr>)> {
+    params.first().map(|param| {
+        let rest_params = &params[1..];
+
+        let curried_body = if let Some((nested_params, nested_body)) = curry(rest_params, body) {
+            vec![Expr::List(vec![
+                Expr::Type("Func".to_owned()),
+                Expr::array(nested_params),
+                nested_body.first().unwrap().clone(), // #todo Remove unwrap!
+            ])]
+        } else {
+            body.to_owned()
+        };
+
+        (vec![param.clone()], curried_body)
+    })
+}
+
+// #todo Also support passing argument, implements partial application:
+//
+// (let greet (Func [msg name] "${msg} ${name}"))
+// (let hello (curry greet "Hello"))
+// (let hello "George") ; => "Hello George"
+//
+// Currently you can do:
+// (let hello ((curry greet) "Hello"))
+// (let hello "George") ; => "Hello George"
+//
+// #todo Convert to macro, evaluate at compile/static time.
+// #todo #insight Cannot curry a function with zero parameters, just return the function unchanged!
+// (let add1 (Func [x y] (+ x y 1)))
+// (let curried-add1 (curry add1))
+pub fn func_curry(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let Some(func) = args.first() else {
+        return Err(Error::invalid_arguments("expected `func` argument", None));
+    };
+
+    let Expr::Func(params, body, func_scope, filename) = func.unpack() else {
+        return Err(Error::invalid_arguments(
+            "`func` argument should be a Func",
+            None,
+        ));
+    };
+
+    let (params, curried_body) = curry(params, body).unwrap_or((vec![], body.clone()));
+
+    // #todo Also re-apply annotations.
+
+    let curried_func = Expr::Func(params, curried_body, func_scope.clone(), filename.clone());
+    Ok(curried_func)
+}
+
 // #todo consider link_foreign_dyn_lib (and unlink_...)
 // #todo introduce unlink_foreign_dyn_lib for completeness.
 // #todo find a better name, consider `use` or `load` instead of `install`.
@@ -326,6 +379,9 @@ pub fn setup_lib_lang(context: &mut Context) {
     );
 
     module.insert("load-file", Expr::ForeignFunc(Arc::new(load_file)));
+
+    // #todo Move to a namespace, e.g. `/func`.
+    module.insert("curry", Expr::ForeignFunc(Arc::new(func_curry)));
 
     module.insert(
         "link-foreign-dyn-lib",

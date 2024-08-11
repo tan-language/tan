@@ -287,7 +287,7 @@ impl fmt::Debug for Expr {
             Expr::Comment(s, _) => format!("Comment({s})"),
             Expr::TextSeparator => "<TEXT-SEPARATOR>".to_owned(),
             Expr::Bool(b) => format!("Bool({b})"),
-            Expr::Symbol(s) => format!("Symbol({s})"),
+            Expr::Symbol(s) => format!("'{s}"), // "Symbol(s)"
             Expr::KeySymbol(s) => format!("KeySymbol({s})"),
             Expr::Type(s) => format!("Type({s})"),
             Expr::Char(c) => format!("Char({c})"),
@@ -309,7 +309,7 @@ impl fmt::Debug for Expr {
                 )
             }
             Expr::Buffer(size, v) => format!("Buffer({size}, {v:?})"),
-            Expr::Array(v) => format!("Array({v:?})"),
+            Expr::Array(v) => format!("Array({:?})", v.read().expect("poisoned lock")),
             Expr::Map(d) => format!("Map({d:?})"),
             Expr::Set(d) => format!("Set({d:?})"),
             Expr::IntRange(start, end, step) => format!("IntRange({start},{end},{step})"),
@@ -329,7 +329,7 @@ impl fmt::Debug for Expr {
             // #todo uncomment only for debugging purposes!
             // Expr::Annotated(expr, ann) => format!("ANN({expr:?}, {ann:?})"),
             // #insight intentionally ignore annotations in formatting the formatting.
-            Expr::Annotated(expr, _ann) => format!("Ann({expr:?})"), // #skip annotations.
+            Expr::Annotated(expr, _ann) => format!("#({expr:?})"), // "Ann({expr:?})"
             Expr::Annotation(ann) => format!("Annotation(#{ann})"),
             Expr::Module(module) => format!("Module({})", module.stem),
         };
@@ -427,11 +427,13 @@ impl fmt::Display for Expr {
                         format!("{start}..{end}|{step}")
                     }
                 }
-                Expr::Func(..) => "#<func>".to_owned(),
-                Expr::Macro(..) => "#<func>".to_owned(),
-                Expr::ForeignFunc(..) => "#<foreign-func>".to_owned(),
-                Expr::ForeignStruct(..) => "#<foreign-struct>".to_owned(),
-                Expr::ForeignStructMut(..) => "#<foreign-struct-mut>".to_owned(),
+                // Expr::Func(..) => "#<func>".to_owned(),
+                Expr::Func(params, ..) => format!("<FUNC {:?}>", params),
+                // Expr::Func(params, body, ..) => format!("<FUNC {:?} -> {:?}>", params, body), // #hint Useful for debugging.
+                Expr::Macro(..) => "<MACRO>".to_owned(),
+                Expr::ForeignFunc(..) => "<FOREIGN-FUNC>>".to_owned(),
+                Expr::ForeignStruct(..) => "<FOREIGN-STRUCT>".to_owned(),
+                Expr::ForeignStructMut(..) => "<FOREIGN-STRUCT-MUT>".to_owned(),
                 // #insight intentionally pass through the formatting.
                 Expr::Annotated(expr, _) => format!("{expr}"),
                 Expr::Annotation(ann) => format!("#{ann}"),
