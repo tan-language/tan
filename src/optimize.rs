@@ -79,9 +79,8 @@ mod tests {
 
         let s = format!("{expr_optimized:?}");
 
-        // assert!(s.contains("Array([Int(1), Int(2), Int(3), Int(4)])"));
-        // #todo this is a _very_ unstable/error-prone check.
-        assert!(s.contains("Array(RwLock { data: [Int(1), Int(2), Int(3), Int(4)]"));
+        // #todo This is a _very_ unstable/error-prone check.
+        assert!(s.contains("Array([Int(1), Int(2), Int(3), Int(4)])"));
     }
 
     // #todo the test is flaky for some reason, temporarily disabled, investigate.
