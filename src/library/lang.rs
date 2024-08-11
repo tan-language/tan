@@ -15,6 +15,7 @@ use crate::{
         util::{canonicalize_module_path, eval_file},
     },
     expr::{annotate, expr_clone, Expr},
+    scope::Scope,
     util::{
         args::{unpack_arg, unpack_map_arg, unpack_stringable_arg, unpack_symbolic_arg},
         module_util::require_module,
@@ -227,6 +228,65 @@ pub fn eval_string(args: &[Expr], context: &mut Context) -> Result<Expr, Error> 
     }
 }
 
+// #todo NOT WORKING!
+fn curry(
+    params: &[Expr],
+    body: &[Expr],
+    func_scope: &Arc<Scope>,
+    filename: String,
+) -> Option<Expr> {
+    params.first().map(|param| {
+        let rest_params = &params[1..];
+        if rest_params.is_empty() {
+            Expr::Func(
+                vec![param.clone()],
+                body.to_owned(),
+                func_scope.clone(),
+                filename.clone(),
+            )
+        } else {
+            // (Func [a1] (Func [a2] (Func [a3] body)))
+            let curried_body = Expr::List(vec![Expr::Type("Func".to_owned()), Expr::array(vec![])]);
+            Expr::Func(
+                rest_params.to_owned(),
+                vec![curried_body],
+                func_scope.clone(),
+                filename.clone(),
+            )
+        }
+    })
+}
+
+// #todo NOT WORKING!
+// #todo #insight Cannot curry a function with zero parameters, just return the function unchanged!
+pub fn func_curry(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    // (let add1 (Func [x y] (+ x y 1)))
+    // (let curried-add1 (curry add1))
+
+    let Some(func) = args.first() else {
+        return Err(Error::invalid_arguments("expected `func` argument", None));
+    };
+
+    let Expr::Func(params, body, func_scope, filename) = func.unpack() else {
+        return Err(Error::invalid_arguments(
+            "`func` argument should be a Func",
+            None,
+        ));
+    };
+
+    dbg!(&body);
+
+    let curried_func = curry(params, body, func_scope, filename.clone()).unwrap_or(func.clone());
+
+    // #todo Also re-apply annotations.
+
+    if let Expr::Func(_, body, ..) = &curried_func {
+        dbg!(&body);
+    }
+
+    Ok(curried_func)
+}
+
 // #todo consider link_foreign_dyn_lib (and unlink_...)
 // #todo introduce unlink_foreign_dyn_lib for completeness.
 // #todo find a better name, consider `use` or `load` instead of `install`.
@@ -326,6 +386,9 @@ pub fn setup_lib_lang(context: &mut Context) {
     );
 
     module.insert("load-file", Expr::ForeignFunc(Arc::new(load_file)));
+
+    // #todo Move to a namespace, e.g. `/func`.
+    module.insert("curry", Expr::ForeignFunc(Arc::new(func_curry)));
 
     module.insert(
         "link-foreign-dyn-lib",

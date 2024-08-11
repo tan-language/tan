@@ -309,7 +309,7 @@ impl fmt::Debug for Expr {
                 )
             }
             Expr::Buffer(size, v) => format!("Buffer({size}, {v:?})"),
-            Expr::Array(v) => format!("Array({v:?})"),
+            Expr::Array(v) => format!("Array({:?})", v.read().expect("poisoned lock")),
             Expr::Map(d) => format!("Map({d:?})"),
             Expr::Set(d) => format!("Set({d:?})"),
             Expr::IntRange(start, end, step) => format!("IntRange({start},{end},{step})"),
@@ -329,7 +329,7 @@ impl fmt::Debug for Expr {
             // #todo uncomment only for debugging purposes!
             // Expr::Annotated(expr, ann) => format!("ANN({expr:?}, {ann:?})"),
             // #insight intentionally ignore annotations in formatting the formatting.
-            Expr::Annotated(expr, _ann) => format!("Ann({expr:?})"), // #skip annotations.
+            Expr::Annotated(expr, _ann) => format!("#({expr:?})"), // #skip annotations.
             Expr::Annotation(ann) => format!("Annotation(#{ann})"),
             Expr::Module(module) => format!("Module({})", module.stem),
         };
