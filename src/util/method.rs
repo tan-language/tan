@@ -31,16 +31,6 @@ pub fn compute_signature_from_annotations(expr: &Expr) -> Option<String> {
 
 // #todo signature should also encode the return type!!
 // #todo how to handle VARARG functions ?!?!
-pub fn compute_signature(args: &[Expr]) -> String {
-    let mut signature = Vec::new();
-
-    for arg in args {
-        signature.push(arg.static_type().to_string())
-    }
-
-    signature.join("$$")
-}
-
 pub fn compute_dyn_signature(args: &[Expr], context: &Context) -> String {
     let mut signature = Vec::new();
 
