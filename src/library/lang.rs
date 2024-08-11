@@ -246,6 +246,16 @@ fn curry(params: &[Expr], body: &[Expr]) -> Option<(Vec<Expr>, Vec<Expr>)> {
     })
 }
 
+// #todo Also support passing argument, implements partial application:
+//
+// (let greet (Func [msg name] "${msg} ${name}"))
+// (let hello (curry greet "Hello"))
+// (let hello "George") ; => "Hello George"
+//
+// Currently you can do:
+// (let hello ((curry greet) "Hello"))
+// (let hello "George") ; => "Hello George"
+//
 // #todo Convert to macro, evaluate at compile/static time.
 // #todo #insight Cannot curry a function with zero parameters, just return the function unchanged!
 // (let add1 (Func [x y] (+ x y 1)))
