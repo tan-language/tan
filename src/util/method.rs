@@ -11,19 +11,31 @@ use crate::{
 // #todo automatically infer the signature from type annotations.
 // #insight only apply on invocable exprs.
 pub fn compute_signature_from_annotations(expr: &Expr) -> Option<String> {
-    // #todo the signature annotation is super-low-level, remove?
     if let Some(typ) = expr.annotation("type") {
+        // #todo Add some error checking that the type is for a Func/Invocable.
+        // #todo Add error checking that the signature is valid!
+        // #todo Perform the check at static-time.
         // #todo add some error checking for the type annotation here.
         // #todo temp hack solution, only handles (Func [...] ...) types.
         let typ = format_value(typ);
-        let typ = typ.replace(['(', ')'], "");
-        let parts: Vec<&str> = typ.split(' ').collect();
-        let mut typ = parts[1..parts.len() - 1].join("$$");
-        // #todo #hack ultra nasty!
-        if typ.starts_with("Array") {
-            typ = typ.chars().skip(5 /* "Array".len() */).collect();
+        if !typ.starts_with("(Func ") {
+            // #todo Raise an error here!
+            eprintln!("Invalid invocable type annotation!");
+            return None;
         }
-        Some(typ)
+        let typ = &typ[6..(typ.len() - 1)];
+        // parts = [output, input]
+        let parts = typ.rsplitn(2, " ").collect::<Vec<&str>>();
+        let mut input = parts[1];
+
+        if input.starts_with("(Array ") {
+            // #todo #hack In general rething how to handle arrays of types, conflicts with the Array generic type.
+            input = &input[7..(input.len() - 1)];
+        }
+
+        let parts = input.split(' ').collect::<Vec<_>>().join("$$");
+
+        Some(format!("$${parts}"))
     } else {
         None
     }
