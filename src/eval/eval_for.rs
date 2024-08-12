@@ -23,11 +23,14 @@ use super::{
 
 // #todo what should happen if variable source is nil?
 
+// Insert the bindings to the next interation. Returns false if the iteration
+// should be stopped.
 fn insert_next_bindings(
     bindings: &[(&Expr, Rc<RefCell<dyn ExprIterator>>)],
     context: &mut Context,
 ) -> Result<bool, Error> {
     for (var, iterator) in bindings {
+        // #todo borrow_mut/RC is not really needed here?
         let mut iterator = iterator.borrow_mut();
         if let Some(value) = iterator.next() {
             insert_binding(var, value, context)?;
@@ -38,6 +41,8 @@ fn insert_next_bindings(
     Ok(true)
 }
 
+// #todo Update for-list to match this implementation.
+// #todo Add unit tests!
 // (for [x 10] (writeln x))
 pub fn eval_for(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     // #todo reuse code from let
@@ -52,7 +57,7 @@ pub fn eval_for(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     let binding = args.first().unwrap();
     let body = &args[1..];
 
-    // #todo Optimize the standard case with one binding!
+    // #todo #perf #important Optimize the standard case with one binding!
 
     // #todo should check both for list and array (i.e. as_iterable)
     let Some(binding_parts) = binding.as_array() else {
@@ -65,7 +70,6 @@ pub fn eval_for(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
 
     let mut i = 0;
 
-    // let mut bindings2: [&Expr;10] = [&BINDINGS_SENTINEL;10];
     let mut bindings = Vec::with_capacity(binding_parts.len() / 2);
 
     while i < binding_parts.len() {
