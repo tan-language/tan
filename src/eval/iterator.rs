@@ -5,7 +5,11 @@
 
 // #todo what about negative iteration, negative step?
 
-use std::{cell::RefCell, rc::Rc, sync::RwLockReadGuard};
+use std::{
+    cell::RefCell,
+    rc::Rc,
+    sync::{Arc, RwLock, RwLockReadGuard},
+};
 
 use crate::{
     expr::{expr_clone, Expr},
@@ -121,6 +125,26 @@ impl<'a> ExprIterator for ArrayIteratorRc<'a> {
     }
 }
 
+pub struct ArrayIteratorRc2 {
+    current: usize,
+    items: Arc<RwLock<Vec<Expr>>>,
+    pub step: usize,
+}
+
+impl ExprIterator for ArrayIteratorRc2 {
+    fn next(&mut self) -> Option<Expr> {
+        let items = expect_lock_read(&self.items);
+
+        if self.current < items.len() {
+            let value = items[self.current].clone(); // #todo avoid this, should array have Rcs? SOS!!!
+            self.current += self.step;
+            Some(value)
+        } else {
+            None
+        }
+    }
+}
+
 pub struct MapIterator {
     current: usize,
     items: Vec<Expr>,
@@ -202,6 +226,94 @@ pub fn try_iterator_from<'a>(expr: &'a Expr) -> Option<Rc<RefCell<dyn ExprIterat
             Some(Rc::new(RefCell::new(ArrayIteratorRc {
                 current: 0,
                 items,
+                step: 1,
+            })))
+        }
+        Expr::Map(_) => {
+            // example usage:
+            // (let user {:name "George" :age :gender :male})
+            // (for [f user] (writeln "*** ${(f 0)} = ${(f 1)}"))
+            // #todo somehow reuse map_get_entries
+            let Some(items) = expr.as_map_mut() else {
+                panic!("invalid state in for-map");
+            };
+
+            // #todo why does map return k as String?
+            // #todo wow, this is incredibly inefficient.
+            // #todo #hack temp fix we add the a `:` prefix to generate keys
+            let items: Vec<_> = items
+                .iter()
+                .map(|(k, v)| Expr::array(vec![Expr::KeySymbol(k.clone()), expr_clone(v)]))
+                .collect();
+
+            Some(Rc::new(RefCell::new(MapIterator {
+                current: 0,
+                items,
+                step: 1,
+            })))
+        }
+        Expr::Set(_) => {
+            // example usage: #todo
+            // #todo somehow reuse map_get_entries
+            let Some(items) = expr.as_set_mut() else {
+                panic!("invalid state in for-set");
+            };
+
+            // #todo wow, this is incredibly inefficient.
+            // #todo #hack temp fix we add the a `:` prefix to generate keys
+            // #todo try to avoid the cloned!
+            let items: Vec<_> = items.iter().cloned().collect();
+
+            Some(Rc::new(RefCell::new(SetIterator {
+                current: 0,
+                items,
+                step: 1,
+            })))
+        }
+        _ => None,
+    }
+}
+
+// #todo Only this version is useful, remove the non-consuming one!
+pub fn try_iterator_from_consuming(expr: Expr) -> Option<Rc<RefCell<dyn ExprIterator>>> {
+    match expr.unpack() {
+        Expr::Int(n) => Some(Rc::new(RefCell::new(IntRangeIterator {
+            current: 0,
+            end: *n,
+            step: 1,
+        }))),
+        Expr::IntRange(start, end, step) => Some(Rc::new(RefCell::new(IntRangeIterator {
+            // #todo start is not really needed, could use just current!
+            current: *start,
+            end: *end,
+            step: *step,
+        }))),
+        Expr::Float(n) => Some(Rc::new(RefCell::new(FloatRangeIterator {
+            current: 0.0,
+            end: *n,
+            step: 1.0,
+        }))),
+        Expr::FloatRange(start, end, step) => Some(Rc::new(RefCell::new(FloatRangeIterator {
+            // #todo start is really not needed!
+            current: *start,
+            end: *end,
+            step: *step,
+        }))),
+        // #todo consolidate handling of List and Array.
+        // Expr::List(items) => Some(Rc::new(RefCell::new(ArrayIterator {
+        //     current: 0,
+        //     items,
+        //     step: 1,
+        // }))),
+        Expr::Array(items) => {
+            // let Ok(items) = items.read() else {
+            //     // #todo maybe panic here?
+            //     return None;
+            // };
+            // let items = expect_lock_read(items);
+            Some(Rc::new(RefCell::new(ArrayIteratorRc2 {
+                current: 0,
+                items: items.clone(),
                 step: 1,
             })))
         }
