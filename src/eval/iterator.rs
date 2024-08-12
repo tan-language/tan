@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 // #todo what is the proper place for this?
 // #todo conflict with expr/expr_iter.rs
 // #todo reuse Rust's iterator trait?
@@ -13,7 +15,7 @@ use std::{
 
 use crate::{
     expr::{expr_clone, Expr},
-    util::expect_lock_read,
+    util::{expect_lock_read, expect_lock_write},
 };
 
 pub trait ExprIterator {
@@ -87,6 +89,7 @@ impl ExprIterator for FloatRangeIterator {
 // #todo consolidate List/Array
 
 // #insight this is used to iterate List.
+#[deprecated]
 pub struct ArrayIterator<'a> {
     current: usize,
     items: &'a [Expr],
@@ -111,7 +114,7 @@ pub struct ArrayIterator2 {
     pub step: usize,
 }
 
-impl<'a> ExprIterator for ArrayIterator2 {
+impl ExprIterator for ArrayIterator2 {
     fn next(&mut self) -> Option<Expr> {
         if self.current < self.items.len() {
             let value = self.items[self.current].clone(); // #todo avoid this, should array have Rcs?
@@ -124,6 +127,7 @@ impl<'a> ExprIterator for ArrayIterator2 {
 }
 
 // #insight this is used to iterate Array.
+#[deprecated]
 pub struct ArrayIteratorRc<'a> {
     current: usize,
     items: RwLockReadGuard<'a, Vec<Expr>>,
@@ -293,48 +297,50 @@ pub fn try_iterator_from<'a>(expr: &'a Expr) -> Option<Rc<RefCell<dyn ExprIterat
 
 // #todo Only this version is useful, remove the non-consuming one!
 pub fn try_iterator_from_consuming(expr: Expr) -> Option<Rc<RefCell<dyn ExprIterator>>> {
-    match expr.unpack() {
+    match expr.unpack_consuming() {
         Expr::Int(n) => Some(Rc::new(RefCell::new(IntRangeIterator {
             current: 0,
-            end: *n,
+            end: n,
             step: 1,
         }))),
         Expr::IntRange(start, end, step) => Some(Rc::new(RefCell::new(IntRangeIterator {
             // #todo start is not really needed, could use just current!
-            current: *start,
-            end: *end,
-            step: *step,
+            current: start,
+            end,
+            step,
         }))),
         Expr::Float(n) => Some(Rc::new(RefCell::new(FloatRangeIterator {
             current: 0.0,
-            end: *n,
+            end: n,
             step: 1.0,
         }))),
         Expr::FloatRange(start, end, step) => Some(Rc::new(RefCell::new(FloatRangeIterator {
             // #todo start is really not needed!
-            current: *start,
-            end: *end,
-            step: *step,
+            current: start,
+            end,
+            step,
         }))),
         // #todo consolidate handling of List and Array.
-        // Expr::List(items) => Some(Rc::new(RefCell::new(ArrayIterator2 {
-        //     current: 0,
-        //     items,
-        //     step: 1,
-        // }))),
-        Expr::Array(items) => Some(Rc::new(RefCell::new(ArrayIteratorRc2 {
+        Expr::List(items) => Some(Rc::new(RefCell::new(ArrayIterator2 {
             current: 0,
-            items: items.clone(),
+            items,
             step: 1,
         }))),
-        Expr::Map(_) => {
+        Expr::Array(items) => Some(Rc::new(RefCell::new(ArrayIteratorRc2 {
+            current: 0,
+            items,
+            step: 1,
+        }))),
+        Expr::Map(items) => {
             // example usage:
             // (let user {:name "George" :age :gender :male})
             // (for [f user] (writeln "*** ${(f 0)} = ${(f 1)}"))
             // #todo somehow reuse map_get_entries
-            let Some(items) = expr.as_map_mut() else {
-                panic!("invalid state in for-map");
-            };
+            // let Some(items) = expr.as_map_mut() else {
+            //     panic!("invalid state in for-map");
+            // };
+
+            let items = expect_lock_write(&items);
 
             // #todo why does map return k as String?
             // #todo wow, this is incredibly inefficient.
@@ -350,12 +356,14 @@ pub fn try_iterator_from_consuming(expr: Expr) -> Option<Rc<RefCell<dyn ExprIter
                 step: 1,
             })))
         }
-        Expr::Set(_) => {
+        Expr::Set(items) => {
             // example usage: #todo
             // #todo somehow reuse map_get_entries
-            let Some(items) = expr.as_set_mut() else {
-                panic!("invalid state in for-set");
-            };
+            // let Some(items) = expr.as_set_mut() else {
+            //     panic!("invalid state in for-set");
+            // };
+
+            let items = expect_lock_write(&items);
 
             // #todo wow, this is incredibly inefficient.
             // #todo #hack temp fix we add the a `:` prefix to generate keys
