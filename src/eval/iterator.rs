@@ -105,8 +105,25 @@ impl<'a> ExprIterator for ArrayIterator<'a> {
     }
 }
 
+pub struct ArrayIterator2 {
+    current: usize,
+    items: Vec<Expr>,
+    pub step: usize,
+}
+
+impl<'a> ExprIterator for ArrayIterator2 {
+    fn next(&mut self) -> Option<Expr> {
+        if self.current < self.items.len() {
+            let value = self.items[self.current].clone(); // #todo avoid this, should array have Rcs?
+            self.current += self.step;
+            Some(value)
+        } else {
+            None
+        }
+    }
+}
+
 // #insight this is used to iterate Array.
-// #todo ArrayIterator2 should replace ArrayIterator.
 pub struct ArrayIteratorRc<'a> {
     current: usize,
     items: RwLockReadGuard<'a, Vec<Expr>>,
@@ -300,23 +317,16 @@ pub fn try_iterator_from_consuming(expr: Expr) -> Option<Rc<RefCell<dyn ExprIter
             step: *step,
         }))),
         // #todo consolidate handling of List and Array.
-        // Expr::List(items) => Some(Rc::new(RefCell::new(ArrayIterator {
+        // Expr::List(items) => Some(Rc::new(RefCell::new(ArrayIterator2 {
         //     current: 0,
         //     items,
         //     step: 1,
         // }))),
-        Expr::Array(items) => {
-            // let Ok(items) = items.read() else {
-            //     // #todo maybe panic here?
-            //     return None;
-            // };
-            // let items = expect_lock_read(items);
-            Some(Rc::new(RefCell::new(ArrayIteratorRc2 {
-                current: 0,
-                items: items.clone(),
-                step: 1,
-            })))
-        }
+        Expr::Array(items) => Some(Rc::new(RefCell::new(ArrayIteratorRc2 {
+            current: 0,
+            items: items.clone(),
+            step: 1,
+        }))),
         Expr::Map(_) => {
             // example usage:
             // (let user {:name "George" :age :gender :male})

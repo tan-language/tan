@@ -9,7 +9,7 @@ use crate::{
 
 use super::{
     eval, insert_binding,
-    iterator::{try_iterator_from, try_iterator_from_consuming, ExprIterator},
+    iterator::{try_iterator_from_consuming, ExprIterator},
 };
 
 // #insight
@@ -66,7 +66,7 @@ pub fn eval_for(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     let mut i = 0;
 
     // let mut bindings2: [&Expr;10] = [&BINDINGS_SENTINEL;10];
-    let mut bindings2 = Vec::with_capacity(binding_parts.len() / 2);
+    let mut bindings = Vec::with_capacity(binding_parts.len() / 2);
 
     while i < binding_parts.len() {
         let var = binding_parts.get(i).unwrap();
@@ -85,17 +85,10 @@ pub fn eval_for(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
             ));
         };
 
-        bindings2.push((var, iterator));
+        bindings.push((var, iterator));
 
         i += 2;
     }
-
-    // #todo Use Rust's chunks.
-    // for i in 0..binding_parts.len() {
-    //     let var = bindings.get(i).unwrap();
-    //     if let Some(value) = bindings.get(i+1).unwrap()
-    //     insert_binding(var, value, context)?;
-    // }
 
     // #insight If the binding iterables have different length, iterate until
     // the shortest is exhausted, similar to how Rust's zip and Python list
@@ -129,7 +122,7 @@ pub fn eval_for(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
 
     // 'outer_loop: while let Some(value) = iterator.next() {
     //     insert_binding(var, value, context)?;
-    'outer_loop: while insert_next_bindings(&bindings2, context)? {
+    'outer_loop: while insert_next_bindings(&bindings, context)? {
         // insert_binding(var, value, context)?;
         'inner_loop: for expr in body {
             match eval(expr, context) {
