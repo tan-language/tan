@@ -10,6 +10,8 @@ use super::{eval, iterator::try_iterator_from};
 // `for` is related with `do`
 // `for` is monadic
 
+// #todo Unify with eval_for.
+// #todo Document what it does.
 // #todo consider the name `for*` or something similar?
 // #todo solve duplication between for and for->list
 // #todo reuse code from let
