@@ -6,7 +6,7 @@ use crate::{
     error::Error,
     expr::Expr,
     util::{
-        args::{unpack_bool_arg, unpack_stringable_arg},
+        args::{unpack_bool_arg, unpack_float_arg, unpack_stringable_arg},
         module_util::require_module,
     },
 };
@@ -87,7 +87,12 @@ pub fn float_max(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(Expr::Float(max))
 }
 
-// #todo Introduce max
+// #todo Implement in Tan.
+pub fn float_abs(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let n = unpack_float_arg(args, 0, "n")?;
+    Ok(Expr::Float(n.abs()))
+}
+
 // #todo Introduce clamp
 
 pub fn setup_lib_float(context: &mut Context) {
@@ -118,6 +123,9 @@ pub fn setup_lib_float(context: &mut Context) {
         // annotate_type(Expr::ForeignFunc(Arc::new(add_float)), "Float"),
         Expr::ForeignFunc(Arc::new(float_max)),
     );
+
+    module.insert("abs", Expr::ForeignFunc(Arc::new(float_abs)));
+    module.insert("abs$$Float", Expr::ForeignFunc(Arc::new(float_abs)));
 
     // Constants.
 
