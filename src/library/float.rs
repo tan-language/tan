@@ -93,6 +93,11 @@ pub fn float_abs(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(Expr::Float(n.abs()))
 }
 
+pub fn float_sqrt(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let n = unpack_float_arg(args, 0, "n")?;
+    Ok(Expr::Float(n.sqrt()))
+}
+
 // #todo Introduce clamp
 
 pub fn setup_lib_float(context: &mut Context) {
@@ -126,6 +131,10 @@ pub fn setup_lib_float(context: &mut Context) {
 
     module.insert("abs", Expr::ForeignFunc(Arc::new(float_abs)));
     module.insert("abs$$Float", Expr::ForeignFunc(Arc::new(float_abs)));
+
+    // #todo Note that `sqrt` does not follow Tan naming conventions but it's a standard term.
+    module.insert("sqrt", Expr::ForeignFunc(Arc::new(float_sqrt)));
+    module.insert("sqrt$$Float", Expr::ForeignFunc(Arc::new(float_sqrt)));
 
     // Constants.
 
