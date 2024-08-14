@@ -5,12 +5,20 @@ use crate::{
     error::Error,
     eval::{invoke, invoke_func},
     expr::{expr_clone, format_value, Expr},
-    util::module_util::require_module,
+    util::{
+        args::{unpack_array_arg, unpack_int_arg},
+        module_util::require_module,
+    },
 };
 
 use super::cmp::rust_ordering_from_tan_ordering;
 
-// #todo find a better name
+// #insight Iterable is more general than Sequence. For example you could consider
+// a Map as an Iterable it's more of a stretch to think of it as a Sequence.
+
+// #todo Rename to `iter.rs`.
+
+// #todo Find a better name
 pub fn list_cons(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [head, tail] = args else {
         return Err(Error::invalid_arguments(
@@ -407,6 +415,23 @@ pub fn array_slice(args: &[Expr], _context: &mut Context) -> Result<Expr, Error>
     Ok(Expr::array(slice))
 }
 
+// #todo Consider different names: roll, rolled, rolling
+// #todo Consider eager (roll) and lazy (rolling/rolled) versions.
+// #todo Is this generic?
+pub fn array_roll(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let window_size = unpack_int_arg(args, 0, "window-size")?;
+    let items = unpack_array_arg(args, 1, "items")?;
+
+    let windows = items.windows(window_size as usize);
+
+    let mut rolled_items = Vec::new();
+    for window in windows {
+        rolled_items.push(Expr::array(window));
+    }
+
+    Ok(Expr::array(rolled_items))
+}
+
 pub fn setup_lib_seq(context: &mut Context) {
     // #todo should put in `seq` module and then into `prelude`.
     let module = require_module("prelude", context);
@@ -456,6 +481,8 @@ pub fn setup_lib_seq(context: &mut Context) {
         "slice$$Array$$Int$$Int",
         Expr::ForeignFunc(Arc::new(array_slice)),
     );
+
+    module.insert("roll", Expr::ForeignFunc(Arc::new(array_roll)));
 
     // let module = require_module("seq", context);
 

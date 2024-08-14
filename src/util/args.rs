@@ -181,6 +181,32 @@ pub fn unpack_map_mut_arg<'a>(
     Ok(map)
 }
 
+// #todo Also support lists and other iterables?
+// #todo Also add _mut version.
+pub fn unpack_array_arg<'a>(
+    args: &'a [Expr],
+    index: usize,
+    name: &str,
+) -> Result<RwLockReadGuard<'a, Vec<Expr>>, Error> {
+    let Some(expr) = args.get(index) else {
+        // #todo introduce 'missing argument' error variant.
+        // #todo also report the index.
+        return Err(Error::invalid_arguments(
+            &format!("missing required Array argument `{name}`"),
+            None,
+        ));
+    };
+
+    let Some(array) = expr.as_array() else {
+        return Err(Error::invalid_arguments(
+            &format!("invalid Array argument: {name}=`{expr}`"),
+            expr.range(),
+        ));
+    };
+
+    Ok(array)
+}
+
 // #todo also add _mut version.
 pub fn unpack_buffer_arg<'a>(
     args: &'a [Expr],
