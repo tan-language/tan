@@ -9,7 +9,7 @@ use crate::expr::{format_value, Expr};
 // expressions like Expr::Array, Expr::Map, etc. It also strips unnecessary
 // annotations.
 
-// #todo what does optimize do? I think it just removes some annotations.
+// #todo What does optimize do? I think it just removes some annotations.
 
 // #todo #think hm, we NEED the annotations, especially in let expressions!
 

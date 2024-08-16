@@ -9,6 +9,8 @@ use crate::{
     util::{args::unpack_arg, is_reserved_symbol},
 };
 
+// #todo Also expand function-capture / partial-allocation.
+
 // #insight it mutates the env which is used in eval also!
 
 // #todo `elision`, `elide` sounds better than `prune`?
@@ -32,6 +34,26 @@ use crate::{
 
 // #todo #think this prematurely strips list annotations.
 
+#[inline]
+fn is_function_capture_argument(arg: &Expr) -> bool {
+    if let Some(name) = arg.as_symbol() {
+        name.starts_with("%")
+    } else {
+        false
+    }
+}
+
+fn filter_function_capture_arguments(args: &[Expr]) -> impl Iterator<Item = Expr> + '_ {
+    args.iter()
+        .filter(|&x| is_function_capture_argument(x))
+        .cloned()
+}
+
+// Check if any argument is a capture argument.
+fn is_function_capture(args: &[Expr]) -> bool {
+    args.iter().any(is_function_capture_argument)
+}
+
 /// Expands macro invocations, at compile time.
 pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, Error> {
     match expr.unpack() {
@@ -39,6 +61,34 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
             let head = list.first().unwrap(); // The unwrap here is safe.
             let tail = &list[1..];
 
+            // #todo Is this the right place to perform function-capture expansion?
+
+            // #todo Using the Gleam name, could use `partial application` or
+            // think og a better name.
+
+            if is_function_capture(tail) {
+                // (+ 1 %0) -> (Func [_%0] (+ 1 _%0))
+
+                // #todo Add a lint or even compiler warning that reports use of the
+                // expanded capture argument coding convention before the expansion.
+
+                let capture_arguments = filter_function_capture_arguments(tail).collect::<Vec<_>>();
+
+                let expanded_expr = Expr::List(vec![
+                    Expr::symbol("Func"),
+                    // expr_clone(accum),
+                    // Expr::List(vec![
+                    //     Expr::symbol(basic_op),
+                    //     expr_clone(accum),
+                    //     expr_clone(value),
+                    // ]),
+                ]);
+
+                // #todo Rewrite
+                // #todo call macro_expand again.
+            }
+
+            // #todo Ugh, this evaluation is really weird.
             // Evaluate the head
             let Ok(op) = eval(head, context) else {
                 // #todo what exactly is happening here?
