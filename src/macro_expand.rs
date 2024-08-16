@@ -54,6 +54,13 @@ fn is_function_capture(args: &[Expr]) -> bool {
     args.iter().any(is_function_capture_argument)
 }
 
+// #insight The coding convention for expanded capture arguments
+// is to prepend a `_` char.
+fn rename_capture_argument(arg: Expr) -> Expr {
+    let name = arg.as_symbol().unwrap();
+    Expr::Symbol(format!("_{name}"))
+}
+
 /// Expands macro invocations, at compile time.
 pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, Error> {
     match expr.unpack() {
@@ -72,20 +79,29 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                 // #todo Add a lint or even compiler warning that reports use of the
                 // expanded capture argument coding convention before the expansion.
 
-                let capture_arguments = filter_function_capture_arguments(tail).collect::<Vec<_>>();
+                // #todo What about argument annotations?
 
-                let expanded_expr = Expr::List(vec![
-                    Expr::symbol("Func"),
-                    // expr_clone(accum),
-                    // Expr::List(vec![
-                    //     Expr::symbol(basic_op),
-                    //     expr_clone(accum),
-                    //     expr_clone(value),
-                    // ]),
-                ]);
+                let capture_args = filter_function_capture_arguments(tail);
+                let args: Vec<Expr> = capture_args.map(rename_capture_argument).collect();
 
-                // #todo Rewrite
-                // #todo call macro_expand again.
+                let mut body: Vec<Expr> = vec![head.clone()];
+                for arg in tail {
+                    if is_function_capture_argument(arg) {
+                        body.push(rename_capture_argument(arg.clone()))
+                    } else {
+                        body.push(arg.clone());
+                    }
+                }
+
+                let body = Expr::maybe_annotated(Expr::List(body), expr.annotations());
+
+                // #todo Improve this maybe_annotated API for this use case.
+                let expanded_expr = Expr::maybe_annotated(
+                    Expr::List(vec![Expr::typ("Func"), Expr::array(args), body]),
+                    expr.annotations(),
+                );
+
+                return macro_expand(expanded_expr, context);
             }
 
             // #todo Ugh, this evaluation is really weird.
