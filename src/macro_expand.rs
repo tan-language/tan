@@ -43,10 +43,17 @@ fn is_function_capture_argument(arg: &Expr) -> bool {
     }
 }
 
-fn filter_function_capture_arguments(args: &[Expr]) -> impl Iterator<Item = Expr> + '_ {
+// #note Not used.
+// fn filter_function_capture_arguments(args: &[Expr]) -> impl Iterator<Item = Expr> + '_ {
+//     args.iter()
+//         .filter(|&x| is_function_capture_argument(x))
+//         .cloned()
+// }
+
+fn count_function_capture_arguments(args: &[Expr]) -> usize {
     args.iter()
         .filter(|&x| is_function_capture_argument(x))
-        .cloned()
+        .count()
 }
 
 // Check if any argument is a capture argument.
@@ -79,8 +86,16 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
 
                 // #todo What about argument annotations?
 
-                let capture_args = filter_function_capture_arguments(tail);
-                let args: Vec<Expr> = capture_args.map(rename_capture_argument).collect();
+                // #insight No need to filter the arguments, from the capture argument
+                // count we can generate the arguments in the correct order.
+
+                // let capture_args = filter_function_capture_arguments(tail);
+                // let args: Vec<Expr> = capture_args.map(rename_capture_argument).collect();
+
+                let capture_args_count = count_function_capture_arguments(tail);
+                let args: Vec<Expr> = (0..capture_args_count)
+                    .map(|i| Expr::symbol(format!("_%{i}")))
+                    .collect();
 
                 let mut body: Vec<Expr> = vec![head.clone()];
                 for arg in tail {
@@ -99,6 +114,7 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                     expr.annotations(),
                 );
 
+                println!("-- {expanded_expr}");
                 return macro_expand(expanded_expr, context);
             }
 
