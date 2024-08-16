@@ -9,6 +9,8 @@ use crate::{
     util::{args::unpack_arg, is_reserved_symbol},
 };
 
+// #todo Also expand function-capture / partial-allocation.
+
 // #insight it mutates the env which is used in eval also!
 
 // #todo `elision`, `elide` sounds better than `prune`?
@@ -32,6 +34,42 @@ use crate::{
 
 // #todo #think this prematurely strips list annotations.
 
+#[inline]
+fn is_function_capture_argument(arg: &Expr) -> bool {
+    if let Some(name) = arg.as_symbol() {
+        name.starts_with("%")
+    } else {
+        false
+    }
+}
+
+// #note Not used.
+// fn filter_function_capture_arguments(args: &[Expr]) -> impl Iterator<Item = Expr> + '_ {
+//     args.iter()
+//         .filter(|&x| is_function_capture_argument(x))
+//         .cloned()
+// }
+
+fn count_function_capture_arguments(args: &[Expr]) -> usize {
+    args.iter()
+        .filter(|&x| is_function_capture_argument(x))
+        .count()
+}
+
+// Check if any argument is a capture argument.
+fn is_function_capture(args: &[Expr]) -> bool {
+    args.iter().any(is_function_capture_argument)
+}
+
+// #insight The coding convention for expanded capture arguments
+// is to prepend a `_` char.
+// #todo Add a lint or even compiler warning that reports use of the
+// expanded capture argument coding convention before the expansion.
+fn rename_capture_argument(arg: Expr) -> Expr {
+    let name = arg.as_symbol().unwrap();
+    Expr::Symbol(format!("_{name}"))
+}
+
 /// Expands macro invocations, at compile time.
 pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, Error> {
     match expr.unpack() {
@@ -39,6 +77,54 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
             let head = list.first().unwrap(); // The unwrap here is safe.
             let tail = &list[1..];
 
+            // #todo Is this the right place to perform function-capture expansion?
+            // #todo Using the Gleam name, could use `partial application` or
+            // think of a better name.
+
+            if is_function_capture(tail) {
+                // (+ 1 %0) -> (Func [_%0] (+ 1 _%0))
+
+                // #todo What about argument annotations?
+
+                // #insight No need to filter the arguments, from the capture argument
+                // count we can generate the arguments in the correct order.
+
+                // let capture_args = filter_function_capture_arguments(tail);
+                // let args: Vec<Expr> = capture_args.map(rename_capture_argument).collect();
+
+                let capture_args_count = count_function_capture_arguments(tail);
+                let args: Vec<Expr> = (0..capture_args_count)
+                    .map(|i| Expr::symbol(format!("_%{i}")))
+                    .collect();
+
+                let mut body: Vec<Expr> = vec![head.clone()];
+                for arg in tail {
+                    if is_function_capture_argument(arg) {
+                        body.push(rename_capture_argument(arg.clone()))
+                    } else {
+                        body.push(arg.clone());
+                    }
+                }
+
+                let body = Expr::maybe_annotated(Expr::List(body), expr.annotations());
+
+                // #todo Improve this maybe_annotated API for this use case.
+                let expanded_expr = Expr::maybe_annotated(
+                    Expr::List(vec![Expr::typ("Func"), Expr::array(args), body]),
+                    expr.annotations(),
+                );
+
+                // println!("-- {expanded_expr}");
+
+                // #todo It seems it's not recursing correctly, the following is
+                // not working:
+                // (let rmap (map %1 %0))
+                // (let rmapped (rmap [1 2 3 4] (+ %0 5)))
+
+                return macro_expand(expanded_expr, context);
+            }
+
+            // #todo Ugh, this evaluation is really weird.
             // Evaluate the head
             let Ok(op) = eval(head, context) else {
                 // #todo what exactly is happening here?
