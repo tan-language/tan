@@ -10,6 +10,7 @@ use crate::{
 // #insight there isn alternative implementation in `set-alt.rs`.
 
 pub fn set_new(_args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    // #todo Expr has interior mutability, not the best for a Set key.
     let set: HashSet<Expr> = HashSet::new();
     Ok(Expr::set(set))
 }
@@ -29,7 +30,7 @@ pub fn set_put(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
         ));
     };
 
-    // #insight dont' put annotated values in the Set.
+    // #insight don't put annotated values in the Set.
 
     // #todo hmmm this clone!
     items.insert(expr_clone(value.unpack()));

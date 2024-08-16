@@ -1,5 +1,7 @@
 use crate::{context::Context, error::Error, expr::Expr, library::eq::eq_polymorphic};
 
+// #todo Should extract the implementation into an assert foreign library, should make a macro.
+
 use super::{eval, util::get_current_file_path};
 
 // #todo Introduce assert-some, or assert-some?

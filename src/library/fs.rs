@@ -345,7 +345,7 @@ fn copy_dir(source: impl AsRef<Path>, target: impl AsRef<Path>) -> std::io::Resu
         let file_type = entry.file_type()?;
 
         if file_type.is_dir() {
-            copy_dir(&entry.path(), &target.join(entry.file_name()))?;
+            copy_dir(entry.path(), target.join(entry.file_name()))?;
         } else {
             fs::copy(entry.path(), target.join(entry.file_name()))?;
         }
