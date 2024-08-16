@@ -114,7 +114,13 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                     expr.annotations(),
                 );
 
-                println!("-- {expanded_expr}");
+                // println!("-- {expanded_expr}");
+
+                // #todo It seems it's not recursing correctly, the following is
+                // not working:
+                // (let rmap (map %1 %0))
+                // (let rmapped (rmap [1 2 3 4] (+ %0 5)))
+
                 return macro_expand(expanded_expr, context);
             }
 
