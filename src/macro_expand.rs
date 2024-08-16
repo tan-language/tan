@@ -56,6 +56,8 @@ fn is_function_capture(args: &[Expr]) -> bool {
 
 // #insight The coding convention for expanded capture arguments
 // is to prepend a `_` char.
+// #todo Add a lint or even compiler warning that reports use of the
+// expanded capture argument coding convention before the expansion.
 fn rename_capture_argument(arg: Expr) -> Expr {
     let name = arg.as_symbol().unwrap();
     Expr::Symbol(format!("_{name}"))
@@ -69,15 +71,11 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
             let tail = &list[1..];
 
             // #todo Is this the right place to perform function-capture expansion?
-
             // #todo Using the Gleam name, could use `partial application` or
-            // think og a better name.
+            // think of a better name.
 
             if is_function_capture(tail) {
                 // (+ 1 %0) -> (Func [_%0] (+ 1 _%0))
-
-                // #todo Add a lint or even compiler warning that reports use of the
-                // expanded capture argument coding convention before the expansion.
 
                 // #todo What about argument annotations?
 
