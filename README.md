@@ -1,6 +1,6 @@
 # Tan Language
 
-Tan is a uniform language for Humans and Machines.
+Tan is a language for Humans and Machines.
 
 ## Example
 
@@ -19,9 +19,13 @@ Here is an example of Tan:
 (echo (fib 10))
 ```
 
+Check out more [Tan examples](https://github.com/tan-language/examples) to get a
+feeling of Tan.
+
 ## Status
 
-This is an _experimental_ project, not intended for production use.
+This is an _experimental_ project, not intended for production use. However, the
+project is under active development.
 
 ## Contributing
 
