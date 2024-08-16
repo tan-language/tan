@@ -89,9 +89,6 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                 // #insight No need to filter the arguments, from the capture argument
                 // count we can generate the arguments in the correct order.
 
-                // let capture_args = filter_function_capture_arguments(tail);
-                // let args: Vec<Expr> = capture_args.map(rename_capture_argument).collect();
-
                 let capture_args_count = count_function_capture_arguments(tail);
                 let args: Vec<Expr> = (0..capture_args_count)
                     .map(|i| Expr::symbol(format!("_%{i}")))
@@ -113,8 +110,6 @@ pub fn macro_expand(expr: Expr, context: &mut Context) -> Result<Option<Expr>, E
                     Expr::List(vec![Expr::typ("Func"), Expr::array(args), body]),
                     expr.annotations(),
                 );
-
-                // println!("-- {expanded_expr}");
 
                 // #todo It seems it's not recursing correctly, the following is
                 // not working:
