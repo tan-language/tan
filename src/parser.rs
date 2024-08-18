@@ -20,10 +20,10 @@ use self::util::{is_key_symbol, recognize_range};
 // #todo Implement separate, analysis parser, keeps comments, annotations, etc.
 // #todo Or implement an 'analysis mode', and remove the prune stage.
 
-// #todo no need to keep iterator as state in parser!
-// #todo can the parser be just a function? -> yes, if we use a custom iterator to keep the parsing state.
-// #todo think some more how annotations should be handled.
-// #todo annotations are not correctly attributed to lists
+// #todo No need to keep iterator as state in parser!
+// #todo Can the parser be just a function? -> yes, if we use a custom iterator to keep the parsing state.
+// #todo Think some more how annotations should be handled.
+// #todo Annotations are not correctly attributed to lists
 
 // #insight
 // The syntax of the language is explicitly designed to _not_ require a lookahead buffer.
@@ -31,10 +31,10 @@ use self::util::{is_key_symbol, recognize_range};
 // #insight
 // We move the tokens into the parser to simplify the code. The tokens are useless outside the parser.
 
-// #todo can we remove the generics shenanigans form Parser?
+// #todo Can we remove the generics shenanigans form Parser?
 
 /// The Parser performs the syntactic analysis stage of the compilation pipeline.
-/// The input token stream is reduced into and Abstract Syntax Tree (AST).
+/// The input token stream is reduced into an Abstract Syntax Tree (AST).
 /// The nodes of the AST are associated with annotations.
 pub struct Parser<'a> {
     tokens: PutBackIterator<'a, Token>,
@@ -88,12 +88,12 @@ impl<'a> Parser<'a> {
         self.tokens.put_back(token);
     }
 
-    // #todo when attaching the annotations ignore some Exprs like Comment, etc.
+    // #todo When attaching the annotations ignore some Exprs like Comment, etc.
     /// Wrap the `expr` with the buffered (prefix) annotations. The annotations
     /// are parsed into an Expr representation. Also attaches the range of the
     /// expression as an annotation.
     fn attach_buffered_annotations(&mut self, expr: Expr, range: Range) -> Expr {
-        // #todo consider not annotating transients with range?
+        // #todo Consider not annotating transients with range?
         // Annotate the expression with the range, by default.
         let mut expr = annotate_range(expr, range);
 
@@ -111,12 +111,12 @@ impl<'a> Parser<'a> {
             let input = annotation_token.lexeme();
 
             let Some(first_char) = input.chars().next() else {
-                // #todo can this happen?
-                // #todo emit warning/error?
+                // #todo Can this happen?
+                // #todo Emit warning/error?
                 continue;
             };
 
-            // #todo a bit hackish way to detect a type expression.
+            // #todo Hackish way to detect a type expression.
             let is_type_expression = first_char.is_uppercase() || first_char == '(';
 
             let mut lexer = Lexer::new(&input);
@@ -190,14 +190,14 @@ impl<'a> Parser<'a> {
                 Expr::List(list) => {
                     // #todo problem {...} is still (Map ...) at this point!
                     // #insight a 'List' annotation always represents a type!
-                    // #todo validate that the list is a correct type expression.
-                    // #todo also handle parameterized types.
-                    // #todo support more than symbols, e.g. KeySymbols or Strings.
+                    // #todo Validate that the list is a correct type expression.
+                    // #todo Also handle parameterized types.
+                    // #todo Support more than symbols, e.g. KeySymbols or Strings.
 
                     let Some(..) = list.first() else {
-                        // #inside empty annotation is considered as type annotation to the unit type?
-                        // #todo it makes no sense, the annotation should just be ignored.
-                        // #todo throw a warning?
+                        // #inside Empty annotation is considered as type annotation to the unit type?
+                        // #todo It makes no sense, the annotation should just be ignored.
+                        // #todo Throw a warning?
                         expr = annotate(expr, "type", Expr::None);
                         return expr;
                     };
@@ -308,24 +308,23 @@ impl<'a> Parser<'a> {
             }
             TokenKind::Symbol(lexeme) => {
                 if is_key_symbol(lexeme) {
-                    // #todo do not support ':' at the end.
-                    // #todo consider forcing `:` at the end or beginning? don't use as separators?
-                    // #todo consider converting to (quote (Symbol ...))? KeySymbol is slightly faster?
+                    // #todo Do not support ':' at the end.
+                    // #todo Consider forcing `:` at the end or beginning? don't use as separators?
+                    // #todo Consider converting to (quote (Symbol ...))? KeySymbol is slightly faster?
                     let sym = str::replace(lexeme, ":", "");
-                    // #todo consider Expr::Key instead of Expr::KeySymbol
+                    // #todo Consider Expr::Key instead of Expr::KeySymbol
                     Some(Expr::KeySymbol(sym))
                 } else if is_type(lexeme) {
                     Some(Expr::Type(lexeme.into()))
                 } else if lexeme == "true" {
-                    // #todo consider using (True) for true 'literal'.
-                    // #todo e.g. (let flag (True))
+                    // #todo Consider using (True) for true 'literal', e.g. (let flag (True))
                     // #todo Bool = True + False = True | False = ~False | False
                     Some(Expr::Bool(true))
                 } else if lexeme == "false" {
-                    // #todo consider using False for false 'literal'.
-                    // #todo consider having only true (and use something like nil for false)
-                    // #todo consider using nil for false and everything else for true
-                    // #todo consider using nothing/never for false and everything else for true.
+                    // #todo Consider using False for false 'literal'.
+                    // #todo Consider having only true (and use something like nil for false)
+                    // #todo Consider using nil for false and everything else for true
+                    // #todo Consider using nothing/never for false and everything else for true.
                     Some(Expr::Bool(false))
                 } else if is_range_literal(lexeme) {
                     // #todo cleanup.
@@ -354,8 +353,8 @@ impl<'a> Parser<'a> {
                     // #todo support radix for non-integers?
 
                     if lexeme.ends_with('d') {
-                        // numbers ending with a 'd' postfix are Dec (decimal) literals.
-                        // #todo a proper regular expression to match decimals is needed.
+                        // Numbers ending with a 'd' postfix are Dec (decimal) literals.
+                        // #todo A proper regular expression to match decimals is needed.
 
                         #[cfg(feature = "dec")]
                         {
@@ -363,7 +362,7 @@ impl<'a> Parser<'a> {
                             match Decimal::from_str(lexeme) {
                                 Ok(num) => Some(Expr::Dec(num)),
                                 Err(dec_error) => {
-                                    let mut error = Error::new(ErrorVariant::MalformedFloat); // #todo introduce MalformedDec?
+                                    let mut error = Error::new(ErrorVariant::MalformedFloat); // #todo Introduce MalformedDec?
                                     error.push_note(&format!("{dec_error}"), Some(range));
                                     self.errors.push(error);
                                     None
@@ -371,7 +370,7 @@ impl<'a> Parser<'a> {
                             }
                         }
 
-                        // #todo return error instead!
+                        // #todo Return error instead!
                         #[cfg(not(feature = "dec"))]
                         panic!("Dec not supported in this build");
                     } else {
@@ -414,7 +413,7 @@ impl<'a> Parser<'a> {
                 }
             }
             TokenKind::Annotation(_) => {
-                // #todo support multiple annotations, e.g. `#[(min 1) (max 2)]`
+                // #todo Support multiple annotations, e.g. `#[(min 1) (max 2)]`
 
                 if self.buffered_annotations.is_none() {
                     self.buffered_annotations = Some(Vec::new());

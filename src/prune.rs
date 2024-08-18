@@ -1,12 +1,12 @@
 use crate::{expr::Expr, parser::util::recognize_string_template};
 
-// #todo remove excessive clones.
+// #todo Remove excessive clones.
 
-// #todo find a better, more general name for this stage.
+// #todo Find a better, more general name for this stage.
 
-// #insight prune does not err.
+// #insight Prune does not err.
 
-// #insight prune strips unnecessary auxiliary exprs not needed for evaluation.
+// #insight Prune strips unnecessary auxiliary exprs not needed for evaluation.
 
 // #todo strip quoting of literals (nops)
 // #todo consider only allowing the sigils, and not quot/unquot -> no, we need them to maintain the list/tree abstraction, it has to be syntax-sugar!
