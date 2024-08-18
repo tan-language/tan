@@ -3,18 +3,16 @@ use std::sync::Arc;
 use crate::{expr::Expr, scope::Scope};
 
 // #idea ModuleLoader
-// #idea consider hashing to detect the same modules!
+// #idea Consider hashing to detect the same modules!
 
-// #todo keep and define `path`, `name`, `prefix`.
-// #todo keep path/url, compute stem/name.
+// #todo Keep and define `path`, `name`, `prefix`.
+// #todo Keep path/url, compute stem/name.
 
 #[derive(Debug, Clone)]
 pub struct Module {
     pub stem: String,
     pub scope: Arc<Scope>,
 }
-
-// #todo impl Default
 
 impl Default for Module {
     fn default() -> Self {

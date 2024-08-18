@@ -16,13 +16,13 @@ use self::{
 
 // https://en.wikipedia.org/wiki/Lexical_analysis
 
-// #todo lex_all, lex_single
-// #todo introduce SemanticToken, with extra semantic information, _after_ parsing.
-// #todo use annotations before number literals to set the type?
-// #todo use (doc-comment ...) for doc-comments.
-// #todo no need to keep iterator as state in Lexer!
-// #todo accept IntoIterator
-// #todo try to use `let mut reader = BufReader::new(source.as_bytes());` like an older version
+// #todo Introduce lex_all, lex_single
+// #todo Introduce SemanticToken, with extra semantic information, _after_ parsing.
+// #todo Use annotations before number literals to set the type?
+// #todo Use (doc-comment ...) for doc-comments.
+// #todo No need to keep iterator as state in Lexer!
+// #todo Accept IntoIterator
+// #todo Try to use `let mut reader = BufReader::new(source.as_bytes());` like an older version
 
 /// Returns true if ch is considered whitespace.
 fn is_whitespace(ch: char) -> bool {
@@ -119,13 +119,13 @@ impl<'a> Lexer<'a> {
         self.current_position.col -= 1;
     }
 
-    // #todo try to remove this!
+    // #todo Try to remove this!
     fn current_range(&self) -> Range {
         self.start_position..self.current_position
     }
 
-    // #todo implement scanners with macro or a common function.
-    // #todo two functions scan_lexeme, scan_delimited.
+    // #todo Implement scanners with macro or a common function.
+    // #todo Two functions scan_lexeme, scan_delimited.
 
     fn scan_chars(&mut self, count: usize) -> Option<String> {
         let mut chars = String::new();
@@ -136,8 +136,8 @@ impl<'a> Lexer<'a> {
         Some(chars)
     }
 
-    // #todo add unit tests
-    // #todo try to reuse more!
+    // #todo Add unit tests
+    // #todo Try to reuse more!
     fn scan_lexeme(&mut self) -> String {
         let mut text = String::new();
 
@@ -146,7 +146,7 @@ impl<'a> Lexer<'a> {
                 break;
             };
 
-            // #todo maybe whitespace does not need put_back, but need to adjust range.
+            // #todo Maybe whitespace does not need put_back, but need to adjust range.
             if is_whitespace(ch) || is_delimiter(ch) || is_eol(ch) {
                 self.put_back_char(ch);
                 break;

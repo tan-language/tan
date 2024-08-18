@@ -11,28 +11,28 @@ use crate::{
 
 // #todo Also expand function-capture / partial-allocation.
 
-// #insight it mutates the env which is used in eval also!
+// #insight It mutates the env which is used in eval also!
 
 // #todo `elision`, `elide` sounds better than `prune`?
-// #todo rename to `prune_expand`?
-// #todo split prune and expand into separate passes?
-// #todo consider renaming the expr parameter to ast?
+// #todo Rename to `prune_expand`?
+// #todo Split prune and expand into separate passes?
+// #todo Consider renaming the expr parameter to ast?
 // #todo macro_expand (and all comptime/static passes should return Vec<Ranged<Error>>>)
-// #todo support multiple errors, like in resolve.
+// #todo Support multiple errors, like in resolve.
 
-// #todo should we care about dynamic-scoping here?
+// #todo Should we care about dynamic-scoping here?
 
-// #todo return Vec<Error> like all other methods?
+// #todo Return Vec<Error> like all other methods?
 
-// #todo move pruning to optimize to run AFTER macro-expansion, macros could produce prunable exprs?
-// #todo add macro-expansion tests!!!
+// #todo Move pruning to optimize to run AFTER macro-expansion, macros could produce prunable exprs?
+// #todo Add macro-expansion tests!!!
 
 // #insight
 // If the input expr is just a macro definition, it can be elided!
 
-// #todo maybe separate macro_def from macro_expand?
+// #todo Maybe separate macro_def from macro_expand?
 
-// #todo #think this prematurely strips list annotations.
+// #todo #think This prematurely strips list annotations.
 
 #[inline]
 fn is_function_capture_argument(arg: &Expr) -> bool {

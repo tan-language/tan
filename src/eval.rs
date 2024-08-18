@@ -1,6 +1,6 @@
 #![allow(clippy::manual_strip)]
 
-// #todo move these external eval functions into library, e.g. library/lang?
+// #todo Move these external eval functions into library, e.g. library/lang?
 
 mod eval_assertions;
 mod eval_assign;
@@ -64,23 +64,21 @@ use self::{
     util::{anchor_error, get_current_file_path},
 };
 
-// #insight
-// _Not_ a pure evaluator, performs side-effects.
+// #insight Not a pure evaluator, performs side-effects.
 
-// #insight
-// I don't like the name `interpreter`.
+// #insight I don't like the name `interpreter`.
 
-// #todo move excessive error-checking/linting to the resolve/typecheck pass.
-// #todo encode effects in the type-system.
-// #todo alternative names: Processor, Runner, Interpreter
-// #todo split eval_special, eval_func -> not needed if we put everything uniformly in prelude.
+// #todo Move excessive error-checking/linting to the resolve/typecheck pass.
+// #todo Encode effects in the type-system.
+// #todo Alternative names: Processor, Runner, Interpreter
+// #todo Split eval_special, eval_func -> not needed if we put everything uniformly in prelude.
 // #todo Stack-trace is needed!
 // #todo https://clojure.org/reference/evaluation
 
 // #todo try to remove non-needed .into()s <--
 
-// #todo give more 'general' name -> `eval_all` or `eval_vec`?
-// #todo what about if a required argument is not passed to a function? currently we report undefined symbol.
+// #todo Give more 'general' name -> `eval_all` or `eval_vec`?
+// #todo What about if a required argument is not passed to a function? currently we report undefined symbol.
 pub fn eval_args(args: &[Expr], context: &mut Context) -> Result<Vec<Expr>, Error> {
     // #todo should report ALL errors!
 
@@ -91,7 +89,7 @@ pub fn eval_args(args: &[Expr], context: &mut Context) -> Result<Vec<Expr>, Erro
     Ok(values)
 }
 
-// #todo add unit test.
+// #todo Add unit test.
 fn insert_symbol_binding(
     sym: &str,
     range: &Option<Range>,
@@ -99,8 +97,8 @@ fn insert_symbol_binding(
     context: &mut Context,
 ) -> Result<(), Error> {
     // #insight reserved words are not polymorphic, so we can check before signature, rething about this.
-    // #todo also is_reserved_symbol is slow, optimize.
-    // #todo do we really want this? Maybe convert to a lint?
+    // #todo Also is_reserved_symbol is slow, optimize.
+    // #todo Do we really want this? Maybe convert to a lint?
     if is_reserved_symbol(sym) {
         return Err(Error::invalid_arguments(
             &format!("cannot shadow the reserved symbol `{sym}`"),
@@ -108,8 +106,8 @@ fn insert_symbol_binding(
         ));
     }
 
-    // #todo move this up-stream to insert_binding.
-    // #todo this is a temp hack!
+    // #todo Move this up-stream to insert_binding.
+    // #todo This is a temp hack!
     let sym = if value.is_invocable() {
         if let Some(signature) = compute_signature_from_annotations(&value) {
             // Make sure the symbol without a signature exists.
@@ -145,9 +143,9 @@ fn insert_symbol_binding(
 
 // #todo find a better name.
 fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(), Error> {
-    // #todo consider special op/syntax for destructuring? e.g. ~[a b], `~` operator.
+    // #todo Consider special op/syntax for destructuring? e.g. ~[a b], `~` operator.
 
-    // #todo handle potential relevant annotations.
+    // #todo Handle potential relevant annotations.
 
     match name.unpack() {
         // #todo Type/Symbol duplication needs to be resolved, separate Types from Symbols.
@@ -156,7 +154,7 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
             insert_symbol_binding(sym, &name.range(), value, context)?;
         }
         Expr::Symbol(sym) => {
-            // #todo report error if sym == _ or ...
+            // #todo Report error if sym == _ or ...
             insert_symbol_binding(sym, &name.range(), value, context)?;
         }
         Expr::List(names) => {

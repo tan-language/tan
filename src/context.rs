@@ -69,8 +69,8 @@ impl Context {
             top_scope: top_scope.clone(),
         };
 
-        // #todo should setup_std externally!
-        // #todo refactor the remaining!
+        // #todo Should setup_std externally, but where?
+        // #todo Refactor the remaining!
 
         setup_lib(&mut context);
 
@@ -79,22 +79,22 @@ impl Context {
         // let prelude_path = format!("{}/std/prelude", context.root_path);
         // let prelude = context.module_registry.get(&prelude_path).unwrap();
 
-        // #todo could use a non-mut version of require_module.
+        // #todo Could use a non-mut version of require_module.
         let prelude = context
             .get_module("prelude")
             .expect("prelude should be defined")
             .clone();
 
-        // #todo reuse `use` code here or extract helper!
+        // #todo Reuse `use` code here or extract helper!
         let bindings = prelude.scope.bindings.read().expect("poisoned lock");
         for (name, value) in bindings.iter() {
             top_scope.insert(name, value.clone());
         }
 
-        // #todo nasty, temp hack, makes older api functions work, CLEANUP!
+        // #todo Nasty, temp hack, makes older api functions work, CLEANUP!
 
-        // #todo we need scope-stack visualization.
-        // #todo do we really need this intermediate scope? for some reason this is needed! investigate why!
+        // #todo We need scope-stack visualization.
+        // #todo Do we really need this intermediate scope? for some reason this is needed! investigate why!
         context.scope = Arc::new(Scope::new(top_scope.clone()));
 
         context
