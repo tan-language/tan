@@ -21,8 +21,8 @@ pub const TAN_FILE_EXTENSION: &str = "tan";
 
 pub const TAN_FILE_EMOJI_EXTENSION: &str = "👅";
 
-// #todo add unit test.
-// #todo implement strict version that checks exactly *.tan and skips *.*.tan, e.g. *.data.tan
+// #todo Add unit test.
+// #todo Implement strict version that checks exactly *.tan and skips *.*.tan, e.g. *.data.tan
 pub fn has_tan_extension(path: impl AsRef<Path>) -> bool {
     let path = path.as_ref();
     if let Some(extension) = path.extension() {
@@ -32,7 +32,7 @@ pub fn has_tan_extension(path: impl AsRef<Path>) -> bool {
     }
 }
 
-// #todo add unit test
+// #todo Add unit test
 /// A strict version of has_tan_extension that checks exactly `*.tan` and
 /// skips `*.*.tan`, e.g. `*.data.tan``.
 pub fn has_tan_extension_strict(path: impl AsRef<Path>) -> bool {
@@ -44,7 +44,7 @@ pub fn has_tan_extension_strict(path: impl AsRef<Path>) -> bool {
     }
 }
 
-// #todo optimize this!
+// #todo Optimize this!
 pub fn strip_tan_extension(path: impl Into<String>) -> String {
     let path = path.into();
 
@@ -101,7 +101,7 @@ pub fn parse_string_with_position(
     Ok(expr)
 }
 
-// #insight use the compile* functions if you don't need transient expressions in the AST.
+// #insight Use the compile* functions if you don't need transient expressions in the AST.
 /// Parses a Tan expression encoded as a text string, returns all expressions parsed.
 pub fn parse_string_all(input: impl AsRef<str>) -> Result<Vec<Expr>, Vec<Error>> {
     let input = input.as_ref();

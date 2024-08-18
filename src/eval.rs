@@ -541,14 +541,13 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             Ok(expr_clone(&value))
         }
         Expr::KeySymbol(..) => {
-            // #todo handle 'PathSymbol'
+            // #todo Handle 'PathSymbol'
             // #todo strip annotation?
 
-            // #todo lint '::' etc.
-            // #todo check that if there is a leading ':' there is only one ':', make this a lint warning!
-            // #todo consider renaming KeywordSymbol to KeySymbol.
+            // #todo Lint '::' etc.
+            // #todo Check that if there is a leading ':' there is only one ':', make this a lint warning!
 
-            // A `Symbol` that starts with `:` is a so-called `KeywordSymbol`. Keyword
+            // A `Symbol` that starts with `:` is a so-called `KeySymbol`. Key
             // symbols evaluate to themselves, and are convenient to use as Map keys,
             // named (keyed) function parameter, enum variants, etc.
             Ok(expr.clone())
@@ -576,11 +575,11 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             }
         }
         Expr::List(list) => {
-            // #todo no need for dynamic invocable, can use (apply f ...) / (invoke f ...) instead.
-            // #todo replace head/tail with first/rest
+            // #todo Noo need for dynamic invocable, can use (apply f ...) / (invoke f ...) instead.
+            // #todo Replace head/tail with first/rest
 
             if list.is_empty() {
-                // () == One (Unit)
+                // () == None (== One, Unit)
                 // This is handled statically, in the parser, but an extra, dynamic
                 // check is needed in the evaluator to handle the case where the
                 // expression is constructed programmatically (e.g. self-modifying code,
@@ -594,9 +593,9 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             // #todo Try to avoid Vec::from()
             let mut args = Vec::from(&list[1..]);
 
-            // #todo could check special forms before the eval
+            // #todo Could check special forms before the eval
 
-            // #todo this is an ULTRA-HACK! SUPER NASTY/UGLY CODE, refactor!
+            // #todo This is an ULTRA-HACK! SUPER NASTY/UGLY CODE, refactor!
 
             // Evaluate the head, try to find dynamic signature
             let head = if let Some(name) = op.as_symbolic() {
@@ -609,8 +608,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             // 'Cache' the evaluated args, to avoid double evaluation.
                             args = eval_args(&args, context)?;
 
-                            // #todo extract utility function to invoke a function.
-                            // #todo ultra-hack to kill shared ref to `env`.
+                            // #todo Extract utility function to invoke a function.
+                            // #todo Ultra-hack to kill shared ref to `env`.
                             let params = params.clone();
 
                             let prev_scope = context.scope.clone();
@@ -627,7 +626,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 context.scope.insert(param, arg.clone());
                             }
 
-                            // #todo optimize the resolve_op_method.
+                            // #todo Optimize the resolve_op_method.
                             let head = resolve_op_method(name, &args, context)?;
 
                             context.scope = prev_scope;
@@ -635,7 +634,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             head
                         } else if let Expr::ForeignFunc(_) = value.unpack() {
                             args = eval_args(&args, context)?;
-                            // #todo optimize the resolve_op_method.
+                            // #todo Optimize the resolve_op_method.
                             resolve_op_method(name, &args, context)?
                         } else {
                             args = eval_args(&args, context)?;
@@ -653,7 +652,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                 eval(op, context)?
             };
 
-            // #todo move special forms to prelude, as Expr::Macro or Expr::Special
+            // #todo Move special forms to prelude, as Expr::Macro or Expr::Special
 
             match head.unpack() {
                 Expr::Func(..) => {
@@ -713,7 +712,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     if let Some(value) = map.get(&key) {
                         Ok(value.clone())
                     } else {
-                        // #todo introduce Maybe { Some, None }
+                        // #todo Introduce Maybe { Some, None }
                         Ok(Expr::None)
                     }
                 }

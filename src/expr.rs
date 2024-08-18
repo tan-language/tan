@@ -24,7 +24,7 @@ use crate::{
 
 // #todo #important optimization, implement clone_from!
 
-// #todo make some Expr variants non annotatable (e.g. U8)
+// #todo Make some Expr variants non annotatable (e.g. U8), what about range?
 
 // #todo introduce Expr::Ref() with an Rc reference to avoid excessive cloning!
 
@@ -33,11 +33,11 @@ use crate::{
 // literals are resolved before dynamic-time, Expr::Ann() is useful for that! But,
 // we can probably skip most expr.unpack()s.
 
-// #insight use structs for enum values, is more ..structured, readable and can have methods.
+// #insight Use structs for enum values, is more ..structured, readable and can have methods.
 
 // #insight Rc/Arc is used instead of Box to support Clone.
 
-// #todo separate variant for list and apply/call (can this be defined statically?)
+// #todo Separate variant for list and apply/call (can this be defined statically?)
 // #todo List, MaybeList, Call
 // #todo Expr::Range()
 
@@ -47,13 +47,12 @@ use crate::{
 // #insight
 // The use of Vec in the Expr enum, keeps the nested expressions in the heap.
 
-// #insight
-// No need for a Zero/Never/Nothing Expr variant?
+// #insight No need for a Zero/Never/Nothing Expr variant?
 
-// #todo what would be the 'default'? -> the 'Unit'/'One' type, Nil!
-// #todo consider parsing to 'simple' Expr, only List and Symbols
-// #todo optimize 'simple' Expr to 'execution' Expr
-// #todo introduce ForeignValue?
+// #todo What would be the 'default'? -> the 'Unit'/'One' type, Nil!
+// #todo Consider parsing to 'simple' Expr, only List and Symbols
+// #todo Optimize 'simple' Expr to 'execution' Expr
+// #todo Introduce ForeignValue?
 // #todo ExprFn should get a single Expr? -> nah, it's foreign.
 
 // #todo not all Expr variants really need Ann, maybe the annotation should be internal to Expr?
@@ -69,24 +68,24 @@ use crate::{
 
 // #insight the `+ Send + Sync + 'static` suffix allows Expr to be Sync.
 
-// #todo considere renaming to ExprContextMutFn and also provide an ExprContextFn.
+// #todo Consider renaming to ExprContextMutFn and also provide an ExprContextFn.
 /// A function that accepts a list of Exprs and a mut Context, returns maybe an Expr.
 pub type ExprContextFn =
     dyn Fn(&[Expr], &mut Context) -> Result<Expr, Error> + Send + Sync + 'static;
 
-// #todo not used yet.
+// #todo Not used yet.
 /// A function that accepts a list of Exprs, returns maybe an Expr.
 pub type ExprFn = dyn Fn(&[Expr]) -> Result<Expr, Error> + Send + Sync + 'static;
 
-// #todo use normal structs instead of tuple-structs?
+// #todo Use normal structs instead of tuple-structs?
 
-// #todo add Expr::Date
-// #todo add Expr::Panic (catched by the runtime, should support unwind)
+// #todo Add Expr::Date
+// #todo Add Expr::Panic (catched by the runtime, should support unwind)
 
 // #insight Maybe.None == Nil == Unit
 // #insight (Maybe T) = (Or T Nil)
 
-// #todo probably the Any/Never (i.e. Top/Bottom) types should not be encoded in Expr.
+// #todo Probably the Any/Never (i.e. Top/Bottom) types should not be encoded in Expr.
 
 /// A symbolic expression. This is the 'universal' data type in the language,
 /// all values are expressions (and expressions are values). Evaluation is expression
