@@ -16,6 +16,7 @@ mod eval_is_defined;
 pub mod eval_let;
 mod eval_let_ds;
 mod eval_panic;
+mod eval_pipe;
 mod eval_scope_update;
 mod eval_unless;
 mod eval_use;
@@ -28,6 +29,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use eval_else::eval_else;
 use eval_is_defined::eval_is_defined;
+use eval_pipe::eval_pipe;
 use eval_unless::eval_unless;
 use eval_when::eval_when;
 
@@ -334,7 +336,7 @@ pub fn invoke(invocable: &Expr, args: Vec<Expr>, context: &mut Context) -> Resul
         _ => {
             // #todo return NonInvocable error!
             Err(Error::invalid_arguments(
-                "not invocable: `{invocable}`",
+                &format!("not invocable: `{invocable}`"),
                 invocable.range(),
             ))
         }
@@ -857,6 +859,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         "else" => anchor_error(eval_else(&args, context), expr),
                         "cond" => anchor_error(eval_cond(&args, context), expr),
                         "when" => anchor_error(eval_when(&args, context), expr),
+                        "|>" => anchor_error(eval_pipe(&args, context), expr),
                         // #todo #temp temporary solution.
                         "assert" => anchor_error(eval_assert(op, &args, context), expr),
                         "assert-eq" => anchor_error(eval_assert_eq(op, &args, context), expr),
