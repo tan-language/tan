@@ -70,6 +70,7 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
             | "while"
             | "for-each" // #todo extract as seq function
             | "eval"
+            | "|>" // aka pipe #todo find another name, e.g. fpipe, func-pipe or something.
             | "assert" // #todo temp solution.
             | "assert-eq" // #todo temp solution.
             | "panic!"
