@@ -461,6 +461,17 @@ pub fn fs_rename(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(Expr::None)
 }
 
+// #todo Add some kind of unit/integration test.
+pub fn fs_remove_directory(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    // #todo Find better names for the arguments?
+    let path = unpack_stringable_arg(args, 0, "path")?;
+
+    fs::remove_dir(path)?;
+
+    // #todo What is a good return value?
+    Ok(Expr::None)
+}
+
 // #todo use Rc/Arc consistently
 // #todo some helpers are needed here, to streamline the code.
 
@@ -522,6 +533,12 @@ pub fn setup_lib_fs(context: &mut Context) {
     module.insert(
         "create-directory",
         Expr::ForeignFunc(Arc::new(create_directory)),
+    );
+
+    // #todo Consider delete-directory.
+    module.insert(
+        "remove-directory",
+        Expr::ForeignFunc(Arc::new(fs_remove_directory)),
     );
 
     module.insert("canonicalize", Expr::ForeignFunc(Arc::new(fs_canonicalize)));
