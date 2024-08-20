@@ -463,13 +463,20 @@ pub fn fs_rename(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 
 // #todo Add some kind of unit/integration test.
 pub fn fs_remove_directory(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
-    // #todo Find better names for the arguments?
     let path = unpack_stringable_arg(args, 0, "path")?;
 
     fs::remove_dir(path)?;
 
     // #todo What is a good return value?
     Ok(Expr::None)
+}
+
+// #todo Think about this.
+// #todo Add as method to Path?
+pub fn fs_is_directory(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    let path = unpack_stringable_arg(args, 0, "path")?;
+    let metadata = fs::metadata(path)?;
+    Ok(Expr::Bool(metadata.is_dir()))
 }
 
 // #todo use Rc/Arc consistently
@@ -535,10 +542,16 @@ pub fn setup_lib_fs(context: &mut Context) {
         Expr::ForeignFunc(Arc::new(create_directory)),
     );
 
-    // #todo Consider delete-directory.
+    // #todo Consider `delete-directory`.
     module.insert(
         "remove-directory",
         Expr::ForeignFunc(Arc::new(fs_remove_directory)),
+    );
+
+    // #todo Consider `directory?`
+    module.insert(
+        "is-directory?",
+        Expr::ForeignFunc(Arc::new(fs_is_directory)),
     );
 
     module.insert("canonicalize", Expr::ForeignFunc(Arc::new(fs_canonicalize)));
