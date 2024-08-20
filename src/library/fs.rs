@@ -5,7 +5,7 @@ use std::sync::{Arc, RwLock};
 
 use crate::error::ErrorVariant;
 use crate::expr::annotate_type;
-use crate::util::args::unpack_stringable_arg;
+use crate::util::args::{unpack_map_arg, unpack_stringable_arg};
 use crate::util::expect_lock_write;
 use crate::util::module_util::require_module;
 use crate::{context::Context, error::Error, expr::Expr};
@@ -174,7 +174,7 @@ pub fn write_string_to_file(args: &[Expr], _context: &mut Context) -> Result<Exp
 // }
 
 /// Returns flat structure.
-fn walk_dir(dir_path: &Path) -> Result<Vec<Expr>, std::io::Error> {
+fn walk_dir(dir_path: &Path, preorder: bool) -> Result<Vec<Expr>, std::io::Error> {
     let mut tree: Vec<Expr> = Vec::new();
 
     for entry in fs::read_dir(dir_path)? {
@@ -183,8 +183,13 @@ fn walk_dir(dir_path: &Path) -> Result<Vec<Expr>, std::io::Error> {
         let entry_path_str = entry_path.to_str().unwrap().to_string();
 
         if entry_path.is_dir() {
-            tree.push(Expr::String(format!("{entry_path_str}/")));
-            tree.append(&mut walk_dir(&entry_path)?);
+            if preorder {
+                tree.push(Expr::String(format!("{entry_path_str}/")));
+                tree.append(&mut walk_dir(&entry_path, preorder)?);
+            } else {
+                tree.append(&mut walk_dir(&entry_path, preorder)?);
+                tree.push(Expr::String(format!("{entry_path_str}/")));
+            }
         } else {
             tree.push(Expr::String(entry_path_str));
         }
@@ -234,28 +239,41 @@ pub fn list(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(Expr::array(list))
 }
 
+// #insight
+// - preorder=true to emit the parent path before children.
+// - preorder=false (postorder=true) to emit the parent path after children.
 // #todo can be SLOW for large directories!
 // #todo try to optimize!
 // #todo should return nested or flat structure?
 // #todo find a better name: walk-as-tree, build-tree
+// #todo Add an option to strip the base directory.
+// #todo Should return Tan errors.
 // #todo implement as generator/iterator, or (and?) with callback.
 // (let tree (fs/list-as-tree "./source/"))
 pub fn list_as_tree(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
-    let [path] = args else {
-        return Err(Error::invalid_arguments(
-            "`list_as_tree` requires a `path` argument",
-            None,
-        ));
+    let path = unpack_stringable_arg(args, 0, "path")?;
+
+    // #todo #hack Temp implementation.
+    // #todo Report `preorder` type error.
+
+    let preorder = if let Ok(options) = unpack_map_arg(args, 1, "options") {
+        options
+            .get("preorder")
+            .unwrap_or_else(|| &Expr::Bool(true))
+            .as_bool()
+            .unwrap_or(true)
+    } else {
+        // Use preorder by default.
+        true
     };
 
-    let Some(path) = path.as_string() else {
-        return Err(Error::invalid_arguments(
-            "`path` argument should be a String",
-            path.range(),
-        ));
-    };
+    // let preorder = if let Ok(preorder) = unpack_bool_arg(args, 1, "preorder") {
+    //     preorder
+    // } else {
+    //     true
+    // };
 
-    match walk_dir(Path::new(path)) {
+    match walk_dir(Path::new(path), preorder) {
         // #todo should return Array?
         Ok(entries) => Ok(Expr::List(entries)),
         Err(io_error) => {
