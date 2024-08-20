@@ -5,6 +5,7 @@ use std::sync::{Arc, RwLock};
 
 use crate::error::ErrorVariant;
 use crate::expr::annotate_type;
+use crate::util::args::unpack_stringable_arg;
 use crate::util::expect_lock_write;
 use crate::util::module_util::require_module;
 use crate::{context::Context, error::Error, expr::Expr};
@@ -430,6 +431,18 @@ pub fn fs_canonicalize(args: &[Expr], _context: &mut Context) -> Result<Expr, Er
     Ok(Expr::string(path.to_string_lossy()))
 }
 
+// #todo Add some kind of unit/integration test.
+pub fn fs_rename(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+    // #todo Find better names for the arguments?
+    let from = unpack_stringable_arg(args, 0, "from")?;
+    let to = unpack_stringable_arg(args, 1, "to")?;
+
+    fs::rename(from, to)?;
+
+    // #todo What is a good return value?
+    Ok(Expr::None)
+}
+
 // #todo use Rc/Arc consistently
 // #todo some helpers are needed here, to streamline the code.
 
@@ -494,6 +507,8 @@ pub fn setup_lib_fs(context: &mut Context) {
     );
 
     module.insert("canonicalize", Expr::ForeignFunc(Arc::new(fs_canonicalize)));
+
+    module.insert("rename", Expr::ForeignFunc(Arc::new(fs_rename)));
 }
 
 // #todo add unit tests.
