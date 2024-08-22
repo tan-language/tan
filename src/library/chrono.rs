@@ -244,8 +244,17 @@ pub fn chrono_date_from_components(args: &[Expr], _context: &mut Context) -> Res
     Ok(tan_date_from_components(year, month, day))
 }
 
-// #insight Returns weekday in 0..7
-pub fn chrono_date_weekday_of(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+// #todo Rename to day-of-week?
+// #insight Returns weekday in 0..=6
+// #insight In compliance to the ISO-8601 standard, the first day of the week is Monday.
+// Mon = 0,
+// Tue = 1,
+// Wed = 2,
+// Thu = 3,
+// Fri = 4,
+// Sat = 5,
+// Sun = 6,
+pub fn chrono_date_day_of_week(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     // #todo Check that this is a valid Date.
     let tan_date = unpack_arg(args, 0, "date")?;
     let rust_date = rust_date_from_tan_date(tan_date);
@@ -421,8 +430,13 @@ pub fn setup_lib_chrono(context: &mut Context) {
     );
 
     module.insert(
+        "day-of-week",
+        Expr::ForeignFunc(Arc::new(chrono_date_day_of_week)),
+    );
+    // #todo #deprecate Remove this alias.
+    module.insert(
         "weekday-of",
-        Expr::ForeignFunc(Arc::new(chrono_date_weekday_of)),
+        Expr::ForeignFunc(Arc::new(chrono_date_day_of_week)),
     );
 
     // #todo implement with duration and `+`.
