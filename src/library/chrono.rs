@@ -356,6 +356,9 @@ pub fn chrono_date_format(args: &[Expr], _context: &mut Context) -> Result<Expr,
     Ok(Expr::string(output.to_string()))
 }
 
+// #todo Also implement Duration and (+ Date Duration).
+
+// #todo Consider changing the order of arguments?
 pub fn chrono_date_add_days(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     let [this, days] = args else {
         return Err(Error::invalid_arguments("requires `this` argument", None));
@@ -451,10 +454,16 @@ pub fn setup_lib_chrono(context: &mut Context) {
     // #insight spec comes first for more 'natural' currying.
     // #todo maybe just pass optional parameters to to-string?
     // #todo what would be a better name? stringf, strfmt? format is just too generic to reserve.
+    // #todo just make this (String date)?
     module.insert(
         "format-string",
         Expr::ForeignFunc(Arc::new(chrono_date_format)),
     );
+    // #todo How to do this?
+    // module.insert(
+    //     "String$$Date",
+    //     Expr::ForeignFunc(Arc::new(chrono_date_format)),
+    // );
     // #todo add more functions
 }
 
