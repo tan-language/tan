@@ -84,8 +84,6 @@ pub enum ForeignFnRef {
     MutContext(&'static FnMutContext),
 }
 
-pub type ForeignRef = &'static dyn Any;
-
 // #todo Use normal structs instead of tuple-structs?
 
 // #todo Add Expr::Date
@@ -178,8 +176,7 @@ pub enum Expr {
     // #todo to optimize consider using an index into a table of type-names.
     // #todo support both mutable and immutable foreignStructs
     // #todo Support non-sync data?
-    // #todo Can use &'static here?
-    Foreign(ForeignRef),
+    // #todo Remove the 'static?
     ForeignStruct(Arc<dyn Any + Send + Sync + 'static>),
     ForeignStructMut(Arc<RwLock<dyn Any + Send + Sync + 'static>>),
     Error(String),
@@ -329,7 +326,6 @@ impl fmt::Debug for Expr {
             Expr::Func(..) => "<FUNC>".to_owned(),
             Expr::Macro(..) => "<MACRO>".to_owned(),
             Expr::ForeignFunc(..) => "<FOREIGN-FUNC>".to_owned(),
-            Expr::Foreign(..) => "<FOREIGN>".to_owned(),
             Expr::ForeignStruct(..) => "<FOREIGN-STRUCT>".to_owned(),
             Expr::ForeignStructMut(..) => "<FOREIGN-STRUCT-MUT>".to_owned(),
             // #todo find a better name than `reason`.
@@ -445,7 +441,6 @@ impl fmt::Display for Expr {
                 // Expr::Func(params, body, ..) => format!("<FUNC {:?} -> {:?}>", params, body), // #hint Useful for debugging.
                 Expr::Macro(..) => "<MACRO>".to_owned(),
                 Expr::ForeignFunc(..) => "<FOREIGN-FUNC>>".to_owned(),
-                Expr::Foreign(..) => "<FOREIGN>".to_owned(),
                 Expr::ForeignStruct(..) => "<FOREIGN-STRUCT>".to_owned(),
                 Expr::ForeignStructMut(..) => "<FOREIGN-STRUCT-MUT>".to_owned(),
                 // #insight intentionally pass through the formatting.
