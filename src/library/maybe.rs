@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{
     context::Context,
     error::Error,
@@ -14,7 +12,7 @@ use crate::{
 
 // #todo rename to nil?/is-nil?
 // #insight with dynamic typing you don't strictly need a Maybe type?
-pub fn is_none(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn is_none(args: &[Expr]) -> Result<Expr, Error> {
     let [expr] = args else {
         // #todo better error
         return Err(Error::invalid_arguments("one argument expected", None));
@@ -23,7 +21,7 @@ pub fn is_none(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(Expr::Bool(expr.is_none()))
 }
 
-pub fn is_some(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn is_some(args: &[Expr]) -> Result<Expr, Error> {
     let [expr] = args else {
         // #todo better error
         return Err(Error::invalid_arguments("one argument expected", None));
@@ -34,7 +32,7 @@ pub fn is_some(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 
 // #todo #IMPORTANT this should be a special form, not evaluate the default value if not needed (short-circuit).
 // #todo implement with tan!
-pub fn some_or(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn some_or(args: &[Expr]) -> Result<Expr, Error> {
     let expr = unpack_arg(args, 0, "expr")?;
 
     if expr.is_none() {
@@ -71,10 +69,10 @@ pub fn setup_lib_maybe(context: &mut Context) {
 
     // #insight Use `is-some?` instead of `some?` to make it a verb, `is` is a linking verb.
     // (if (is-some? user) ...)
-    module.insert("is-some?", Expr::ForeignFunc(Arc::new(is_some)));
-    module.insert("is-none?", Expr::ForeignFunc(Arc::new(is_none)));
-    module.insert("some-or", Expr::ForeignFunc(Arc::new(some_or)));
-    module.insert("expect", Expr::ForeignFunc(Arc::new(expect)));
+    module.insert("is-some?", Expr::foreign_func(&is_some));
+    module.insert("is-none?", Expr::foreign_func(&is_none));
+    module.insert("some-or", Expr::foreign_func(&some_or));
+    module.insert("expect", Expr::foreign_func_mut_context(&expect));
 }
 
 // #todo add unit tests!

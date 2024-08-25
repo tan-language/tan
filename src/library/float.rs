@@ -1,5 +1,4 @@
 use core::f64;
-use std::sync::Arc;
 
 use crate::{
     context::Context,
@@ -12,7 +11,7 @@ use crate::{
 };
 
 // #todo Implement with Tan.
-pub fn float_from_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn float_from_int(args: &[Expr]) -> Result<Expr, Error> {
     let [value] = args else {
         return Err(Error::invalid_arguments("requires `value` argument", None));
     };
@@ -29,14 +28,14 @@ pub fn float_from_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Err
 }
 
 // #todo Implement with Tan.
-pub fn float_from_bool(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn float_from_bool(args: &[Expr]) -> Result<Expr, Error> {
     let value = unpack_bool_arg(args, 0, "value")?;
 
     Ok(Expr::Float(if value { 1.0 } else { 0.0 }))
 }
 
 // #todo Consider (Float/from-string ...)
-pub fn float_from_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn float_from_string(args: &[Expr]) -> Result<Expr, Error> {
     let string = unpack_stringable_arg(args, 0, "string")?;
     let Ok(value) = string.parse::<f64>() else {
         return Err(Error::invalid_arguments(
@@ -51,7 +50,7 @@ pub fn float_from_string(args: &[Expr], _context: &mut Context) -> Result<Expr, 
 
 // #todo Consider skipping the prelude for min?
 // #todo What could be another name instead of min? `min-of`? `minimum`?
-pub fn float_min(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn float_min(args: &[Expr]) -> Result<Expr, Error> {
     let mut min = f64::MAX;
 
     for arg in args {
@@ -69,7 +68,7 @@ pub fn float_min(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(Expr::Float(min))
 }
 
-pub fn float_max(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn float_max(args: &[Expr]) -> Result<Expr, Error> {
     let mut max = f64::MIN;
 
     for arg in args {
@@ -88,12 +87,12 @@ pub fn float_max(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 }
 
 // #todo Implement in Tan.
-pub fn float_abs(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn float_abs(args: &[Expr]) -> Result<Expr, Error> {
     let n = unpack_float_arg(args, 0, "n")?;
     Ok(Expr::Float(n.abs()))
 }
 
-pub fn float_sqrt(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn float_sqrt(args: &[Expr]) -> Result<Expr, Error> {
     let n = unpack_float_arg(args, 0, "n")?;
     Ok(Expr::Float(n.sqrt()))
 }
@@ -109,32 +108,29 @@ pub fn setup_lib_float(context: &mut Context) {
     // #todo #think having so many overloads can cover issues, e.g. use the wrong implicit overload.
 
     // #todo make `float_new` the default.
-    module.insert("Float", Expr::ForeignFunc(Arc::new(float_from_int)));
-    module.insert("Float$$Int", Expr::ForeignFunc(Arc::new(float_from_int)));
-    module.insert("Float$$Bool", Expr::ForeignFunc(Arc::new(float_from_bool)));
-    module.insert(
-        "Float$$String",
-        Expr::ForeignFunc(Arc::new(float_from_string)),
-    );
-    module.insert("min", Expr::ForeignFunc(Arc::new(float_min)));
+    module.insert("Float", Expr::foreign_func(&float_from_int));
+    module.insert("Float$$Int", Expr::foreign_func(&float_from_int));
+    module.insert("Float$$Bool", Expr::foreign_func(&float_from_bool));
+    module.insert("Float$$String", Expr::foreign_func(&float_from_string));
+    module.insert("min", Expr::foreign_func(&float_min));
     module.insert(
         "min$$Float$$Float",
-        // annotate_type(Expr::ForeignFunc(Arc::new(add_float)), "Float"),
-        Expr::ForeignFunc(Arc::new(float_min)),
+        // annotate_type(Expr::foreign_func(&add_float)), "Float"),
+        Expr::foreign_func(&float_min),
     );
-    module.insert("max", Expr::ForeignFunc(Arc::new(float_max)));
+    module.insert("max", Expr::foreign_func(&float_max));
     module.insert(
         "max$$Float$$Float",
-        // annotate_type(Expr::ForeignFunc(Arc::new(add_float)), "Float"),
-        Expr::ForeignFunc(Arc::new(float_max)),
+        // annotate_type(Expr::foreign_func(&add_float)), "Float"),
+        Expr::foreign_func(&float_max),
     );
 
-    module.insert("abs", Expr::ForeignFunc(Arc::new(float_abs)));
-    module.insert("abs$$Float", Expr::ForeignFunc(Arc::new(float_abs)));
+    module.insert("abs", Expr::foreign_func(&float_abs));
+    module.insert("abs$$Float", Expr::foreign_func(&float_abs));
 
     // #todo Note that `sqrt` does not follow Tan naming conventions but it's a standard term.
-    module.insert("sqrt", Expr::ForeignFunc(Arc::new(float_sqrt)));
-    module.insert("sqrt$$Float", Expr::ForeignFunc(Arc::new(float_sqrt)));
+    module.insert("sqrt", Expr::foreign_func(&float_sqrt));
+    module.insert("sqrt$$Float", Expr::foreign_func(&float_sqrt));
 
     // Constants.
 

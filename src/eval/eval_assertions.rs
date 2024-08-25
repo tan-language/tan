@@ -65,7 +65,7 @@ pub fn eval_assert_eq(op: &Expr, args: &[Expr], context: &mut Context) -> Result
 
     // #todo don't throw the error, include in failures!
 
-    let predicate = eq_polymorphic(&[left, right], context)?.as_bool().unwrap();
+    let predicate = eq_polymorphic(&[left, right])?.as_bool().unwrap();
 
     if predicate {
         Ok(Expr::Bool(true))

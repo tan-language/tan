@@ -76,9 +76,9 @@ use crate::{
 pub type ExprContextFn =
     dyn Fn(&[Expr], &mut Context) -> Result<Expr, Error> + Send + Sync + 'static;
 
-// #todo Not used yet.
 /// A function that accepts a list of Exprs, returns maybe an Expr.
 pub type FnNoContext = dyn Fn(&[Expr]) -> Result<Expr, Error> + Send + Sync + 'static;
+// #insight Context is needed when the foreing func deals with a Tan func.
 pub type FnContext = dyn Fn(&[Expr], &Context) -> Result<Expr, Error> + Send + Sync + 'static;
 pub type FnMutContext =
     dyn Fn(&[Expr], &mut Context) -> Result<Expr, Error> + Send + Sync + 'static;

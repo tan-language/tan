@@ -13,8 +13,6 @@
 // #todo translate (ul.nasty ..) to (ul {class: "nasty"})
 // #todo translate (ul#nasty ..) to (ul {id: "nasty"})
 
-use std::sync::Arc;
-
 use crate::{
     context::Context,
     error::Error,
@@ -159,7 +157,7 @@ fn render_expr(expr: &Expr) -> Result<Expr, Error> {
 }
 
 // #todo find a better name.
-pub fn html_from_expr(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn html_from_expr(args: &[Expr]) -> Result<Expr, Error> {
     if let Some(expr) = args.first() {
         render_expr(expr)
     } else {
@@ -173,10 +171,7 @@ pub fn html_from_expr(args: &[Expr], _context: &mut Context) -> Result<Expr, Err
 pub fn setup_lib_html(context: &mut Context) {
     let module = require_module("html", context);
 
-    module.insert(
-        "html-from-expr",
-        Expr::ForeignFunc(Arc::new(html_from_expr)),
-    );
+    module.insert("html-from-expr", Expr::foreign_func(&html_from_expr));
 
     // #insight
     // This is currently an experiment to add additional methods implemented
