@@ -83,6 +83,7 @@ pub type FnContext = dyn Fn(&[Expr], &Context) -> Result<Expr, Error> + Send + S
 pub type FnMutContext =
     dyn Fn(&[Expr], &mut Context) -> Result<Expr, Error> + Send + Sync + 'static;
 
+#[derive(Clone)]
 pub enum ForeignFnRef {
     NoContext(&'static FnNoContext),
     Context(&'static FnContext),
@@ -174,7 +175,8 @@ pub enum Expr {
     // #todo the ForeignFunc should probably store the Module environment.
     // #todo introduce a ForeignFuncMut for mutating scope? what would be a better name?
     // #todo #optimization: I could use symbol table for foreing funcs and just put an integer index here!
-    ForeignFunc(Arc<ExprContextFn>), // #todo for some reason, Box is not working here!
+    // #todo Instead of passing an enum, we could have 3 ForeignFunc variants.
+    ForeignFunc(ForeignFnRef), // #todo for some reason, Box is not working here!
     // #todo consider renaming to just `Foreign`,
     // #todo consider adding type-name field?
     // #todo to optimize consider using an index into a table of type-names.

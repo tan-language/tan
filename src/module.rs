@@ -1,6 +1,9 @@
 use std::sync::Arc;
 
-use crate::{expr::Expr, scope::Scope};
+use crate::{
+    expr::{Expr, FnNoContext, ForeignFnRef},
+    scope::Scope,
+};
 
 // #idea ModuleLoader
 // #idea Consider hashing to detect the same modules!
@@ -38,6 +41,15 @@ impl Module {
         value: impl Into<Arc<Expr>>,
     ) -> Option<Arc<Expr>> {
         self.scope.insert(name, value)
+    }
+
+    // #todo Think about the visibility.
+    pub fn insert_foreign_func_no_context(
+        &self,
+        name: impl Into<String>,
+        func: &'static FnNoContext,
+    ) -> Option<Arc<Expr>> {
+        self.insert(name, Expr::ForeignFunc(ForeignFnRef::NoContext(func)))
     }
 }
 

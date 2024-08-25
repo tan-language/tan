@@ -9,7 +9,7 @@ use std::sync::Arc;
 use crate::{
     context::Context,
     error::Error,
-    expr::{annotate_type, has_type_annotation, Expr},
+    expr::{annotate_type, has_type_annotation, Expr, ForeignFnRef},
     util::{expect_lock_read, module_util::require_module},
 };
 
@@ -42,7 +42,7 @@ fn make_complex(re: impl Into<Expr>, im: impl Into<Expr>) -> Expr {
 // (Complex)
 // (Complex re)
 // (Complex re im)
-pub fn complex_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn complex_new(args: &[Expr]) -> Result<Expr, Error> {
     // #todo consider a ForeignStruct.
 
     let re = args.first().unwrap_or_else(|| &Expr::Float(0.0));
@@ -132,7 +132,7 @@ pub fn setup_lib_math_complex(context: &mut Context) {
     // #todo make type-paremetric.
     // #todo better name?
     // (let z (Complex 1.0 0.3))
-    module.insert("Complex", Expr::ForeignFunc(Arc::new(complex_new)));
+    module.insert_foreign_func_no_context("Complex", &complex_new);
 
     module.insert(
         "+$$Complex$$Complex",

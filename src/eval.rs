@@ -36,7 +36,7 @@ use eval_when::eval_when;
 use crate::{
     context::Context,
     error::{Error, ErrorVariant},
-    expr::{expr_clone, format_value, Expr},
+    expr::{expr_clone, format_value, Expr, ForeignFnRef},
     range::Range,
     resolver::resolve_op_method,
     scope::Scope,
@@ -332,7 +332,15 @@ pub fn invoke(invocable: &Expr, args: Vec<Expr>, context: &mut Context) -> Resul
     // #todo support more invocable expressions, e.g. indexing!
     let result = match invocable.unpack() {
         Expr::Func(..) => invoke_func(invocable, args, context),
-        Expr::ForeignFunc(foreign_function) => foreign_function(&args, context),
+        Expr::ForeignFunc(fn_ref) => {
+            // #todo Consider having 3 ForeignFunc variants to avoid an extra check?
+            match fn_ref {
+                ForeignFnRef::NoContext(func) => func(&args),
+                ForeignFnRef::Context(func) => func(&args, context),
+                ForeignFnRef::MutContext(func) => func(&args, context),
+            }
+            // foreign_function(&args, context)
+        }
         _ => {
             // #todo return NonInvocable error!
             Err(Error::invalid_arguments(
