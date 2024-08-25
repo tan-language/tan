@@ -70,12 +70,6 @@ use crate::{
 
 // #insight the `+ Send + Sync + 'static` suffix allows Expr to be Sync.
 
-// #todo Consider renaming to ExprContextMutFn and also provide an ExprContextFn.
-// #todo What is an example of a ForeignFunc that uses the Context?
-/// A function that accepts a list of Exprs and a mut Context, returns maybe an Expr.
-pub type ExprContextFn =
-    dyn Fn(&[Expr], &mut Context) -> Result<Expr, Error> + Send + Sync + 'static;
-
 /// A function that accepts a list of Exprs, returns maybe an Expr.
 pub type FnNoContext = dyn Fn(&[Expr]) -> Result<Expr, Error> + Send + Sync + 'static;
 // #insight Context is needed when the foreing func deals with a Tan func.
