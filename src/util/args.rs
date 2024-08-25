@@ -251,7 +251,7 @@ pub fn unpack_foreign_struct_arg(
         ));
     };
 
-    let Expr::ForeignStruct(s) = expr.unpack() else {
+    let Expr::Foreign(s) = expr.unpack() else {
         return Err(Error::invalid_arguments(
             &format!("invalid 111 {type_name}"),
             expr.range(),
