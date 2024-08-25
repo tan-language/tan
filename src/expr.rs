@@ -493,9 +493,10 @@ impl Expr {
         Expr::Set(Arc::new(RwLock::new(s.into())))
     }
 
-    // pub fn foreign_func(f: &ExprFn) -> Self {
-    //     Expr::ForeignFunc(Arc::new(*f))
-    // }
+    // #todo Consider adding `_no_context` suffix, or better remove the NoContext in the types.
+    pub fn foreign_func(f: &'static FnNoContext) -> Self {
+        Expr::ForeignFunc(ForeignFnRef::NoContext(f))
+    }
 
     // #todo Add `foreign_struct` and `foreign_struct_mut` helpers?
 

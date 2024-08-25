@@ -4,12 +4,10 @@
 // (let z (Complex 1.0 0.3))
 // (let r (* z z))
 
-use std::sync::Arc;
-
 use crate::{
     context::Context,
     error::Error,
-    expr::{annotate_type, has_type_annotation, Expr, ForeignFnRef},
+    expr::{annotate_type, has_type_annotation, Expr},
     util::{expect_lock_read, module_util::require_module},
 };
 
@@ -52,7 +50,7 @@ pub fn complex_new(args: &[Expr]) -> Result<Expr, Error> {
     Ok(make_complex(re.clone(), im.clone()))
 }
 
-pub fn complex_add(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn complex_add(args: &[Expr]) -> Result<Expr, Error> {
     // #todo initialize with first arg, to save one op.
 
     let mut re_acc = 0.0;
@@ -75,7 +73,7 @@ pub fn complex_add(args: &[Expr], _context: &mut Context) -> Result<Expr, Error>
 // (ac - bd) + (ad + bc)i.
 // #todo only supports 2 arguments for the moment.
 // #todo extract multiplication helper and support multiple arguments.
-pub fn complex_mul(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn complex_mul(args: &[Expr]) -> Result<Expr, Error> {
     let [c, z] = args else {
         return Err(Error::invalid_arguments("requires two arguments", None));
     };
@@ -103,7 +101,7 @@ pub fn complex_mul(args: &[Expr], _context: &mut Context) -> Result<Expr, Error>
 }
 
 // |z| = √(a² + b²)
-pub fn complex_abs(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn complex_abs(args: &[Expr]) -> Result<Expr, Error> {
     let [c] = args else {
         return Err(Error::invalid_arguments("requires `self` argument", None));
     };
@@ -132,26 +130,19 @@ pub fn setup_lib_math_complex(context: &mut Context) {
     // #todo make type-paremetric.
     // #todo better name?
     // (let z (Complex 1.0 0.3))
-    module.insert_foreign_func_no_context("Complex", &complex_new);
+    module.insert("Complex", Expr::foreign_func(&complex_new));
 
-    module.insert(
-        "+$$Complex$$Complex",
-        Expr::ForeignFunc(Arc::new(complex_add)),
-    );
-    // #todo ugly!
+    module.insert("+$$Complex$$Complex", Expr::foreign_func(&complex_add));
     module.insert(
         "+$$Complex$$Complex$$Complex",
-        Expr::ForeignFunc(Arc::new(complex_add)),
+        Expr::foreign_func(&complex_add),
     );
 
-    module.insert(
-        "*$$Complex$$Complex",
-        Expr::ForeignFunc(Arc::new(complex_mul)),
-    );
+    module.insert("*$$Complex$$Complex", Expr::foreign_func(&complex_mul));
 
     // #todo move this to arithmetic or something similar.
-    module.insert("abs", Expr::ForeignFunc(Arc::new(complex_abs)));
-    module.insert("abs$$Complex", Expr::ForeignFunc(Arc::new(complex_abs)));
+    module.insert("abs", Expr::foreign_func(&complex_abs));
+    module.insert("abs$$Complex", Expr::foreign_func(&complex_abs));
 
     // #todo also consider Complex:one, Complex:zero ~~ (Complex :zero) -> Complex:zero
     // #todo `Complex/one`
