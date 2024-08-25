@@ -22,6 +22,8 @@ use crate::{
     util::{expect_lock_read, expect_lock_write, fmt::format_float},
 };
 
+// #todo Introduce separate Sync, Send, Sync+Send versions of Expr?
+
 // #todo #important optimization, implement clone_from!
 
 // #todo Make some Expr variants non annotatable (e.g. U8), what about range?
@@ -69,13 +71,23 @@ use crate::{
 // #insight the `+ Send + Sync + 'static` suffix allows Expr to be Sync.
 
 // #todo Consider renaming to ExprContextMutFn and also provide an ExprContextFn.
+// #todo What is an example of a ForeignFunc that uses the Context?
 /// A function that accepts a list of Exprs and a mut Context, returns maybe an Expr.
 pub type ExprContextFn =
     dyn Fn(&[Expr], &mut Context) -> Result<Expr, Error> + Send + Sync + 'static;
 
 // #todo Not used yet.
 /// A function that accepts a list of Exprs, returns maybe an Expr.
-pub type ExprFn = dyn Fn(&[Expr]) -> Result<Expr, Error> + Send + Sync + 'static;
+pub type FnNoContext = dyn Fn(&[Expr]) -> Result<Expr, Error> + Send + Sync + 'static;
+pub type FnContext = dyn Fn(&[Expr], &Context) -> Result<Expr, Error> + Send + Sync + 'static;
+pub type FnMutContext =
+    dyn Fn(&[Expr], &mut Context) -> Result<Expr, Error> + Send + Sync + 'static;
+
+pub enum ForeignFnRef {
+    NoContext(&'static FnNoContext),
+    Context(&'static FnContext),
+    MutContext(&'static FnMutContext),
+}
 
 // #todo Use normal structs instead of tuple-structs?
 
