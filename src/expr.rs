@@ -176,6 +176,7 @@ pub enum Expr {
     // #todo to optimize consider using an index into a table of type-names.
     // #todo support both mutable and immutable foreignStructs
     // #todo Support non-sync data?
+    // #todo Can use &'static here?
     ForeignStruct(Arc<dyn Any + Send + Sync + 'static>),
     ForeignStructMut(Arc<RwLock<dyn Any + Send + Sync + 'static>>),
     Error(String),
