@@ -177,8 +177,8 @@ pub enum Expr {
     // #todo support both mutable and immutable foreignStructs
     // #todo Support non-sync data?
     // #todo Remove the 'static?
-    ForeignStruct(Arc<dyn Any + Send + Sync + 'static>),
-    ForeignStructMut(Arc<RwLock<dyn Any + Send + Sync + 'static>>),
+    Foreign(Arc<dyn Any + Send + Sync>),
+    ForeignMut(Arc<RwLock<dyn Any + Send + Sync>>),
     Error(String),
     // --- High-level ---
     // #todo do should contain the expressions also, pre-parsed!
@@ -226,7 +226,7 @@ impl PartialEq for Expr {
             (Self::Func(..), Self::Func(..)) => false,
             (Self::Macro(l0, l1), Self::Macro(r0, r1)) => l0 == r0 && l1 == r1,
             (Self::ForeignFunc(..), Self::ForeignFunc(..)) => false,
-            (Self::ForeignStruct(..), Self::ForeignStruct(..)) => false,
+            (Self::Foreign(..), Self::Foreign(..)) => false,
             (Self::If(l0, l1, l2), Self::If(r0, r1, r2)) => l0 == r0 && l1 == r1 && l2 == r2,
             // #todo #think should unpack and ignore annotations?
             (Self::Annotated(l0, _l1), Self::Annotated(r0, _r1)) => l0.eq(r0),
@@ -326,8 +326,8 @@ impl fmt::Debug for Expr {
             Expr::Func(..) => "<FUNC>".to_owned(),
             Expr::Macro(..) => "<MACRO>".to_owned(),
             Expr::ForeignFunc(..) => "<FOREIGN-FUNC>".to_owned(),
-            Expr::ForeignStruct(..) => "<FOREIGN-STRUCT>".to_owned(),
-            Expr::ForeignStructMut(..) => "<FOREIGN-STRUCT-MUT>".to_owned(),
+            Expr::Foreign(..) => "<FOREIGN>".to_owned(),
+            Expr::ForeignMut(..) => "<FOREIGN-MUT>".to_owned(),
             // #todo find a better name than `reason`.
             // #todo add support for wrapping upstream errors
             // #todo add support for wrapping foreign (rust) errors
@@ -441,8 +441,8 @@ impl fmt::Display for Expr {
                 // Expr::Func(params, body, ..) => format!("<FUNC {:?} -> {:?}>", params, body), // #hint Useful for debugging.
                 Expr::Macro(..) => "<MACRO>".to_owned(),
                 Expr::ForeignFunc(..) => "<FOREIGN-FUNC>>".to_owned(),
-                Expr::ForeignStruct(..) => "<FOREIGN-STRUCT>".to_owned(),
-                Expr::ForeignStructMut(..) => "<FOREIGN-STRUCT-MUT>".to_owned(),
+                Expr::Foreign(..) => "<FOREIGN>".to_owned(),
+                Expr::ForeignMut(..) => "<FOREIGN-MUT>".to_owned(),
                 // #insight intentionally pass through the formatting.
                 Expr::Annotated(expr, _) => format!("{expr}"),
                 Expr::Annotation(ann) => format!("#{ann}"),

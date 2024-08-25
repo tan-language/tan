@@ -42,7 +42,7 @@ pub fn fs_create(args: &[Expr]) -> Result<Expr, Error> {
 
     let file = std::fs::File::create(path)?;
 
-    let expr = Expr::ForeignStructMut(Arc::new(RwLock::new(file)));
+    let expr = Expr::ForeignMut(Arc::new(RwLock::new(file)));
 
     Ok(annotate_type(expr, "File"))
 }
@@ -57,7 +57,7 @@ pub fn file_write_string(args: &[Expr]) -> Result<Expr, Error> {
         ));
     };
 
-    let Expr::ForeignStructMut(s) = file.unpack() else {
+    let Expr::ForeignMut(s) = file.unpack() else {
         return Err(Error::invalid_arguments("invalid File", None));
     };
 
