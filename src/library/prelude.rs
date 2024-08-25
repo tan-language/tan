@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::context::Context;
 use crate::error::Error;
 use crate::expr::Expr;
@@ -68,10 +66,10 @@ pub fn setup_lib_prelude(context: &mut Context) {
     // #todo should be Str$$Date
     module.insert(
         "to-string$$Date",
-        Expr::ForeignFunc(Arc::new(chrono::chrono_date_to_string)),
+        Expr::foreign_func(&chrono::chrono_date_to_string),
     );
     module.insert(
         "to-string$$Date-Time",
-        Expr::ForeignFunc(Arc::new(chrono::chrono_date_time_to_string)),
+        Expr::foreign_func(&chrono::chrono_date_time_to_string),
     );
 }

@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
 
 // #todo make some fields optional.
@@ -20,7 +18,7 @@ use crate::{context::Context, error::Error, expr::Expr, util::module_util::requi
 //     annotate_type(expr, "Range")
 // }
 
-pub fn range_int_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn range_int_new(args: &[Expr]) -> Result<Expr, Error> {
     // #todo make some of the arguments optional, e.g. step.
     let [start, end, ..] = args else {
         return Err(Error::invalid_arguments(
@@ -62,7 +60,7 @@ pub fn range_int_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Erro
     Ok(Expr::IntRange(start, end, step))
 }
 
-pub fn range_float_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn range_float_new(args: &[Expr]) -> Result<Expr, Error> {
     // #todo make some of the arguments optional, e.g. step.
     let [start, end, ..] = args else {
         return Err(Error::invalid_arguments(
@@ -108,22 +106,13 @@ pub fn setup_lib_range(context: &mut Context) {
     // #todo put in 'range' path, and import selected functionality to prelude.
     let module = require_module("prelude", context);
 
-    module.insert("Range", Expr::ForeignFunc(Arc::new(range_int_new)));
-    module.insert(
-        "Range$$Int$$Int",
-        Expr::ForeignFunc(Arc::new(range_int_new)),
-    );
-    module.insert(
-        "Range$$Int$$Int$$Int",
-        Expr::ForeignFunc(Arc::new(range_int_new)),
-    );
-    module.insert(
-        "Range$$Float$$Float",
-        Expr::ForeignFunc(Arc::new(range_float_new)),
-    );
+    module.insert("Range", Expr::foreign_func(&range_int_new));
+    module.insert("Range$$Int$$Int", Expr::foreign_func(&range_int_new));
+    module.insert("Range$$Int$$Int$$Int", Expr::foreign_func(&range_int_new));
+    module.insert("Range$$Float$$Float", Expr::foreign_func(&range_float_new));
     module.insert(
         "Range$$Float$$Float$$Float",
-        Expr::ForeignFunc(Arc::new(range_float_new)),
+        Expr::foreign_func(&range_float_new),
     );
 }
 
