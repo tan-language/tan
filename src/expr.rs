@@ -498,6 +498,10 @@ impl Expr {
         Expr::ForeignFunc(ForeignFnRef::NoContext(f))
     }
 
+    pub fn foreign_func_mut_context(f: &'static FnMutContext) -> Self {
+        Expr::ForeignFunc(ForeignFnRef::MutContext(f))
+    }
+
     // #todo Add `foreign_struct` and `foreign_struct_mut` helpers?
 
     pub fn annotated(expr: Expr, annotations: &HashMap<String, Expr>) -> Self {

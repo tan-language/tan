@@ -19,14 +19,12 @@
 
 // #todo add support for seeding.
 
-use std::sync::Arc;
-
 use rand::Rng;
 
 use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
 
 /// (random 100) returns a random integer in the range 0..100
-pub fn random_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn random_int(args: &[Expr]) -> Result<Expr, Error> {
     if let Some(end) = args.first() {
         let Some(end) = end.as_int() else {
             return Err(Error::invalid_arguments(
@@ -51,7 +49,7 @@ pub fn setup_lib_rand(context: &mut Context) {
     let module = require_module("rng", context);
 
     // #todo better name?
-    module.insert("random", Expr::ForeignFunc(Arc::new(random_int)));
+    module.insert("random", Expr::foreign_func(&random_int));
 }
 
 // #todo add unit tests.
