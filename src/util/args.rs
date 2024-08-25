@@ -234,7 +234,7 @@ pub fn unpack_buffer_arg<'a>(
 
 // #todo also introduce unpack_foreign_struct_mut_arg
 
-pub fn unpack_foreign_struct_arg(
+pub fn unpack_foreign_arg(
     args: &[Expr],
     index: usize,
     name: &str,
