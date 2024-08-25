@@ -1,98 +1,100 @@
-// #todo why rust implements assert as a macro?
-// #todo also provide 'debug' version of assert that is stripped in prod builds
-// #todo easier to implement with Tan code?
-// #todo no need for #test annotation, at least initially, just scan for *.test.tan extension and explicitly call the test functions
-// #todo have a separate module with 'runtime' asserts, e.g. called just `asserts`.
+// #note #WARNING This is actually not used, look into eval/eval_assertions.
 
-// #todo assert
-// #todo assert-eq
-// #todo assert-not-eq
-// #todo assert-is-matching
-// #todo assert-is-error
-// #todo assert-is-panic
+// // #todo why rust implements assert as a macro?
+// // #todo also provide 'debug' version of assert that is stripped in prod builds
+// // #todo easier to implement with Tan code?
+// // #todo no need for #test annotation, at least initially, just scan for *.test.tan extension and explicitly call the test functions
+// // #todo have a separate module with 'runtime' asserts, e.g. called just `asserts`.
 
-// #todo support optional message?
+// // #todo assert
+// // #todo assert-eq
+// // #todo assert-not-eq
+// // #todo assert-is-matching
+// // #todo assert-is-error
+// // #todo assert-is-panic
 
-use crate::{context::Context, error::Error, expr::Expr};
+// // #todo support optional message?
 
-// #todo move assert to prelude?
+// use crate::{context::Context, error::Error, expr::Expr};
 
-// #todo should implement as a macro, this is a temp solution.
-// #todo is `predicate` a good name?
-pub fn assert(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
-    let [predicate] = args else {
-        return Err(Error::invalid_arguments(
-            "requires `predicate` argument",
-            None,
-        ));
-    };
+// // #todo move assert to prelude?
 
-    let Some(predicate) = predicate.as_bool() else {
-        return Err(Error::invalid_arguments(
-            &format!("`{}` is not a Bool", predicate.unpack()),
-            predicate.range(),
-        ));
-    };
+// // #todo should implement as a macro, this is a temp solution.
+// // #todo is `predicate` a good name?
+// pub fn assert(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+//     let [predicate] = args else {
+//         return Err(Error::invalid_arguments(
+//             "requires `predicate` argument",
+//             None,
+//         ));
+//     };
 
-    if predicate {
-        Ok(Expr::Bool(true))
-    } else {
-        if let Some(value) = context.get("*test-failures*", true) {
-            if let Some(mut failures) = value.as_array_mut() {
-                failures.push(Expr::string(format!("{predicate} failed")));
-            }
-        }
-        Ok(Expr::Bool(false))
-    }
-}
+//     let Some(predicate) = predicate.as_bool() else {
+//         return Err(Error::invalid_arguments(
+//             &format!("`{}` is not a Bool", predicate.unpack()),
+//             predicate.range(),
+//         ));
+//     };
 
-// #todo we need the call-side position.
-pub fn assert_eq(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
-    // #todo need to implement method dispatching here!
+//     if predicate {
+//         Ok(Expr::Bool(true))
+//     } else {
+//         if let Some(value) = context.get("*test-failures*", true) {
+//             if let Some(mut failures) = value.as_array_mut() {
+//                 failures.push(Expr::string(format!("{predicate} failed")));
+//             }
+//         }
+//         Ok(Expr::Bool(false))
+//     }
+// }
 
-    // #todo for the moment only supports int!
-    let name = "=$$Int$$Int";
+// // #todo we need the call-side position.
+// pub fn assert_eq(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+//     // #todo need to implement method dispatching here!
 
-    let func = context.scope.get(name).unwrap();
-    let func = func.unpack();
-    let Expr::ForeignFunc(func) = func else {
-        panic!("unexpected error");
-    };
+//     // #todo for the moment only supports int!
+//     let name = "=$$Int$$Int";
 
-    // #insight args are pre-evaluated, no need for eval_args.
-    let result = func(args, context);
+//     let func = context.scope.get(name).unwrap();
+//     let func = func.unpack();
+//     let Expr::ForeignFunc(func) = func else {
+//         panic!("unexpected error");
+//     };
 
-    let Ok(result) = result else {
-        return result;
-    };
+//     // #insight args are pre-evaluated, no need for eval_args.
+//     let result = func(args, context);
 
-    let Expr::Bool(b) = result else {
-        panic!("unexpected error");
-    };
+//     let Ok(result) = result else {
+//         return result;
+//     };
 
-    if !b {
-        // #todo give exact details about that failed!
-        return Err(Error::general("assertion failed"));
-    }
+//     let Expr::Bool(b) = result else {
+//         panic!("unexpected error");
+//     };
 
-    // #todo how to report the assertion? no panic in test mode.
+//     if !b {
+//         // #todo give exact details about that failed!
+//         return Err(Error::general("assertion failed"));
+//     }
 
-    Ok(result)
-}
+//     // #todo how to report the assertion? no panic in test mode.
 
-pub fn setup_lib_testing(_context: &mut Context) {
-    // #todo at the moment we use the assert and assert-eq special forms.
+//     Ok(result)
+// }
 
-    // let module = require_module("testing", context);
+// pub fn setup_lib_testing(_context: &mut Context) {
+//     // #todo at the moment we use the assert and assert-eq special forms.
 
-    // module.insert("assert", Expr::ForeignFunc(Arc::new(assert)));
-    // module.insert("assert-eq", Expr::ForeignFunc(Arc::new(assert_eq)));
-}
+//     // let module = require_module("testing", context);
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn assert_eq_usage() {
-        // #todo
-    }
-}
+//     // module.insert("assert", Expr::ForeignFunc(Arc::new(assert)));
+//     // module.insert("assert-eq", Expr::ForeignFunc(Arc::new(assert_eq)));
+// }
+
+// #[cfg(test)]
+// mod tests {
+//     #[test]
+//     fn assert_eq_usage() {
+//         // #todo
+//     }
+// }
