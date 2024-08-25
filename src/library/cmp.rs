@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, sync::Arc};
+use std::cmp::Ordering;
 
 use crate::{
     context::Context,
@@ -24,17 +24,14 @@ pub fn setup_lib_cmp(context: &mut Context) {
     // #todo `eq` and `Comparable` are related.
     // #todo consider to make sorter: `cmp`.
 
-    module.insert(
-        "compare",
-        Expr::ForeignFunc(Arc::new(arithmetic::int_compare)),
-    );
+    module.insert("compare", Expr::foreign_func(&arithmetic::int_compare));
     module.insert(
         "compare$$Int$$Int",
-        annotate_type(Expr::ForeignFunc(Arc::new(arithmetic::int_compare)), "Int"),
+        annotate_type(Expr::foreign_func(&arithmetic::int_compare), "Int"),
     );
     module.insert(
         "compare$$String$$String",
-        annotate_type(Expr::ForeignFunc(Arc::new(string_compare)), "String"),
+        annotate_type(Expr::foreign_func(&string_compare), "String"),
     );
 }
 

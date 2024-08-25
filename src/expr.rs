@@ -22,6 +22,8 @@ use crate::{
     util::{expect_lock_read, expect_lock_write, fmt::format_float},
 };
 
+// #todo Introduce separate Sync, Send, Sync+Send versions of Expr?
+
 // #todo #important optimization, implement clone_from!
 
 // #todo Make some Expr variants non annotatable (e.g. U8), what about range?
@@ -69,13 +71,24 @@ use crate::{
 // #insight the `+ Send + Sync + 'static` suffix allows Expr to be Sync.
 
 // #todo Consider renaming to ExprContextMutFn and also provide an ExprContextFn.
+// #todo What is an example of a ForeignFunc that uses the Context?
 /// A function that accepts a list of Exprs and a mut Context, returns maybe an Expr.
 pub type ExprContextFn =
     dyn Fn(&[Expr], &mut Context) -> Result<Expr, Error> + Send + Sync + 'static;
 
-// #todo Not used yet.
 /// A function that accepts a list of Exprs, returns maybe an Expr.
-pub type ExprFn = dyn Fn(&[Expr]) -> Result<Expr, Error> + Send + Sync + 'static;
+pub type FnNoContext = dyn Fn(&[Expr]) -> Result<Expr, Error> + Send + Sync + 'static;
+// #insight Context is needed when the foreing func deals with a Tan func.
+pub type FnContext = dyn Fn(&[Expr], &Context) -> Result<Expr, Error> + Send + Sync + 'static;
+pub type FnMutContext =
+    dyn Fn(&[Expr], &mut Context) -> Result<Expr, Error> + Send + Sync + 'static;
+
+#[derive(Clone)]
+pub enum ForeignFnRef {
+    NoContext(&'static FnNoContext),
+    Context(&'static FnContext),
+    MutContext(&'static FnMutContext),
+}
 
 // #todo Use normal structs instead of tuple-structs?
 
@@ -162,7 +175,8 @@ pub enum Expr {
     // #todo the ForeignFunc should probably store the Module environment.
     // #todo introduce a ForeignFuncMut for mutating scope? what would be a better name?
     // #todo #optimization: I could use symbol table for foreing funcs and just put an integer index here!
-    ForeignFunc(Arc<ExprContextFn>), // #todo for some reason, Box is not working here!
+    // #todo Instead of passing an enum, we could have 3 ForeignFunc variants.
+    ForeignFunc(ForeignFnRef), // #todo for some reason, Box is not working here!
     // #todo consider renaming to just `Foreign`,
     // #todo consider adding type-name field?
     // #todo to optimize consider using an index into a table of type-names.
@@ -479,9 +493,14 @@ impl Expr {
         Expr::Set(Arc::new(RwLock::new(s.into())))
     }
 
-    // pub fn foreign_func(f: &ExprFn) -> Self {
-    //     Expr::ForeignFunc(Arc::new(*f))
-    // }
+    // #todo Consider adding `_no_context` suffix, or better remove the NoContext in the types.
+    pub fn foreign_func(f: &'static FnNoContext) -> Self {
+        Expr::ForeignFunc(ForeignFnRef::NoContext(f))
+    }
+
+    pub fn foreign_func_mut_context(f: &'static FnMutContext) -> Self {
+        Expr::ForeignFunc(ForeignFnRef::MutContext(f))
+    }
 
     // #todo Add `foreign_struct` and `foreign_struct_mut` helpers?
 

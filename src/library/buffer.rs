@@ -12,7 +12,7 @@ use crate::{context::Context, error::Error, expr::Expr, util::module_util::requi
 
 // #todo make buffer Iterable/Iterate
 
-pub fn buffer_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn buffer_new(args: &[Expr]) -> Result<Expr, Error> {
     // #todo also support a default-element/fill option.
 
     let [length] = args else {
@@ -35,7 +35,7 @@ pub fn buffer_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
 }
 
 // (put buf index value)
-pub fn buffer_put(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn buffer_put(args: &[Expr]) -> Result<Expr, Error> {
     // #todo enforce bounds!!
 
     let [buffer, index, value] = args else {
@@ -94,14 +94,11 @@ pub fn setup_lib_buffer(context: &mut Context) {
     let module = require_module("prelude", context);
 
     // #todo consider `Buf`.
-    module.insert("Buffer", Expr::ForeignFunc(Arc::new(buffer_new)));
+    module.insert("Buffer", Expr::foreign_func(&buffer_new));
 
     // #todo also provide a put$$Int
 
-    module.insert(
-        "put$$Buffer$$Int$$U8",
-        Expr::ForeignFunc(Arc::new(buffer_put)),
-    );
+    module.insert("put$$Buffer$$Int$$U8", Expr::foreign_func(&buffer_put));
 }
 
 // #todo push with Int, reuse push with U8

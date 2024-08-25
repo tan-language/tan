@@ -4,8 +4,6 @@
 // #todo function to get char int code
 // #todo function to join chars into a string
 
-use std::sync::Arc;
-
 use crate::{
     context::Context,
     error::Error,
@@ -13,8 +11,7 @@ use crate::{
     util::{args::unpack_stringable_arg, module_util::require_module},
 };
 
-// #todo implement trait without context.
-pub fn char_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn char_new(args: &[Expr]) -> Result<Expr, Error> {
     // #todo also support Int as argument.
     let c = unpack_stringable_arg(args, 0, "c")?;
 
@@ -35,7 +32,7 @@ pub fn setup_lib_char(context: &mut Context) {
     // #todo put in 'char' path, and import selected functionality to prelude.
     let module = require_module("prelude", context);
 
-    module.insert("Char", Expr::ForeignFunc(Arc::new(char_new)));
+    module.insert("Char", Expr::foreign_func(&char_new));
 }
 
 #[cfg(test)]

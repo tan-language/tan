@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
 
 // #todo consider to associate most functions to the `Path` type.
@@ -35,7 +33,7 @@ pub fn get_full_extension(path: &str) -> Option<&str> {
 
 // #todo should it include the final `/`?
 /// Returns the directory part of a path.
-pub fn path_get_dirname(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn path_get_dirname(args: &[Expr]) -> Result<Expr, Error> {
     let [path] = args else {
         return Err(Error::invalid_arguments("requires a `path` argument", None));
     };
@@ -59,7 +57,7 @@ pub fn path_get_dirname(args: &[Expr], _context: &mut Context) -> Result<Expr, E
 }
 
 /// Returns the 'full' extension of a path.
-pub fn path_get_extension(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn path_get_extension(args: &[Expr]) -> Result<Expr, Error> {
     let [path] = args else {
         return Err(Error::invalid_arguments("requires a `path` argument", None));
     };
@@ -86,13 +84,10 @@ pub fn setup_lib_path(context: &mut Context) {
     let module = require_module("path", context);
 
     // #todo think of a better name.
-    module.insert("get-dirname", Expr::ForeignFunc(Arc::new(path_get_dirname)));
+    module.insert("get-dirname", Expr::foreign_func(&path_get_dirname));
 
     // #todo think of a better name.
-    module.insert(
-        "get-extension",
-        Expr::ForeignFunc(Arc::new(path_get_extension)),
-    );
+    module.insert("get-extension", Expr::foreign_func(&path_get_extension));
 }
 
 #[cfg(test)]

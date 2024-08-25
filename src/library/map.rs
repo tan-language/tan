@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{
     context::Context,
     error::Error,
@@ -15,7 +13,7 @@ use crate::{
 // #insight use `contains-key` so that `contains` refers to the value, consistent with other collections.
 // #todo consider other names: has, has-key, contains-key, includes, etc.
 // #todo consider appending a `?`
-pub fn map_contains_key(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn map_contains_key(args: &[Expr]) -> Result<Expr, Error> {
     let [map, key] = args else {
         return Err(Error::invalid_arguments(
             "requires `this` and `key` argument",
@@ -44,7 +42,7 @@ pub fn map_contains_key(args: &[Expr], _context: &mut Context) -> Result<Expr, E
 // #todo version that returns a new sequence
 // #todo also consider set, put
 // #todo item or element? -> I think for collections item is better.
-pub fn map_put(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn map_put(args: &[Expr]) -> Result<Expr, Error> {
     let [map, key, value] = args else {
         return Err(Error::invalid_arguments(
             "requires `this`, `key`, and `value` arguments",
@@ -85,7 +83,7 @@ pub fn map_put(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 // #todo I think `extend` is better, more descriptive.
 // #todo have draining and non-draining versions (drain other.) (consuming is better than draining)
 // #todo have mutating and non-mutating versions.
-pub fn map_update_mut(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn map_update_mut(args: &[Expr]) -> Result<Expr, Error> {
     let [this, other] = args else {
         return Err(Error::invalid_arguments(
             "requires `this` and `other` argument",
@@ -126,7 +124,7 @@ pub fn map_update_mut(args: &[Expr], _context: &mut Context) -> Result<Expr, Err
 // #todo (map :key <default>) could accept a default value.
 // #todo this should be a special form, not evaluate the default value if not needed (short-circuit).
 // #todo consider making default optional.
-pub fn map_get_or(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn map_get_or(args: &[Expr]) -> Result<Expr, Error> {
     // #todo rename `default_value` to `fallback`, more descriptive.
     let [map, key, default_value] = args else {
         return Err(Error::invalid_arguments(
@@ -169,7 +167,7 @@ pub fn map_get_or(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
 }
 
 // #todo Also consider the name `delete` (or even `yank`)?
-pub fn map_remove(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn map_remove(args: &[Expr]) -> Result<Expr, Error> {
     let mut map = unpack_map_mut_arg(args, 0, "map")?;
     let key = unpack_stringable_arg(args, 1, "key")?;
 
@@ -184,7 +182,7 @@ pub fn map_remove(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
 // #todo consider name `keys-of` to avoid clash with variable keys? -> get-keys
 // #todo document the above in a decision file
 // #todo keys is problematic if it's in the prelude!
-pub fn map_get_keys(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn map_get_keys(args: &[Expr]) -> Result<Expr, Error> {
     let [map] = args else {
         return Err(Error::invalid_arguments("requires `this` argument", None));
     };
@@ -201,7 +199,7 @@ pub fn map_get_keys(args: &[Expr], _context: &mut Context) -> Result<Expr, Error
     Ok(Expr::array(keys))
 }
 
-pub fn map_get_values(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn map_get_values(args: &[Expr]) -> Result<Expr, Error> {
     let [map] = args else {
         return Err(Error::invalid_arguments("requires `this` argument", None));
     };
@@ -220,7 +218,7 @@ pub fn map_get_values(args: &[Expr], _context: &mut Context) -> Result<Expr, Err
 
 // #todo consider other names, e.g. `items`.
 // #todo introduce entries/get-entries for other collections/containers, even Array/List.
-pub fn map_get_entries(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn map_get_entries(args: &[Expr]) -> Result<Expr, Error> {
     let [map] = args else {
         return Err(Error::invalid_arguments("requires `this` argument", None));
     };
@@ -249,26 +247,23 @@ pub fn setup_lib_map(context: &mut Context) {
     // #todo add something like `get-or-init`` or `update-with-default` or `get-and-update`
 
     // #todo add type qualifiers!
-    module.insert(
-        "contains-key",
-        Expr::ForeignFunc(Arc::new(map_contains_key)),
-    );
-    module.insert("put", Expr::ForeignFunc(Arc::new(map_put)));
-    module.insert("put$$Map", Expr::ForeignFunc(Arc::new(map_put)));
-    module.insert("update!", Expr::ForeignFunc(Arc::new(map_update_mut)));
-    module.insert("get-or", Expr::ForeignFunc(Arc::new(map_get_or)));
+    module.insert("contains-key", Expr::foreign_func(&map_contains_key));
+    module.insert("put", Expr::foreign_func(&map_put));
+    module.insert("put$$Map", Expr::foreign_func(&map_put));
+    module.insert("update!", Expr::foreign_func(&map_update_mut));
+    module.insert("get-or", Expr::foreign_func(&map_get_or));
 
     // #(Func [(Map T) Hashable] T)
-    module.insert("remove", Expr::ForeignFunc(Arc::new(map_remove)));
+    module.insert("remove", Expr::foreign_func(&map_remove));
 
     // #todo Remove older get-* functions {
-    module.insert("get-keys", Expr::ForeignFunc(Arc::new(map_get_keys)));
-    module.insert("get-values", Expr::ForeignFunc(Arc::new(map_get_values)));
-    module.insert("get-entries", Expr::ForeignFunc(Arc::new(map_get_entries)));
+    module.insert("get-keys", Expr::foreign_func(&map_get_keys));
+    module.insert("get-values", Expr::foreign_func(&map_get_values));
+    module.insert("get-entries", Expr::foreign_func(&map_get_entries));
     // }
-    module.insert("keys-of", Expr::ForeignFunc(Arc::new(map_get_keys)));
-    module.insert("values-of", Expr::ForeignFunc(Arc::new(map_get_values)));
-    module.insert("entries-of", Expr::ForeignFunc(Arc::new(map_get_entries)));
+    module.insert("keys-of", Expr::foreign_func(&map_get_keys));
+    module.insert("values-of", Expr::foreign_func(&map_get_values));
+    module.insert("entries-of", Expr::foreign_func(&map_get_entries));
 }
 
 #[cfg(test)]

@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{
     context::Context,
     error::Error,
@@ -17,7 +15,7 @@ use crate::{
 
 // #idea just use the String constructor: (String "hello " num " guys"), or even (Str "hello " num " guys")
 // #todo support: (Str (HTML-Expr (p "This is a nice paragraph!")))
-pub fn string_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn string_new(args: &[Expr]) -> Result<Expr, Error> {
     let output = args.iter().fold(String::new(), |mut str, x| {
         str.push_str(&format_value(x));
         str
@@ -28,7 +26,7 @@ pub fn string_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
 
 // #todo better name: `size`?
 // #insight `count` is not a good name for length/len, better to be used as verb
-pub fn string_get_length(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn string_get_length(args: &[Expr]) -> Result<Expr, Error> {
     let [this] = args else {
         return Err(Error::invalid_arguments(
             "`chars` requires `this` argument",
@@ -49,7 +47,7 @@ pub fn string_get_length(args: &[Expr], _context: &mut Context) -> Result<Expr, 
 // #todo trim-start
 // #todo trim-end
 
-pub fn string_trim(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn string_trim(args: &[Expr]) -> Result<Expr, Error> {
     let [this] = args else {
         return Err(Error::invalid_arguments("requires `this` argument", None));
     };
@@ -66,7 +64,7 @@ pub fn string_trim(args: &[Expr], _context: &mut Context) -> Result<Expr, Error>
 // #todo how to implement a mutating function?
 // #todo return (Maybe Char) or (Maybe Rune), handle case of empty string.
 /// Removes the last character from the string buffer and returns it.
-pub fn string_pop(_args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn string_pop(_args: &[Expr]) -> Result<Expr, Error> {
     // #todo handle the string mutation!
     // #todo handle empty string case!!
 
@@ -82,7 +80,7 @@ pub fn string_pop(_args: &[Expr], _context: &mut Context) -> Result<Expr, Error>
 /// (slice str 2 5)
 /// (slice str 2)
 /// (slice str 2 -2) ; -2 is length - 2
-pub fn string_slice(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn string_slice(args: &[Expr]) -> Result<Expr, Error> {
     let [this, start, ..] = args else {
         return Err(Error::invalid_arguments(
             "`slice` requires `this` and start arguments",
@@ -136,7 +134,7 @@ pub fn string_slice(args: &[Expr], _context: &mut Context) -> Result<Expr, Error
 // #todo search `recognize_range`.
 // #todo this should reuse the plain string_slice method.
 /// Cuts a slice out fo a string, defined by a range.
-pub fn string_slice_range(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn string_slice_range(args: &[Expr]) -> Result<Expr, Error> {
     let [this, start, ..] = args else {
         return Err(Error::invalid_arguments(
             "`slice` requires `this` and range arguments",
@@ -180,7 +178,7 @@ pub fn string_slice_range(args: &[Expr], _context: &mut Context) -> Result<Expr,
 }
 
 /// Returns a char iterable for the chars in the string.
-pub fn string_chars(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn string_chars(args: &[Expr]) -> Result<Expr, Error> {
     let [this] = args else {
         return Err(Error::invalid_arguments(
             "`chars` requires `this` argument",
@@ -204,7 +202,7 @@ pub fn string_chars(args: &[Expr], _context: &mut Context) -> Result<Expr, Error
     Ok(Expr::array(exprs))
 }
 
-pub fn string_constructor_from_chars(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn string_constructor_from_chars(args: &[Expr]) -> Result<Expr, Error> {
     let [chars] = args else {
         return Err(Error::invalid_arguments("requires `chars` argument", None));
     };
@@ -233,7 +231,7 @@ pub fn string_constructor_from_chars(args: &[Expr], _context: &mut Context) -> R
 
 // #todo overload for string and char!
 
-pub fn char_to_upper_case(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn char_to_upper_case(args: &[Expr]) -> Result<Expr, Error> {
     let [this] = args else {
         return Err(Error::invalid_arguments(
             "`to-upper-case` requires `this` argument",
@@ -258,7 +256,7 @@ pub fn char_to_upper_case(args: &[Expr], _context: &mut Context) -> Result<Expr,
 // Originally the Swift-like `lowercased` was considered, `to-lower-case` was
 // preferred, as it's more consistent, allows for (let lowercased (to-lower-case str)),
 // and scales to other cases, e.g. `to-kebab-case`, `to-snake-case`, etc)
-pub fn string_to_lower_case(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn string_to_lower_case(args: &[Expr]) -> Result<Expr, Error> {
     let [this] = args else {
         return Err(Error::invalid_arguments("requires `this` argument", None));
     };
@@ -282,7 +280,7 @@ pub fn string_to_lower_case(args: &[Expr], _context: &mut Context) -> Result<Exp
 // #todo use (to-string ..) instead of format-value
 // #todo find another name, this is too common: `fmt`? `stringf`?
 // (format-string "hello {} {:.5}" name price)
-pub fn string_format(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn string_format(args: &[Expr]) -> Result<Expr, Error> {
     let output = args.iter().fold(String::new(), |mut str, x| {
         str.push_str(&format_value(x));
         str
@@ -296,7 +294,7 @@ pub fn string_format(args: &[Expr], _context: &mut Context) -> Result<Expr, Erro
 // macro annotation: (this: String, separator: String) -> String
 // (Func (this separator) ..)
 // (Func (#String this #String separator) String)
-pub fn string_split(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn string_split(args: &[Expr]) -> Result<Expr, Error> {
     // #todo Consider different order of arguments.
     // #todo Don't use `this` name.
     let string = unpack_stringable_arg(args, 0, "this")?;
@@ -309,11 +307,9 @@ pub fn string_split(args: &[Expr], _context: &mut Context) -> Result<Expr, Error
     Ok(Expr::array(parts))
 }
 
-// #todo have FFI functions without Context?
-
 // #todo string_is_matching
 
-pub fn string_contains(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn string_contains(args: &[Expr]) -> Result<Expr, Error> {
     let [this, string] = args else {
         return Err(Error::invalid_arguments(
             "`contains` requires `this` and `string` arguments",
@@ -338,7 +334,7 @@ pub fn string_contains(args: &[Expr], _context: &mut Context) -> Result<Expr, Er
     Ok(Expr::Bool(this.contains(string)))
 }
 
-pub fn string_starts_with(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn string_starts_with(args: &[Expr]) -> Result<Expr, Error> {
     let [this, prefix] = args else {
         return Err(Error::invalid_arguments(
             "`starts-with` requires `this` and `prefix` arguments",
@@ -363,7 +359,7 @@ pub fn string_starts_with(args: &[Expr], _context: &mut Context) -> Result<Expr,
     Ok(Expr::Bool(this.starts_with(prefix)))
 }
 
-pub fn string_ends_with(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn string_ends_with(args: &[Expr]) -> Result<Expr, Error> {
     // #todo consider `suffix` instead of `postfix`.
     let [this, postfix] = args else {
         return Err(Error::invalid_arguments(
@@ -397,7 +393,7 @@ pub fn string_ends_with(args: &[Expr], _context: &mut Context) -> Result<Expr, E
 // #todo IDE hint if a compiler-optimization is performed.
 // #todo could allow for multiple replacements (i.e. pairs of rules)
 // #todo different name? e.g. rewrite?
-pub fn string_replace(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn string_replace(args: &[Expr]) -> Result<Expr, Error> {
     // #insight _from, _to are only used to verify that there is at least one
     let [this, _from, _to, ..] = args else {
         return Err(Error::invalid_arguments(
@@ -460,7 +456,7 @@ pub fn string_replace(args: &[Expr], _context: &mut Context) -> Result<Expr, Err
 // #todo move to cmp.rs?
 // #todo should this get renamed to `stringable_compare`?
 // #todo should be associated with `Ordering` and `Comparable`.
-pub fn string_compare(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn string_compare(args: &[Expr]) -> Result<Expr, Error> {
     // #todo support multiple arguments.
     let [a, b] = args else {
         return Err(Error::invalid_arguments(
@@ -499,78 +495,63 @@ pub fn string_compare(args: &[Expr], _context: &mut Context) -> Result<Expr, Err
 pub fn setup_lib_string(context: &mut Context) {
     let module = require_module("prelude", context);
 
-    module.insert("String", Expr::ForeignFunc(Arc::new(string_new)));
+    module.insert("String", Expr::foreign_func(&string_new));
 
     // #insight it's OK if it's not short, it's not often used.
     // #todo consider a shorter name, e.g. `Str/from`, `Str/from-chars`
     // #todo implement as String constructor method/override?, e.g. `(Str [(Char "h")(Char "i")])`
     module.insert(
         "String/from-chars",
-        Expr::ForeignFunc(Arc::new(string_constructor_from_chars)),
+        Expr::foreign_func(&string_constructor_from_chars),
     );
-    // env.insert("String$$Array", Expr::ForeignFunc(Arc::new(string_constructor_from_chars)));
+    // env.insert("String$$Array", Expr::foreign_func(&string_constructor_from_chars)));
 
-    module.insert("chars", Expr::ForeignFunc(Arc::new(string_chars)));
-    module.insert("chars$$String", Expr::ForeignFunc(Arc::new(string_chars)));
+    module.insert("chars", Expr::foreign_func(&string_chars));
+    module.insert("chars$$String", Expr::foreign_func(&string_chars));
 
     // #todo rename to `to-uppercase`, more consistent?
-    module.insert(
-        "to-upper-case",
-        Expr::ForeignFunc(Arc::new(char_to_upper_case)),
-    );
+    module.insert("to-upper-case", Expr::foreign_func(&char_to_upper_case));
     module.insert(
         "to-upper-case$$Char",
-        Expr::ForeignFunc(Arc::new(char_to_upper_case)),
+        Expr::foreign_func(&char_to_upper_case),
     );
 
-    module.insert(
-        "to-lower-case",
-        Expr::ForeignFunc(Arc::new(string_to_lower_case)),
-    );
+    module.insert("to-lower-case", Expr::foreign_func(&string_to_lower_case));
     module.insert(
         "to-lower-case$$String",
-        Expr::ForeignFunc(Arc::new(string_to_lower_case)),
+        Expr::foreign_func(&string_to_lower_case),
     );
 
-    module.insert("format-string", Expr::ForeignFunc(Arc::new(string_format)));
+    module.insert("format-string", Expr::foreign_func(&string_format));
 
-    module.insert("split", Expr::ForeignFunc(Arc::new(string_split)));
+    module.insert("split", Expr::foreign_func(&string_split));
 
-    module.insert("replace", Expr::ForeignFunc(Arc::new(string_replace)));
+    module.insert("replace", Expr::foreign_func(&string_replace));
 
     // #todo slice is to general works both as noun and verb, try to find an explicit verb? e.g. `cut` or `carve`
     // #todo alternatively use something like `get-slice` or `cut-slice` or `carve-slice`.
-    module.insert("slice", Expr::ForeignFunc(Arc::new(string_slice)));
-    module.insert(
-        "slice$$String$$Int$$Int",
-        Expr::ForeignFunc(Arc::new(string_slice)),
-    );
+    module.insert("slice", Expr::foreign_func(&string_slice));
+    module.insert("slice$$String$$Int$$Int", Expr::foreign_func(&string_slice));
     module.insert(
         "slice$$String$$(Range Int)",
-        Expr::ForeignFunc(Arc::new(string_slice_range)),
+        Expr::foreign_func(&string_slice_range),
     );
 
     // #todo find a bette name, `size`?
     // #insight `count` is _not_ a good name, reserve it for verb/action.
-    module.insert("get-length", Expr::ForeignFunc(Arc::new(string_get_length)));
-    module.insert(
-        "get-length$$String",
-        Expr::ForeignFunc(Arc::new(string_get_length)),
-    );
+    module.insert("get-length", Expr::foreign_func(&string_get_length));
+    module.insert("get-length$$String", Expr::foreign_func(&string_get_length));
 
     // #todo write tan unit test
-    module.insert("trim", Expr::ForeignFunc(Arc::new(string_trim)));
+    module.insert("trim", Expr::foreign_func(&string_trim));
 
-    // module.insert("contains?", Expr::ForeignFunc(Arc::new(string_contains)));
+    // module.insert("contains?", Expr::foreign_func(&string_contains)));
     module.insert(
         "contains?$$String$$String",
-        Expr::ForeignFunc(Arc::new(string_contains)),
+        Expr::foreign_func(&string_contains),
     );
 
-    module.insert(
-        "starts-with?",
-        Expr::ForeignFunc(Arc::new(string_starts_with)),
-    );
+    module.insert("starts-with?", Expr::foreign_func(&string_starts_with));
 
     /*
     (if (ends-with filename ".png")
@@ -580,7 +561,7 @@ pub fn setup_lib_string(context: &mut Context) {
     )
      */
     // #todo: consider 'ends-with' without '?'.
-    module.insert("ends-with?", Expr::ForeignFunc(Arc::new(string_ends_with)));
+    module.insert("ends-with?", Expr::foreign_func(&string_ends_with));
 }
 
 #[cfg(test)]

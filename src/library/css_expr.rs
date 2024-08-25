@@ -3,8 +3,6 @@
 // #todo conside `css-expr` name: https://docs.racket-lang.org/css-expr/
 // #todo consider naming this a 'dialect' or 'dsl' or 'language' instead of text?
 
-use std::sync::Arc;
-
 use crate::{
     context::Context,
     error::Error,
@@ -119,7 +117,7 @@ fn render_css_expr(expr: &Expr) -> Result<Expr, Error> {
 }
 
 // #todo name `css_from_css_expr` ?
-pub fn css_expr_to_css(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn css_expr_to_css(args: &[Expr]) -> Result<Expr, Error> {
     if let Some(expr) = args.first() {
         render_css_expr(expr)
     } else {
@@ -138,7 +136,7 @@ pub fn setup_lib_css_expr(context: &mut Context) {
     let module = require_module("dialect/css-expr", context);
 
     // (let css (css-expr/to-css expr))
-    module.insert("to-css", Expr::ForeignFunc(Arc::new(css_expr_to_css)));
+    module.insert("to-css", Expr::foreign_func(&css_expr_to_css));
 }
 
 #[cfg(test)]

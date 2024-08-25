@@ -1,5 +1,4 @@
 use std::str::FromStr;
-use std::sync::Arc;
 
 use rust_decimal::Decimal;
 
@@ -15,7 +14,7 @@ use crate::{
 // #todo Implement Dec/from-string.
 
 // #todo Consider (Dec/from-string ...)
-pub fn dec_from_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn dec_from_string(args: &[Expr]) -> Result<Expr, Error> {
     let string = unpack_stringable_arg(args, 0, "string")?;
     let Ok(value) = Decimal::from_str(string) else {
         return Err(Error::invalid_arguments(
@@ -32,6 +31,6 @@ pub fn setup_lib_dec(context: &mut Context) {
 
     // #todo consider to-dec instead?
 
-    module.insert("Dec", Expr::ForeignFunc(Arc::new(dec_from_string)));
-    module.insert("Dec$$String", Expr::ForeignFunc(Arc::new(dec_from_string)));
+    module.insert("Dec", Expr::foreign_func(&dec_from_string));
+    module.insert("Dec$$String", Expr::foreign_func(&dec_from_string));
 }

@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 
 use chrono::{Datelike, Duration, NaiveDate, NaiveDateTime, Timelike, Utc};
 
@@ -57,22 +57,22 @@ pub fn tan_date_time_from_rust_date_time(rust_date_time: NaiveDateTime) -> Expr 
     annotate_type(expr, "Date-Time")
 }
 
-pub fn chrono_date_time_now(_args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn chrono_date_time_now(_args: &[Expr]) -> Result<Expr, Error> {
     let date_time = Utc::now().naive_utc();
     Ok(tan_date_time_from_rust_date_time(date_time))
 }
 
 // #todo add unit test
-pub fn chrono_date_time(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn chrono_date_time(args: &[Expr]) -> Result<Expr, Error> {
     if args.is_empty() {
-        chrono_date_time_now(args, _context)
+        chrono_date_time_now(args)
     } else {
         todo!();
         // chrono_date_from_string(args, _context)
     }
 }
 
-pub fn chrono_date_time_to_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn chrono_date_time_to_string(args: &[Expr]) -> Result<Expr, Error> {
     let [this] = args else {
         return Err(Error::invalid_arguments("requires `this` argument", None));
     };
@@ -122,8 +122,8 @@ pub fn chrono_date_time_to_string(args: &[Expr], _context: &mut Context) -> Resu
 }
 
 // #todo differentiate to_string from to_rfc399
-pub fn chrono_date_time_to_rfc399(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
-    chrono_date_time_to_string(args, context)
+pub fn chrono_date_time_to_rfc399(args: &[Expr]) -> Result<Expr, Error> {
+    chrono_date_time_to_string(args)
 }
 
 pub fn tan_date_from_components(year: i64, month: i64, day: i64) -> Expr {
@@ -199,7 +199,7 @@ pub fn rust_date_from_tan_date(tan_date: &Expr) -> NaiveDate {
 //     }
 // }
 
-pub fn chrono_date_now(_args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn chrono_date_now(_args: &[Expr]) -> Result<Expr, Error> {
     let date = Utc::now().naive_utc().date();
     Ok(tan_date_from_rust_date(date))
 }
@@ -207,7 +207,7 @@ pub fn chrono_date_now(_args: &[Expr], _context: &mut Context) -> Result<Expr, E
 // #todo support construction from [year month day]
 
 // #todo support optional format string.
-pub fn chrono_date_from_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn chrono_date_from_string(args: &[Expr]) -> Result<Expr, Error> {
     let [this] = args else {
         return Err(Error::invalid_arguments("requires `str` argument", None));
     };
@@ -229,15 +229,15 @@ pub fn chrono_date_from_string(args: &[Expr], _context: &mut Context) -> Result<
     Ok(tan_date_from_rust_date(date))
 }
 
-pub fn chrono_date(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn chrono_date(args: &[Expr]) -> Result<Expr, Error> {
     if args.is_empty() {
-        chrono_date_now(args, _context)
+        chrono_date_now(args)
     } else {
-        chrono_date_from_string(args, _context)
+        chrono_date_from_string(args)
     }
 }
 
-pub fn chrono_date_from_components(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn chrono_date_from_components(args: &[Expr]) -> Result<Expr, Error> {
     let year = unpack_int_arg(args, 0, "year")?;
     let month = unpack_int_arg(args, 1, "month")?;
     let day = unpack_int_arg(args, 2, "day")?;
@@ -254,20 +254,20 @@ pub fn chrono_date_from_components(args: &[Expr], _context: &mut Context) -> Res
 // Fri = 4,
 // Sat = 5,
 // Sun = 6,
-pub fn chrono_date_day_of_week(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn chrono_date_day_of_week(args: &[Expr]) -> Result<Expr, Error> {
     // #todo Check that this is a valid Date.
     let tan_date = unpack_arg(args, 0, "date")?;
     let rust_date = rust_date_from_tan_date(tan_date);
     Ok(Expr::Int(rust_date.weekday().num_days_from_monday() as i64))
 }
 
-pub fn chrono_date_from_map(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn chrono_date_from_map(args: &[Expr]) -> Result<Expr, Error> {
     let map = unpack_map_arg(args, 0, "components")?;
     let expr = Expr::map(map.clone());
     Ok(annotate_type(expr, "Date"))
 }
 
-pub fn chrono_date_to_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn chrono_date_to_string(args: &[Expr]) -> Result<Expr, Error> {
     let [this] = args else {
         return Err(Error::invalid_arguments("requires `this` argument", None));
     };
@@ -300,7 +300,7 @@ pub fn chrono_date_to_string(args: &[Expr], _context: &mut Context) -> Result<Ex
 }
 
 // #todo implement me!
-pub fn chrono_date_to_rfc399(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn chrono_date_to_rfc399(args: &[Expr]) -> Result<Expr, Error> {
     let [this] = args else {
         return Err(Error::invalid_arguments("requires `this` argument", None));
     };
@@ -334,7 +334,7 @@ pub fn chrono_date_to_rfc399(args: &[Expr], _context: &mut Context) -> Result<Ex
 }
 
 // https://docs.rs/chrono/latest/chrono/format/strftime/
-pub fn chrono_date_format(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn chrono_date_format(args: &[Expr]) -> Result<Expr, Error> {
     let [spec, date] = args else {
         return Err(Error::invalid_arguments(
             "requires `spec` and `date` arguments",
@@ -359,7 +359,7 @@ pub fn chrono_date_format(args: &[Expr], _context: &mut Context) -> Result<Expr,
 // #todo Also implement Duration and (+ Date Duration).
 
 // #todo Consider changing the order of arguments?
-pub fn chrono_date_add_days(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn chrono_date_add_days(args: &[Expr]) -> Result<Expr, Error> {
     let [this, days] = args else {
         return Err(Error::invalid_arguments("requires `this` argument", None));
     };
@@ -381,7 +381,7 @@ pub fn chrono_date_add_days(args: &[Expr], _context: &mut Context) -> Result<Exp
 }
 
 // #todo replace with + Duration
-pub fn chrono_date_add_weeks(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn chrono_date_add_weeks(args: &[Expr]) -> Result<Expr, Error> {
     let [this, weeks] = args else {
         return Err(Error::invalid_arguments("requires `this` argument", None));
     };
@@ -405,69 +405,51 @@ pub fn chrono_date_add_weeks(args: &[Expr], _context: &mut Context) -> Result<Ex
 pub fn setup_lib_chrono(context: &mut Context) {
     let module = require_module("chrono", context);
 
-    module.insert("Date-Time", Expr::ForeignFunc(Arc::new(chrono_date_time)));
+    module.insert("Date-Time", Expr::foreign_func(&chrono_date_time));
     // #todo consider `to-rfc-399-string` or `format-rfc-399`
     module.insert(
         "to-rfc-399",
-        Expr::ForeignFunc(Arc::new(chrono_date_time_to_rfc399)),
+        Expr::foreign_func(&chrono_date_time_to_rfc399),
     );
     module.insert(
         "to-rfc-399$$Date-Time",
-        Expr::ForeignFunc(Arc::new(chrono_date_time_to_rfc399)),
+        Expr::foreign_func(&chrono_date_time_to_rfc399),
     );
     // #todo Cannot differentiate from the Date-Time version, maybe put in different module-path?
     // module.insert(
     //     "to-rfc-399$$Date",
-    //     Expr::ForeignFunc(Arc::new(chrono_date_to_rfc399)),
+    //     Expr::foreign_func(&chrono_date_to_rfc399)),
     // );
     // #todo consider (String date-time)
     // #insight #hack this is added in prelude! NASTY hack
     // module.insert(
     //     "to-string$$Date-Time",
-    //     Expr::ForeignFunc(Arc::new(chrono_date_time_to_string)),
+    //     Expr::foreign_func(&chrono_date_time_to_string)),
     // );
 
-    module.insert("Date", Expr::ForeignFunc(Arc::new(chrono_date)));
-    module.insert(
-        "Date$$Map",
-        Expr::ForeignFunc(Arc::new(chrono_date_from_map)),
-    );
+    module.insert("Date", Expr::foreign_func(&chrono_date));
+    module.insert("Date$$Map", Expr::foreign_func(&chrono_date_from_map));
     module.insert(
         "Date$$Int$$Int$$Int",
-        Expr::ForeignFunc(Arc::new(chrono_date_from_components)),
+        Expr::foreign_func(&chrono_date_from_components),
     );
 
-    module.insert(
-        "day-of-week",
-        Expr::ForeignFunc(Arc::new(chrono_date_day_of_week)),
-    );
+    module.insert("day-of-week", Expr::foreign_func(&chrono_date_day_of_week));
     // #todo #deprecate Remove this alias.
-    module.insert(
-        "weekday-of",
-        Expr::ForeignFunc(Arc::new(chrono_date_day_of_week)),
-    );
+    module.insert("weekday-of", Expr::foreign_func(&chrono_date_day_of_week));
 
     // #todo implement with duration and `+`.
-    module.insert(
-        "add-days",
-        Expr::ForeignFunc(Arc::new(chrono_date_add_days)),
-    );
-    module.insert(
-        "add-weeks",
-        Expr::ForeignFunc(Arc::new(chrono_date_add_weeks)),
-    );
+    module.insert("add-days", Expr::foreign_func(&chrono_date_add_days));
+    module.insert("add-weeks", Expr::foreign_func(&chrono_date_add_weeks));
     // #insight spec comes first for more 'natural' currying.
     // #todo maybe just pass optional parameters to to-string?
     // #todo what would be a better name? stringf, strfmt? format is just too generic to reserve.
     // #todo just make this (String date)?
-    module.insert(
-        "format-string",
-        Expr::ForeignFunc(Arc::new(chrono_date_format)),
-    );
+    module.insert("format-string", Expr::foreign_func(&chrono_date_format));
     // #todo How to do this?
     // module.insert(
     //     "String$$Date",
-    //     Expr::ForeignFunc(Arc::new(chrono_date_format)),
+    //     Expr::foreign_func(&chrono_date_format)),
     // );
     // #todo add more functions
 }
@@ -482,9 +464,8 @@ mod tests {
 
     #[test]
     fn chrono_date_usage() {
-        let mut context = Context::new();
         let args = [Expr::string("2024-01-17")];
-        let date = chrono_date(&args, &mut context).unwrap();
+        let date = chrono_date(&args).unwrap();
         let map = date.as_map().unwrap();
         assert_matches!(map.get("year").unwrap(), Expr::Int(year) if *year == 2024);
         assert_matches!(map.get("month").unwrap(), Expr::Int(month) if *month == 1);

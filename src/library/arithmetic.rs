@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 #[cfg(feature = "dec")]
 use rust_decimal_macros::dec;
 
@@ -28,7 +26,7 @@ use crate::{
 // #fixme (+ 1.2 1.4 1.5) does not work, falls back to Int (more than 2 arguments)
 
 // #todo autogen with a macro!
-pub fn add_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn add_int(args: &[Expr]) -> Result<Expr, Error> {
     let mut xs = Vec::new();
 
     for arg in args {
@@ -53,7 +51,7 @@ fn add_int_impl(xs: Vec<i64>) -> i64 {
     xs.iter().sum()
 }
 
-pub fn add_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn add_float(args: &[Expr]) -> Result<Expr, Error> {
     let mut sum = 0.0;
 
     for arg in args {
@@ -71,7 +69,7 @@ pub fn add_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 
 // #todo Move to dec.rs
 #[cfg(feature = "dec")]
-pub fn add_dec(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn add_dec(args: &[Expr]) -> Result<Expr, Error> {
     let mut sum = dec!(0.0);
 
     for arg in args {
@@ -90,7 +88,7 @@ pub fn add_dec(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 // #todo keep separate, optimized version with just 2 arguments!
 // #todo should support variable args.
 // #todo should return the error without range and range should be added by caller.
-// pub fn sub_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+// pub fn sub_int(args: &[Expr]) -> Result<Expr, Error> {
 //     // #todo support multiple arguments.
 //     let [a, b] = args else {
 //         return Err(Error::invalid_arguments(
@@ -116,7 +114,7 @@ pub fn add_dec(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 //     Ok(Expr::Int(a - b))
 // }
 
-pub fn sub_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn sub_int(args: &[Expr]) -> Result<Expr, Error> {
     // #todo what if there is a single argument?
 
     let mut diff = unpack_int_arg(args, 0, "n")?;
@@ -134,13 +132,13 @@ pub fn sub_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(Expr::Int(diff))
 }
 
-pub fn neg_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn neg_int(args: &[Expr]) -> Result<Expr, Error> {
     // #todo What about 0?
     let n = unpack_int_arg(args, 0, "n")?;
     Ok(Expr::Int(-n))
 }
 
-pub fn sub_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn sub_float(args: &[Expr]) -> Result<Expr, Error> {
     // #todo support multiple arguments.
     let [a, b] = args else {
         return Err(Error::invalid_arguments(
@@ -166,12 +164,12 @@ pub fn sub_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(Expr::Float(a - b))
 }
 
-pub fn neg_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn neg_float(args: &[Expr]) -> Result<Expr, Error> {
     let n = unpack_float_arg(args, 0, "n")?;
     Ok(Expr::Float(-n))
 }
 
-pub fn mul_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn mul_int(args: &[Expr]) -> Result<Expr, Error> {
     // #todo optimize!
     let mut product = 1;
 
@@ -188,7 +186,7 @@ pub fn mul_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(Expr::Int(product))
 }
 
-pub fn mul_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn mul_float(args: &[Expr]) -> Result<Expr, Error> {
     // #todo optimize!
     let mut product = 1.0;
 
@@ -205,7 +203,7 @@ pub fn mul_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(Expr::Float(product))
 }
 
-pub fn div_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn div_int(args: &[Expr]) -> Result<Expr, Error> {
     // #todo optimize!
     let mut quotient = unpack_int_arg(args, 0, "n")?;
 
@@ -224,7 +222,7 @@ pub fn div_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 }
 
 // #todo support int/float.
-pub fn div_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn div_float(args: &[Expr]) -> Result<Expr, Error> {
     // #todo optimize!
     let mut quotient = f64::NAN;
 
@@ -249,7 +247,7 @@ pub fn div_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(Expr::Float(quotient))
 }
 
-pub fn sin_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn sin_float(args: &[Expr]) -> Result<Expr, Error> {
     let Some(n) = args.first() else {
         return Err(Error::invalid_arguments("missing argument", None));
     };
@@ -264,7 +262,7 @@ pub fn sin_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(Expr::Float(n.sin()))
 }
 
-pub fn cos_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn cos_float(args: &[Expr]) -> Result<Expr, Error> {
     let Some(n) = args.first() else {
         return Err(Error::invalid_arguments("missing argument", None));
     };
@@ -280,7 +278,7 @@ pub fn cos_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 }
 
 // #todo support variable args?
-pub fn powi_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn powi_float(args: &[Expr]) -> Result<Expr, Error> {
     let [n, e] = args else {
         return Err(Error::invalid_arguments(
             "- requires at least two arguments",
@@ -306,7 +304,7 @@ pub fn powi_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
     Ok(Expr::Float(n.powi(e as i32)))
 }
 
-pub fn mod_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn mod_int(args: &[Expr]) -> Result<Expr, Error> {
     // #todo what are good variable names.
     let x = unpack_int_arg(args, 0, "x")?;
     let y = unpack_int_arg(args, 1, "y")?;
@@ -314,7 +312,7 @@ pub fn mod_int(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(Expr::Int(x % y))
 }
 
-pub fn mod_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn mod_float(args: &[Expr]) -> Result<Expr, Error> {
     // #todo what are good variable names.
     let x = unpack_float_arg(args, 0, "x")?;
     let y = unpack_float_arg(args, 1, "y")?;
@@ -323,7 +321,7 @@ pub fn mod_float(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 }
 
 // #todo should be associated with `Ordering` and `Comparable`.
-pub fn int_compare(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn int_compare(args: &[Expr]) -> Result<Expr, Error> {
     // #todo support multiple arguments.
     let [a, b] = args else {
         return Err(Error::invalid_arguments(
@@ -362,144 +360,132 @@ pub fn setup_lib_arithmetic(context: &mut Context) {
     // #todo notice the use of annotate_type.
 
     // #todo forget the mangling, implement with a dispatcher function, multi-function.
-    module.insert(
-        "+",
-        annotate_type(Expr::ForeignFunc(Arc::new(add_int)), "Int"),
-    );
+    module.insert("+", annotate_type(Expr::foreign_func(&add_int), "Int"));
     module.insert(
         "+$$Int$$Int",
-        annotate_type(Expr::ForeignFunc(Arc::new(add_int)), "Int"),
+        annotate_type(Expr::foreign_func(&add_int), "Int"),
     );
     // #todo #temp hack to support multiple args.
     module.insert(
         "+$$Int$$Int$$Int",
-        annotate_type(Expr::ForeignFunc(Arc::new(add_int)), "Int"),
+        annotate_type(Expr::foreign_func(&add_int), "Int"),
     );
     module.insert(
         "+$$Int$$Int$$Int$$Int",
-        annotate_type(Expr::ForeignFunc(Arc::new(add_int)), "Int"),
+        annotate_type(Expr::foreign_func(&add_int), "Int"),
     );
     module.insert(
         "+$$Float$$Float",
         // #todo add the proper type: (Func Float Float Float)
         // #todo even better: (Func (Many Float) Float)
-        annotate_type(Expr::ForeignFunc(Arc::new(add_float)), "Float"),
+        annotate_type(Expr::foreign_func(&add_float), "Float"),
     );
     // #todo #temp hack to support multiple args.
     module.insert(
         "+$$Float$$Float$$Float",
         // #todo add the proper type: (Func Float Float Float)
         // #todo even better: (Func (Many Float) Float)
-        annotate_type(Expr::ForeignFunc(Arc::new(add_float)), "Float"),
+        annotate_type(Expr::foreign_func(&add_float), "Float"),
     );
     module.insert(
         "+$$Float$$Float$$Float$$Float",
         // #todo add the proper type: (Func Float Float Float)
         // #todo even better: (Func (Many Float) Float)
-        annotate_type(Expr::ForeignFunc(Arc::new(add_float)), "Float"),
+        annotate_type(Expr::foreign_func(&add_float), "Float"),
     );
     #[cfg(feature = "dec")]
     module.insert(
         "+$$Dec$$Dec",
         // #todo add the proper type: (Func Dec Dec Dec)
         // #todo even better: (Func (Many Dec) Dec)
-        annotate_type(Expr::ForeignFunc(Arc::new(add_dec)), "Dec"),
+        annotate_type(Expr::foreign_func(&add_dec), "Dec"),
     );
-    module.insert("-", Expr::ForeignFunc(Arc::new(sub_int)));
-    module.insert(
-        "-$$Int",
-        annotate_type(Expr::ForeignFunc(Arc::new(neg_int)), "Int"),
-    );
+    module.insert("-", Expr::foreign_func(&sub_int));
+    module.insert("-$$Int", annotate_type(Expr::foreign_func(&neg_int), "Int"));
     module.insert(
         "-$$Int$$Int",
-        annotate_type(Expr::ForeignFunc(Arc::new(sub_int)), "Int"),
+        annotate_type(Expr::foreign_func(&sub_int), "Int"),
     );
     // #todo #hack implement a version of module.insert that automatically adds a few methods/overloads.
     module.insert(
         "-$$Int$$Int$$Int",
-        annotate_type(Expr::ForeignFunc(Arc::new(sub_int)), "Int"),
+        annotate_type(Expr::foreign_func(&sub_int), "Int"),
     );
     module.insert(
         "-$$Int$$Int$$Int$$Int",
-        annotate_type(Expr::ForeignFunc(Arc::new(sub_int)), "Int"),
+        annotate_type(Expr::foreign_func(&sub_int), "Int"),
     );
     module.insert(
         "-$$Float",
-        annotate_type(Expr::ForeignFunc(Arc::new(neg_float)), "Float"),
+        annotate_type(Expr::foreign_func(&neg_float), "Float"),
     );
     module.insert(
         "-$$Float$$Float",
-        annotate_type(Expr::ForeignFunc(Arc::new(sub_float)), "Float"),
+        annotate_type(Expr::foreign_func(&sub_float), "Float"),
     );
-    module.insert("*", Expr::ForeignFunc(Arc::new(mul_int)));
+    module.insert("*", Expr::foreign_func(&mul_int));
     module.insert(
         "*$$Int$$Int",
-        annotate_type(Expr::ForeignFunc(Arc::new(mul_int)), "Int"),
+        annotate_type(Expr::foreign_func(&mul_int), "Int"),
     );
     // #todo #temp hack to support multiple args.
     module.insert(
         "*$$Int$$Int$$Int",
-        annotate_type(Expr::ForeignFunc(Arc::new(mul_int)), "Int"),
+        annotate_type(Expr::foreign_func(&mul_int), "Int"),
     );
     module.insert(
         "*$$Float$$Float",
         // #todo add the proper type: (Func Float Float Float)
         // #todo even better: (Func (Many Float) Float)
-        annotate_type(Expr::ForeignFunc(Arc::new(mul_float)), "Float"),
+        annotate_type(Expr::foreign_func(&mul_float), "Float"),
     );
     module.insert(
         "*$$Float$$Float$$Float",
         // #todo add the proper type: (Func Float Float Float)
         // #todo even better: (Func (Many Float) Float)
-        annotate_type(Expr::ForeignFunc(Arc::new(mul_float)), "Float"),
+        annotate_type(Expr::foreign_func(&mul_float), "Float"),
     );
-    module.insert(
-        "/",
-        annotate_type(Expr::ForeignFunc(Arc::new(div_float)), "Float"),
-    );
+    module.insert("/", annotate_type(Expr::foreign_func(&div_float), "Float"));
     module.insert(
         "/$$Int$$Int",
-        annotate_type(Expr::ForeignFunc(Arc::new(div_int)), "Int"),
+        annotate_type(Expr::foreign_func(&div_int), "Int"),
     );
     // #todo ultra-hack
     module.insert(
         "/$$Float$$Float",
-        annotate_type(Expr::ForeignFunc(Arc::new(div_float)), "Float"),
+        annotate_type(Expr::foreign_func(&div_float), "Float"),
     );
     // #todo ultra-hack
     module.insert(
         "/$$Float$$Float$$Float",
-        annotate_type(Expr::ForeignFunc(Arc::new(div_float)), "Float"),
+        annotate_type(Expr::foreign_func(&div_float), "Float"),
     );
     module.insert(
         "sin",
-        annotate_type(Expr::ForeignFunc(Arc::new(sin_float)), "Float"),
+        annotate_type(Expr::foreign_func(&sin_float), "Float"),
     );
     module.insert(
         "cos",
-        annotate_type(Expr::ForeignFunc(Arc::new(cos_float)), "Float"),
+        annotate_type(Expr::foreign_func(&cos_float), "Float"),
     );
     module.insert(
         "**",
-        annotate_type(Expr::ForeignFunc(Arc::new(powi_float)), "Float"),
+        annotate_type(Expr::foreign_func(&powi_float), "Float"),
     );
     module.insert(
         "**$$Float$$Int",
-        annotate_type(Expr::ForeignFunc(Arc::new(powi_float)), "Float"),
+        annotate_type(Expr::foreign_func(&powi_float), "Float"),
     );
     // #todo Add support for float exponentiation.
     // #todo shouldn't be required.
-    module.insert(
-        "%",
-        annotate_type(Expr::ForeignFunc(Arc::new(mod_int)), "Int"),
-    );
+    module.insert("%", annotate_type(Expr::foreign_func(&mod_int), "Int"));
     module.insert(
         "%$$Int$$Int",
-        annotate_type(Expr::ForeignFunc(Arc::new(mod_int)), "Int"),
+        annotate_type(Expr::foreign_func(&mod_int), "Int"),
     );
     module.insert(
         "%$$Float$$Float",
-        annotate_type(Expr::ForeignFunc(Arc::new(mod_float)), "Float"),
+        annotate_type(Expr::foreign_func(&mod_float), "Float"),
     );
 }
 

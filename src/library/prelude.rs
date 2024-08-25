@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::context::Context;
 use crate::error::Error;
 use crate::expr::Expr;
@@ -26,7 +24,7 @@ use super::u8::setup_lib_u8;
 
 // #todo temporarily here, move to String?
 /// Formats an expression into a string.
-pub fn expr_to_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn expr_to_string(args: &[Expr]) -> Result<Expr, Error> {
     let [this] = args else {
         return Err(Error::invalid_arguments("requires `this` argument", None));
     };
@@ -62,16 +60,16 @@ pub fn setup_lib_prelude(context: &mut Context) {
     let module = require_module("prelude", context);
     module.insert(
         "to-string",
-        Expr::ForeignFunc(Arc::new(expr_to_string)), // #todo #temp
+        Expr::foreign_func(&expr_to_string), // #todo #temp
     );
     // #todo it is NASTY that we have to add this here!!!
     // #todo should be Str$$Date
     module.insert(
         "to-string$$Date",
-        Expr::ForeignFunc(Arc::new(chrono::chrono_date_to_string)),
+        Expr::foreign_func(&chrono::chrono_date_to_string),
     );
     module.insert(
         "to-string$$Date-Time",
-        Expr::ForeignFunc(Arc::new(chrono::chrono_date_time_to_string)),
+        Expr::foreign_func(&chrono::chrono_date_time_to_string),
     );
 }

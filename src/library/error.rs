@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{
     context::Context,
     error::Error,
@@ -11,7 +9,7 @@ use crate::{
 // #todo error pretty-print / format-pretty
 // #todo error variant (don't use the word `kind` reserved for type-system)
 
-pub fn error_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn error_new(args: &[Expr]) -> Result<Expr, Error> {
     let reason = unpack_stringable_arg(args, 0, "reason")?;
     Ok(Expr::error(reason))
 }
@@ -21,7 +19,7 @@ pub fn setup_lib_error(context: &mut Context) {
     let module = require_module("prelude", context);
 
     // #todo consider `Err`.
-    module.insert("Error", Expr::ForeignFunc(Arc::new(error_new)));
+    module.insert("Error", Expr::foreign_func(&error_new));
 }
 
 #[cfg(test)]

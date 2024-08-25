@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     path::PathBuf,
-    sync::{Arc, Mutex, OnceLock},
+    sync::{Mutex, OnceLock},
 };
 
 use libloading::Library;
@@ -59,14 +59,14 @@ pub fn ann(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
 // #insight clojure passes the expression as the first argument.
 // #todo consider 'inverse' design, e.g. (with-ann anns expr)
 // (with-ann expr {:type Amount})
-pub fn with_ann(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn with_ann(args: &[Expr]) -> Result<Expr, Error> {
     let annotations = unpack_map_arg(args, 0, "annotations")?;
     let target = unpack_arg(args, 1, "target")?;
     Ok(Expr::annotated(expr_clone(target), &annotations))
 }
 
 // #todo implement (with-type ...) with Tan code?
-pub fn with_type(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn with_type(args: &[Expr]) -> Result<Expr, Error> {
     let type_expr = unpack_arg(args, 0, "type")?;
     let target = unpack_arg(args, 1, "target")?;
     Ok(annotate(expr_clone(target), "type", type_expr.clone()))
@@ -74,7 +74,7 @@ pub fn with_type(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 
 // #insight this function returns a string, it does not write to stdout.
 // #todo also have a version that prints to stdout?
-pub fn debug_expr(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn debug_expr(args: &[Expr]) -> Result<Expr, Error> {
     let [expr, ..] = args else {
         // #todo better error
         return Err(Error::invalid_arguments("invalid arguments", None));
@@ -260,7 +260,7 @@ fn curry(params: &[Expr], body: &[Expr]) -> Option<(Vec<Expr>, Vec<Expr>)> {
 // #todo #insight Cannot curry a function with zero parameters, just return the function unchanged!
 // (let add1 (Func [x y] (+ x y 1)))
 // (let curried-add1 (curry add1))
-pub fn func_curry(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn func_curry(args: &[Expr]) -> Result<Expr, Error> {
     let Some(func) = args.first() else {
         return Err(Error::invalid_arguments("expected `func` argument", None));
     };
@@ -356,36 +356,36 @@ pub fn setup_lib_lang(context: &mut Context) {
 
     // #todo separate read/read-string.
 
-    module.insert("ann", Expr::ForeignFunc(Arc::new(ann)));
-    module.insert("with-ann", Expr::ForeignFunc(Arc::new(with_ann)));
-    module.insert("with-type", Expr::ForeignFunc(Arc::new(with_type)));
+    module.insert("ann", Expr::foreign_func_mut_context(&ann));
+    module.insert("with-ann", Expr::foreign_func(&with_ann));
+    module.insert("with-type", Expr::foreign_func(&with_type));
 
     // #todo the `!` is confusing here.
     // #todo `dbg` is not following naming conventions, but maybe OK for this case?
     // #insight this function returns a string, it does not write to stdout!
-    module.insert("dbg!", Expr::ForeignFunc(Arc::new(debug_expr)));
+    module.insert("dbg!", Expr::foreign_func(&debug_expr));
 
-    module.insert("type-of", Expr::ForeignFunc(Arc::new(type_of)));
-    module.insert("is-a?", Expr::ForeignFunc(Arc::new(is_a)));
+    module.insert("type-of", Expr::foreign_func_mut_context(&type_of));
+    module.insert("is-a?", Expr::foreign_func_mut_context(&is_a));
 
     // #todo we also need an (eval ...) function.
 
     // #todo hmm, needs a differerent name
     // #todo use `(eval (read string))` instead?
-    module.insert("eval-string", Expr::ForeignFunc(Arc::new(eval_string)));
+    module.insert("eval-string", Expr::foreign_func_mut_context(&eval_string));
     module.insert(
         "eval-string$$String",
-        Expr::ForeignFunc(Arc::new(eval_string)),
+        Expr::foreign_func_mut_context(&eval_string),
     );
 
-    module.insert("load-file", Expr::ForeignFunc(Arc::new(load_file)));
+    module.insert("load-file", Expr::foreign_func_mut_context(&load_file));
 
     // #todo Move to a namespace, e.g. `/func`.
-    module.insert("curry", Expr::ForeignFunc(Arc::new(func_curry)));
+    module.insert("curry", Expr::foreign_func(&func_curry));
 
     module.insert(
         "link-foreign-dyn-lib",
-        Expr::ForeignFunc(Arc::new(link_foreign_dyn_lib)),
+        Expr::foreign_func_mut_context(&link_foreign_dyn_lib),
     );
 }
 

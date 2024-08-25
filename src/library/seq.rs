@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{
     context::Context,
     error::Error,
@@ -19,7 +17,7 @@ use super::cmp::rust_ordering_from_tan_ordering;
 // #todo Rename to `iter.rs`.
 
 // #todo Find a better name
-pub fn list_cons(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn list_cons(args: &[Expr]) -> Result<Expr, Error> {
     let [head, tail] = args else {
         return Err(Error::invalid_arguments(
             "requires `head` and `tail` arguments",
@@ -44,7 +42,7 @@ pub fn list_cons(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 }
 
 // #todo find better name, match Array and String.
-pub fn list_count(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn list_count(args: &[Expr]) -> Result<Expr, Error> {
     let [list, ..] = args else {
         return Err(Error::invalid_arguments("requires `list` argument", None));
     };
@@ -69,7 +67,7 @@ pub fn list_count(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
 // #todo version that returns a new sequence
 // #todo also consider insert, insert-back, append names
 // #todo item or element?
-pub fn array_push(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn array_push(args: &[Expr]) -> Result<Expr, Error> {
     let [array, element] = args else {
         return Err(Error::invalid_arguments(
             "requires `this` and `element` argument",
@@ -94,7 +92,7 @@ pub fn array_push(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
 // #todo support concatenation of more than two arrays.
 // #todo find a good name
 // #todo consider the `++` operator
-pub fn array_concat_mut(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn array_concat_mut(args: &[Expr]) -> Result<Expr, Error> {
     let [array1, array2] = args else {
         return Err(Error::invalid_arguments("requires two arguments", None));
     };
@@ -123,7 +121,7 @@ pub fn array_concat_mut(args: &[Expr], _context: &mut Context) -> Result<Expr, E
 // #todo can we find a more specific name?
 // #todo hm, it joins as strings, not very general, should move to string?
 /// (join names "\n")
-pub fn array_join(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn array_join(args: &[Expr]) -> Result<Expr, Error> {
     let Some(array) = args.first() else {
         return Err(Error::invalid_arguments("requires `array` argument", None));
     };
@@ -156,7 +154,7 @@ pub fn array_join(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
 // #todo do we really want to support the no-argument case?
 /// (skip items 5) ; skips the first 5 elements
 /// (skip items) ; skips the first element
-pub fn array_skip(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn array_skip(args: &[Expr]) -> Result<Expr, Error> {
     // #insight
     // An alternative name could be `drop` but for the moment we reserve this for
     // the memory operation. Additionally, skip is a bit more descriptive.
@@ -192,7 +190,7 @@ pub fn array_skip(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> 
 // #todo match the corresponding function in String.
 // #todo rename to `get-length`?
 // #todo implement generically for iterables.
-pub fn array_count(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn array_count(args: &[Expr]) -> Result<Expr, Error> {
     let [array, ..] = args else {
         return Err(Error::invalid_arguments("requires `array` argument", None));
     };
@@ -208,7 +206,7 @@ pub fn array_count(args: &[Expr], _context: &mut Context) -> Result<Expr, Error>
 }
 
 // #todo implement with tan code!
-pub fn array_is_empty(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn array_is_empty(args: &[Expr]) -> Result<Expr, Error> {
     let [array, ..] = args else {
         return Err(Error::invalid_arguments("requires `array` argument", None));
     };
@@ -223,7 +221,7 @@ pub fn array_is_empty(args: &[Expr], _context: &mut Context) -> Result<Expr, Err
     Ok(Expr::Bool(array.len() == 0))
 }
 
-pub fn array_contains(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn array_contains(args: &[Expr]) -> Result<Expr, Error> {
     let [array, element] = args else {
         return Err(Error::invalid_arguments(
             "requires `this` and `element` argument",
@@ -277,7 +275,7 @@ pub fn array_map(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
 
 // #todo this can actually be implemented with invoke_func.
 // #todo how to implement this? -> implement with tan code!
-pub fn array_filter(_args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn array_filter(_args: &[Expr]) -> Result<Expr, Error> {
     todo!();
 
     // // #todo
@@ -366,7 +364,7 @@ pub fn array_sort_mut(args: &[Expr], context: &mut Context) -> Result<Expr, Erro
 /// (slice arr 2 5)
 /// (slice arr 2)
 /// (slice arr 2 -2) ; -2 is length - 2
-pub fn array_slice(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn array_slice(args: &[Expr]) -> Result<Expr, Error> {
     let [this, start, ..] = args else {
         return Err(Error::invalid_arguments(
             "requires `this` and start arguments",
@@ -418,7 +416,7 @@ pub fn array_slice(args: &[Expr], _context: &mut Context) -> Result<Expr, Error>
 // #todo Consider different names: roll, rolled, rolling
 // #todo Consider eager (roll) and lazy (rolling/rolled) versions.
 // #todo Is this generic?
-pub fn array_roll(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn array_roll(args: &[Expr]) -> Result<Expr, Error> {
     let window_size = unpack_int_arg(args, 0, "window-size")?;
     let items = unpack_array_arg(args, 1, "items")?;
 
@@ -437,52 +435,43 @@ pub fn setup_lib_seq(context: &mut Context) {
     let module = require_module("prelude", context);
 
     // #todo introduce `++` overload?
-    module.insert("cons", Expr::ForeignFunc(Arc::new(list_cons)));
-    module.insert("count", Expr::ForeignFunc(Arc::new(list_count)));
-    module.insert("count$$List", Expr::ForeignFunc(Arc::new(list_count)));
+    module.insert("cons", Expr::foreign_func(&list_cons));
+    module.insert("count", Expr::foreign_func(&list_count));
+    module.insert("count$$List", Expr::foreign_func(&list_count));
 
     // #todo add type qualifiers!
-    module.insert("push", Expr::ForeignFunc(Arc::new(array_push)));
+    module.insert("push", Expr::foreign_func(&array_push));
     // #todo also introduce `++`, `++=`, versions
-    module.insert("concat!", Expr::ForeignFunc(Arc::new(array_concat_mut)));
+    module.insert("concat!", Expr::foreign_func(&array_concat_mut));
 
     // (map (Func [x] (+ x 1)) [1 2 3]) ; => [2 3 4]
     // (map (Fn x (+ x 1)) [1 2 3]) ; => [2 3 4]
     // (map (-> x (+ x 1)) [1 2 3]) ; => [2 3 4]
     // (map \(+ % 1) [1 2 3])
-    module.insert("map", Expr::ForeignFunc(Arc::new(array_map)));
+    module.insert("map", Expr::foreign_func_mut_context(&array_map));
 
-    module.insert("join", Expr::ForeignFunc(Arc::new(array_join)));
-    module.insert("skip", Expr::ForeignFunc(Arc::new(array_skip)));
+    module.insert("join", Expr::foreign_func(&array_join));
+    module.insert("skip", Expr::foreign_func(&array_skip));
     // #todo rename to (get-length) or something, match with String and other collection types.
-    module.insert("count", Expr::ForeignFunc(Arc::new(array_count)));
-    module.insert("count$$Array", Expr::ForeignFunc(Arc::new(array_count)));
+    module.insert("count", Expr::foreign_func(&array_count));
+    module.insert("count$$Array", Expr::foreign_func(&array_count));
     // #todo make contains? generic!
-    module.insert("contains?", Expr::ForeignFunc(Arc::new(array_contains)));
-    module.insert(
-        "contains?$$Array$$Int",
-        Expr::ForeignFunc(Arc::new(array_contains)),
-    );
+    module.insert("contains?", Expr::foreign_func(&array_contains));
+    module.insert("contains?$$Array$$Int", Expr::foreign_func(&array_contains));
     module.insert(
         "contains?$$Array$$String",
-        Expr::ForeignFunc(Arc::new(array_contains)),
+        Expr::foreign_func(&array_contains),
     );
-    module.insert("is-empty?", Expr::ForeignFunc(Arc::new(array_is_empty)));
-    module.insert("sort!", Expr::ForeignFunc(Arc::new(array_sort_mut)));
+    module.insert("is-empty?", Expr::foreign_func(&array_is_empty));
+    module.insert("sort!", Expr::foreign_func_mut_context(&array_sort_mut));
 
     // #todo slice is to general works both as noun and verb, try to find an explicit verb? e.g. `cut` or `carve`
     // #todo alternatively use something like `get-slice` or `cut-slice` or `carve-slice`.
-    // module.insert("slice", Expr::ForeignFunc(Arc::new(array_slice)));
-    module.insert(
-        "slice$$Array$$Int",
-        Expr::ForeignFunc(Arc::new(array_slice)),
-    );
-    module.insert(
-        "slice$$Array$$Int$$Int",
-        Expr::ForeignFunc(Arc::new(array_slice)),
-    );
+    // module.insert("slice", Expr::foreign_func(&array_slice)));
+    module.insert("slice$$Array$$Int", Expr::foreign_func(&array_slice));
+    module.insert("slice$$Array$$Int$$Int", Expr::foreign_func(&array_slice));
 
-    module.insert("roll", Expr::ForeignFunc(Arc::new(array_roll)));
+    module.insert("roll", Expr::foreign_func(&array_roll));
 
     // let module = require_module("seq", context);
 

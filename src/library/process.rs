@@ -2,7 +2,6 @@ use std::collections::HashMap;
 // use std::io::{BufRead, BufReader};
 use std::io::Write;
 use std::process::Stdio;
-use std::sync::Arc;
 
 use crate::error::Error;
 use crate::util::module_util::require_module;
@@ -26,7 +25,7 @@ use crate::{context::Context, expr::Expr};
 // (let debug (args "debug"))
 
 /// Terminates the current process with the specified exit code.
-pub fn process_exit(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn process_exit(args: &[Expr]) -> Result<Expr, Error> {
     // #todo Investigate if using Tokio in FFI somehow messes the flushing of streams, especially compiler errors.
     // Flush the standard streams.
     std::io::stdout().flush().expect("stdout flushed");
@@ -51,7 +50,7 @@ pub fn process_exit(args: &[Expr], _context: &mut Context) -> Result<Expr, Error
 
 // #insight not used yet.
 /// Return the process arguments as an array, includes the foreign ('host') arguments.
-pub fn process_foreign_args(_args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn process_foreign_args(_args: &[Expr]) -> Result<Expr, Error> {
     let mut args = Vec::new();
 
     for arg in std::env::args() {
@@ -81,7 +80,7 @@ pub fn process_args(_args: &[Expr], context: &mut Context) -> Result<Expr, Error
 // #todo consider renaming to just `env`?
 // #todo optionally support key/name argument to return the value of a specific env variable.
 /// Return the process environment variables as a Map/Map.
-pub fn process_env_vars(_args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn process_env_vars(_args: &[Expr]) -> Result<Expr, Error> {
     let mut env_vars = HashMap::new();
 
     for (key, value) in std::env::vars() {
@@ -95,7 +94,7 @@ pub fn process_env_vars(_args: &[Expr], _context: &mut Context) -> Result<Expr, 
 // #todo shell
 
 // #todo
-// pub fn process_spawn(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+// pub fn process_spawn(args: &[Expr]) -> Result<Expr, Error> {
 //     let [cmd] = args else {
 //         return Err(Error::invalid_arguments(
 //             "`exec` requires `cmd` argument",
@@ -139,7 +138,7 @@ pub fn process_env_vars(_args: &[Expr], _context: &mut Context) -> Result<Expr, 
 /// Similar to C's system function:
 /// The command specified by string is passed to the host environment to be
 /// executed by the command processor.
-pub fn process_exec(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn process_exec(args: &[Expr]) -> Result<Expr, Error> {
     let [cmd] = args else {
         return Err(Error::invalid_arguments(
             "`exec` requires `cmd` argument",
@@ -180,7 +179,7 @@ pub fn process_exec(args: &[Expr], _context: &mut Context) -> Result<Expr, Error
 /// The command specified by string is passed to the host environment to be
 /// executed by the command processor.
 /// The STDOUT and STDERR of the process are 'streamed' to the caller STDOUT, STDERR.
-pub fn process_shell(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn process_shell(args: &[Expr]) -> Result<Expr, Error> {
     let [cmd] = args else {
         return Err(Error::invalid_arguments(
             "`exec` requires `cmd` argument",
@@ -245,12 +244,12 @@ pub fn process_shell(args: &[Expr], _context: &mut Context) -> Result<Expr, Erro
 pub fn setup_lib_process(context: &mut Context) {
     let module = require_module("process", context);
 
-    module.insert("exit", Expr::ForeignFunc(Arc::new(process_exit)));
-    module.insert("exit$$", Expr::ForeignFunc(Arc::new(process_exit))); // #todo is this needed?
+    module.insert("exit", Expr::foreign_func(&process_exit));
+    module.insert("exit$$", Expr::foreign_func(&process_exit)); // #todo is this needed?
 
     // (let file (process/args 1))
-    module.insert("args", Expr::ForeignFunc(Arc::new(process_args)));
-    module.insert("args$$", Expr::ForeignFunc(Arc::new(process_args))); // #todo is this needed?
+    module.insert("args", Expr::foreign_func_mut_context(&process_args));
+    module.insert("args$$", Expr::foreign_func_mut_context(&process_args)); // #todo is this needed?
 
     // #todo
     // Better API:
@@ -259,15 +258,15 @@ pub fn setup_lib_process(context: &mut Context) {
 
     // #todo (let tan-path (process/env :TANPATH))
     // (let tan-path ((process/env-vars) :TANPATH))
-    module.insert("env-vars", Expr::ForeignFunc(Arc::new(process_env_vars)));
-    module.insert("env-vars$$", Expr::ForeignFunc(Arc::new(process_env_vars))); // #todo is this needed?
+    module.insert("env-vars", Expr::foreign_func(&process_env_vars));
+    module.insert("env-vars$$", Expr::foreign_func(&process_env_vars)); // #todo is this needed?
 
     // (let output (process/exec "ls -al"))
-    module.insert("exec", Expr::ForeignFunc(Arc::new(process_exec)));
-    module.insert("exec$$String", Expr::ForeignFunc(Arc::new(process_exec)));
+    module.insert("exec", Expr::foreign_func(&process_exec));
+    module.insert("exec$$String", Expr::foreign_func(&process_exec));
 
-    module.insert("shell", Expr::ForeignFunc(Arc::new(process_shell)));
-    module.insert("shell$$String", Expr::ForeignFunc(Arc::new(process_shell)));
+    module.insert("shell", Expr::foreign_func(&process_shell));
+    module.insert("shell$$String", Expr::foreign_func(&process_shell));
 }
 
 // #todo add some tests, even without assertions, just to exercise these functions.

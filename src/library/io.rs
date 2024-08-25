@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{
     api::compile_string,
     context::Context,
@@ -90,8 +88,9 @@ pub fn read_string_all(args: &[Expr], context: &mut Context) -> Result<Expr, Err
 // #todo Not that write can also write bytes and does not interspence spaces.
 // #todo (write ...) should take one string parameter and an optional stream/port parameter, like scheme
 // #todo it could also get an Array/Seq parameter and join it, like JavaScript console.log
+// #todo In the future this may need context.
 /// Writes one or more expressions to the STDOUT sink/stream.
-pub fn write(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn write(args: &[Expr]) -> Result<Expr, Error> {
     let output = args.iter().fold(String::new(), |mut str, x| {
         str.push_str(&format_value(x));
         str
@@ -112,16 +111,16 @@ pub fn write(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(Expr::None)
 }
 
-pub fn writeln(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+pub fn writeln(args: &[Expr]) -> Result<Expr, Error> {
     // #todo nasty implementation!
-    write(args, context)?;
-    write(&[Expr::string("\n")], context)
+    write(args)?;
+    write(&[Expr::string("\n")])
 }
 
 // #insight Note that `echo` is different than `writeln`.
 // #todo offer a version that returns a string and does not print, similar to `join`. Maybe `join-all`?
 // #todo #think Actually writeln can only work on strings.
-pub fn echo(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn echo(args: &[Expr]) -> Result<Expr, Error> {
     let output: Vec<String> = args.iter().map(format_value).collect();
     // #insight Don't make the separator customizable, just use string interpolation or (intersperse ...) instead.
     // #insight Intersperse spaces to emulate JavaScript's `console.log`` behavior.
@@ -147,25 +146,25 @@ pub fn setup_lib_io(context: &mut Context) {
 
     // #todo separate read/read-string.
 
-    module.insert("read", Expr::ForeignFunc(Arc::new(read_string)));
-    module.insert("read$$String", Expr::ForeignFunc(Arc::new(read_string)));
+    module.insert("read", Expr::foreign_func_mut_context(&read_string));
+    module.insert("read$$String", Expr::foreign_func_mut_context(&read_string));
 
     module.insert(
         "read-string-all",
-        Expr::ForeignFunc(Arc::new(read_string_all)),
+        Expr::foreign_func_mut_context(&read_string_all),
     );
     module.insert(
         "read-string-all$$String",
-        Expr::ForeignFunc(Arc::new(read_string_all)),
+        Expr::foreign_func_mut_context(&read_string_all),
     );
 
-    module.insert("write", Expr::ForeignFunc(Arc::new(write)));
-    module.insert("write$$String", Expr::ForeignFunc(Arc::new(write)));
+    module.insert("write", Expr::foreign_func(&write));
+    module.insert("write$$String", Expr::foreign_func(&write));
 
-    module.insert("writeln", Expr::ForeignFunc(Arc::new(writeln)));
-    module.insert("writeln$$String", Expr::ForeignFunc(Arc::new(writeln)));
+    module.insert("writeln", Expr::foreign_func(&writeln));
+    module.insert("writeln$$String", Expr::foreign_func(&writeln));
 
     // #todo temp implementation echo is different than writeln.
-    module.insert("echo", Expr::ForeignFunc(Arc::new(echo)));
-    module.insert("echo$$String", Expr::ForeignFunc(Arc::new(echo)));
+    module.insert("echo", Expr::foreign_func(&echo));
+    module.insert("echo$$String", Expr::foreign_func(&echo));
 }

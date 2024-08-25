@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use regex::Regex;
 
 use crate::{
@@ -17,7 +15,7 @@ use crate::{
 // #todo introduce matching
 // #todo introduce is-matching? or just matching?
 
-pub fn regex_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn regex_new(args: &[Expr]) -> Result<Expr, Error> {
     // #todo name this just `expr`?
     let [pattern] = args else {
         return Err(Error::invalid_arguments(
@@ -42,7 +40,7 @@ pub fn regex_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
     Ok(annotate_type(rx, "Regex"))
 }
 
-pub fn regex_is_matching(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn regex_is_matching(args: &[Expr]) -> Result<Expr, Error> {
     let [this, string] = args else {
         return Err(Error::invalid_arguments(
             "requires `this` and `string` arguments",
@@ -76,7 +74,7 @@ pub fn regex_is_matching(args: &[Expr], _context: &mut Context) -> Result<Expr, 
     Ok(Expr::Bool(re.is_match(string)))
 }
 
-pub fn regex_split(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn regex_split(args: &[Expr]) -> Result<Expr, Error> {
     // #todo What would be a good name? What about `re_pattern`?
     let regex = unpack_stringable_arg(args, 0, "sep-regex")?;
     // #todo Consider the name `input`.
@@ -102,7 +100,7 @@ pub fn regex_split(args: &[Expr], _context: &mut Context) -> Result<Expr, Error>
 
 // #insight the regext matches the parts, not the separator.
 // #todo this is a peculiar function that probably should go away.
-pub fn regex_split_matches(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn regex_split_matches(args: &[Expr]) -> Result<Expr, Error> {
     // #todo What would be a good name? What about `re_pattern`?
     let regex = unpack_stringable_arg(args, 0, "match-regex")?;
     // #todo Consider the name `input`.
@@ -129,7 +127,7 @@ pub fn regex_split_matches(args: &[Expr], _context: &mut Context) -> Result<Expr
 
 // #todo support named captures? nah, too much.
 // #todo capture-one <> capture-many, or capture <> capture*, or use xxxx* for generators/coroutines?
-pub fn regex_capture(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn regex_capture(args: &[Expr]) -> Result<Expr, Error> {
     let re_pattern = unpack_stringable_arg(args, 0, "re")?;
     let string = unpack_stringable_arg(args, 1, "string")?;
 
@@ -160,21 +158,15 @@ pub fn setup_lib_regex(context: &mut Context) {
     // #todo should we introduce a special Regex literal? probably not.
     // #todo maybe a tagged string though, e.g. `"pattern"rx` or `"pattern"r` ?
 
-    module.insert("Regex", Expr::ForeignFunc(Arc::new(regex_new)));
+    module.insert("Regex", Expr::foreign_func(&regex_new));
 
     // #todo consider is-matching?, nah, let's make the `?` suffix useful.
-    module.insert("matching?", Expr::ForeignFunc(Arc::new(regex_is_matching)));
-    module.insert(
-        "split$$Regex$$String",
-        Expr::ForeignFunc(Arc::new(regex_split)),
-    );
-    module.insert(
-        "split-matches",
-        Expr::ForeignFunc(Arc::new(regex_split_matches)),
-    );
+    module.insert("matching?", Expr::foreign_func(&regex_is_matching));
+    module.insert("split$$Regex$$String", Expr::foreign_func(&regex_split));
+    module.insert("split-matches", Expr::foreign_func(&regex_split_matches));
 
     //
-    module.insert("capture", Expr::ForeignFunc(Arc::new(regex_capture)));
+    module.insert("capture", Expr::foreign_func(&regex_capture));
 }
 
 // #todo move these tests to Tan.

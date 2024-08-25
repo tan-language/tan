@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
 
 // #insight `and` is short-circuting, cannot be implemented with a function, needs a macro or a special form.
@@ -7,7 +5,7 @@ use crate::{context::Context, error::Error, expr::Expr, util::module_util::requi
 
 // #todo introduce a way to have functions with lazily evaluated arguments, when you don't need full macro power.
 
-pub fn bool_not(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn bool_not(args: &[Expr]) -> Result<Expr, Error> {
     // #todo consider binary/bitmask version.
     // #todo consider operator `~` (_not_ `!`)
 
@@ -30,5 +28,5 @@ pub fn setup_lib_bool(context: &mut Context) {
     let module = require_module("prelude", context);
 
     // #todo better name?
-    module.insert("not", Expr::ForeignFunc(Arc::new(bool_not)));
+    module.insert("not", Expr::foreign_func(&bool_not));
 }

@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 
 use serde_json::{json, Map, Value};
 
@@ -88,7 +88,7 @@ fn expr_to_json_value(expr: impl AsRef<Expr>) -> Value {
 // #todo implement write/encode.
 
 // #todo find a better name.
-pub fn json_read_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn json_read_string(args: &[Expr]) -> Result<Expr, Error> {
     // #todo try to coerce to String.
 
     let [this] = args else {
@@ -118,7 +118,7 @@ pub fn json_read_string(args: &[Expr], _context: &mut Context) -> Result<Expr, E
 
 // #todo support (Str #JSON "{...}")
 
-pub fn expr_to_json_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn expr_to_json_string(args: &[Expr]) -> Result<Expr, Error> {
     let expr = unpack_arg(args, 0, "expr")?;
     let json_value = expr_to_json_value(expr);
     Ok(Expr::string(json_value.to_string()))
@@ -134,12 +134,9 @@ pub fn setup_lib_codec_json(context: &mut Context) {
     // #todo find better name.
     // (use codec/json-codec)
     // (let value (json-codec/read json))
-    module.insert("read", Expr::ForeignFunc(Arc::new(json_read_string)));
+    module.insert("read", Expr::foreign_func(&json_read_string));
     // #todo find better name
-    module.insert(
-        "to-string",
-        Expr::ForeignFunc(Arc::new(expr_to_json_string)),
-    );
+    module.insert("to-string", Expr::foreign_func(&expr_to_json_string));
 }
 
 // #todo add more unit tests.

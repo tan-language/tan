@@ -28,7 +28,7 @@ use crate::{context::Context, error::Error, expr::Expr};
 // #todo extract file-system-related functionality to `fs` or even the more general `rs` == resource space.
 // #todo consider mapping `:` to `__` and use #[allow(snake_case)]
 
-pub fn fs_create(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn fs_create(args: &[Expr]) -> Result<Expr, Error> {
     let [path] = args else {
         return Err(Error::invalid_arguments("requires a `path` argument", None));
     };
@@ -49,7 +49,7 @@ pub fn fs_create(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 
 // #todo implement fs/close -> should be the same as drop$$File
 
-pub fn file_write_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn file_write_string(args: &[Expr]) -> Result<Expr, Error> {
     let [file, string] = args else {
         return Err(Error::invalid_arguments(
             "requires `file` and `string` arguments",
@@ -83,7 +83,7 @@ pub fn file_write_string(args: &[Expr], _context: &mut Context) -> Result<Expr, 
 /// ```tan
 /// (let content (read-file-to-string "index.html"))
 /// ```
-pub fn read_file_to_string(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn read_file_to_string(args: &[Expr]) -> Result<Expr, Error> {
     let [path] = args else {
         return Err(Error::invalid_arguments(
             "`read_as_string` requires a `path` argument",
@@ -114,7 +114,7 @@ pub fn read_file_to_string(args: &[Expr], _context: &mut Context) -> Result<Expr
 
 // #todo decide on the parameters order.
 // (fs/write-string-to-file "path/to/file.text" "Hello world")
-pub fn write_string_to_file(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn write_string_to_file(args: &[Expr]) -> Result<Expr, Error> {
     let [path, content] = args else {
         return Err(Error::invalid_arguments(
             "`write-string-to-file` requires `path` and `content` arguments",
@@ -199,7 +199,7 @@ fn walk_dir(dir_path: &Path, preorder: bool) -> Result<Vec<Expr>, std::io::Error
 }
 
 // #todo
-pub fn list(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn list(args: &[Expr]) -> Result<Expr, Error> {
     let [path] = args else {
         return Err(Error::invalid_arguments(
             "`list` requires a `path` argument",
@@ -290,7 +290,7 @@ pub fn list_as_tree(args: &[Expr], context: &mut Context) -> Result<Expr, Error>
 }
 
 /// Checks if a path exists.
-pub fn fs_exists(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn fs_exists(args: &[Expr]) -> Result<Expr, Error> {
     let [path] = args else {
         return Err(Error::invalid_arguments(
             "`exists?` requires a `path` argument",
@@ -314,7 +314,7 @@ pub fn fs_exists(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 // #todo delete (or remove?)
 
 // #todo support paths
-pub fn fs_copy(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn fs_copy(args: &[Expr]) -> Result<Expr, Error> {
     let [source, target] = args else {
         return Err(Error::invalid_arguments(
             "`copy` requires `source` and `target` arguments",
@@ -373,7 +373,7 @@ fn copy_dir(source: impl AsRef<Path>, target: impl AsRef<Path>) -> std::io::Resu
 }
 
 // #insight this
-pub fn fs_copy_directory(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn fs_copy_directory(args: &[Expr]) -> Result<Expr, Error> {
     let [source, target] = args else {
         return Err(Error::invalid_arguments(
             "`copy_directory` requires `source` and `target` arguments",
@@ -402,7 +402,7 @@ pub fn fs_copy_directory(args: &[Expr], _context: &mut Context) -> Result<Expr, 
 }
 
 // #todo consider `make-directory`? (make in process, create in system)
-pub fn create_directory(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn create_directory(args: &[Expr]) -> Result<Expr, Error> {
     let [path] = args else {
         return Err(Error::invalid_arguments(
             "`create-directory` requires a `path` argument",
@@ -427,7 +427,7 @@ pub fn create_directory(args: &[Expr], _context: &mut Context) -> Result<Expr, E
 
 // #todo add some kind of unit test for this.
 // #todo find a better name, maybe canonicalize-path or normalize-path.
-pub fn fs_canonicalize(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn fs_canonicalize(args: &[Expr]) -> Result<Expr, Error> {
     let [path] = args else {
         return Err(Error::invalid_arguments(
             "`canonicalize` requires a `path` argument",
@@ -450,7 +450,7 @@ pub fn fs_canonicalize(args: &[Expr], _context: &mut Context) -> Result<Expr, Er
 }
 
 // #todo Add some kind of unit/integration test.
-pub fn fs_rename(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn fs_rename(args: &[Expr]) -> Result<Expr, Error> {
     // #todo Find better names for the arguments?
     let from = unpack_stringable_arg(args, 0, "from")?;
     let to = unpack_stringable_arg(args, 1, "to")?;
@@ -462,7 +462,7 @@ pub fn fs_rename(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 }
 
 // #todo Add some kind of unit/integration test.
-pub fn fs_remove_directory(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn fs_remove_directory(args: &[Expr]) -> Result<Expr, Error> {
     let path = unpack_stringable_arg(args, 0, "path")?;
 
     fs::remove_dir(path)?;
@@ -473,7 +473,7 @@ pub fn fs_remove_directory(args: &[Expr], _context: &mut Context) -> Result<Expr
 
 // #todo Think about this.
 // #todo Add as method to Path?
-pub fn fs_is_directory(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn fs_is_directory(args: &[Expr]) -> Result<Expr, Error> {
     let path = unpack_stringable_arg(args, 0, "path")?;
     let metadata = fs::metadata(path)?;
     Ok(Expr::Bool(metadata.is_dir()))
@@ -485,78 +485,67 @@ pub fn fs_is_directory(args: &[Expr], _context: &mut Context) -> Result<Expr, Er
 pub fn setup_lib_fs(context: &mut Context) {
     let module = require_module("fs", context);
 
-    module.insert("create", Expr::ForeignFunc(Arc::new(fs_create)));
+    module.insert("create", Expr::foreign_func(&fs_create));
 
     // #todo should not be required.
-    module.insert(
-        "write-string",
-        Expr::ForeignFunc(Arc::new(file_write_string)),
-    );
+    module.insert("write-string", Expr::foreign_func(&file_write_string));
     module.insert(
         "write-string$$File$$String",
-        Expr::ForeignFunc(Arc::new(file_write_string)),
+        Expr::foreign_func(&file_write_string),
     );
 
     module.insert(
         "read-file-to-string",
-        Expr::ForeignFunc(Arc::new(read_file_to_string)),
+        Expr::foreign_func(&read_file_to_string),
     );
     module.insert(
         "read-file-to-string$$String",
-        Expr::ForeignFunc(Arc::new(read_file_to_string)),
+        Expr::foreign_func(&read_file_to_string),
     );
     // #todo consider just `write`.
     // #todo alternatives: "std:fs:write_string", "std:url:write_string", "str.url.write-string"
     module.insert(
         "write-string-to-file",
-        Expr::ForeignFunc(Arc::new(write_string_to_file)),
+        Expr::foreign_func(&write_string_to_file),
     );
     module.insert(
         "write-string-to-file$$String",
-        Expr::ForeignFunc(Arc::new(write_string_to_file)),
+        Expr::foreign_func(&write_string_to_file),
     );
 
     // #todo find better name.
-    module.insert("list", Expr::ForeignFunc(Arc::new(list)));
-    module.insert("list$$String", Expr::ForeignFunc(Arc::new(list)));
+    module.insert("list", Expr::foreign_func(&list));
+    module.insert("list$$String", Expr::foreign_func(&list));
 
     // #todo find better name.
-    module.insert("list-as-tree", Expr::ForeignFunc(Arc::new(list_as_tree)));
+    // #todo Investigate how to avoid mut_context.
+    module.insert(
+        "list-as-tree",
+        Expr::foreign_func_mut_context(&list_as_tree),
+    );
     module.insert(
         "list-as-tree$$String",
-        Expr::ForeignFunc(Arc::new(list_as_tree)),
+        Expr::foreign_func_mut_context(&list_as_tree),
     );
 
-    module.insert("exists?", Expr::ForeignFunc(Arc::new(fs_exists)));
-    module.insert("exists?$$String", Expr::ForeignFunc(Arc::new(fs_exists)));
+    module.insert("exists?", Expr::foreign_func(&fs_exists));
+    module.insert("exists?$$String", Expr::foreign_func(&fs_exists));
 
-    module.insert("copy", Expr::ForeignFunc(Arc::new(fs_copy)));
+    module.insert("copy", Expr::foreign_func(&fs_copy));
 
-    module.insert(
-        "copy-directory",
-        Expr::ForeignFunc(Arc::new(fs_copy_directory)),
-    );
+    module.insert("copy-directory", Expr::foreign_func(&fs_copy_directory));
 
-    module.insert(
-        "create-directory",
-        Expr::ForeignFunc(Arc::new(create_directory)),
-    );
+    module.insert("create-directory", Expr::foreign_func(&create_directory));
 
     // #todo Consider `delete-directory`.
-    module.insert(
-        "remove-directory",
-        Expr::ForeignFunc(Arc::new(fs_remove_directory)),
-    );
+    module.insert("remove-directory", Expr::foreign_func(&fs_remove_directory));
 
     // #todo Consider `directory?`
-    module.insert(
-        "is-directory?",
-        Expr::ForeignFunc(Arc::new(fs_is_directory)),
-    );
+    module.insert("is-directory?", Expr::foreign_func(&fs_is_directory));
 
-    module.insert("canonicalize", Expr::ForeignFunc(Arc::new(fs_canonicalize)));
+    module.insert("canonicalize", Expr::foreign_func(&fs_canonicalize));
 
-    module.insert("rename", Expr::ForeignFunc(Arc::new(fs_rename)));
+    module.insert("rename", Expr::foreign_func(&fs_rename));
 }
 
 // #todo add unit tests.
