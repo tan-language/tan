@@ -7,7 +7,6 @@ use crate::{
     util::{args::unpack_int_arg, module_util::require_module},
 };
 
-// #todo implement trait without context.
 pub fn u8_new(args: &[Expr]) -> Result<Expr, Error> {
     // #todo support more 'source' types.
     let value = unpack_int_arg(args, 0, "value")?;

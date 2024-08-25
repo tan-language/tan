@@ -1,4 +1,4 @@
-use std::{collections::HashSet, sync::Arc};
+use std::collections::HashSet;
 
 use crate::{
     context::Context,
@@ -9,13 +9,13 @@ use crate::{
 
 // #insight there isn alternative implementation in `set-alt.rs`.
 
-pub fn set_new(_args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn set_new(_args: &[Expr]) -> Result<Expr, Error> {
     // #todo Expr has interior mutability, not the best for a Set key.
     let set: HashSet<Expr> = HashSet::new();
     Ok(Expr::set(set))
 }
 
-pub fn set_put(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn set_put(args: &[Expr]) -> Result<Expr, Error> {
     let [this, value] = args else {
         return Err(Error::invalid_arguments(
             "requires `this` and `value` arguments",
@@ -41,7 +41,7 @@ pub fn set_put(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
 
 // #todo set_values is a _weird_ name!
 // #todo consider other names, e.g. items?
-pub fn set_values(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn set_values(args: &[Expr]) -> Result<Expr, Error> {
     let [this] = args else {
         return Err(Error::invalid_arguments("requires `this` argument", None));
     };
@@ -61,17 +61,17 @@ pub fn setup_lib_set(context: &mut Context) {
     // #tod op consider other paths, e.g. data/set, collections/set, collection/set, etc?
     let module = require_module("set", context);
 
-    module.insert("Set", Expr::ForeignFunc(Arc::new(set_new)));
+    module.insert("Set", Expr::foreign_func(&set_new));
 
     // #todo #hack temp fix!
     // #todo really need to improve signature matching and e.g. support put$$Set$$Expr or put$$Set$$Any
-    module.insert("put$$Set$$Int", Expr::ForeignFunc(Arc::new(set_put)));
-    module.insert("put$$Set$$Float", Expr::ForeignFunc(Arc::new(set_put)));
-    module.insert("put$$Set$$String", Expr::ForeignFunc(Arc::new(set_put)));
+    module.insert("put$$Set$$Int", Expr::foreign_func(&set_put));
+    module.insert("put$$Set$$Float", Expr::foreign_func(&set_put));
+    module.insert("put$$Set$$String", Expr::foreign_func(&set_put));
     // #todo investigate why this is needed!
     // #todo better solution: use Expr::Method or Expr::Multi for foreign functions and functions.
-    module.insert("values-of", Expr::ForeignFunc(Arc::new(set_values)));
-    module.insert("values-of$$Set", Expr::ForeignFunc(Arc::new(set_values)));
+    module.insert("values-of", Expr::foreign_func(&set_values));
+    module.insert("values-of$$Set", Expr::foreign_func(&set_values));
 }
 
 #[cfg(test)]

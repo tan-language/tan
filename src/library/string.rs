@@ -307,8 +307,6 @@ pub fn string_split(args: &[Expr]) -> Result<Expr, Error> {
     Ok(Expr::array(parts))
 }
 
-// #todo have FFI functions without Context?
-
 // #todo string_is_matching
 
 pub fn string_contains(args: &[Expr]) -> Result<Expr, Error> {
