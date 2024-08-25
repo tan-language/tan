@@ -1,9 +1,6 @@
 use std::sync::Arc;
 
-use crate::{
-    expr::{Expr, FnNoContext, ForeignFnRef},
-    scope::Scope,
-};
+use crate::{expr::Expr, scope::Scope};
 
 // #idea ModuleLoader
 // #idea Consider hashing to detect the same modules!

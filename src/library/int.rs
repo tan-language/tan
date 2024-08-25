@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{
     context::Context,
     error::Error,

@@ -4,8 +4,6 @@
 // #todo function to get char int code
 // #todo function to join chars into a string
 
-use std::sync::Arc;
-
 use crate::{
     context::Context,
     error::Error,

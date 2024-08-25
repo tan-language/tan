@@ -518,8 +518,15 @@ pub fn setup_lib_fs(context: &mut Context) {
     module.insert("list$$String", Expr::foreign_func(&list));
 
     // #todo find better name.
-    module.insert("list-as-tree", Expr::foreign_func(&list_as_tree));
-    module.insert("list-as-tree$$String", Expr::foreign_func(&list_as_tree));
+    // #todo Investigate how to avoid mut_context.
+    module.insert(
+        "list-as-tree",
+        Expr::foreign_func_mut_context(&list_as_tree),
+    );
+    module.insert(
+        "list-as-tree$$String",
+        Expr::foreign_func_mut_context(&list_as_tree),
+    );
 
     module.insert("exists?", Expr::foreign_func(&fs_exists));
     module.insert("exists?$$String", Expr::foreign_func(&fs_exists));
