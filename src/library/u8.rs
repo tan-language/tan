@@ -1,6 +1,4 @@
-// #todo maybe as optimization, use special handling in eval?
-
-use std::sync::Arc;
+// #todo Maybe as optimization, use special handling in eval?
 
 use crate::{
     context::Context,
@@ -10,7 +8,7 @@ use crate::{
 };
 
 // #todo implement trait without context.
-pub fn u8_new(args: &[Expr], _context: &mut Context) -> Result<Expr, Error> {
+pub fn u8_new(args: &[Expr]) -> Result<Expr, Error> {
     // #todo support more 'source' types.
     let value = unpack_int_arg(args, 0, "value")?;
 
@@ -29,7 +27,7 @@ pub fn setup_lib_u8(context: &mut Context) {
     // #todo put in 'u8' path, and import selected functionality to prelude.
     let module = require_module("prelude", context);
 
-    module.insert("U8", Expr::ForeignFunc(Arc::new(u8_new)));
+    module.insert("U8", Expr::foreign_func(&u8_new));
 }
 
 #[cfg(test)]
