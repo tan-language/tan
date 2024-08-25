@@ -6,6 +6,8 @@ use crate::{
 
 use super::util::{eval_module, get_bindings_with_prefix};
 
+// #todo Allow use to be nested in scopes (e.g. Func, do, etc)
+
 // #todo annotate imported values with range
 // #todo add extra annotation that this is imported.
 // #todo consider also inserting the module in scope?

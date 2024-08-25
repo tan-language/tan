@@ -415,6 +415,11 @@ pub fn setup_lib_chrono(context: &mut Context) {
         "to-rfc-399$$Date-Time",
         Expr::ForeignFunc(Arc::new(chrono_date_time_to_rfc399)),
     );
+    // #todo Cannot differentiate from the Date-Time version, maybe put in different module-path?
+    // module.insert(
+    //     "to-rfc-399$$Date",
+    //     Expr::ForeignFunc(Arc::new(chrono_date_to_rfc399)),
+    // );
     // #todo consider (String date-time)
     // #insight #hack this is added in prelude! NASTY hack
     // module.insert(

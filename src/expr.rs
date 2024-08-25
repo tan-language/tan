@@ -167,6 +167,7 @@ pub enum Expr {
     // #todo consider adding type-name field?
     // #todo to optimize consider using an index into a table of type-names.
     // #todo support both mutable and immutable foreignStructs
+    // #todo Support non-sync data?
     ForeignStruct(Arc<dyn Any + Send + Sync + 'static>),
     ForeignStructMut(Arc<RwLock<dyn Any + Send + Sync + 'static>>),
     Error(String),
@@ -481,6 +482,8 @@ impl Expr {
     // pub fn foreign_func(f: &ExprFn) -> Self {
     //     Expr::ForeignFunc(Arc::new(*f))
     // }
+
+    // #todo Add `foreign_struct` and `foreign_struct_mut` helpers?
 
     pub fn annotated(expr: Expr, annotations: &HashMap<String, Expr>) -> Self {
         // #insight don't override existing annotations.
