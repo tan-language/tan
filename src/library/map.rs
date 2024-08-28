@@ -247,6 +247,8 @@ pub fn setup_lib_map(context: &mut Context) {
     // #todo add something like `get-or-init`` or `update-with-default` or `get-and-update`
 
     // #todo add type qualifiers!
+    module.insert("contains-key?", Expr::foreign_func(&map_contains_key));
+    // #todo #deprecate Remove contains-key when all call-sites are updated.
     module.insert("contains-key", Expr::foreign_func(&map_contains_key));
     module.insert("put", Expr::foreign_func(&map_put));
     module.insert("put$$Map", Expr::foreign_func(&map_put));
