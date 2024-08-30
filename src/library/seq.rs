@@ -441,6 +441,7 @@ pub fn setup_lib_seq(context: &mut Context) {
 
     // #todo add type qualifiers!
     module.insert("push", Expr::foreign_func(&array_push));
+    // #todo Reconsider the `!` suffix, reconsider the name.
     // #todo also introduce `++`, `++=`, versions
     module.insert("concat!", Expr::foreign_func(&array_concat_mut));
 
