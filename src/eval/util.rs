@@ -79,8 +79,21 @@ pub fn resolve_module_path(path: impl Into<String>, context: &Context) -> std::i
         // #insight used by tan-run.
         path = path[7..].to_string();
     } else {
-        path = resolve_non_relative_module_path(path, &context.root_path)?;
+        // #todo Add integration test for local-tan-root.
+        // #todo #perf #IMPORTANT somehow cache this!
+        // #todo Also check `./.patch-tan-root`, first.
+        let local_path = resolve_non_relative_module_path(&path, ".local-tan-root");
+        if Path::new(&local_path).exists() {
+            // #todo Add some tracing here!
+            // println!("Using local dependency");
+            path = local_path;
+        } else {
+            path = resolve_non_relative_module_path(&path, &context.root_path);
+        }
     }
+
+    // #todo Check here if the path actually exists!
+    // std::fs::metadata(&path)?;
 
     Ok(canonicalize_path(path))
 }
@@ -93,27 +106,22 @@ pub fn resolve_module_path(path: impl Into<String>, context: &Context) -> std::i
 // #todo write unit tests!
 // #todo find another name, there is confusion with path_buf::canonicalize.
 // #todo remove the _module_ from name, used also for files and dyn-libs.
-fn resolve_non_relative_module_path(
-    path: impl Into<String>,
-    root_path: &str,
-) -> std::io::Result<String> {
-    let mut path = path.into();
+fn resolve_non_relative_module_path(path: impl Into<String>, root_path: &str) -> String {
+    let path = path.into();
 
     // #todo what is a good coding convention for 'system' variables?
     // #todo support read-only 'system' variables.
     // #todo convert /xxx -> /@std/xxx
 
     if path.starts_with('@') {
-        path = format!("{}/{path}", root_path);
+        format!("{}/{path}", root_path)
     } else if path.starts_with('/') {
         // #insight the leading `/` is ignored.
-        path = format!("{}/@std{path}", root_path);
+        format!("{}/@std{path}", root_path)
     } else {
         // #todo maybe we should always require the `/` prefix for the standard library?
-        path = format!("{}/@std/{path}", root_path);
+        format!("{}/@std/{path}", root_path)
     }
-
-    Ok(path)
 }
 
 // #todo why does it consume path? this is problematic.
@@ -166,9 +174,9 @@ pub fn compute_module_file_paths(
         for file_path in file_paths {
             let file_path = file_path?.path();
             // #insight
-            // we check for _strict_ extension, to avoid loading test files,
+            // We check for _strict_ extension, to avoid loading test files,
             // data files, etc.
-            // #todo should specifically allow for test.tan, or bench.tan, etc!
+            // #todo Should specifically allow for test.tan, or bench.tan, etc!
             let has_tan_extension = if strict {
                 has_tan_extension_strict(&file_path)
             } else {
