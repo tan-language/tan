@@ -48,6 +48,44 @@ pub fn anchor_error(result: Result<Expr, Error>, expr: &Expr) -> Result<Expr, Er
 //     todo!()
 // }
 
+fn get_current_module_path(context: &Context) -> String {
+    // #todo Pass what's needed from context.
+    let Some(current_module_path) = context.scope.get(CURRENT_MODULE_PATH) else {
+        // #todo!
+        panic!("missing current-module-path");
+    };
+
+    let Some(current_module_path) = current_module_path.as_string() else {
+        // #todo!
+        panic!("invalid current-module-path");
+    };
+
+    // #todo Can we return &str and keep the borrow-checker happy?
+    current_module_path.to_string()
+}
+
+pub fn resolve_module_path(path: impl Into<String>, context: &Context) -> std::io::Result<String> {
+    let mut path = path.into();
+
+    if path.starts_with("./") {
+        path = format!(
+            "{}{}",
+            get_current_module_path(context),
+            path.strip_prefix('.').unwrap(),
+        );
+    } else if path.starts_with("../") {
+        path = format!("{}/{path}", get_current_module_path(context));
+    } else if path.starts_with("file://") {
+        // #insight used by tan-run.
+        path = path[7..].to_string();
+    } else {
+        path = resolve_non_relative_module_path(path, &context.root_path)?;
+    }
+
+    Ok(canonicalize_path(path))
+}
+
+// #insight The input 'path' is a module path/url, not a file-system path.
 // #todo handle module_urls with https://, https://, ipfs://, etc, auto-download, like Deno.
 // #todo the implicit URL scheme is tan://, e.g. tan://math, tan://@group/util
 // #todo #think does the `@` mess with the url?
@@ -55,9 +93,9 @@ pub fn anchor_error(result: Result<Expr, Error>, expr: &Expr) -> Result<Expr, Er
 // #todo write unit tests!
 // #todo find another name, there is confusion with path_buf::canonicalize.
 // #todo remove the _module_ from name, used also for files and dyn-libs.
-pub fn canonicalize_module_path(
+fn resolve_non_relative_module_path(
     path: impl Into<String>,
-    context: &Context,
+    root_path: &str,
 ) -> std::io::Result<String> {
     let mut path = path.into();
 
@@ -66,47 +104,16 @@ pub fn canonicalize_module_path(
     // #todo convert /xxx -> /@std/xxx
 
     if path.starts_with('@') {
-        path = format!("{}/{path}", context.root_path);
-    } else if path.starts_with("./") {
-        if let Some(base_path) = context.scope.get(CURRENT_MODULE_PATH) {
-            let Some(base_path) = base_path.as_string() else {
-                // #todo!
-                panic!("invalid current-module-path");
-            };
-
-            // Canonicalize the path using the current-module-path as the base path.
-            path = format!("{base_path}{}", path.strip_prefix('.').unwrap());
-        } else {
-            // #todo!
-            panic!("missing current-module-path");
-        }
-    } else if path.starts_with("../") {
-        if let Some(base_path) = context.scope.get(CURRENT_MODULE_PATH) {
-            let Some(base_path) = base_path.as_string() else {
-                // #todo!
-                panic!("invalid current-module-path");
-            };
-
-            // Canonicalize the path using the current-module-path as the base path.
-            path = format!("{base_path}/{path}");
-        } else {
-            // #todo!
-            panic!("missing current-module-path");
-        }
-    } else if path.starts_with("file://") {
-        // #insight used by tan-run.
-        path = path[7..].to_string();
+        path = format!("{}/{path}", root_path);
     } else if path.starts_with('/') {
         // #insight the leading `/` is ignored.
-        path = format!("{}/@std{path}", context.root_path);
+        path = format!("{}/@std{path}", root_path);
     } else {
         // #todo maybe we should always require the `/` prefix for the standard library?
-        path = format!("{}/@std/{path}", context.root_path);
+        path = format!("{}/@std/{path}", root_path);
     }
 
-    let canonical_path = canonicalize_path(path);
-
-    Ok(canonical_path)
+    Ok(path)
 }
 
 // #todo why does it consume path? this is problematic.
@@ -291,7 +298,7 @@ pub fn eval_module(path: &str, context: &mut Context, force: bool) -> Result<Exp
     // #todo explore trying module.TAN file if module directory is not found.
     // #todo maybe allow .tan extension in module_path to explicitly load a module _file_.
 
-    let result = canonicalize_module_path(path, context);
+    let result = resolve_module_path(path, context);
 
     let Ok(module_path) = result else {
         return Err(vec![result.unwrap_err().into()]);
@@ -464,17 +471,17 @@ pub fn set_current_file_path(context: &Context, path: &str) {
 #[cfg(test)]
 mod tests {
     use crate::{
-        context::Context, eval::util::compute_module_file_paths, expr::Expr,
+        context::Context,
+        eval::util::{compute_module_file_paths, resolve_module_path},
+        expr::Expr,
         util::standard_names::CURRENT_MODULE_PATH,
     };
 
-    use super::canonicalize_module_path;
-
     #[test]
-    fn canonicalize_module_path_should_handle_relative_urls() {
+    fn resolve_module_path_should_handle_relative_urls() {
         let context = Context::new();
         context.insert(CURRENT_MODULE_PATH, Expr::string("root"), false);
-        let path = canonicalize_module_path("./hello/world", &context).unwrap();
+        let path = resolve_module_path("./hello/world", &context).unwrap();
         assert_eq!("root/hello/world", path);
     }
 
