@@ -12,7 +12,7 @@ use crate::{
     error::Error,
     eval::{
         eval,
-        util::{canonicalize_module_path, eval_file},
+        util::{eval_file, resolve_module_path},
     },
     expr::{annotate, expr_clone, Expr},
     util::{
@@ -288,7 +288,7 @@ pub fn link_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<Expr
 
     // #todo find a better name for canonicalize_module_path.
     // #todo use another function, not module_path specific, don't rewrite if it starts with "/"
-    let dyn_lib_path = canonicalize_module_path(dyn_lib_path, context)?;
+    let dyn_lib_path = resolve_module_path(dyn_lib_path, context)?;
 
     // #todo canonicalize the path, resolve paths relative to CURRENT_MODULE_PATH
 
