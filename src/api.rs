@@ -37,7 +37,7 @@ pub fn has_tan_extension(path: impl AsRef<Path>) -> bool {
 /// skips `*.*.tan`, e.g. `*.data.tan``.
 pub fn has_tan_extension_strict(path: impl AsRef<Path>) -> bool {
     let path = path.as_ref();
-    if let Some(extension) = get_full_extension(&path.to_string_lossy()) {
+    if let Some(extension) = get_full_extension(path) {
         extension == TAN_FILE_EXTENSION || extension == TAN_FILE_EMOJI_EXTENSION
     } else {
         false
@@ -242,7 +242,7 @@ pub fn eval_string(input: impl AsRef<str>, context: &mut Context) -> Result<Expr
 
 #[cfg(test)]
 mod tests {
-    use crate::api::strip_tan_extension;
+    use crate::api::{has_tan_extension, has_tan_extension_strict, strip_tan_extension};
 
     #[test]
     fn strip_tan_extension_usage() {
@@ -252,5 +252,23 @@ mod tests {
             "deep/nesting/hello"
         );
         assert_eq!(strip_tan_extension("emoji/works.👅"), "emoji/works");
+    }
+
+    #[test]
+    fn has_tan_extension_usage() {
+        assert!(has_tan_extension("hello.tan"));
+        assert!(has_tan_extension("hello.data.tan"));
+        assert!(has_tan_extension("nested/dir/hello.data.tan"));
+        assert!(has_tan_extension("nested/.hidden/dir/hello.data.tan"));
+        assert!(has_tan_extension(
+            "nested/.local-tan-root/@std/zonk/main.tan"
+        ));
+    }
+
+    #[test]
+    fn has_tan_extension_strict_usage() {
+        assert!(has_tan_extension_strict("hello.tan"));
+        assert!(!has_tan_extension_strict("hello.data.tan"));
+        assert!(has_tan_extension_strict("nested/.hidden/dir/hello.tan"));
     }
 }
