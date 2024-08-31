@@ -56,10 +56,10 @@ pub fn anchor_error(result: Result<Expr, Error>, expr: &Expr) -> Result<Expr, Er
 // #todo find another name, there is confusion with path_buf::canonicalize.
 // #todo remove the _module_ from name, used also for files and dyn-libs.
 pub fn canonicalize_module_path(
-    path: impl AsRef<Path>,
+    path: impl Into<String>,
     context: &Context,
 ) -> std::io::Result<String> {
-    let mut path = path.as_ref().to_string_lossy().into_owned();
+    let mut path = path.into();
 
     // #todo what is a good coding convention for 'system' variables?
     // #todo support read-only 'system' variables.
@@ -282,11 +282,7 @@ pub fn eval_file(path: &str, context: &mut Context) -> Result<Expr, Vec<Error>> 
 }
 
 /// Evaluates a language module.
-pub fn eval_module(
-    path: impl AsRef<Path>,
-    context: &mut Context,
-    force: bool,
-) -> Result<Expr, Vec<Error>> {
+pub fn eval_module(path: &str, context: &mut Context, force: bool) -> Result<Expr, Vec<Error>> {
     // #insight Useful for debugging.
     // println!("***** {}", path.as_ref().to_string_lossy());
 
@@ -295,7 +291,7 @@ pub fn eval_module(
     // #todo explore trying module.TAN file if module directory is not found.
     // #todo maybe allow .tan extension in module_path to explicitly load a module _file_.
 
-    let result = canonicalize_module_path(&path, context);
+    let result = canonicalize_module_path(path, context);
 
     let Ok(module_path) = result else {
         return Err(vec![result.unwrap_err().into()]);
@@ -328,7 +324,8 @@ pub fn eval_module(
 
     // #insight module stem is used as prefix
     let module_stem = {
-        if let Some(stem) = path.as_ref().file_stem() {
+        // #todo Don't create path, carefully handle paths in the function.
+        if let Some(stem) = Path::new(path).file_stem() {
             stem.to_string_lossy().to_string()
         } else {
             "top-level".to_string() // #todo think about a good name, maybe repl?
