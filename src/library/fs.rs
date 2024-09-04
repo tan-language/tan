@@ -198,42 +198,62 @@ fn walk_dir(dir_path: &Path, preorder: bool) -> Result<Vec<Expr>, std::io::Error
     Ok(tree)
 }
 
-// #todo
+// #todo Should return Paths.
+// #todo Separate file-path/dir-path?
+// #todo Add Tan unit tests.
+// #todo By default include direcotories, add options to filter!
 pub fn list(args: &[Expr]) -> Result<Expr, Error> {
-    let [path] = args else {
-        return Err(Error::invalid_arguments(
-            "`list` requires a `path` argument",
-            None,
-        ));
-    };
+    let path = unpack_stringable_arg(args, 0, "path")?;
 
-    // #todo should be Stringable
-    let Some(path) = path.as_string() else {
-        return Err(Error::invalid_arguments(
-            "`path` argument should be a String",
-            path.range(),
-        ));
+    // #todo Consider handling the options in Tan wrapper?
+    // #todo Check for more options.
+    // #todo Consider `include-dir` abbreviation.
+    let include_dirs = if let Ok(options) = unpack_map_arg(args, 1, "include-dirs") {
+        options
+            .get("include-dirs")
+            .unwrap_or_else(|| &Expr::Bool(true))
+            .as_bool()
+            .unwrap_or(true)
+    } else {
+        // #insight Keep this false for backwards-compatibility.
+        false
     };
 
     let mut list: Vec<Expr> = Vec::new();
 
-    // #todo ugh remove all unwraps!
-    for entry in fs::read_dir(path).unwrap() {
-        let entry_path = entry.unwrap().path();
+    if include_dirs {
+        for entry in fs::read_dir(path).unwrap() {
+            let entry_path = entry.unwrap().path();
 
-        // #todo should this also include dirs?
-        if !entry_path.is_dir() {
-            // #todo annotate with `File-Path`
-            list.push(Expr::String(entry_path.to_str().unwrap().to_string()));
+            // #todo should this also include dirs?
+            if !entry_path.is_dir() {
+                // #todo annotate with `File-Path`
+                list.push(Expr::String(entry_path.to_str().unwrap().to_string()));
+            } else {
+                // #todo annotate with `Dir-Path``
+                let dir_name = entry_path.to_str().unwrap().to_string();
+                list.push(Expr::String(format!("{dir_name}/")));
+            }
         }
+    } else {
+        // #todo ugh remove all unwraps!
+        for entry in fs::read_dir(path).unwrap() {
+            let entry_path = entry.unwrap().path();
 
-        // #todo #fix this skips the directories, also add dirs!
-        // #todo add trailing slash to dirs and push them to the list?
-        // else {
-        //     // #todo annotate with `Dir-Path``
-        //     let dir_name = entry_path.to_str().unwrap().to_string();
-        //     list.push(Expr::String(format!("{dir_name}/")));
-        // }
+            // #todo should this also include dirs?
+            if !entry_path.is_dir() {
+                // #todo annotate with `File-Path`
+                list.push(Expr::String(entry_path.to_str().unwrap().to_string()));
+            }
+
+            // #todo #fix this skips the directories, also add dirs!
+            // #todo add trailing slash to dirs and push them to the list?
+            // else {
+            //     // #todo annotate with `Dir-Path``
+            //     let dir_name = entry_path.to_str().unwrap().to_string();
+            //     list.push(Expr::String(format!("{dir_name}/")));
+            // }
+        }
     }
 
     Ok(Expr::array(list))
@@ -540,6 +560,7 @@ pub fn setup_lib_fs(context: &mut Context) {
     // #todo Consider `delete-directory`.
     module.insert("remove-directory", Expr::foreign_func(&fs_remove_directory));
 
+    // #todo Move `is-directory?` to Path?
     // #todo Consider `directory?`
     module.insert("is-directory?", Expr::foreign_func(&fs_is_directory));
 
