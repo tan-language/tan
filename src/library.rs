@@ -22,7 +22,6 @@ pub mod path;
 pub mod prelude;
 pub mod process;
 pub mod range;
-pub mod regex;
 pub mod rng;
 pub mod seq;
 pub mod set;
@@ -37,8 +36,8 @@ use crate::context::Context;
 use self::{
     chrono::setup_lib_chrono, css_expr::setup_lib_css_expr, fs::setup_lib_fs, html::setup_lib_html,
     json::setup_lib_codec_json, math::setup_lib_math, path::setup_lib_path,
-    prelude::setup_lib_prelude, process::setup_lib_process, regex::setup_lib_regex,
-    rng::setup_lib_rand, set::setup_lib_set,
+    prelude::setup_lib_prelude, process::setup_lib_process, rng::setup_lib_rand,
+    set::setup_lib_set,
 };
 
 // #todo consider extracting as a (temporary?) crate, e.g. tan-stdlib-native, tan-native-lib, tan-runtime
@@ -80,7 +79,6 @@ pub fn setup_lib(context: &mut Context) {
     setup_lib_chrono(context);
     // setup_lib_testing(context);
     setup_lib_path(context);
-    setup_lib_regex(context);
     setup_lib_set(context);
     setup_lib_dec(context);
 
