@@ -232,7 +232,9 @@ pub fn list(args: &[Expr]) -> Result<Expr, Error> {
             } else {
                 // #todo annotate with `Dir-Path``
                 let dir_name = entry_path.to_str().unwrap().to_string();
-                list.push(Expr::String(format!("{dir_name}/")));
+                // #todo Consider adding trailing `/`?
+                // list.push(Expr::String(format!("{dir_name}/")));
+                list.push(Expr::String(dir_name));
             }
         }
     } else {
