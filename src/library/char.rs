@@ -47,8 +47,8 @@ pub fn setup_lib_char(context: &mut Context) {
 
     module.insert("Char", Expr::foreign_func(&char_new));
 
-    module.insert("is-uppercase?", Expr::foreign_func(&char_is_uppercase));
-    module.insert("is-lowercase?", Expr::foreign_func(&char_is_lowercase));
+    module.insert("is-upper-case?", Expr::foreign_func(&char_is_uppercase));
+    module.insert("is-lower-case?", Expr::foreign_func(&char_is_lowercase));
 }
 
 #[cfg(test)]
