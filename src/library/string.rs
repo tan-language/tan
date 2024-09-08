@@ -44,6 +44,12 @@ pub fn string_get_length(args: &[Expr]) -> Result<Expr, Error> {
     Ok(Expr::Int(s.len() as i64))
 }
 
+// #todo Implement in Tan?
+pub fn string_is_empty(args: &[Expr]) -> Result<Expr, Error> {
+    let s = unpack_stringable_arg(args, 0, "s")?;
+    Ok(Expr::Bool(s.is_empty()))
+}
+
 // #todo trim-start
 // #todo trim-end
 
@@ -61,6 +67,7 @@ pub fn string_trim(args: &[Expr]) -> Result<Expr, Error> {
 
     Ok(Expr::string(s.trim()))
 }
+
 // #todo how to implement a mutating function?
 // #todo return (Maybe Char) or (Maybe Rune), handle case of empty string.
 /// Removes the last character from the string buffer and returns it.
@@ -509,6 +516,9 @@ pub fn setup_lib_string(context: &mut Context) {
     module.insert("chars", Expr::foreign_func(&string_chars));
     module.insert("chars$$String", Expr::foreign_func(&string_chars));
 
+    module.insert("is-empty?", Expr::foreign_func(&string_is_empty));
+    module.insert("is-empty?$$String", Expr::foreign_func(&string_is_empty));
+
     // #todo rename to `to-uppercase`, more consistent?
     module.insert("to-upper-case", Expr::foreign_func(&char_to_upper_case));
     module.insert(
@@ -537,8 +547,9 @@ pub fn setup_lib_string(context: &mut Context) {
         Expr::foreign_func(&string_slice_range),
     );
 
-    // #todo find a bette name, `size`?
+    // #todo find a better name, `size`?
     // #insight `count` is _not_ a good name, reserve it for verb/action.
+    // #todo What about count-of?
     module.insert("get-length", Expr::foreign_func(&string_get_length));
     module.insert("get-length$$String", Expr::foreign_func(&string_get_length));
 
