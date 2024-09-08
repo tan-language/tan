@@ -45,6 +45,26 @@ pub fn unpack_bool_arg(args: &[Expr], index: usize, name: &str) -> Result<bool, 
     Ok(n)
 }
 
+pub fn unpack_char_arg(args: &[Expr], index: usize, name: &str) -> Result<char, Error> {
+    let Some(expr) = args.get(index) else {
+        // #todo introduce 'missing argument' error variant.
+        // #todo also report the index.
+        return Err(Error::invalid_arguments(
+            &format!("missing required Char argument `{name}`"),
+            None,
+        ));
+    };
+
+    let Some(c) = expr.as_char() else {
+        return Err(Error::invalid_arguments(
+            &format!("invalid Char argument: {name}=`{expr}`"),
+            expr.range(),
+        ));
+    };
+
+    Ok(c)
+}
+
 pub fn unpack_int_arg(args: &[Expr], index: usize, name: &str) -> Result<i64, Error> {
     let Some(expr) = args.get(index) else {
         // #todo introduce 'missing argument' error variant.

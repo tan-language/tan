@@ -8,7 +8,10 @@ use crate::{
     context::Context,
     error::Error,
     expr::Expr,
-    util::{args::unpack_stringable_arg, module_util::require_module},
+    util::{
+        args::{unpack_char_arg, unpack_stringable_arg},
+        module_util::require_module,
+    },
 };
 
 pub fn char_new(args: &[Expr]) -> Result<Expr, Error> {
@@ -27,12 +30,25 @@ pub fn char_new(args: &[Expr]) -> Result<Expr, Error> {
     Ok(Expr::Char(c))
 }
 
+pub fn char_is_uppercase(args: &[Expr]) -> Result<Expr, Error> {
+    let c = unpack_char_arg(args, 0, "char")?;
+    Ok(Expr::Bool(c.is_uppercase()))
+}
+
+pub fn char_is_lowercase(args: &[Expr]) -> Result<Expr, Error> {
+    let c = unpack_char_arg(args, 0, "char")?;
+    Ok(Expr::Bool(c.is_lowercase()))
+}
+
 // #todo rename all setup_xxx functions to import_xxx.
 pub fn setup_lib_char(context: &mut Context) {
     // #todo put in 'char' path, and import selected functionality to prelude.
     let module = require_module("prelude", context);
 
     module.insert("Char", Expr::foreign_func(&char_new));
+
+    module.insert("is-uppercase?", Expr::foreign_func(&char_is_uppercase));
+    module.insert("is-lowercase?", Expr::foreign_func(&char_is_lowercase));
 }
 
 #[cfg(test)]

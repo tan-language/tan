@@ -870,6 +870,7 @@ impl Expr {
             Expr::Int(_) => Expr::typ("Int"),
             Expr::Float(_) => Expr::typ("Float"),
             Expr::Dec(_) => Expr::typ("Dec"),
+            Expr::Char(_) => Expr::typ("Char"),
             Expr::String(_) => Expr::typ("String"),
             Expr::Type(_) => Expr::typ("Type"),
             Expr::List(_) => Expr::typ("List"), // #todo return parameterized type
