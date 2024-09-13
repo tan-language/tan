@@ -12,7 +12,6 @@ pub mod float;
 pub mod fs;
 pub mod int;
 pub mod io;
-pub mod json;
 pub mod lang;
 pub mod map;
 pub mod math;
@@ -32,9 +31,9 @@ use dec::setup_lib_dec;
 use crate::context::Context;
 
 use self::{
-    chrono::setup_lib_chrono, css_expr::setup_lib_css_expr, fs::setup_lib_fs,
-    json::setup_lib_codec_json, math::setup_lib_math, path::setup_lib_path,
-    prelude::setup_lib_prelude, process::setup_lib_process, set::setup_lib_set,
+    chrono::setup_lib_chrono, css_expr::setup_lib_css_expr, fs::setup_lib_fs, math::setup_lib_math,
+    path::setup_lib_path, prelude::setup_lib_prelude, process::setup_lib_process,
+    set::setup_lib_set,
 };
 
 // #todo consider extracting as a (temporary?) crate, e.g. tan-stdlib-native, tan-native-lib, tan-runtime
@@ -69,7 +68,6 @@ pub fn setup_lib(context: &mut Context) {
     setup_lib_fs(context);
     setup_lib_process(context);
     setup_lib_css_expr(context);
-    setup_lib_codec_json(context);
     setup_lib_math(context);
     setup_lib_chrono(context);
     // setup_lib_testing(context);
