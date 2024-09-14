@@ -308,12 +308,14 @@ pub fn link_foreign_dyn_lib(args: &[Expr], context: &mut Context) -> Result<Expr
             .expect("poisoned lock")
             .contains_key(&dyn_lib_path)
         {
+            // #todo Should provide an option to overrid/reinstall?
             // #todo consider not throwing an error, and just nop?
             // #todo consider just a warning (add support for warnings)
             // #todo more specific error variant needed.
-            return Err(Error::general(&format!(
-                "foreign dyn lib `{dyn_lib_path}` is already installed"
-            )));
+            // return Err(Error::general(&format!(
+            //     "foreign dyn lib `{dyn_lib_path}` is already installed"
+            // )));
+            return Ok(Expr::None);
         }
 
         let library = match Library::new(&dyn_lib_path) {

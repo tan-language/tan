@@ -3,7 +3,6 @@ pub mod bool;
 pub mod buffer;
 pub mod char;
 pub mod cmp;
-pub mod css_expr;
 pub mod dec;
 pub mod eq;
 pub mod error;
@@ -30,8 +29,8 @@ use dec::setup_lib_dec;
 use crate::context::Context;
 
 use self::{
-    css_expr::setup_lib_css_expr, fs::setup_lib_fs, math::setup_lib_math, path::setup_lib_path,
-    prelude::setup_lib_prelude, process::setup_lib_process, set::setup_lib_set,
+    fs::setup_lib_fs, math::setup_lib_math, path::setup_lib_path, prelude::setup_lib_prelude,
+    process::setup_lib_process, set::setup_lib_set,
 };
 
 // #todo consider extracting as a (temporary?) crate, e.g. tan-stdlib-native, tan-native-lib, tan-runtime
@@ -65,7 +64,6 @@ use self::{
 pub fn setup_lib(context: &mut Context) {
     setup_lib_fs(context);
     setup_lib_process(context);
-    setup_lib_css_expr(context);
     setup_lib_math(context);
     // setup_lib_testing(context);
     setup_lib_path(context);
