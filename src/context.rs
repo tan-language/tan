@@ -79,6 +79,8 @@ impl Context {
         // let prelude_path = format!("{}/std/prelude", context.root_path);
         // let prelude = context.module_registry.get(&prelude_path).unwrap();
 
+        // #todo Just use `prelude` scope as top-level scope.
+
         // #todo Could use a non-mut version of require_module.
         let prelude = context
             .get_module("prelude")
@@ -98,6 +100,15 @@ impl Context {
         context.scope = Arc::new(Scope::new(top_scope.clone()));
 
         context
+    }
+
+    // #todo Use it for all prelude insertions.
+    // #todo #hack Rethink this, currently used to implement prelude.
+    pub fn import_scope_into_prelude(&self, scope: Arc<Scope>) {
+        let bindings = scope.bindings.read().expect("poisoned lock");
+        for (name, value) in bindings.iter() {
+            self.top_scope.insert(name, value.clone());
+        }
     }
 
     // #todo get_current_module

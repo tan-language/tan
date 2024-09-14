@@ -7,7 +7,6 @@ use super::arithmetic::setup_lib_arithmetic;
 use super::bool::setup_lib_bool;
 use super::buffer::setup_lib_buffer;
 use super::char::setup_lib_char;
-use super::chrono;
 use super::cmp::setup_lib_cmp;
 use super::eq::setup_lib_eq;
 use super::error::setup_lib_error;
@@ -55,21 +54,11 @@ pub fn setup_lib_prelude(context: &mut Context) {
     setup_lib_maybe(context);
     setup_lib_error(context);
 
-    // #todo move this to lang.rs
-    // #todo #temp #hack
+    // #todo Move this to lang.rs
+    // #todo #temp #hack See how it's done in lib-tan-chrono.
     let module = require_module("prelude", context);
     module.insert(
         "to-string",
         Expr::foreign_func(&expr_to_string), // #todo #temp
-    );
-    // #todo it is NASTY that we have to add this here!!!
-    // #todo should be Str$$Date
-    module.insert(
-        "to-string$$Date",
-        Expr::foreign_func(&chrono::chrono_date_to_string),
-    );
-    module.insert(
-        "to-string$$Date-Time",
-        Expr::foreign_func(&chrono::chrono_date_time_to_string),
     );
 }
