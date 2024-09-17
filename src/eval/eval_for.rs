@@ -47,6 +47,7 @@ fn insert_next_bindings(
 pub fn eval_for(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     // #todo reuse code from let
     // #todo the resolver should handle this.
+    // #todo this code should be reused in while.
 
     if args.len() < 2 {
         // #todo add more structural checks.
