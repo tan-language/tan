@@ -64,10 +64,12 @@ pub fn eval_assert_eq(op: &Expr, args: &[Expr], context: &mut Context) -> Result
     let right = eval(right_expr, context)?;
 
     // #todo don't throw the error, include in failures!
+    // #todo Rename *test-count* -> *assertion-count*, *test-failures* -> *assertion-failures*
 
     let predicate = eq_polymorphic(&[left, right])?.as_bool().unwrap();
 
     if predicate {
+        // #todo Update *test-count*.
         Ok(Expr::Bool(true))
     } else {
         if let Some(value) = context.get("*test-failures*", true) {
