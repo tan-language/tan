@@ -1,3 +1,4 @@
+// #todo Abbreviate to `buf`.
 // #todo consider other names: `Buf`, `Byte-Buffer`, etc.
 
 use std::sync::{Arc, RwLock};

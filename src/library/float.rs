@@ -92,6 +92,19 @@ pub fn float_abs(args: &[Expr]) -> Result<Expr, Error> {
     Ok(Expr::Float(n.abs()))
 }
 
+// #todo Introduce multiple rounding functions.
+// #todo Should the rounding functions also handle floor/ceil?
+
+pub fn float_floor(args: &[Expr]) -> Result<Expr, Error> {
+    let n = unpack_float_arg(args, 0, "n")?;
+    Ok(Expr::Float(n.floor()))
+}
+
+pub fn float_ceil(args: &[Expr]) -> Result<Expr, Error> {
+    let n = unpack_float_arg(args, 0, "n")?;
+    Ok(Expr::Float(n.ceil()))
+}
+
 pub fn float_sqrt(args: &[Expr]) -> Result<Expr, Error> {
     let n = unpack_float_arg(args, 0, "n")?;
     Ok(Expr::Float(n.sqrt()))
@@ -127,6 +140,13 @@ pub fn setup_lib_float(context: &mut Context) {
 
     module.insert("abs", Expr::foreign_func(&float_abs));
     module.insert("abs$$Float", Expr::foreign_func(&float_abs));
+
+    // #todo Kind of annoying that these are non-verbs.
+
+    module.insert("floor", Expr::foreign_func(&float_floor));
+    module.insert("floor$$Float", Expr::foreign_func(&float_floor));
+    module.insert("ceil", Expr::foreign_func(&float_ceil));
+    module.insert("ceil$$Float", Expr::foreign_func(&float_ceil));
 
     // #todo Note that `sqrt` does not follow Tan naming conventions but it's a standard term.
     module.insert("sqrt", Expr::foreign_func(&float_sqrt));

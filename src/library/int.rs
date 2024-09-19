@@ -12,6 +12,8 @@ pub fn int_from_bool(args: &[Expr]) -> Result<Expr, Error> {
     Ok(Expr::Int(if value { 1 } else { 0 }))
 }
 
+// #todo Implement int_from_float, should use ceil, floor or round?
+
 pub fn setup_lib_int(context: &mut Context) {
     // #todo put in 'int' path, and import selected functionality to prelude.
     let module = require_module("prelude", context);
