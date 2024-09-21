@@ -205,6 +205,15 @@ pub fn float_gt(args: &[Expr]) -> Result<Expr, Error> {
     Ok(Expr::Bool(a > b))
 }
 
+pub fn float_gte(args: &[Expr]) -> Result<Expr, Error> {
+    // #todo Support multiple arguments.
+
+    let a = unpack_float_arg(args, 0, "a")?;
+    let b = unpack_float_arg(args, 0, "b")?;
+
+    Ok(Expr::Bool(a >= b))
+}
+
 pub fn int_lt(args: &[Expr]) -> Result<Expr, Error> {
     // #todo support multiple arguments.
     let [a, b] = args else {
@@ -240,6 +249,16 @@ pub fn float_lt(args: &[Expr]) -> Result<Expr, Error> {
     Ok(Expr::Bool(a < b))
 }
 
+// #todo Add for Int also.
+pub fn float_lte(args: &[Expr]) -> Result<Expr, Error> {
+    // #todo Support multiple arguments.
+
+    let a = unpack_float_arg(args, 0, "a")?;
+    let b = unpack_float_arg(args, 0, "b")?;
+
+    Ok(Expr::Bool(a <= b))
+}
+
 // #todo should we have an explicit module for these functions?
 
 pub fn setup_lib_eq(context: &mut Context) {
@@ -270,9 +289,13 @@ pub fn setup_lib_eq(context: &mut Context) {
     module.insert(">", Expr::foreign_func(&int_gt));
     module.insert(">$$Int$$Int", Expr::foreign_func(&int_gt));
     module.insert(">$$Float$$Float", Expr::foreign_func(&float_gt));
+    module.insert(">=", Expr::foreign_func(&float_gte));
+    module.insert(">=$$Float$$Float", Expr::foreign_func(&float_gte));
     module.insert("<", Expr::foreign_func(&int_lt));
     module.insert("<$$Int$$Int", Expr::foreign_func(&int_lt));
     module.insert("<$$Float$$Float", Expr::foreign_func(&float_lt));
+    module.insert("<=", Expr::foreign_func(&float_lte));
+    module.insert("<=$$Float$$Float", Expr::foreign_func(&float_lte));
 }
 
 #[cfg(test)]
