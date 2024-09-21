@@ -148,6 +148,7 @@ pub fn setup_lib_float(context: &mut Context) {
     module.insert("ceil", Expr::foreign_func(&float_ceil));
     module.insert("ceil$$Float", Expr::foreign_func(&float_ceil));
 
+    // #todo Consider sqrt-of or Num/sqrt or math/sqrt.
     // #todo Note that `sqrt` does not follow Tan naming conventions but it's a standard term.
     module.insert("sqrt", Expr::foreign_func(&float_sqrt));
     module.insert("sqrt$$Float", Expr::foreign_func(&float_sqrt));

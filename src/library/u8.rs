@@ -31,7 +31,7 @@ pub fn u8_from_float(args: &[Expr]) -> Result<Expr, Error> {
     // #todo support more 'source' types.
     let value = unpack_float_arg(args, 0, "value")?;
 
-    if !(value >= 0.0 && value < 256.0) {
+    if !(0.0..256.0).contains(&value) {
         return Err(Error::invalid_arguments(
             "U8 values should be in 0..256",
             args[0].range(),

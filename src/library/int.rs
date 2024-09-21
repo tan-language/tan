@@ -2,8 +2,19 @@ use crate::{
     context::Context,
     error::Error,
     expr::Expr,
-    util::{args::unpack_bool_arg, module_util::require_module},
+    util::{
+        args::{unpack_bool_arg, unpack_float_arg},
+        module_util::require_module,
+    },
 };
+
+// #todo Make this explicit at call site?
+pub fn int_from_float(args: &[Expr]) -> Result<Expr, Error> {
+    // #todo support more 'source' types.
+    let value = unpack_float_arg(args, 0, "value")?;
+
+    Ok(Expr::Int(value as i64))
+}
 
 // #todo Implement with Tan.
 pub fn int_from_bool(args: &[Expr]) -> Result<Expr, Error> {
@@ -21,6 +32,7 @@ pub fn setup_lib_int(context: &mut Context) {
     // #todo consider to-int instead?
 
     // #todo Make `int_from_float` the default.
-    module.insert("Int", Expr::foreign_func(&int_from_bool));
+    module.insert("Int", Expr::foreign_func(&int_from_float));
+    module.insert("Int$$Float", Expr::foreign_func(&int_from_float));
     module.insert("Int$$Bool", Expr::foreign_func(&int_from_bool));
 }
