@@ -209,7 +209,7 @@ pub fn float_gte(args: &[Expr]) -> Result<Expr, Error> {
     // #todo Support multiple arguments.
 
     let a = unpack_float_arg(args, 0, "a")?;
-    let b = unpack_float_arg(args, 0, "b")?;
+    let b = unpack_float_arg(args, 1, "b")?;
 
     Ok(Expr::Bool(a >= b))
 }
@@ -254,7 +254,7 @@ pub fn float_lte(args: &[Expr]) -> Result<Expr, Error> {
     // #todo Support multiple arguments.
 
     let a = unpack_float_arg(args, 0, "a")?;
-    let b = unpack_float_arg(args, 0, "b")?;
+    let b = unpack_float_arg(args, 1, "b")?;
 
     Ok(Expr::Bool(a <= b))
 }
