@@ -2,6 +2,7 @@ pub mod util;
 
 #[cfg(feature = "dec")]
 use rust_decimal::prelude::*;
+use util::desugar_key_path;
 
 use crate::{
     error::{Error, ErrorVariant},
@@ -307,13 +308,20 @@ impl<'a> Parser<'a> {
                 }
             }
             TokenKind::Symbol(lexeme) => {
-                if is_key_symbol(lexeme) {
-                    // #todo Do not support ':' at the end.
-                    // #todo Consider forcing `:` at the end or beginning? don't use as separators?
-                    // #todo Consider converting to (quote (Symbol ...))? KeySymbol is slightly faster?
-                    let sym = str::replace(lexeme, ":", "");
-                    // #todo Consider Expr::Key instead of Expr::KeySymbol
-                    Some(Expr::KeySymbol(sym))
+                if lexeme.contains(':') {
+                    if is_key_symbol(lexeme) {
+                        // #todo Do not support ':' at the end.
+                        // #todo Consider forcing `:` at the end or beginning? don't use as separators?
+                        // #todo Consider converting to (quote (Symbol ...))? KeySymbol is slightly faster?
+                        let sym = str::replace(lexeme, ":", "");
+                        // #todo Consider Expr::Key instead of Expr::KeySymbol
+                        Some(Expr::KeySymbol(sym))
+                    } else {
+                        // The lexeme is a key-path.
+                        // #insight The key-path segments can only be strings and ints.
+                        // #todo #IMPORTANT Better error-handling is needed here.
+                        Some(desugar_key_path(lexeme))
+                    }
                 } else if is_type(lexeme) {
                     Some(Expr::Type(lexeme.into()))
                 } else if lexeme == "true" {

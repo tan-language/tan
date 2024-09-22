@@ -360,7 +360,11 @@ pub fn setup_lib_lang(context: &mut Context) {
 
     module.insert("ann", Expr::foreign_func_mut_context(&ann));
     module.insert("with-ann", Expr::foreign_func(&with_ann));
+    // #todo #deprecate Use cast instead.
     module.insert("with-type", Expr::foreign_func(&with_type));
+    // #todo Is this a better name? Is it OK to reserve? Maybe it's better to just use #Type.
+    // #todo Should be temp.
+    module.insert("cast", Expr::foreign_func(&with_type));
 
     // #todo the `!` is confusing here.
     // #todo `dbg` is not following naming conventions, but maybe OK for this case?
