@@ -108,6 +108,7 @@ pub fn fs_create(args: &[Expr]) -> Result<Expr, Error> {
 
 // #todo implement fs/close -> should be the same as drop$$File
 
+// #todo Should be `write` and work with all types that implement `To-Bytes`, e.g. Str, Buf, etc.
 pub fn file_write_string(args: &[Expr]) -> Result<Expr, Error> {
     let [file, string] = args else {
         return Err(Error::invalid_arguments(
@@ -132,6 +133,40 @@ pub fn file_write_string(args: &[Expr]) -> Result<Expr, Error> {
             string.range(),
         ));
     };
+
+    file.write_all(string.as_bytes())?;
+
+    Ok(Expr::None)
+}
+
+// #todo Implement in Tan.
+pub fn file_writeln(args: &[Expr]) -> Result<Expr, Error> {
+    let [file, string] = args else {
+        return Err(Error::invalid_arguments(
+            "requires `file` and `string` arguments",
+            None,
+        ));
+    };
+
+    let Expr::ForeignMut(s) = file.unpack() else {
+        return Err(Error::invalid_arguments("invalid File", None));
+    };
+
+    let s = expect_lock_write(s);
+
+    let Some(mut file) = s.downcast_ref::<std::fs::File>() else {
+        return Err(Error::invalid_arguments("invalid File", None));
+    };
+
+    let Some(string) = string.as_string() else {
+        return Err(Error::invalid_arguments(
+            &format!("string=`{string}` is not a String"),
+            string.range(),
+        ));
+    };
+
+    // #todo Nasty.
+    let string = format!("{string}\n");
 
     file.write_all(string.as_bytes())?;
 
@@ -577,6 +612,9 @@ pub fn setup_lib_fs(context: &mut Context) {
         "write-string$$File$$String",
         Expr::foreign_func(&file_write_string),
     );
+    // #todo Should not be required.
+    module.insert("writeln", Expr::foreign_func(&file_writeln));
+    module.insert("writeln$$File$$String", Expr::foreign_func(&file_writeln));
 
     module.insert(
         "read-file-to-string",
