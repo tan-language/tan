@@ -30,24 +30,11 @@ use crate::{context::Context, error::Error, expr::Expr};
 // #todo extract file-system-related functionality to `fs` or even the more general `rs` == resource space.
 // #todo consider mapping `:` to `__` and use #[allow(snake_case)]
 
-// #insight The mode is note mutually-exclusive, you can open for read and write at the same time.
+// #insight The mode is not mutually-exclusive, you can open for read and write at the same time.
 // (fs/open "data.log" {:append true})
 pub fn fs_open(args: &[Expr]) -> Result<Expr, Error> {
     let path = unpack_stringable_arg(args, 0, "path")?;
-
-    // // #todo Consider making read the default.
-    // // #insight this is mandatory.
-    // let options = if let Some(options) = unpack_map_arg(args, 1, "options") {
-    // } else {
-    //     { "read"}
-    // }
-
     let modes = unpack_map_arg(args, 1, "options")?;
-
-    // .get("preorder")
-    // .unwrap_or_else(|| &Expr::Bool(true))
-    // .as_bool()
-    // .unwrap_or(true)
 
     let mut open_options = OpenOptions::new();
 
