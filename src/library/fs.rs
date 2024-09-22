@@ -1,4 +1,6 @@
-use std::fs;
+// #todo Move to tan-libs.
+
+use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::path::Path;
 use std::sync::{Arc, RwLock};
@@ -27,6 +29,63 @@ use crate::{context::Context, error::Error, expr::Expr};
 // File < Resource
 // #todo extract file-system-related functionality to `fs` or even the more general `rs` == resource space.
 // #todo consider mapping `:` to `__` and use #[allow(snake_case)]
+
+// #insight The mode is note mutually-exclusive, you can open for read and write at the same time.
+// (fs/open "data.log" {:append true})
+pub fn fs_open(args: &[Expr]) -> Result<Expr, Error> {
+    let path = unpack_stringable_arg(args, 0, "path")?;
+
+    // // #todo Consider making read the default.
+    // // #insight this is mandatory.
+    // let options = if let Some(options) = unpack_map_arg(args, 1, "options") {
+    // } else {
+    //     { "read"}
+    // }
+
+    let modes = unpack_map_arg(args, 1, "options")?;
+
+    // .get("preorder")
+    // .unwrap_or_else(|| &Expr::Bool(true))
+    // .as_bool()
+    // .unwrap_or(true)
+
+    let mut open_options = OpenOptions::new();
+
+    if modes
+        .get("read")
+        .unwrap_or_else(|| &Expr::Bool(false))
+        .as_bool()
+        .unwrap_or_default()
+    {
+        open_options.read(true);
+    }
+
+    if modes
+        .get("write")
+        .unwrap_or_else(|| &Expr::Bool(false))
+        .as_bool()
+        .unwrap_or_default()
+    {
+        open_options.write(true);
+    }
+
+    if modes
+        .get("append")
+        .unwrap_or_else(|| &Expr::Bool(false))
+        .as_bool()
+        .unwrap_or_default()
+    {
+        open_options.append(true);
+    }
+
+    let file = open_options // Open the file in append mode
+        .open(path)?;
+
+    // #todo Extract this.
+    let expr = Expr::ForeignMut(Arc::new(RwLock::new(file)));
+
+    Ok(annotate_type(expr, "File"))
+}
 
 pub fn fs_create(args: &[Expr]) -> Result<Expr, Error> {
     let [path] = args else {
@@ -507,8 +566,11 @@ pub fn fs_is_directory(args: &[Expr]) -> Result<Expr, Error> {
 pub fn setup_lib_fs(context: &mut Context) {
     let module = require_module("fs", context);
 
+    module.insert("open", Expr::foreign_func(&fs_open));
     module.insert("create", Expr::foreign_func(&fs_create));
 
+    // #todo Name this `write`?
+    // #todo Introduce `writeln`?
     // #todo should not be required.
     module.insert("write-string", Expr::foreign_func(&file_write_string));
     module.insert(
