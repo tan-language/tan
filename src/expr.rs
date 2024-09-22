@@ -464,6 +464,10 @@ impl Expr {
         Expr::Symbol(s.into())
     }
 
+    pub fn key_symbol(s: impl Into<String>) -> Self {
+        Expr::KeySymbol(s.into())
+    }
+
     pub fn string(s: impl Into<String>) -> Self {
         Expr::String(s.into())
     }

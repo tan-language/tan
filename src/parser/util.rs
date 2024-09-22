@@ -8,6 +8,8 @@ pub const STRING_INTERPOLATION_FUNC: &str = "String";
 
 // #insight `$` is not enough and we need the braces `{}`, as symbols can use almost all characters.
 
+// #todo Reconsider the pub visibility of functions here.
+
 // #todo allow whitespace and some non-symbol characters to delineate the interpolation to allow e.g. "$name hello!!".
 // #todo support 'toggle' interpolation with %{..}
 
@@ -176,10 +178,16 @@ pub fn recognize_range(range_str: &str) -> Option<Expr> {
     Some(Expr::List(exprs))
 }
 
-// #todo force the `:` at the beginning
+// #todo Force the `:` at the beginning
+// #todo Consider alternative syntax
+
+// #insight
+// Use `:` in the middle as 'key-path' syntax-sugar, e.g.
+// user:data:name -> ((user :data) :name)
 
 /// A key is considered a `KeySymbol` (aka 'keyword') if it contains a collon. A collon
-/// can be at the end or at the beginning, or even in the middle of the lexeme.
+/// can be at the end or at the beginning, or the end of the lexeme. Lexemes with
+/// the colon in the middle are considered key-paths.
 /// A `KeySymbol` always evaluates to itself.
 #[inline(always)]
 pub fn is_key_symbol(lexeme: &str) -> bool {
@@ -188,7 +196,12 @@ pub fn is_key_symbol(lexeme: &str) -> bool {
     // if lexeme == ":=" {
     //     return false;
     // }
-    lexeme.contains(':')
+    lexeme.starts_with(':') || lexeme.ends_with(':')
+}
+
+pub fn is_key_path(lexeme: &str) -> bool {
+    // #todo Optimize this.
+    lexeme.contains(':') && (!is_key_symbol(lexeme))
 }
 
 // #insight it's actually a potential number!
@@ -208,9 +221,63 @@ pub fn is_potential_number(lexeme: &str) -> bool {
     }
 }
 
+pub fn is_potential_uint(lexeme: &str) -> bool {
+    let mut chars = lexeme.chars();
+
+    let Some(ch) = chars.next() else {
+        return false;
+    };
+
+    char::is_numeric(ch)
+}
+
+// Two kinds of keypaths:
+// - (user :info:name:middle) ; type-a
+// - user:info:name:middle    ; type-b
+
+// #todo Should return error.
+// #todo Handle 'type-a' key-paths.
+// #insight The key-path segments can only be strings and ints.
+// This desugars 'type-b' key-paths.
+pub fn desugar_key_path(lexeme: &str) -> Expr {
+    // user:info:name:middle -> (((user :info) name) :middle)
+    let mut segments = lexeme.split(':');
+    // #insight The unwrap is safe here.
+    // #todo Verify subject is not numeric.
+    let mut expr = Expr::symbol(segments.next().unwrap());
+
+    for key in segments {
+        // #todo Add error handling.
+        let key = if is_potential_uint(key) {
+            Expr::Int(key.parse().unwrap())
+        } else {
+            Expr::key_symbol(key)
+        };
+        expr = Expr::List(vec![expr, key]);
+    }
+
+    expr
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::parser::util::is_potential_number;
+    use crate::parser::util::{is_key_path, is_key_symbol, is_potential_number};
+
+    use super::desugar_key_path;
+
+    #[test]
+    fn is_key_symbol_usage() {
+        assert!(is_key_symbol(":key"));
+        assert!(is_key_symbol("key:"));
+        assert!(!is_key_symbol("key:path:segment"));
+    }
+
+    #[test]
+    fn is_key_path_usage() {
+        assert!(is_key_path("key:path:segment"));
+        assert!(!is_key_path(":key"));
+        assert!(!is_key_path("key:"));
+    }
 
     #[test]
     fn is_potential_number_usage() {
@@ -218,5 +285,11 @@ mod tests {
         assert!(is_potential_number("1.0"));
         assert!(is_potential_number("-1.2"));
         assert!(!is_potential_number("random-symbol"));
+    }
+
+    #[test]
+    fn desugar_key_path_usage() {
+        let expr = desugar_key_path("user:detail:0:name");
+        assert_eq!(format!("{expr}"), "(((user :detail) 0) :name)");
     }
 }
