@@ -1,4 +1,17 @@
-use crate::{context::Context, error::Error, expr::Expr, util::module_util::require_module};
+use crate::{
+    context::Context,
+    error::Error,
+    expr::Expr,
+    util::{
+        args::{unpack_float_arg, unpack_float_range_arg},
+        module_util::require_module,
+    },
+};
+
+// #todo Do we need a separate Interval type?
+// #todo Range could be like in Rust and _not_ include a step, instead provide a step_by function?
+
+// #todo #hack No need for Range expressions, this is a temp hack.
 
 // #todo make some fields optional.
 // struct ForeignRange<T> {
@@ -102,6 +115,26 @@ pub fn range_float_new(args: &[Expr]) -> Result<Expr, Error> {
     Ok(Expr::FloatRange(start, end, step))
 }
 
+// #todo Implement those in Tan.
+
+// #todo Add contains.
+// #todo Add surrounds.
+// #todo Add size/length.
+// #todo Constants: empty, universe.
+// #todo The name `universe` is weird.
+
+// #todo Support open-ended and close-ended ranges.
+
+// #todo Add unit tests.
+// #todo Should take the step into account? Probably yes.
+// #todo The term `contains` is a bit ambiguous, could use `includes` or `surrounds`?
+// #todo Maybe `surrounds` should be like contains/includes but ignoring the step.
+pub fn range_float_contains(args: &[Expr]) -> Result<Expr, Error> {
+    let range = unpack_float_range_arg(args, 0, "range")?;
+    let value = unpack_float_arg(args, 1, "value")?;
+    Ok(Expr::Bool(range.contains(&value)))
+}
+
 pub fn setup_lib_range(context: &mut Context) {
     // #todo put in 'range' path, and import selected functionality to prelude.
     let module = require_module("prelude", context);
@@ -113,6 +146,18 @@ pub fn setup_lib_range(context: &mut Context) {
     module.insert(
         "Range$$Float$$Float$$Float",
         Expr::foreign_func(&range_float_new),
+    );
+
+    // #todo Contains should probably take the step into account.
+    module.insert(
+        "contains?$$(Range Float)$$Float",
+        Expr::foreign_func(&range_float_contains),
+    );
+    // #todo Find a better name, originally from https://raytracing.github.io/
+    module.insert("surrounds?", Expr::foreign_func(&range_float_contains));
+    module.insert(
+        "surrounds?$$(Range Float)$$Float",
+        Expr::foreign_func(&range_float_contains),
     );
 }
 

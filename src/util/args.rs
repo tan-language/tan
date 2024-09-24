@@ -3,6 +3,7 @@
 use std::{
     any::Any,
     collections::HashMap,
+    ops::Range,
     sync::{Arc, RwLockReadGuard, RwLockWriteGuard},
 };
 
@@ -225,6 +226,30 @@ pub fn unpack_array_arg<'a>(
     };
 
     Ok(array)
+}
+
+pub fn unpack_float_range_arg(
+    args: &[Expr],
+    index: usize,
+    name: &str,
+) -> Result<Range<f64>, Error> {
+    let Some(expr) = args.get(index) else {
+        // #todo introduce 'missing argument' error variant.
+        // #todo also report the index.
+        return Err(Error::invalid_arguments(
+            &format!("missing required Float-Range argument `{name}`"),
+            None,
+        ));
+    };
+
+    let Some(r) = expr.as_float_range() else {
+        return Err(Error::invalid_arguments(
+            &format!("invalid Float Range argument: {name}=`{expr}`"),
+            expr.range(),
+        ));
+    };
+
+    Ok(r)
 }
 
 // #todo also add _mut version.

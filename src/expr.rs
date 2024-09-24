@@ -636,6 +636,13 @@ impl Expr {
         Some(*n)
     }
 
+    pub fn as_float_range(&self) -> Option<std::ops::Range<f64>> {
+        let Expr::FloatRange(min, max, _) = self.unpack() else {
+            return None;
+        };
+        Some(*min..*max)
+    }
+
     #[cfg(feature = "dec")]
     pub fn as_decimal(&self) -> Option<Decimal> {
         let Expr::Dec(n) = self.unpack() else {

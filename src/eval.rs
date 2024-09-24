@@ -498,6 +498,9 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
             // #todo maybe resolve or optimize should already have placed the method in the AST?
 
             let value = if let Some(Expr::String(method)) = expr.annotation("method") {
+                //#hint Uncomment the next line for debugging!
+                // println!("---- Method: {method}");
+
                 // If the symbol is annotated with a `method`, it's in 'operator' position.
                 // `method` is just one of the variants of a multi-method-function.
                 // #hint: currently dynamically_scope is not supported in this position.
