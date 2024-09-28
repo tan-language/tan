@@ -205,6 +205,15 @@ pub fn float_gt(args: &[Expr]) -> Result<Expr, Error> {
     Ok(Expr::Bool(a > b))
 }
 
+pub fn int_gte(args: &[Expr]) -> Result<Expr, Error> {
+    // #todo Support multiple arguments.
+
+    let a = unpack_int_arg(args, 0, "a")?;
+    let b = unpack_int_arg(args, 1, "b")?;
+
+    Ok(Expr::Bool(a >= b))
+}
+
 pub fn float_gte(args: &[Expr]) -> Result<Expr, Error> {
     // #todo Support multiple arguments.
 
@@ -249,7 +258,15 @@ pub fn float_lt(args: &[Expr]) -> Result<Expr, Error> {
     Ok(Expr::Bool(a < b))
 }
 
-// #todo Add for Int also.
+pub fn int_lte(args: &[Expr]) -> Result<Expr, Error> {
+    // #todo Support multiple arguments.
+
+    let a = unpack_int_arg(args, 0, "a")?;
+    let b = unpack_int_arg(args, 1, "b")?;
+
+    Ok(Expr::Bool(a <= b))
+}
+
 pub fn float_lte(args: &[Expr]) -> Result<Expr, Error> {
     // #todo Support multiple arguments.
 
@@ -290,11 +307,13 @@ pub fn setup_lib_eq(context: &mut Context) {
     module.insert(">$$Int$$Int", Expr::foreign_func(&int_gt));
     module.insert(">$$Float$$Float", Expr::foreign_func(&float_gt));
     module.insert(">=", Expr::foreign_func(&float_gte));
+    module.insert(">=$$Int$$Int", Expr::foreign_func(&int_gte));
     module.insert(">=$$Float$$Float", Expr::foreign_func(&float_gte));
     module.insert("<", Expr::foreign_func(&int_lt));
     module.insert("<$$Int$$Int", Expr::foreign_func(&int_lt));
     module.insert("<$$Float$$Float", Expr::foreign_func(&float_lt));
     module.insert("<=", Expr::foreign_func(&float_lte));
+    module.insert("<=$$Int$$Int", Expr::foreign_func(&int_lte));
     module.insert("<=$$Float$$Float", Expr::foreign_func(&float_lte));
 }
 
