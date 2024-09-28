@@ -99,6 +99,9 @@ pub fn unpack_float_arg(args: &[Expr], index: usize, name: &str) -> Result<f64, 
     let Some(n) = expr.as_float() else {
         return Err(Error::invalid_arguments(
             &format!("invalid Float argument: {name}=`{expr}`"),
+            // #todo Use the correct range here.
+            // #insight expr.range() is wrong, it's the range of the arg definition.
+            // #insight None is wrong, it's the range of the upstream call function.
             expr.range(),
         ));
     };
