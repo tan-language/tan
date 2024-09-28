@@ -355,6 +355,8 @@ impl<'a> Parser<'a> {
             TokenKind::Number(lexeme) => {
                 let mut lexeme = lexeme.clone();
 
+                // #todo Consider accepting scientific notation numbers without digit as floats.
+
                 // #todo more detailed Number error!
                 // #todo error handling not enough, we need to add context, check error_stack
                 if lexeme.contains('.') {

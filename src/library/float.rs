@@ -111,6 +111,7 @@ pub fn float_sqrt(args: &[Expr]) -> Result<Expr, Error> {
 }
 
 // #todo Introduce clamp
+// #todo Also introduce clamp in Range and/or Interval.
 
 pub fn setup_lib_float(context: &mut Context) {
     // #todo put in 'float' path, and import selected functionality to prelude.
