@@ -134,7 +134,8 @@ pub fn is_type(input: &str) -> bool {
     }
 }
 
-// #todo maybe use a custom Expr::DSSymbol expression to move the detection to read/static time?
+// #todo maybe use a custom Expr::DSSymbol expression to move the detection to read/static time? <- Yes!
+#[inline]
 pub fn is_dynamically_scoped(name: &str) -> bool {
     // #todo don't allow `**`
     // #todo replace with regex? I am wondering which is faster.

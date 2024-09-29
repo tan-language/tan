@@ -476,6 +476,7 @@ pub fn invoke_func(func: &Expr, args: Vec<Expr>, context: &mut Context) -> Resul
     Ok(value)
 }
 
+// #insight Having granular eval functions allows optimization by calling the directly when we have context.
 // #note The passed expression should be unpacked!
 pub fn eval_symbol(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
     // #todo Try to avoid this unpack!
@@ -491,67 +492,34 @@ pub fn eval_symbol(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
     // #todo handle 'PathSymbol'
     // #todo #IMPORTANT this is currently handled in the parser, here is a better place I think.
-
     // #todo try to populate "method"/"signature" annotations during resolving
     // #todo this is missing now that we don't have the resolve stage.
     // #todo maybe resolve or optimize should already have placed the method in the AST?
 
-    // #todo Should not resolve methods here!!
-    let value = if let Some(Expr::String(method)) = expr.annotation("method") {
-        //#hint Uncomment the next line for debugging!
-        // println!("---- Method: {method}");
+    let value = context
+        .get(symbol, is_dynamically_scoped(symbol))
+        .ok_or_else::<Error, _>(|| {
+            let mut error = Error::undefined_symbol(
+                symbol,
+                &format!("symbol not defined: `{symbol}`"),
+                expr.range(),
+            );
 
-        // If the symbol is annotated with a `method`, it's in 'operator' position.
-        // `method` is just one of the variants of a multi-method-function.
-        // #hint: currently dynamically_scope is not supported in this position.
-        if let Some(value) = context.scope.get(method) {
-            value
-        } else {
-            // #todo leave this trace on in some kind of debug mode.
-            // println!("--> method-fallback");
-            // #todo ultra-hack, if the method is not found, try to lookup the function symbol, fall-through.
-            // #todo should do proper type analysis here.
-            // #todo maybe use a custom Expr::DSSymbol expression to move the detection to read/static time?
+            // Custom hints for common errors.
 
-            // #todo Should throw error here, unless we have explicitly generic method!
-            // #todo This leads to confusing/unhelpful messages (not an Int, etc).
+            // #todo Add unit test for ',', '`' hints.
+            if symbol.contains(',') {
+                error.push_note("you added a comma by mistake?", None)
+            }
 
-            context
-                .get(symbol, is_dynamically_scoped(symbol))
-                .ok_or::<Error>(Error::undefined_function(
-                    symbol,
-                    method,
-                    &format!("undefined function `{symbol}` with signature `{method}"),
-                    expr.range(),
-                ))?
-        }
-    } else {
-        context
-            .get(symbol, is_dynamically_scoped(symbol))
-            .ok_or_else::<Error, _>(|| {
-                let mut error = Error::undefined_symbol(
-                    symbol,
-                    &format!("symbol not defined: `{symbol}`"),
-                    expr.range(),
-                );
+            if symbol.contains('`') {
+                // #todo Better hint needed.
+                // #todo Mark as hint, not a general note?
+                error.push_note("you used ` instead of ' by mistake?", None)
+            }
 
-                // Custom hints for common errors.
-
-                // #todo add unit test for ',', '`' hints.
-
-                if symbol.contains(',') {
-                    error.push_note("you added a comma by mistake?", None)
-                }
-
-                if symbol.contains('`') {
-                    // #todo better hint needed.
-                    // #todo mark as hint, not a general note?
-                    error.push_note("you used ` instead of ' by mistake?", None)
-                }
-
-                error
-            })?
-    };
+            error
+        })?;
 
     // #todo hm, can we somehow work with references?
     // #hint this could help: https://doc.rust-lang.org/std/rc/struct.Rc.html#method.unwrap_or_clone

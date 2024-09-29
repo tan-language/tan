@@ -1,10 +1,7 @@
 // #WARNING the resolver is temporarily disabled, some functions are used though.
 
 use crate::{
-    context::Context,
-    error::Error,
-    eval::eval,
-    expr::{annotate, Expr},
+    context::Context, error::Error, eval::eval_symbol, expr::Expr,
     util::method::compute_dyn_signature,
 };
 
@@ -18,24 +15,32 @@ use crate::{
 
 // #todo temporary helper.
 // #todo mutate the existing Expr
+// #todo consider passing the name as Expr?
 pub fn resolve_op_method(name: &str, args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+    // #insight We lookup here instead of returning a mangled symbol to keep
+    // the eval_symbol function simpler.
+
     let signature = compute_dyn_signature(args, context);
 
-    // #todo #optimize
-    // No need to create a new annotated symbol, just perform
-    // the lookup for the actual method.
+    let op = Expr::Symbol(format!("{name}$${signature}"));
 
-    let op = annotate(
-        // #todo #hack think about this!!!!!
-        // #insight we don't use .clone() here, so that Expr::Type is converted to Expr::Symbol()
-        Expr::symbol(name),
-        "method",
-        Expr::String(format!("{name}$${signature}")),
-    );
+    // #insight No need for a full eval here, we know that op is symbol.
+    match eval_symbol(&op, context) {
+        value @ Ok(_) => value,
+        Err(_) => {
+            // #todo ultra-hack, if the method is not found, try to lookup the function symbol, fall-through.
+            // #todo should do proper type analysis here.
+            // #todo maybe use a custom Expr::DSSymbol expression to move the detection to read/static time?
+            // #todo Should throw error here, unless we have explicitly generic method!
+            // #todo This leads to confusing/unhelpful messages (not an Int, etc).
 
-    // #todo no need for a full eval here, we know that op is symbol.
-    let op = eval(&op, context)?;
-    Ok(op)
+            // let op = Expr::Symbol(format!("{name}$$*"));
+            let op = Expr::symbol(name);
+            eval_symbol(&op, context)
+
+            // #todo #important if it fails here report that the mangled-name is missing!
+        }
+    }
 }
 
 // // -----------------------------------------------------------------------------
