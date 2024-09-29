@@ -117,17 +117,17 @@ pub fn setup_lib_set(context: &mut Context) {
     // #tod op consider other paths, e.g. data/set, collections/set, collection/set, etc?
     let module = require_module("set", context);
 
-    module.insert("Set", Expr::ForeignFunc(Arc::new(set_new)));
+    module.insert_invocable("Set", Expr::ForeignFunc(Arc::new(set_new)));
 
     // #todo #hack temp fix!
     // #todo really need to improve signature matching and e.g. support put$$Set$$Expr or put$$Set$$Any
-    module.insert("put$$Set$$Int", Expr::ForeignFunc(Arc::new(set_put)));
-    module.insert("put$$Set$$Float", Expr::ForeignFunc(Arc::new(set_put)));
-    module.insert("put$$Set$$String", Expr::ForeignFunc(Arc::new(set_put)));
+    module.insert_invocable("put$$Set$$Int", Expr::ForeignFunc(Arc::new(set_put)));
+    module.insert_invocable("put$$Set$$Float", Expr::ForeignFunc(Arc::new(set_put)));
+    module.insert_invocable("put$$Set$$String", Expr::ForeignFunc(Arc::new(set_put)));
     // #todo investigate why this is needed!
     // #todo better solution: use Expr::Method or Expr::Multi for foreign functions and functions.
-    module.insert("values-of", Expr::ForeignFunc(Arc::new(set_values)));
-    module.insert("values-of$$Set", Expr::ForeignFunc(Arc::new(set_values)));
+    module.insert_invocable("values-of", Expr::ForeignFunc(Arc::new(set_values)));
+    module.insert_invocable("values-of$$Set", Expr::ForeignFunc(Arc::new(set_values)));
 }
 
 #[cfg(test)]

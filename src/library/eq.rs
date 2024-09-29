@@ -281,17 +281,17 @@ pub fn float_lte(args: &[Expr]) -> Result<Expr, Error> {
 pub fn setup_lib_eq(context: &mut Context) {
     let module = require_module("prelude", context);
 
-    module.insert("=", Expr::foreign_func(&eq_int));
-    module.insert("=$$Int$$Int", Expr::foreign_func(&eq_int));
-    module.insert("=$$Bool$$Bool", Expr::foreign_func(&eq_bool));
-    module.insert("=$$Float$$Float", Expr::foreign_func(&eq_float));
-    module.insert("=$$String$$String", Expr::foreign_func(&eq_string));
-    // module.insert("=$$Symbol$$Symbol", Expr::foreign_func(&eq_symbol)));
-    module.insert("=$$KeySymbol$$KeySymbol", Expr::foreign_func(&eq_symbol));
+    module.insert_invocable("=", Expr::foreign_func(&eq_int));
+    module.insert_invocable("=$$Int$$Int", Expr::foreign_func(&eq_int));
+    module.insert_invocable("=$$Bool$$Bool", Expr::foreign_func(&eq_bool));
+    module.insert_invocable("=$$Float$$Float", Expr::foreign_func(&eq_float));
+    module.insert_invocable("=$$String$$String", Expr::foreign_func(&eq_string));
+    // module.insert_invocable("=$$Symbol$$Symbol", Expr::foreign_func(&eq_symbol)));
+    module.insert_invocable("=$$KeySymbol$$KeySymbol", Expr::foreign_func(&eq_symbol));
     // #todo #hack this is nasty!
-    module.insert("=$$Type$$Type", Expr::foreign_func(&eq_symbol));
-    module.insert("=$$Type$$String", Expr::foreign_func(&eq_symbol));
-    module.insert("=$$Type$$KeySymbol", Expr::foreign_func(&eq_symbol));
+    module.insert_invocable("=$$Type$$Type", Expr::foreign_func(&eq_symbol));
+    module.insert_invocable("=$$Type$$String", Expr::foreign_func(&eq_symbol));
+    module.insert_invocable("=$$Type$$KeySymbol", Expr::foreign_func(&eq_symbol));
 
     module.insert_invocable("!=$$Int$$Int", Expr::foreign_func(&not_eq_int));
     module.insert_invocable("!=$$Float$$Float", Expr::foreign_func(&not_eq_float));

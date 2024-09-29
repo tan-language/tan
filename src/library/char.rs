@@ -45,10 +45,10 @@ pub fn setup_lib_char(context: &mut Context) {
     // #todo put in 'char' path, and import selected functionality to prelude.
     let module = require_module("prelude", context);
 
-    module.insert("Char", Expr::foreign_func(&char_new));
+    module.insert_invocable("Char", Expr::foreign_func(&char_new));
 
-    module.insert("is-upper-case?", Expr::foreign_func(&char_is_uppercase));
-    module.insert("is-lower-case?", Expr::foreign_func(&char_is_lowercase));
+    module.insert_invocable("is-upper-case?", Expr::foreign_func(&char_is_uppercase));
+    module.insert_invocable("is-lower-case?", Expr::foreign_func(&char_is_lowercase));
 }
 
 #[cfg(test)]

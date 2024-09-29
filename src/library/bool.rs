@@ -28,5 +28,5 @@ pub fn setup_lib_bool(context: &mut Context) {
     let module = require_module("prelude", context);
 
     // #todo better name?
-    module.insert("not", Expr::foreign_func(&bool_not));
+    module.insert_invocable("not", Expr::foreign_func(&bool_not));
 }

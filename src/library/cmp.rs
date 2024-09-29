@@ -24,12 +24,12 @@ pub fn setup_lib_cmp(context: &mut Context) {
     // #todo `eq` and `Comparable` are related.
     // #todo consider to make sorter: `cmp`.
 
-    module.insert("compare", Expr::foreign_func(&arithmetic::int_compare));
-    module.insert(
+    module.insert_invocable("compare", Expr::foreign_func(&arithmetic::int_compare));
+    module.insert_invocable(
         "compare$$Int$$Int",
         annotate_type(Expr::foreign_func(&arithmetic::int_compare), "Int"),
     );
-    module.insert(
+    module.insert_invocable(
         "compare$$String$$String",
         annotate_type(Expr::foreign_func(&string_compare), "String"),
     );

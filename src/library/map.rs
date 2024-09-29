@@ -247,25 +247,25 @@ pub fn setup_lib_map(context: &mut Context) {
     // #todo add something like `get-or-init`` or `update-with-default` or `get-and-update`
 
     // #todo add type qualifiers!
-    module.insert("contains-key?", Expr::foreign_func(&map_contains_key));
+    module.insert_invocable("contains-key?", Expr::foreign_func(&map_contains_key));
     // #todo #deprecate Remove contains-key when all call-sites are updated.
-    module.insert("contains-key", Expr::foreign_func(&map_contains_key));
-    module.insert("put", Expr::foreign_func(&map_put));
-    module.insert("put$$Map", Expr::foreign_func(&map_put));
-    module.insert("update!", Expr::foreign_func(&map_update_mut));
-    module.insert("get-or", Expr::foreign_func(&map_get_or));
+    module.insert_invocable("contains-key", Expr::foreign_func(&map_contains_key));
+    module.insert_invocable("put", Expr::foreign_func(&map_put));
+    module.insert_invocable("put$$Map", Expr::foreign_func(&map_put));
+    module.insert_invocable("update!", Expr::foreign_func(&map_update_mut));
+    module.insert_invocable("get-or", Expr::foreign_func(&map_get_or));
 
     // #(Func [(Map T) Hashable] T)
-    module.insert("remove", Expr::foreign_func(&map_remove));
+    module.insert_invocable("remove", Expr::foreign_func(&map_remove));
 
     // #todo Remove older get-* functions {
-    module.insert("get-keys", Expr::foreign_func(&map_get_keys));
-    module.insert("get-values", Expr::foreign_func(&map_get_values));
-    module.insert("get-entries", Expr::foreign_func(&map_get_entries));
+    module.insert_invocable("get-keys", Expr::foreign_func(&map_get_keys));
+    module.insert_invocable("get-values", Expr::foreign_func(&map_get_values));
+    module.insert_invocable("get-entries", Expr::foreign_func(&map_get_entries));
     // }
-    module.insert("keys-of", Expr::foreign_func(&map_get_keys));
-    module.insert("values-of", Expr::foreign_func(&map_get_values));
-    module.insert("entries-of", Expr::foreign_func(&map_get_entries));
+    module.insert_invocable("keys-of", Expr::foreign_func(&map_get_keys));
+    module.insert_invocable("values-of", Expr::foreign_func(&map_get_values));
+    module.insert_invocable("entries-of", Expr::foreign_func(&map_get_entries));
 }
 
 #[cfg(test)]

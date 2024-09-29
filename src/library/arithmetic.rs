@@ -360,130 +360,130 @@ pub fn setup_lib_arithmetic(context: &mut Context) {
     // #todo notice the use of annotate_type.
 
     // #todo forget the mangling, implement with a dispatcher function, multi-function.
-    module.insert("+", annotate_type(Expr::foreign_func(&add_int), "Int"));
-    module.insert(
+    module.insert_invocable("+", annotate_type(Expr::foreign_func(&add_int), "Int"));
+    module.insert_invocable(
         "+$$Int$$Int",
         annotate_type(Expr::foreign_func(&add_int), "Int"),
     );
     // #todo #temp hack to support multiple args.
-    module.insert(
+    module.insert_invocable(
         "+$$Int$$Int$$Int",
         annotate_type(Expr::foreign_func(&add_int), "Int"),
     );
-    module.insert(
+    module.insert_invocable(
         "+$$Int$$Int$$Int$$Int",
         annotate_type(Expr::foreign_func(&add_int), "Int"),
     );
-    module.insert(
+    module.insert_invocable(
         "+$$Float$$Float",
         // #todo add the proper type: (Func Float Float Float)
         // #todo even better: (Func (Many Float) Float)
         annotate_type(Expr::foreign_func(&add_float), "Float"),
     );
     // #todo #temp hack to support multiple args.
-    module.insert(
+    module.insert_invocable(
         "+$$Float$$Float$$Float",
         // #todo add the proper type: (Func Float Float Float)
         // #todo even better: (Func (Many Float) Float)
         annotate_type(Expr::foreign_func(&add_float), "Float"),
     );
-    module.insert(
+    module.insert_invocable(
         "+$$Float$$Float$$Float$$Float",
         // #todo add the proper type: (Func Float Float Float)
         // #todo even better: (Func (Many Float) Float)
         annotate_type(Expr::foreign_func(&add_float), "Float"),
     );
     #[cfg(feature = "dec")]
-    module.insert(
+    module.insert_invocable(
         "+$$Dec$$Dec",
         // #todo add the proper type: (Func Dec Dec Dec)
         // #todo even better: (Func (Many Dec) Dec)
         annotate_type(Expr::foreign_func(&add_dec), "Dec"),
     );
-    module.insert("-", Expr::foreign_func(&sub_int));
-    module.insert("-$$Int", annotate_type(Expr::foreign_func(&neg_int), "Int"));
-    module.insert(
+    module.insert_invocable("-", Expr::foreign_func(&sub_int));
+    module.insert_invocable("-$$Int", annotate_type(Expr::foreign_func(&neg_int), "Int"));
+    module.insert_invocable(
         "-$$Int$$Int",
         annotate_type(Expr::foreign_func(&sub_int), "Int"),
     );
     // #todo #hack implement a version of module.insert that automatically adds a few methods/overloads.
-    module.insert(
+    module.insert_invocable(
         "-$$Int$$Int$$Int",
         annotate_type(Expr::foreign_func(&sub_int), "Int"),
     );
-    module.insert(
+    module.insert_invocable(
         "-$$Int$$Int$$Int$$Int",
         annotate_type(Expr::foreign_func(&sub_int), "Int"),
     );
-    module.insert(
+    module.insert_invocable(
         "-$$Float",
         annotate_type(Expr::foreign_func(&neg_float), "Float"),
     );
-    module.insert(
+    module.insert_invocable(
         "-$$Float$$Float",
         annotate_type(Expr::foreign_func(&sub_float), "Float"),
     );
-    module.insert("*", Expr::foreign_func(&mul_int));
-    module.insert(
+    module.insert_invocable("*", Expr::foreign_func(&mul_int));
+    module.insert_invocable(
         "*$$Int$$Int",
         annotate_type(Expr::foreign_func(&mul_int), "Int"),
     );
     // #todo #temp hack to support multiple args.
-    module.insert(
+    module.insert_invocable(
         "*$$Int$$Int$$Int",
         annotate_type(Expr::foreign_func(&mul_int), "Int"),
     );
-    module.insert(
+    module.insert_invocable(
         "*$$Float$$Float",
         // #todo add the proper type: (Func Float Float Float)
         // #todo even better: (Func (Many Float) Float)
         annotate_type(Expr::foreign_func(&mul_float), "Float"),
     );
-    module.insert(
+    module.insert_invocable(
         "*$$Float$$Float$$Float",
         // #todo add the proper type: (Func Float Float Float)
         // #todo even better: (Func (Many Float) Float)
         annotate_type(Expr::foreign_func(&mul_float), "Float"),
     );
-    module.insert("/", annotate_type(Expr::foreign_func(&div_float), "Float"));
-    module.insert(
+    module.insert_invocable("/", annotate_type(Expr::foreign_func(&div_float), "Float"));
+    module.insert_invocable(
         "/$$Int$$Int",
         annotate_type(Expr::foreign_func(&div_int), "Int"),
     );
     // #todo ultra-hack
-    module.insert(
+    module.insert_invocable(
         "/$$Float$$Float",
         annotate_type(Expr::foreign_func(&div_float), "Float"),
     );
     // #todo ultra-hack
-    module.insert(
+    module.insert_invocable(
         "/$$Float$$Float$$Float",
         annotate_type(Expr::foreign_func(&div_float), "Float"),
     );
-    module.insert(
+    module.insert_invocable(
         "sin",
         annotate_type(Expr::foreign_func(&sin_float), "Float"),
     );
-    module.insert(
+    module.insert_invocable(
         "cos",
         annotate_type(Expr::foreign_func(&cos_float), "Float"),
     );
-    module.insert(
+    module.insert_invocable(
         "**",
         annotate_type(Expr::foreign_func(&powi_float), "Float"),
     );
-    module.insert(
+    module.insert_invocable(
         "**$$Float$$Int",
         annotate_type(Expr::foreign_func(&powi_float), "Float"),
     );
     // #todo Add support for float exponentiation.
     // #todo shouldn't be required.
-    module.insert("%", annotate_type(Expr::foreign_func(&mod_int), "Int"));
-    module.insert(
+    module.insert_invocable("%", annotate_type(Expr::foreign_func(&mod_int), "Int"));
+    module.insert_invocable(
         "%$$Int$$Int",
         annotate_type(Expr::foreign_func(&mod_int), "Int"),
     );
-    module.insert(
+    module.insert_invocable(
         "%$$Float$$Float",
         annotate_type(Expr::foreign_func(&mod_float), "Float"),
     );

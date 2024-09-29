@@ -122,37 +122,37 @@ pub fn setup_lib_float(context: &mut Context) {
     // #todo #think having so many overloads can cover issues, e.g. use the wrong implicit overload.
 
     // #todo make `float_new` the default.
-    module.insert("Float", Expr::foreign_func(&float_from_int));
-    module.insert("Float$$Int", Expr::foreign_func(&float_from_int));
-    module.insert("Float$$Bool", Expr::foreign_func(&float_from_bool));
-    module.insert("Float$$String", Expr::foreign_func(&float_from_string));
-    module.insert("min", Expr::foreign_func(&float_min));
-    module.insert(
+    module.insert_invocable("Float", Expr::foreign_func(&float_from_int));
+    module.insert_invocable("Float$$Int", Expr::foreign_func(&float_from_int));
+    module.insert_invocable("Float$$Bool", Expr::foreign_func(&float_from_bool));
+    module.insert_invocable("Float$$String", Expr::foreign_func(&float_from_string));
+    module.insert_invocable("min", Expr::foreign_func(&float_min));
+    module.insert_invocable(
         "min$$Float$$Float",
         // annotate_type(Expr::foreign_func(&add_float)), "Float"),
         Expr::foreign_func(&float_min),
     );
-    module.insert("max", Expr::foreign_func(&float_max));
-    module.insert(
+    module.insert_invocable("max", Expr::foreign_func(&float_max));
+    module.insert_invocable(
         "max$$Float$$Float",
         // annotate_type(Expr::foreign_func(&add_float)), "Float"),
         Expr::foreign_func(&float_max),
     );
 
-    module.insert("abs", Expr::foreign_func(&float_abs));
-    module.insert("abs$$Float", Expr::foreign_func(&float_abs));
+    module.insert_invocable("abs", Expr::foreign_func(&float_abs));
+    module.insert_invocable("abs$$Float", Expr::foreign_func(&float_abs));
 
     // #todo Kind of annoying that these are non-verbs.
 
-    module.insert("floor", Expr::foreign_func(&float_floor));
-    module.insert("floor$$Float", Expr::foreign_func(&float_floor));
-    module.insert("ceil", Expr::foreign_func(&float_ceil));
-    module.insert("ceil$$Float", Expr::foreign_func(&float_ceil));
+    module.insert_invocable("floor", Expr::foreign_func(&float_floor));
+    module.insert_invocable("floor$$Float", Expr::foreign_func(&float_floor));
+    module.insert_invocable("ceil", Expr::foreign_func(&float_ceil));
+    module.insert_invocable("ceil$$Float", Expr::foreign_func(&float_ceil));
 
     // #todo Consider sqrt-of or Num/sqrt or math/sqrt.
     // #todo Note that `sqrt` does not follow Tan naming conventions but it's a standard term.
-    module.insert("sqrt", Expr::foreign_func(&float_sqrt));
-    module.insert("sqrt$$Float", Expr::foreign_func(&float_sqrt));
+    module.insert_invocable("sqrt", Expr::foreign_func(&float_sqrt));
+    module.insert_invocable("sqrt$$Float", Expr::foreign_func(&float_sqrt));
 
     // Constants.
 
@@ -161,6 +161,6 @@ pub fn setup_lib_float(context: &mut Context) {
     // #todo Mark as constant / make immutable?
     // #todo Should we skip `Float/` prefix?
     // #todo Rename to max-value?
-    module.insert("float/max", Expr::Float(f64::MAX));
-    module.insert("float/infinity", Expr::Float(f64::INFINITY));
+    module.insert_invocable("float/max", Expr::Float(f64::MAX));
+    module.insert_invocable("float/infinity", Expr::Float(f64::INFINITY));
 }

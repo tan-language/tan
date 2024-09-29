@@ -95,11 +95,11 @@ pub fn setup_lib_buffer(context: &mut Context) {
     let module = require_module("prelude", context);
 
     // #todo consider `Buf`.
-    module.insert("Buffer", Expr::foreign_func(&buffer_new));
+    module.insert_invocable("Buffer", Expr::foreign_func(&buffer_new));
 
     // #todo also provide a put$$Int
 
-    module.insert("put$$Buffer$$Int$$U8", Expr::foreign_func(&buffer_put));
+    module.insert_invocable("put$$Buffer$$Int$$U8", Expr::foreign_func(&buffer_put));
 }
 
 // #todo push with Int, reuse push with U8

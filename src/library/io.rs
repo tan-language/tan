@@ -146,25 +146,25 @@ pub fn setup_lib_io(context: &mut Context) {
 
     // #todo separate read/read-string.
 
-    module.insert("read", Expr::foreign_func_mut_context(&read_string));
-    module.insert("read$$String", Expr::foreign_func_mut_context(&read_string));
+    module.insert_invocable("read", Expr::foreign_func_mut_context(&read_string));
+    module.insert_invocable("read$$String", Expr::foreign_func_mut_context(&read_string));
 
-    module.insert(
+    module.insert_invocable(
         "read-string-all",
         Expr::foreign_func_mut_context(&read_string_all),
     );
-    module.insert(
+    module.insert_invocable(
         "read-string-all$$String",
         Expr::foreign_func_mut_context(&read_string_all),
     );
 
-    module.insert("write", Expr::foreign_func(&write));
-    module.insert("write$$String", Expr::foreign_func(&write));
+    module.insert_invocable("write", Expr::foreign_func(&write));
+    module.insert_invocable("write$$String", Expr::foreign_func(&write));
 
-    module.insert("writeln", Expr::foreign_func(&writeln));
-    module.insert("writeln$$String", Expr::foreign_func(&writeln));
+    module.insert_invocable("writeln", Expr::foreign_func(&writeln));
+    module.insert_invocable("writeln$$String", Expr::foreign_func(&writeln));
 
     // #todo temp implementation echo is different than writeln.
-    module.insert("echo", Expr::foreign_func(&echo));
-    module.insert("echo$$String", Expr::foreign_func(&echo));
+    module.insert_invocable("echo", Expr::foreign_func(&echo));
+    module.insert_invocable("echo$$String", Expr::foreign_func(&echo));
 }

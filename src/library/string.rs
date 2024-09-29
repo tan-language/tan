@@ -502,47 +502,47 @@ pub fn string_compare(args: &[Expr]) -> Result<Expr, Error> {
 pub fn setup_lib_string(context: &mut Context) {
     let module = require_module("prelude", context);
 
-    module.insert("String", Expr::foreign_func(&string_new));
+    module.insert_invocable("String", Expr::foreign_func(&string_new));
 
     // #insight it's OK if it's not short, it's not often used.
     // #todo consider a shorter name, e.g. `Str/from`, `Str/from-chars`
     // #todo implement as String constructor method/override?, e.g. `(Str [(Char "h")(Char "i")])`
-    module.insert(
+    module.insert_invocable(
         "String/from-chars",
         Expr::foreign_func(&string_constructor_from_chars),
     );
     // env.insert("String$$Array", Expr::foreign_func(&string_constructor_from_chars)));
 
-    module.insert("chars", Expr::foreign_func(&string_chars));
-    module.insert("chars$$String", Expr::foreign_func(&string_chars));
+    module.insert_invocable("chars", Expr::foreign_func(&string_chars));
+    module.insert_invocable("chars$$String", Expr::foreign_func(&string_chars));
 
-    module.insert("is-empty?", Expr::foreign_func(&string_is_empty));
-    module.insert("is-empty?$$String", Expr::foreign_func(&string_is_empty));
+    module.insert_invocable("is-empty?", Expr::foreign_func(&string_is_empty));
+    module.insert_invocable("is-empty?$$String", Expr::foreign_func(&string_is_empty));
 
     // #todo rename to `to-uppercase`, more consistent?
-    module.insert("to-upper-case", Expr::foreign_func(&char_to_upper_case));
-    module.insert(
+    module.insert_invocable("to-upper-case", Expr::foreign_func(&char_to_upper_case));
+    module.insert_invocable(
         "to-upper-case$$Char",
         Expr::foreign_func(&char_to_upper_case),
     );
 
-    module.insert("to-lower-case", Expr::foreign_func(&string_to_lower_case));
-    module.insert(
+    module.insert_invocable("to-lower-case", Expr::foreign_func(&string_to_lower_case));
+    module.insert_invocable(
         "to-lower-case$$String",
         Expr::foreign_func(&string_to_lower_case),
     );
 
-    module.insert("format-string", Expr::foreign_func(&string_format));
+    module.insert_invocable("format-string", Expr::foreign_func(&string_format));
 
-    module.insert("split", Expr::foreign_func(&string_split));
+    module.insert_invocable("split", Expr::foreign_func(&string_split));
 
-    module.insert("replace", Expr::foreign_func(&string_replace));
+    module.insert_invocable("replace", Expr::foreign_func(&string_replace));
 
     // #todo slice is to general works both as noun and verb, try to find an explicit verb? e.g. `cut` or `carve`
     // #todo alternatively use something like `get-slice` or `cut-slice` or `carve-slice`.
-    module.insert("slice", Expr::foreign_func(&string_slice));
-    module.insert("slice$$String$$Int$$Int", Expr::foreign_func(&string_slice));
-    module.insert(
+    module.insert_invocable("slice", Expr::foreign_func(&string_slice));
+    module.insert_invocable("slice$$String$$Int$$Int", Expr::foreign_func(&string_slice));
+    module.insert_invocable(
         "slice$$String$$(Range Int)",
         Expr::foreign_func(&string_slice_range),
     );
@@ -550,19 +550,19 @@ pub fn setup_lib_string(context: &mut Context) {
     // #todo find a better name, `size`?
     // #insight `count` is _not_ a good name, reserve it for verb/action.
     // #todo What about count-of?
-    module.insert("get-length", Expr::foreign_func(&string_get_length));
-    module.insert("get-length$$String", Expr::foreign_func(&string_get_length));
+    module.insert_invocable("get-length", Expr::foreign_func(&string_get_length));
+    module.insert_invocable("get-length$$String", Expr::foreign_func(&string_get_length));
 
     // #todo write tan unit test
-    module.insert("trim", Expr::foreign_func(&string_trim));
+    module.insert_invocable("trim", Expr::foreign_func(&string_trim));
 
-    // module.insert("contains?", Expr::foreign_func(&string_contains)));
-    module.insert(
+    // module.insert_invocable("contains?", Expr::foreign_func(&string_contains)));
+    module.insert_invocable(
         "contains?$$String$$String",
         Expr::foreign_func(&string_contains),
     );
 
-    module.insert("starts-with?", Expr::foreign_func(&string_starts_with));
+    module.insert_invocable("starts-with?", Expr::foreign_func(&string_starts_with));
 
     /*
     (if (ends-with filename ".png")
@@ -572,7 +572,7 @@ pub fn setup_lib_string(context: &mut Context) {
     )
      */
     // #todo: consider 'ends-with' without '?'.
-    module.insert("ends-with?", Expr::foreign_func(&string_ends_with));
+    module.insert_invocable("ends-with?", Expr::foreign_func(&string_ends_with));
 }
 
 #[cfg(test)]

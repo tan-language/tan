@@ -32,7 +32,7 @@ pub fn setup_lib_int(context: &mut Context) {
     // #todo consider to-int instead?
 
     // #todo Make `int_from_float` the default.
-    module.insert("Int", Expr::foreign_func(&int_from_float));
-    module.insert("Int$$Float", Expr::foreign_func(&int_from_float));
-    module.insert("Int$$Bool", Expr::foreign_func(&int_from_bool));
+    module.insert_invocable("Int", Expr::foreign_func(&int_from_float));
+    module.insert_invocable("Int$$Float", Expr::foreign_func(&int_from_float));
+    module.insert_invocable("Int$$Bool", Expr::foreign_func(&int_from_bool));
 }

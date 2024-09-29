@@ -46,9 +46,9 @@ pub fn setup_lib_u8(context: &mut Context) {
     // #todo put in 'u8' path, and import selected functionality to prelude.
     let module = require_module("prelude", context);
 
-    module.insert("U8", Expr::foreign_func(&u8_new));
-    module.insert("U8$$Int", Expr::foreign_func(&u8_new));
-    module.insert("U8$$Float", Expr::foreign_func(&u8_from_float));
+    module.insert_invocable("U8", Expr::foreign_func(&u8_new));
+    module.insert_invocable("U8$$Int", Expr::foreign_func(&u8_new));
+    module.insert_invocable("U8$$Float", Expr::foreign_func(&u8_from_float));
 }
 
 #[cfg(test)]

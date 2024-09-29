@@ -57,7 +57,7 @@ pub fn setup_lib_prelude(context: &mut Context) {
     // #todo Move this to lang.rs
     // #todo #temp #hack See how it's done in lib-tan-chrono.
     let module = require_module("prelude", context);
-    module.insert(
+    module.insert_invocable(
         "to-string",
         Expr::foreign_func(&expr_to_string), // #todo #temp
     );

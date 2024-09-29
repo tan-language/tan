@@ -90,10 +90,10 @@ pub fn setup_lib_path(context: &mut Context) {
     let module = require_module("path", context);
 
     // #todo think of a better name.
-    module.insert("get-dirname", Expr::foreign_func(&path_get_dirname));
+    module.insert_invocable("get-dirname", Expr::foreign_func(&path_get_dirname));
 
     // #todo think of a better name.
-    module.insert("get-extension", Expr::foreign_func(&path_get_extension));
+    module.insert_invocable("get-extension", Expr::foreign_func(&path_get_extension));
 }
 
 #[cfg(test)]

@@ -31,6 +31,6 @@ pub fn setup_lib_dec(context: &mut Context) {
 
     // #todo consider to-dec instead?
 
-    module.insert("Dec", Expr::foreign_func(&dec_from_string));
-    module.insert("Dec$$String", Expr::foreign_func(&dec_from_string));
+    module.insert_invocable("Dec", Expr::foreign_func(&dec_from_string));
+    module.insert_invocable("Dec$$String", Expr::foreign_func(&dec_from_string));
 }

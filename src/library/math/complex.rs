@@ -130,19 +130,19 @@ pub fn setup_lib_math_complex(context: &mut Context) {
     // #todo make type-paremetric.
     // #todo better name?
     // (let z (Complex 1.0 0.3))
-    module.insert("Complex", Expr::foreign_func(&complex_new));
+    module.insert_invocable("Complex", Expr::foreign_func(&complex_new));
 
-    module.insert("+$$Complex$$Complex", Expr::foreign_func(&complex_add));
-    module.insert(
+    module.insert_invocable("+$$Complex$$Complex", Expr::foreign_func(&complex_add));
+    module.insert_invocable(
         "+$$Complex$$Complex$$Complex",
         Expr::foreign_func(&complex_add),
     );
 
-    module.insert("*$$Complex$$Complex", Expr::foreign_func(&complex_mul));
+    module.insert_invocable("*$$Complex$$Complex", Expr::foreign_func(&complex_mul));
 
     // #todo move this to arithmetic or something similar.
-    module.insert("abs", Expr::foreign_func(&complex_abs));
-    module.insert("abs$$Complex", Expr::foreign_func(&complex_abs));
+    module.insert_invocable("abs", Expr::foreign_func(&complex_abs));
+    module.insert_invocable("abs$$Complex", Expr::foreign_func(&complex_abs));
 
     // #todo also consider Complex:one, Complex:zero ~~ (Complex :zero) -> Complex:zero
     // #todo `Complex/one`

@@ -69,10 +69,10 @@ pub fn setup_lib_maybe(context: &mut Context) {
 
     // #insight Use `is-some?` instead of `some?` to make it a verb, `is` is a linking verb.
     // (if (is-some? user) ...)
-    module.insert("is-some?", Expr::foreign_func(&is_some));
-    module.insert("is-none?", Expr::foreign_func(&is_none));
-    module.insert("some-or", Expr::foreign_func(&some_or));
-    module.insert("expect", Expr::foreign_func_mut_context(&expect));
+    module.insert_invocable("is-some?", Expr::foreign_func(&is_some));
+    module.insert_invocable("is-none?", Expr::foreign_func(&is_none));
+    module.insert_invocable("some-or", Expr::foreign_func(&some_or));
+    module.insert_invocable("expect", Expr::foreign_func_mut_context(&expect));
 }
 
 // #todo add unit tests!

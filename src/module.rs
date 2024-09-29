@@ -54,6 +54,11 @@ impl Module {
             if !self.scope.contains_name(base_name) {
                 self.scope.insert(base_name, value.clone());
             }
+        } else {
+            // #insight This makes it more fault tolerant, also report an error.
+            println!("Non mangled invocable name `{name}`.");
+            // #todo Check in "...$$*" already exists.
+            self.scope.insert(format!("{name}$$*"), value.clone());
         }
         self.scope.insert(name, value)
     }

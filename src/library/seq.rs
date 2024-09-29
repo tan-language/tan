@@ -435,44 +435,44 @@ pub fn setup_lib_seq(context: &mut Context) {
     let module = require_module("prelude", context);
 
     // #todo introduce `++` overload?
-    module.insert("cons", Expr::foreign_func(&list_cons));
-    module.insert("count", Expr::foreign_func(&list_count));
-    module.insert("count$$List", Expr::foreign_func(&list_count));
+    module.insert_invocable("cons", Expr::foreign_func(&list_cons));
+    module.insert_invocable("count", Expr::foreign_func(&list_count));
+    module.insert_invocable("count$$List", Expr::foreign_func(&list_count));
 
     // #todo add type qualifiers!
-    module.insert("push", Expr::foreign_func(&array_push));
+    module.insert_invocable("push", Expr::foreign_func(&array_push));
     // #todo Reconsider the `!` suffix, reconsider the name.
     // #todo also introduce `++`, `++=`, versions
-    module.insert("concat!", Expr::foreign_func(&array_concat_mut));
+    module.insert_invocable("concat!", Expr::foreign_func(&array_concat_mut));
 
     // (map (Func [x] (+ x 1)) [1 2 3]) ; => [2 3 4]
     // (map (Fn x (+ x 1)) [1 2 3]) ; => [2 3 4]
     // (map (-> x (+ x 1)) [1 2 3]) ; => [2 3 4]
     // (map \(+ % 1) [1 2 3])
-    module.insert("map", Expr::foreign_func_mut_context(&array_map));
+    module.insert_invocable("map", Expr::foreign_func_mut_context(&array_map));
 
-    module.insert("join", Expr::foreign_func(&array_join));
-    module.insert("skip", Expr::foreign_func(&array_skip));
+    module.insert_invocable("join", Expr::foreign_func(&array_join));
+    module.insert_invocable("skip", Expr::foreign_func(&array_skip));
     // #todo rename to (get-length) or something, match with String and other collection types.
-    module.insert("count", Expr::foreign_func(&array_count));
-    module.insert("count$$Array", Expr::foreign_func(&array_count));
+    module.insert_invocable("count", Expr::foreign_func(&array_count));
+    module.insert_invocable("count$$Array", Expr::foreign_func(&array_count));
     // #todo make contains? generic!
-    module.insert("contains?", Expr::foreign_func(&array_contains));
-    module.insert("contains?$$Array$$Int", Expr::foreign_func(&array_contains));
-    module.insert(
+    module.insert_invocable("contains?", Expr::foreign_func(&array_contains));
+    module.insert_invocable("contains?$$Array$$Int", Expr::foreign_func(&array_contains));
+    module.insert_invocable(
         "contains?$$Array$$String",
         Expr::foreign_func(&array_contains),
     );
-    module.insert("is-empty?", Expr::foreign_func(&array_is_empty));
-    module.insert("sort!", Expr::foreign_func_mut_context(&array_sort_mut));
+    module.insert_invocable("is-empty?", Expr::foreign_func(&array_is_empty));
+    module.insert_invocable("sort!", Expr::foreign_func_mut_context(&array_sort_mut));
 
     // #todo slice is to general works both as noun and verb, try to find an explicit verb? e.g. `cut` or `carve`
     // #todo alternatively use something like `get-slice` or `cut-slice` or `carve-slice`.
-    // module.insert("slice", Expr::foreign_func(&array_slice)));
-    module.insert("slice$$Array$$Int", Expr::foreign_func(&array_slice));
-    module.insert("slice$$Array$$Int$$Int", Expr::foreign_func(&array_slice));
+    // module.insert_invocable("slice", Expr::foreign_func(&array_slice)));
+    module.insert_invocable("slice$$Array$$Int", Expr::foreign_func(&array_slice));
+    module.insert_invocable("slice$$Array$$Int$$Int", Expr::foreign_func(&array_slice));
 
-    module.insert("roll", Expr::foreign_func(&array_roll));
+    module.insert_invocable("roll", Expr::foreign_func(&array_roll));
 
     // let module = require_module("seq", context);
 

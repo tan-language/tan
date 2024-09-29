@@ -244,12 +244,12 @@ pub fn process_shell(args: &[Expr]) -> Result<Expr, Error> {
 pub fn setup_lib_process(context: &mut Context) {
     let module = require_module("process", context);
 
-    module.insert("exit", Expr::foreign_func(&process_exit));
-    module.insert("exit$$", Expr::foreign_func(&process_exit)); // #todo is this needed?
+    module.insert_invocable("exit", Expr::foreign_func(&process_exit));
+    module.insert_invocable("exit$$", Expr::foreign_func(&process_exit)); // #todo is this needed?
 
     // (let file (process/args 1))
-    module.insert("args", Expr::foreign_func_mut_context(&process_args));
-    module.insert("args$$", Expr::foreign_func_mut_context(&process_args)); // #todo is this needed?
+    module.insert_invocable("args", Expr::foreign_func_mut_context(&process_args));
+    module.insert_invocable("args$$", Expr::foreign_func_mut_context(&process_args)); // #todo is this needed?
 
     // #todo
     // Better API:
@@ -258,15 +258,15 @@ pub fn setup_lib_process(context: &mut Context) {
 
     // #todo (let tan-path (process/env :TANPATH))
     // (let tan-path ((process/env-vars) :TANPATH))
-    module.insert("env-vars", Expr::foreign_func(&process_env_vars));
-    module.insert("env-vars$$", Expr::foreign_func(&process_env_vars)); // #todo is this needed?
+    module.insert_invocable("env-vars", Expr::foreign_func(&process_env_vars));
+    module.insert_invocable("env-vars$$", Expr::foreign_func(&process_env_vars)); // #todo is this needed?
 
     // (let output (process/exec "ls -al"))
-    module.insert("exec", Expr::foreign_func(&process_exec));
-    module.insert("exec$$String", Expr::foreign_func(&process_exec));
+    module.insert_invocable("exec", Expr::foreign_func(&process_exec));
+    module.insert_invocable("exec$$String", Expr::foreign_func(&process_exec));
 
-    module.insert("shell", Expr::foreign_func(&process_shell));
-    module.insert("shell$$String", Expr::foreign_func(&process_shell));
+    module.insert_invocable("shell", Expr::foreign_func(&process_shell));
+    module.insert_invocable("shell$$String", Expr::foreign_func(&process_shell));
 }
 
 // #todo add some tests, even without assertions, just to exercise these functions.

@@ -358,38 +358,38 @@ pub fn setup_lib_lang(context: &mut Context) {
 
     // #todo separate read/read-string.
 
-    module.insert("ann", Expr::foreign_func_mut_context(&ann));
-    module.insert("with-ann", Expr::foreign_func(&with_ann));
+    module.insert_invocable("ann", Expr::foreign_func_mut_context(&ann));
+    module.insert_invocable("with-ann", Expr::foreign_func(&with_ann));
     // #todo #deprecate Use cast instead.
-    module.insert("with-type", Expr::foreign_func(&with_type));
+    module.insert_invocable("with-type", Expr::foreign_func(&with_type));
     // #todo Is this a better name? Is it OK to reserve? Maybe it's better to just use #Type.
     // #todo Should be temp.
-    module.insert("cast", Expr::foreign_func(&with_type));
+    module.insert_invocable("cast", Expr::foreign_func(&with_type));
 
     // #todo the `!` is confusing here.
     // #todo `dbg` is not following naming conventions, but maybe OK for this case?
     // #insight this function returns a string, it does not write to stdout!
-    module.insert("dbg!", Expr::foreign_func(&debug_expr));
+    module.insert_invocable("dbg!", Expr::foreign_func(&debug_expr));
 
-    module.insert("type-of", Expr::foreign_func_mut_context(&type_of));
-    module.insert("is-a?", Expr::foreign_func_mut_context(&is_a));
+    module.insert_invocable("type-of", Expr::foreign_func_mut_context(&type_of));
+    module.insert_invocable("is-a?", Expr::foreign_func_mut_context(&is_a));
 
     // #todo we also need an (eval ...) function.
 
     // #todo hmm, needs a differerent name
     // #todo use `(eval (read string))` instead?
-    module.insert("eval-string", Expr::foreign_func_mut_context(&eval_string));
-    module.insert(
+    module.insert_invocable("eval-string", Expr::foreign_func_mut_context(&eval_string));
+    module.insert_invocable(
         "eval-string$$String",
         Expr::foreign_func_mut_context(&eval_string),
     );
 
-    module.insert("load-file", Expr::foreign_func_mut_context(&load_file));
+    module.insert_invocable("load-file", Expr::foreign_func_mut_context(&load_file));
 
     // #todo Move to a namespace, e.g. `/func`.
-    module.insert("curry", Expr::foreign_func(&func_curry));
+    module.insert_invocable("curry", Expr::foreign_func(&func_curry));
 
-    module.insert(
+    module.insert_invocable(
         "link-foreign-dyn-lib",
         Expr::foreign_func_mut_context(&link_foreign_dyn_lib),
     );

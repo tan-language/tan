@@ -87,8 +87,8 @@
 
 //     // let module = require_module("testing", context);
 
-//     // module.insert("assert", Expr::ForeignFunc(Arc::new(assert)));
-//     // module.insert("assert-eq", Expr::ForeignFunc(Arc::new(assert_eq)));
+//     // module.insert_invocable("assert", Expr::ForeignFunc(Arc::new(assert)));
+//     // module.insert_invocable("assert-eq", Expr::ForeignFunc(Arc::new(assert_eq)));
 // }
 
 // #[cfg(test)]

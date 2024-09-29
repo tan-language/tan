@@ -139,23 +139,23 @@ pub fn setup_lib_range(context: &mut Context) {
     // #todo put in 'range' path, and import selected functionality to prelude.
     let module = require_module("prelude", context);
 
-    module.insert("Range", Expr::foreign_func(&range_int_new));
-    module.insert("Range$$Int$$Int", Expr::foreign_func(&range_int_new));
-    module.insert("Range$$Int$$Int$$Int", Expr::foreign_func(&range_int_new));
-    module.insert("Range$$Float$$Float", Expr::foreign_func(&range_float_new));
-    module.insert(
+    module.insert_invocable("Range", Expr::foreign_func(&range_int_new));
+    module.insert_invocable("Range$$Int$$Int", Expr::foreign_func(&range_int_new));
+    module.insert_invocable("Range$$Int$$Int$$Int", Expr::foreign_func(&range_int_new));
+    module.insert_invocable("Range$$Float$$Float", Expr::foreign_func(&range_float_new));
+    module.insert_invocable(
         "Range$$Float$$Float$$Float",
         Expr::foreign_func(&range_float_new),
     );
 
     // #todo Contains should probably take the step into account.
-    module.insert(
+    module.insert_invocable(
         "contains?$$(Range Float)$$Float",
         Expr::foreign_func(&range_float_contains),
     );
     // #todo Find a better name, originally from https://raytracing.github.io/
-    module.insert("surrounds?", Expr::foreign_func(&range_float_contains));
-    module.insert(
+    module.insert_invocable("surrounds?", Expr::foreign_func(&range_float_contains));
+    module.insert_invocable(
         "surrounds?$$(Range Float)$$Float",
         Expr::foreign_func(&range_float_contains),
     );

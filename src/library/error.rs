@@ -19,7 +19,7 @@ pub fn setup_lib_error(context: &mut Context) {
     let module = require_module("prelude", context);
 
     // #todo consider `Err`.
-    module.insert("Error", Expr::foreign_func(&error_new));
+    module.insert_invocable("Error", Expr::foreign_func(&error_new));
 }
 
 #[cfg(test)]
