@@ -498,7 +498,7 @@ pub fn eval_symbol(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
     // #todo Should not resolve methods here!!
     let value = if let Some(Expr::String(method)) = expr.annotation("method") {
-        //#hint Uncommnt the next line for debugging!
+        //#hint Uncomment the next line for debugging!
         // println!("---- Method: {method}");
 
         // If the symbol is annotated with a `method`, it's in 'operator' position.
@@ -559,6 +559,28 @@ pub fn eval_symbol(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
     Ok(expr_clone(&value))
 }
 
+#[inline]
+pub fn eval_key_symbol(expr: &Expr) -> Result<Expr, Error> {
+    // #todo Handle 'PathSymbol', nah how can it be handled here? it can't.
+    // #todo strip annotation?
+
+    // #todo Lint '::' etc.
+    // #todo Check that if there is a leading ':' there is only one ':', make this a lint warning!
+
+    // #todo #IMPORTANT Avoid the clone here.
+
+    // A `Symbol` that starts with `:` is a so-called `KeySymbol`. Key
+    // symbols evaluate to themselves, and are convenient to use as Map keys,
+    // named (keyed) function parameter, enum variants, etc.
+    Ok(expr.clone())
+}
+
+#[inline]
+pub fn eval_type(expr: &Expr) -> Result<Expr, Error> {
+    // #todo Remove this clone.
+    Ok(expr.clone())
+}
+
 // #todo needs better conversion to Expr::Annotated
 
 /// Evaluates via expression rewriting. The expression `expr` evaluates to
@@ -568,22 +590,11 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
         // #todo are you sure?
         // Expr::Annotated(..) => eval(expr.unpack(), env),
         // #todo should pass `symbol_expr` to eval_symbol.
-        _symbol_expr @ Expr::Symbol(_) => eval_symbol(expr, context),
-        Expr::KeySymbol(..) => {
-            // #todo Handle 'PathSymbol'
-            // #todo strip annotation?
-
-            // #todo Lint '::' etc.
-            // #todo Check that if there is a leading ':' there is only one ':', make this a lint warning!
-
-            // A `Symbol` that starts with `:` is a so-called `KeySymbol`. Key
-            // symbols evaluate to themselves, and are convenient to use as Map keys,
-            // named (keyed) function parameter, enum variants, etc.
-            Ok(expr.clone())
-        }
-        // #todo remove this clone.
-        Expr::Type(..) => Ok(expr.clone()),
+        _symbol_expr @ Expr::Symbol(..) => eval_symbol(expr, context),
+        Expr::KeySymbol(..) => eval_key_symbol(expr),
+        Expr::Type(..) => eval_type(expr),
         // #todo if is unquotable!!
+        // #todo is this ever actually used at the moment?
         Expr::If(predicate, true_clause, false_clause) => {
             let predicate = eval(predicate, context)?;
 
