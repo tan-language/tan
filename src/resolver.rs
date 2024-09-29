@@ -1,10 +1,7 @@
 // #WARNING the resolver is temporarily disabled, some functions are used though.
 
 use crate::{
-    context::Context,
-    error::Error,
-    eval::eval_symbol,
-    expr::{annotate, Expr},
+    context::Context, error::Error, eval::eval_symbol, expr::Expr,
     util::method::compute_dyn_signature,
 };
 
@@ -16,28 +13,26 @@ use crate::{
 
 // #insight resolve_type and resolve_invocable should be combined, cannot be separate passes.
 
-// #todo Maybe should just return the symbol and not attempt the lookup?
 // #todo temporary helper.
 // #todo mutate the existing Expr
+// #todo consider passing the name as Expr?
 pub fn resolve_op_method(name: &str, args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+    // #insight We lookup here instead of returning a mangled symbol to keep
+    // the eval_symbol function simpler.
+
     let signature = compute_dyn_signature(args, context);
 
-    // #todo #optimize
-    // No need to create a new annotated symbol, just perform
-    // the lookup for the actual method.
+    let op = Expr::Symbol(format!("{name}$${signature}"));
 
-    // let op = Expr::Symbol(format!("{name}$${signature}"));
-
-    let op = annotate(
-        // #todo #hack think about this!!!!!
-        // #insight we don't use .clone() here, so that Expr::Type is converted to Expr::Symbol()
-        Expr::symbol(name),
-        "method",
-        Expr::String(format!("{name}$${signature}")),
-    );
-
-    // #todo no need for a full eval here, we know that op is symbol.
-    eval_symbol(&op, context)
+    // #todo No need for a full eval here, we know that op is symbol.
+    match eval_symbol(&op, context) {
+        value @ Ok(_) => value,
+        Err(_) => {
+            // let op = Expr::Symbol(format!("{name}$$*"));
+            let op = Expr::symbol(name);
+            eval_symbol(&op, context)
+        }
+    }
 }
 
 // // -----------------------------------------------------------------------------
