@@ -36,18 +36,17 @@ pub fn resolve_op_method(
             // #todo ultra-hack, if the method is not found, try to lookup the function symbol, fall-through.
             // #todo should do proper type analysis here.
             // #todo maybe use a custom Expr::DSSymbol expression to move the detection to read/static time?
-            // #todo Should throw error here, unless we have explicitly generic method!
-            // #todo This leads to confusing/unhelpful messages (not an Int, etc).
 
-            // let fallback_op = Expr::Symbol(format!("{name}$$*"));
-            let fallback_op = Expr::symbol(name);
+            let fallback_op = Expr::Symbol(format!("{name}$$*"));
             match eval_symbol(&fallback_op, context) {
                 value @ Ok(_) => value,
                 Err(_) => {
                     // #insight Intentionally report the 'non-fallback' symbol.
                     Err(Error::undefined_symbol(
                         &format!("{resolved_op}"),
-                        &format!("symbol not defined: `{resolved_op}`"),
+                        &format!(
+                            "symbol not defined: `{resolved_op}`, tried fallback: `{fallback_op}`"
+                        ),
                         op.range(),
                     ))
                 }

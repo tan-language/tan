@@ -592,7 +592,10 @@ impl Expr {
     }
 
     pub fn is_invocable(&self) -> bool {
-        matches!(self.unpack(), Expr::Func(..) | Expr::ForeignFunc(..))
+        matches!(
+            self.unpack(),
+            Expr::Func(..) | Expr::ForeignFunc(..) | Expr::Type(..)
+        )
     }
 
     // #todo remove TextSeparator concept.

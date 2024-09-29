@@ -66,6 +66,29 @@ impl Scope {
             .insert(name.into(), value.into())
     }
 
+    // A specialized helper method that inserts invocables and also handles mangled names.
+    pub fn insert_invocable(
+        &self,
+        name: impl Into<String>,
+        value: impl Into<Arc<Expr>>,
+    ) -> Option<Arc<Expr>> {
+        let name = name.into();
+        let value = value.into();
+        // #todo Extract helper predicate function for mangled names.
+        if name.contains("$$") {
+            let (base_name, _) = name.split_once("$$").unwrap();
+            if !self.contains_name(base_name) {
+                self.insert(base_name, value.clone());
+            }
+        } else {
+            // #insight This makes it more fault tolerant, also report an error.
+            // println!("*** Non mangled invocable name `{name}`.");
+            // #todo Check in "...$$*" already exists.
+            self.insert(format!("{name}$$*"), value.clone());
+        }
+        self.insert(name, value)
+    }
+
     // #todo We need a recursive version!
     // #todo consider `contains_symbol`
     // #todo think about name <> symbol.
