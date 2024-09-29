@@ -329,7 +329,7 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
 
 // #todo pass &[Expr] instead of Vec<Expr>
 pub fn invoke(invocable: &Expr, args: Vec<Expr>, context: &mut Context) -> Result<Expr, Error> {
-    // #todo support more invocable expressions, e.g. indexing!
+    // #todo Support more invocable expressions, e.g. indexing!
     let result = match invocable.unpack() {
         Expr::Func(..) => invoke_func(invocable, args, context),
         Expr::ForeignFunc(fn_ref) => {
@@ -590,8 +590,9 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                 Ok(Expr::None)
             }
         }
+        // #insight Operator invocation.
         Expr::List(list) => {
-            // #todo Noo need for dynamic invocable, can use (apply f ...) / (invoke f ...) instead.
+            // #todo No need for dynamic invocable, can use (apply f ...) / (invoke f ...) instead.
             // #todo Replace head/tail with first/rest
 
             if list.is_empty() {
@@ -613,7 +614,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
             // #todo This is an ULTRA-HACK! SUPER NASTY/UGLY CODE, refactor!
 
-            // Evaluate the head, try to find dynamic signature
+            // Resolve and evaluate the head, try to find dynamic signature.
+
             let head = if let Some(name) = op.as_symbolic() {
                 if !is_reserved_symbol(name) {
                     // #todo super nasty hack!!!!
@@ -656,7 +658,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 resolve_op_method(name, &args, context)?
                             }
                             _ => {
-                                // #todo What is this case?
+                                // #insight The lookup yields other invocables,
+                                // e.g. Map, Array (Indexable), Type, etc.
                                 args = eval_args(&args, context)?;
                                 eval(op, context)?
                             }
@@ -672,10 +675,13 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     eval(op, context)?
                 }
             } else {
-                // The operator is not a symbol.
+                // The operator is not a symbol, it's 'derreferenced'?
                 eval(op, context)?
             };
 
+            // Evaluate the whole list expression with the resolved head/op.
+
+            // #todo Use op instead of head here.
             // #todo Move special forms to prelude, as Expr::Macro or Expr::Special
 
             match head.unpack() {
