@@ -476,6 +476,7 @@ pub fn invoke_func(func: &Expr, args: Vec<Expr>, context: &mut Context) -> Resul
     Ok(value)
 }
 
+// #insight Having granular eval functions allows optimization by calling the directly when we have context.
 // #note The passed expression should be unpacked!
 pub fn eval_symbol(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
     // #todo Try to avoid this unpack!

@@ -3,7 +3,7 @@
 use crate::{
     context::Context,
     error::Error,
-    eval::eval,
+    eval::eval_symbol,
     expr::{annotate, Expr},
     util::method::compute_dyn_signature,
 };
@@ -16,6 +16,7 @@ use crate::{
 
 // #insight resolve_type and resolve_invocable should be combined, cannot be separate passes.
 
+// #todo Maybe should just return the symbol and not attempt the lookup?
 // #todo temporary helper.
 // #todo mutate the existing Expr
 pub fn resolve_op_method(name: &str, args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
@@ -24,6 +25,8 @@ pub fn resolve_op_method(name: &str, args: &[Expr], context: &mut Context) -> Re
     // #todo #optimize
     // No need to create a new annotated symbol, just perform
     // the lookup for the actual method.
+
+    // let op = Expr::Symbol(format!("{name}$${signature}"));
 
     let op = annotate(
         // #todo #hack think about this!!!!!
@@ -34,8 +37,7 @@ pub fn resolve_op_method(name: &str, args: &[Expr], context: &mut Context) -> Re
     );
 
     // #todo no need for a full eval here, we know that op is symbol.
-    let op = eval(&op, context)?;
-    Ok(op)
+    eval_symbol(&op, context)
 }
 
 // // -----------------------------------------------------------------------------
