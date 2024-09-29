@@ -620,51 +620,59 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
                     // #todo we don't support dynamic scoping in this position, reconsider
                     if let Some(value) = context.scope.get(name) {
-                        if let Expr::Func(params, ..) = value.unpack() {
-                            // 'Cache' the evaluated args, to avoid double evaluation.
-                            args = eval_args(&args, context)?;
+                        match value.unpack() {
+                            Expr::Func(params, ..) => {
+                                // 'Cache' the evaluated args, to avoid double evaluation.
+                                args = eval_args(&args, context)?;
 
-                            // #todo Extract utility function to invoke a function.
-                            // #todo Ultra-hack to kill shared ref to `env`.
-                            let params = params.clone();
+                                // #todo Extract utility function to invoke a function.
+                                // #todo Ultra-hack to kill shared ref to `env`.
+                                let params = params.clone();
 
-                            let prev_scope = context.scope.clone();
-                            context.scope = Arc::new(Scope::new(prev_scope.clone()));
+                                let prev_scope = context.scope.clone();
+                                context.scope = Arc::new(Scope::new(prev_scope.clone()));
 
-                            for (param, arg) in params.iter().zip(&args) {
-                                let Some(param) = param.as_symbol() else {
-                                    return Err(Error::invalid_arguments(
-                                        "parameter is not a symbol",
-                                        param.range(),
-                                    ));
-                                };
+                                for (param, arg) in params.iter().zip(&args) {
+                                    let Some(param) = param.as_symbol() else {
+                                        return Err(Error::invalid_arguments(
+                                            "parameter is not a symbol",
+                                            param.range(),
+                                        ));
+                                    };
 
-                                context.scope.insert(param, arg.clone());
+                                    context.scope.insert(param, arg.clone());
+                                }
+
+                                // #todo Optimize the resolve_op_method.
+                                let head = resolve_op_method(name, &args, context)?;
+
+                                context.scope = prev_scope;
+
+                                head
                             }
-
-                            // #todo Optimize the resolve_op_method.
-                            let head = resolve_op_method(name, &args, context)?;
-
-                            context.scope = prev_scope;
-
-                            head
-                        } else if let Expr::ForeignFunc(_) = value.unpack() {
-                            args = eval_args(&args, context)?;
-                            // #todo Optimize the resolve_op_method.
-                            resolve_op_method(name, &args, context)?
-                        } else {
-                            args = eval_args(&args, context)?;
-                            eval(op, context)?
+                            Expr::ForeignFunc(_) => {
+                                args = eval_args(&args, context)?;
+                                // #todo Optimize the resolve_op_method.
+                                resolve_op_method(name, &args, context)?
+                            }
+                            _ => {
+                                // #todo What is this case?
+                                args = eval_args(&args, context)?;
+                                eval(op, context)?
+                            }
                         }
                     } else {
+                        // #todo What is this case?
                         // #insight No need to eval_args here!
                         eval(op, context)?
                     }
                 } else {
+                    // The operator is a reserved symbol.
                     // #todo !?!?
                     eval(op, context)?
                 }
             } else {
+                // The operator is not a symbol.
                 eval(op, context)?
             };
 
