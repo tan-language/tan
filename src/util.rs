@@ -39,6 +39,7 @@ pub fn try_lock_read<T>(
 }
 
 // #todo this looks SLOW, maybe just use a HashSet here?
+// #insight #ai In Rust, when you have many cases, a HashSet is generally faster than using match expressions.
 /// Returns true if `sym` is reserved.
 pub fn is_reserved_symbol(sym: &str) -> bool {
     // #todo think about `Func`.
@@ -49,7 +50,6 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
             | "def"
             | "and"
             | "or"
-            // | "not"
             | "let"
             | "let-ds"
             | "assign"
@@ -77,7 +77,6 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
             | "quot"
             | "scope-update" // #todo rename to `let*` or `let..` or `let-all` or something.
             | "use" // #todo consider `using`
-            // | "Char"
             | "Func"
             | "Trait"
             | "Macro"

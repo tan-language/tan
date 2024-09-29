@@ -329,7 +329,7 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
 
 // #todo pass &[Expr] instead of Vec<Expr>
 pub fn invoke(invocable: &Expr, args: Vec<Expr>, context: &mut Context) -> Result<Expr, Error> {
-    // #todo support more invocable expressions, e.g. indexing!
+    // #todo Support more invocable expressions, e.g. indexing!
     let result = match invocable.unpack() {
         Expr::Func(..) => invoke_func(invocable, args, context),
         Expr::ForeignFunc(fn_ref) => {
@@ -476,6 +476,111 @@ pub fn invoke_func(func: &Expr, args: Vec<Expr>, context: &mut Context) -> Resul
     Ok(value)
 }
 
+// #note The passed expression should be unpacked!
+pub fn eval_symbol(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
+    // #todo Try to avoid this unpack!
+    let Expr::Symbol(symbol) = expr.unpack() else {
+        unreachable!()
+    };
+
+    // #todo differentiate between evaluating symbol in 'op' position.
+    // #todo combine/optimize check for reserved_symbol and dynamically_scoped, move as much as possible to static-time resolver.
+    if is_reserved_symbol(symbol) {
+        return Ok(expr.clone());
+    }
+
+    // #todo handle 'PathSymbol'
+    // #todo #IMPORTANT this is currently handled in the parser, here is a better place I think.
+
+    // #todo try to populate "method"/"signature" annotations during resolving
+    // #todo this is missing now that we don't have the resolve stage.
+    // #todo maybe resolve or optimize should already have placed the method in the AST?
+
+    // #todo Should not resolve methods here!!
+    let value = if let Some(Expr::String(method)) = expr.annotation("method") {
+        //#hint Uncomment the next line for debugging!
+        // println!("---- Method: {method}");
+
+        // If the symbol is annotated with a `method`, it's in 'operator' position.
+        // `method` is just one of the variants of a multi-method-function.
+        // #hint: currently dynamically_scope is not supported in this position.
+        if let Some(value) = context.scope.get(method) {
+            value
+        } else {
+            // #todo leave this trace on in some kind of debug mode.
+            // println!("--> method-fallback");
+            // #todo ultra-hack, if the method is not found, try to lookup the function symbol, fall-through.
+            // #todo should do proper type analysis here.
+            // #todo maybe use a custom Expr::DSSymbol expression to move the detection to read/static time?
+
+            // #todo Should throw error here, unless we have explicitly generic method!
+            // #todo This leads to confusing/unhelpful messages (not an Int, etc).
+
+            context
+                .get(symbol, is_dynamically_scoped(symbol))
+                .ok_or::<Error>(Error::undefined_function(
+                    symbol,
+                    method,
+                    &format!("undefined function `{symbol}` with signature `{method}"),
+                    expr.range(),
+                ))?
+        }
+    } else {
+        context
+            .get(symbol, is_dynamically_scoped(symbol))
+            .ok_or_else::<Error, _>(|| {
+                let mut error = Error::undefined_symbol(
+                    symbol,
+                    &format!("symbol not defined: `{symbol}`"),
+                    expr.range(),
+                );
+
+                // Custom hints for common errors.
+
+                // #todo add unit test for ',', '`' hints.
+
+                if symbol.contains(',') {
+                    error.push_note("you added a comma by mistake?", None)
+                }
+
+                if symbol.contains('`') {
+                    // #todo better hint needed.
+                    // #todo mark as hint, not a general note?
+                    error.push_note("you used ` instead of ' by mistake?", None)
+                }
+
+                error
+            })?
+    };
+
+    // #todo hm, can we somehow work with references?
+    // #hint this could help: https://doc.rust-lang.org/std/rc/struct.Rc.html#method.unwrap_or_clone
+
+    Ok(expr_clone(&value))
+}
+
+#[inline]
+pub fn eval_key_symbol(expr: &Expr) -> Result<Expr, Error> {
+    // #todo Handle 'PathSymbol', nah how can it be handled here? it can't.
+    // #todo strip annotation?
+
+    // #todo Lint '::' etc.
+    // #todo Check that if there is a leading ':' there is only one ':', make this a lint warning!
+
+    // #todo #IMPORTANT Avoid the clone here.
+
+    // A `Symbol` that starts with `:` is a so-called `KeySymbol`. Key
+    // symbols evaluate to themselves, and are convenient to use as Map keys,
+    // named (keyed) function parameter, enum variants, etc.
+    Ok(expr.clone())
+}
+
+#[inline]
+pub fn eval_type(expr: &Expr) -> Result<Expr, Error> {
+    // #todo Remove this clone.
+    Ok(expr.clone())
+}
+
 // #todo needs better conversion to Expr::Annotated
 
 /// Evaluates via expression rewriting. The expression `expr` evaluates to
@@ -484,93 +589,12 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
     let result = match expr.unpack() {
         // #todo are you sure?
         // Expr::Annotated(..) => eval(expr.unpack(), env),
-        Expr::Symbol(symbol) => {
-            // #todo differentiate between evaluating symbol in 'op' position.
-            // #todo combine/optimize check for reserved_symbol and dynamically_scoped, move as much as possible to static-time resolver.
-            if is_reserved_symbol(symbol) {
-                return Ok(expr.clone());
-            }
-
-            // #todo handle 'PathSymbol'
-
-            // #todo try to populate "method"/"signature" annotations during resolving
-            // #todo this is missing now that we don't have the resolve stage.
-            // #todo maybe resolve or optimize should already have placed the method in the AST?
-
-            let value = if let Some(Expr::String(method)) = expr.annotation("method") {
-                //#hint Uncomment the next line for debugging!
-                // println!("---- Method: {method}");
-
-                // If the symbol is annotated with a `method`, it's in 'operator' position.
-                // `method` is just one of the variants of a multi-method-function.
-                // #hint: currently dynamically_scope is not supported in this position.
-                if let Some(value) = context.scope.get(method) {
-                    value
-                } else {
-                    // #todo leave this trace on in some kind of debug mode.
-                    // println!("--> method-fallback");
-                    // #todo ultra-hack, if the method is not found, try to lookup the function symbol, fall-through.
-                    // #todo should do proper type analysis here.
-                    // #todo maybe use a custom Expr::DSSymbol expression to move the detection to read/static time?
-
-                    // #todo Should throw error here, unless we have explicitly generic method!
-                    // #todo This leads to confusing/unhelpful messages (not an Int, etc).
-
-                    context
-                        .get(symbol, is_dynamically_scoped(symbol))
-                        .ok_or::<Error>(Error::undefined_function(
-                            symbol,
-                            method,
-                            &format!("undefined function `{symbol}` with signature `{method}"),
-                            expr.range(),
-                        ))?
-                }
-            } else {
-                context
-                    .get(symbol, is_dynamically_scoped(symbol))
-                    .ok_or_else::<Error, _>(|| {
-                        let mut error = Error::undefined_symbol(
-                            symbol,
-                            &format!("symbol not defined: `{symbol}`"),
-                            expr.range(),
-                        );
-
-                        // #todo add unit test for ',', '`' hints.
-
-                        if symbol.contains(',') {
-                            error.push_note("you added a comma by mistake?", None)
-                        }
-
-                        if symbol.contains('`') {
-                            // #todo better hint needed.
-                            // #todo mark as hint, not a general note?
-                            error.push_note("you used ` instead of ' by mistake?", None)
-                        }
-
-                        error
-                    })?
-            };
-
-            // #todo hm, can we somehow work with references?
-            // #hint this could help: https://doc.rust-lang.org/std/rc/struct.Rc.html#method.unwrap_or_clone
-
-            Ok(expr_clone(&value))
-        }
-        Expr::KeySymbol(..) => {
-            // #todo Handle 'PathSymbol'
-            // #todo strip annotation?
-
-            // #todo Lint '::' etc.
-            // #todo Check that if there is a leading ':' there is only one ':', make this a lint warning!
-
-            // A `Symbol` that starts with `:` is a so-called `KeySymbol`. Key
-            // symbols evaluate to themselves, and are convenient to use as Map keys,
-            // named (keyed) function parameter, enum variants, etc.
-            Ok(expr.clone())
-        }
-        // #todo remove this clone.
-        Expr::Type(..) => Ok(expr.clone()),
+        // #todo should pass `symbol_expr` to eval_symbol.
+        _symbol_expr @ Expr::Symbol(..) => eval_symbol(expr, context),
+        Expr::KeySymbol(..) => eval_key_symbol(expr),
+        Expr::Type(..) => eval_type(expr),
         // #todo if is unquotable!!
+        // #todo is this ever actually used at the moment?
         Expr::If(predicate, true_clause, false_clause) => {
             let predicate = eval(predicate, context)?;
 
@@ -590,8 +614,9 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                 Ok(Expr::None)
             }
         }
+        // #insight Operator invocation.
         Expr::List(list) => {
-            // #todo Noo need for dynamic invocable, can use (apply f ...) / (invoke f ...) instead.
+            // #todo No need for dynamic invocable, can use (apply f ...) / (invoke f ...) instead.
             // #todo Replace head/tail with first/rest
 
             if list.is_empty() {
@@ -613,61 +638,74 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
 
             // #todo This is an ULTRA-HACK! SUPER NASTY/UGLY CODE, refactor!
 
-            // Evaluate the head, try to find dynamic signature
+            // Resolve and evaluate the head, try to find dynamic signature.
+
             let head = if let Some(name) = op.as_symbolic() {
                 if !is_reserved_symbol(name) {
                     // #todo super nasty hack!!!!
 
                     // #todo we don't support dynamic scoping in this position, reconsider
                     if let Some(value) = context.scope.get(name) {
-                        if let Expr::Func(params, ..) = value.unpack() {
-                            // 'Cache' the evaluated args, to avoid double evaluation.
-                            args = eval_args(&args, context)?;
+                        match value.unpack() {
+                            Expr::Func(params, ..) => {
+                                // 'Cache' the evaluated args, to avoid double evaluation.
+                                args = eval_args(&args, context)?;
 
-                            // #todo Extract utility function to invoke a function.
-                            // #todo Ultra-hack to kill shared ref to `env`.
-                            let params = params.clone();
+                                // #todo Extract utility function to invoke a function.
+                                // #todo Ultra-hack to kill shared ref to `env`.
+                                let params = params.clone();
 
-                            let prev_scope = context.scope.clone();
-                            context.scope = Arc::new(Scope::new(prev_scope.clone()));
+                                let prev_scope = context.scope.clone();
+                                context.scope = Arc::new(Scope::new(prev_scope.clone()));
 
-                            for (param, arg) in params.iter().zip(&args) {
-                                let Some(param) = param.as_symbol() else {
-                                    return Err(Error::invalid_arguments(
-                                        "parameter is not a symbol",
-                                        param.range(),
-                                    ));
-                                };
+                                for (param, arg) in params.iter().zip(&args) {
+                                    let Some(param) = param.as_symbol() else {
+                                        return Err(Error::invalid_arguments(
+                                            "parameter is not a symbol",
+                                            param.range(),
+                                        ));
+                                    };
 
-                                context.scope.insert(param, arg.clone());
+                                    context.scope.insert(param, arg.clone());
+                                }
+
+                                // #todo Optimize the resolve_op_method.
+                                let head = resolve_op_method(name, &args, context)?;
+
+                                context.scope = prev_scope;
+
+                                head
                             }
-
-                            // #todo Optimize the resolve_op_method.
-                            let head = resolve_op_method(name, &args, context)?;
-
-                            context.scope = prev_scope;
-
-                            head
-                        } else if let Expr::ForeignFunc(_) = value.unpack() {
-                            args = eval_args(&args, context)?;
-                            // #todo Optimize the resolve_op_method.
-                            resolve_op_method(name, &args, context)?
-                        } else {
-                            args = eval_args(&args, context)?;
-                            eval(op, context)?
+                            Expr::ForeignFunc(_) => {
+                                args = eval_args(&args, context)?;
+                                // #todo Optimize the resolve_op_method.
+                                resolve_op_method(name, &args, context)?
+                            }
+                            _ => {
+                                // #insight The lookup yields other invocables,
+                                // e.g. Map, Array (Indexable), Type, etc.
+                                args = eval_args(&args, context)?;
+                                eval(op, context)?
+                            }
                         }
                     } else {
+                        // #todo What is this case?
                         // #insight No need to eval_args here!
                         eval(op, context)?
                     }
                 } else {
+                    // The operator is a reserved symbol.
                     // #todo !?!?
                     eval(op, context)?
                 }
             } else {
+                // The operator is not a symbol, it's 'derreferenced'?
                 eval(op, context)?
             };
 
+            // Evaluate the whole list expression with the resolved head/op.
+
+            // #todo Use op instead of head here.
             // #todo Move special forms to prelude, as Expr::Macro or Expr::Special
 
             match head.unpack() {
