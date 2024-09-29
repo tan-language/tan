@@ -24,13 +24,21 @@ pub fn resolve_op_method(name: &str, args: &[Expr], context: &mut Context) -> Re
 
     let op = Expr::Symbol(format!("{name}$${signature}"));
 
-    // #todo No need for a full eval here, we know that op is symbol.
+    // #insight No need for a full eval here, we know that op is symbol.
     match eval_symbol(&op, context) {
         value @ Ok(_) => value,
         Err(_) => {
+            // #todo ultra-hack, if the method is not found, try to lookup the function symbol, fall-through.
+            // #todo should do proper type analysis here.
+            // #todo maybe use a custom Expr::DSSymbol expression to move the detection to read/static time?
+            // #todo Should throw error here, unless we have explicitly generic method!
+            // #todo This leads to confusing/unhelpful messages (not an Int, etc).
+
             // let op = Expr::Symbol(format!("{name}$$*"));
             let op = Expr::symbol(name);
             eval_symbol(&op, context)
+
+            // #todo #important if it fails here report that the mangled-name is missing!
         }
     }
 }
