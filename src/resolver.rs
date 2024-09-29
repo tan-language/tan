@@ -45,7 +45,7 @@ pub fn resolve_op_method(
                     Err(Error::undefined_symbol(
                         &format!("{resolved_op}"),
                         &format!(
-                            "symbol not defined: `{resolved_op}`, tried fallback: `{fallback_op}`"
+                            "method not defined: `{resolved_op}`, tried fallback method: `{fallback_op}`"
                         ),
                         op.range(),
                     ))
