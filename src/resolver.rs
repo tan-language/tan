@@ -16,16 +16,21 @@ use crate::{
 // #todo temporary helper.
 // #todo mutate the existing Expr
 // #todo consider passing the name as Expr?
-pub fn resolve_op_method(name: &str, args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+pub fn resolve_op_method(
+    op: &Expr,
+    name: &str,
+    args: &[Expr],
+    context: &mut Context,
+) -> Result<Expr, Error> {
     // #insight We lookup here instead of returning a mangled symbol to keep
     // the eval_symbol function simpler.
 
     let signature = compute_dyn_signature(args, context);
 
-    let op = Expr::Symbol(format!("{name}$${signature}"));
+    let resolved_op = Expr::Symbol(format!("{name}$${signature}"));
 
     // #insight No need for a full eval here, we know that op is symbol.
-    match eval_symbol(&op, context) {
+    match eval_symbol(&resolved_op, context) {
         value @ Ok(_) => value,
         Err(_) => {
             // #todo ultra-hack, if the method is not found, try to lookup the function symbol, fall-through.
@@ -34,11 +39,19 @@ pub fn resolve_op_method(name: &str, args: &[Expr], context: &mut Context) -> Re
             // #todo Should throw error here, unless we have explicitly generic method!
             // #todo This leads to confusing/unhelpful messages (not an Int, etc).
 
-            // let op = Expr::Symbol(format!("{name}$$*"));
-            let op = Expr::symbol(name);
-            eval_symbol(&op, context)
-
-            // #todo #important if it fails here report that the mangled-name is missing!
+            // let fallback_op = Expr::Symbol(format!("{name}$$*"));
+            let fallback_op = Expr::symbol(name);
+            match eval_symbol(&fallback_op, context) {
+                value @ Ok(_) => value,
+                Err(_) => {
+                    // #insight Intentionally report the 'non-fallback' symbol.
+                    Err(Error::undefined_symbol(
+                        &format!("{resolved_op}"),
+                        &format!("symbol not defined: `{resolved_op}`"),
+                        op.range(),
+                    ))
+                }
+            }
         }
     }
 }

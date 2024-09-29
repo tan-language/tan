@@ -638,7 +638,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                                 }
 
                                 // #todo Optimize the resolve_op_method.
-                                let head = resolve_op_method(name, &args, context)?;
+                                let head = resolve_op_method(op, name, &args, context)?;
 
                                 context.scope = prev_scope;
 
@@ -647,7 +647,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                             Expr::ForeignFunc(_) => {
                                 args = eval_args(&args, context)?;
                                 // #todo Optimize the resolve_op_method.
-                                resolve_op_method(name, &args, context)?
+                                resolve_op_method(op, name, &args, context)?
                             }
                             _ => {
                                 // #insight The lookup yields other invocables,
