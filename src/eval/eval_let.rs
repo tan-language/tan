@@ -29,6 +29,9 @@ pub fn eval_let(op: &Expr, args: &[Expr], context: &mut Context) -> Result<Expr,
             break;
         };
 
+        // #todo Should maybe implement methods here?
+        // #todo If it's an invocable convert to a method? Expr::Method.
+
         let value = Expr::maybe_annotated(eval(value, context)?, op.annotations());
 
         insert_binding(name, value, context)?

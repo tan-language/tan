@@ -514,7 +514,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     // #todo maybe use a custom Expr::DSSymbol expression to move the detection to read/static time?
 
                     // #todo Should throw error here, unless we have explicitly generic method!
-                    
+                    // #todo This leads to confusing/unhelpful messages (not an Int, etc).
+
                     context
                         .get(symbol, is_dynamically_scoped(symbol))
                         .ok_or::<Error>(Error::undefined_function(
