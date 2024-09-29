@@ -39,6 +39,24 @@ impl Module {
     ) -> Option<Arc<Expr>> {
         self.scope.insert(name, value)
     }
+
+    // A specialized helper method that also
+    pub fn insert_invocable(
+        &self,
+        name: impl Into<String>,
+        value: impl Into<Arc<Expr>>,
+    ) -> Option<Arc<Expr>> {
+        let name = name.into();
+        let value = value.into();
+        // #todo Extract helper predicate function for mangled names.
+        if name.contains("$$") {
+            let (base_name, _) = name.split_once("$$").unwrap();
+            if !self.scope.contains_name(base_name) {
+                self.scope.insert(base_name, value.clone());
+            }
+        }
+        self.scope.insert(name, value)
+    }
 }
 
 #[cfg(test)]

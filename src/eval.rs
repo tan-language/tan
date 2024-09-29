@@ -108,6 +108,7 @@ fn insert_symbol_binding(
         ));
     }
 
+    // #todo Move this even more up-stream.
     // #todo Move this up-stream to insert_binding.
     // #todo This is a temp hack!
     let sym = if value.is_invocable() {
@@ -122,20 +123,13 @@ fn insert_symbol_binding(
 
             format!("{sym}{signature}")
         } else {
+            // #todo Should  insert a more specialized symbol.
+            // format!("{sym}$$*")
             sym.to_owned()
         }
     } else {
         sym.to_owned()
     };
-
-    // // #todo also is_reserved_symbol is slow, optimize.
-    // // #todo do we really want this? Maybe convert to a lint?
-    // if is_reserved_symbol(&sym) {
-    //     return Err(Error::invalid_arguments(
-    //         &format!("cannot shadow the reserved symbol `{sym}`"),
-    //         range.clone(),
-    //     ));
-    // }
 
     // #todo notify about overrides? use `set`?
     context.scope.insert(sym, value);
@@ -490,6 +484,8 @@ pub fn eval_symbol(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
         return Ok(expr.clone());
     }
 
+    // #todo #IMPORTANT now that we don't use the method annotation, we don't support Tan functions with types?
+
     // #todo handle 'PathSymbol'
     // #todo #IMPORTANT this is currently handled in the parser, here is a better place I think.
     // #todo try to populate "method"/"signature" annotations during resolving
@@ -612,6 +608,8 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                 if !is_reserved_symbol(name) {
                     // #todo super nasty hack!!!!
 
+                    // #insight The un-mangled operator name is still needed.
+                    // #todo Add module.insert_op helper that automatically creates it!
                     // #todo we don't support dynamic scoping in this position, reconsider
                     if let Some(value) = context.scope.get(name) {
                         match value.unpack() {

@@ -293,28 +293,23 @@ pub fn setup_lib_eq(context: &mut Context) {
     module.insert("=$$Type$$String", Expr::foreign_func(&eq_symbol));
     module.insert("=$$Type$$KeySymbol", Expr::foreign_func(&eq_symbol));
 
-    module.insert("!=", Expr::foreign_func(&not_eq_int));
-    module.insert("!=$$Int$$Int", Expr::foreign_func(&not_eq_int));
-    module.insert("!=$$Float$$Float", Expr::foreign_func(&not_eq_float));
-    module.insert("!=$$String$$String", Expr::foreign_func(&not_eq_string));
-    module.insert("!=$$Symbol$$Symbol", Expr::foreign_func(&not_eq_symbol));
-    module.insert(
+    module.insert_invocable("!=$$Int$$Int", Expr::foreign_func(&not_eq_int));
+    module.insert_invocable("!=$$Float$$Float", Expr::foreign_func(&not_eq_float));
+    module.insert_invocable("!=$$String$$String", Expr::foreign_func(&not_eq_string));
+    module.insert_invocable("!=$$Symbol$$Symbol", Expr::foreign_func(&not_eq_symbol));
+    module.insert_invocable(
         "!=$$KeySymbol$$KeySymbol",
         Expr::foreign_func(&not_eq_symbol),
     );
 
-    module.insert(">", Expr::foreign_func(&int_gt));
-    module.insert(">$$Int$$Int", Expr::foreign_func(&int_gt));
-    module.insert(">$$Float$$Float", Expr::foreign_func(&float_gt));
-    module.insert(">=", Expr::foreign_func(&float_gte));
-    module.insert(">=$$Int$$Int", Expr::foreign_func(&int_gte));
-    module.insert(">=$$Float$$Float", Expr::foreign_func(&float_gte));
-    module.insert("<", Expr::foreign_func(&int_lt));
-    module.insert("<$$Int$$Int", Expr::foreign_func(&int_lt));
-    module.insert("<$$Float$$Float", Expr::foreign_func(&float_lt));
-    module.insert("<=", Expr::foreign_func(&float_lte));
-    module.insert("<=$$Int$$Int", Expr::foreign_func(&int_lte));
-    module.insert("<=$$Float$$Float", Expr::foreign_func(&float_lte));
+    module.insert_invocable(">$$Int$$Int", Expr::foreign_func(&int_gt));
+    module.insert_invocable(">$$Float$$Float", Expr::foreign_func(&float_gt));
+    module.insert_invocable(">=$$Int$$Int", Expr::foreign_func(&int_gte));
+    module.insert_invocable(">=$$Float$$Float", Expr::foreign_func(&float_gte));
+    module.insert_invocable("<$$Int$$Int", Expr::foreign_func(&int_lt));
+    module.insert_invocable("<$$Float$$Float", Expr::foreign_func(&float_lt));
+    module.insert_invocable("<=$$Int$$Int", Expr::foreign_func(&int_lte));
+    module.insert_invocable("<=$$Float$$Float", Expr::foreign_func(&float_lte));
 }
 
 #[cfg(test)]
