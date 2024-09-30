@@ -112,7 +112,7 @@ fn insert_symbol_binding(
     // #todo Move this up-stream to insert_binding.
     // #todo This is a temp hack!
     if value.is_invocable() {
-        let sym = if let Some(signature) = compute_signature_from_annotations(&value) {
+        if let Some(signature) = compute_signature_from_annotations(&value) {
             // Make sure the symbol without a signature exists.
             // #todo #hack This is a temp fix until we properly implement multi-methods/overloaded ops.
             // #insight We cannot avoid this recursive contains check, and we cannot just force the insertion of a 'sentinel' value.
@@ -121,13 +121,17 @@ fn insert_symbol_binding(
                 context.scope.insert(sym, expr_clone(&value));
             }
 
-            format!("{sym}{signature}")
+            let sym = format!("{sym}{signature}");
+            // #todo notify about overrides? use `set`?
+            context.scope.insert_invocable(sym, value);
         } else {
+            // #todo #IMPORTANT This is still not correct, we need a `lookup_invocable`.
             // #todo Should  insert a more specialized symbol.
-            format!("{sym}$$*")
-        };
-        // #todo notify about overrides? use `set`?
-        context.scope.insert_invocable(sym, value);
+            // #todo Rethink this!
+            // format!("{sym}$$*")
+            // #insight Intentionally don't use insert_invocable.
+            context.scope.insert(sym, value);
+        }
     } else {
         // #todo notify about overrides? use `set`?
         context.scope.insert(sym, value);
