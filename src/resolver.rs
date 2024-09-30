@@ -33,7 +33,7 @@ pub fn resolve_op_method(
     match eval_symbol(&resolved_op, context) {
         value @ Ok(_) => value,
         Err(_) => {
-            // #todo ultra-hack, if the method is not found, try to lookup the function symbol, fall-through.
+            // The exact method is not found, try to get a fallback `$$*` method.
             // #todo should do proper type analysis here.
             // #todo maybe use a custom Expr::DSSymbol expression to move the detection to read/static time?
 
@@ -41,14 +41,25 @@ pub fn resolve_op_method(
             match eval_symbol(&fallback_op, context) {
                 value @ Ok(_) => value,
                 Err(_) => {
-                    // #insight Intentionally report the 'non-fallback' symbol.
-                    Err(Error::undefined_symbol(
-                        &format!("{resolved_op}"),
-                        &format!(
-                            "method not defined: `{resolved_op}`, tried fallback method: `{fallback_op}`"
-                        ),
-                        op.range(),
-                    ))
+                    // #insight This is used for function passed as parameters.
+                    // #todo Think about the correct solution.
+                    // #todo #hack This must me a temp solution.
+                    // #todo Differentiate 'local' symbols.
+
+                    let unmangled_op = Expr::Symbol(name.to_string());
+                    match eval_symbol(&unmangled_op, context) {
+                        value @ Ok(_) => value,
+                        Err(_) => {
+                            // #insight Intentionally report the 'non-fallback' symbol.
+                            Err(Error::undefined_symbol(
+                                &format!("{resolved_op}"),
+                                &format!(
+                                    "method not defined: `{resolved_op}`, tried fallback method: `{fallback_op}`"
+                                ),
+                                op.range(),
+                            ))
+                        }
+                    }
                 }
             }
         }
