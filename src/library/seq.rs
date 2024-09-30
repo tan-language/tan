@@ -117,6 +117,15 @@ pub fn array_concat_mut(args: &[Expr]) -> Result<Expr, Error> {
     Ok(Expr::None)
 }
 
+pub fn array_concat(args: &[Expr]) -> Result<Expr, Error> {
+    let a = unpack_array_arg(args, 0, "a")?;
+    let b = unpack_array_arg(args, 1, "b")?;
+
+    let c: Vec<Expr> = a.iter().chain(b.iter()).cloned().collect();
+
+    Ok(Expr::array(c))
+}
+
 // #todo consider the name intercalate from haskell?
 // #todo can we find a more specific name?
 // #todo hm, it joins as strings, not very general, should move to string?
@@ -442,8 +451,12 @@ pub fn setup_lib_seq(context: &mut Context) {
     // #todo add type qualifiers!
     module.insert_invocable("push", Expr::foreign_func(&array_push));
     // #todo Reconsider the `!` suffix, reconsider the name.
+    // #todo Consider concat-mut
     // #todo also introduce `++`, `++=`, versions
     module.insert_invocable("concat!", Expr::foreign_func(&array_concat_mut));
+
+    module.insert_invocable("concat", Expr::foreign_func(&array_concat));
+    module.insert_invocable("++", Expr::foreign_func(&array_concat));
 
     // (map (Func [x] (+ x 1)) [1 2 3]) ; => [2 3 4]
     // (map (Fn x (+ x 1)) [1 2 3]) ; => [2 3 4]
