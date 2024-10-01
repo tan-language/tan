@@ -121,6 +121,8 @@ pub fn array_concat(args: &[Expr]) -> Result<Expr, Error> {
     let a = unpack_array_arg(args, 0, "a")?;
     let b = unpack_array_arg(args, 1, "b")?;
 
+    // #todo Check if a or b is empty and optimize!
+
     let c: Vec<Expr> = a.iter().chain(b.iter()).cloned().collect();
 
     Ok(Expr::array(c))
