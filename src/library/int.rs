@@ -3,7 +3,7 @@ use crate::{
     error::Error,
     expr::Expr,
     util::{
-        args::{unpack_bool_arg, unpack_float_arg, unpack_int_arg},
+        args::{unpack_bool_arg, unpack_float_arg, unpack_int_arg, unpack_stringable_arg},
         module_util::require_module,
     },
 };
@@ -21,6 +21,18 @@ pub fn int_from_bool(args: &[Expr]) -> Result<Expr, Error> {
     let value = unpack_bool_arg(args, 0, "value")?;
 
     Ok(Expr::Int(if value { 1 } else { 0 }))
+}
+
+// #todo Support both (Int "123") and (Int/from-string "123")
+pub fn int_from_string(args: &[Expr]) -> Result<Expr, Error> {
+    let string = unpack_stringable_arg(args, 0, "string")?;
+    let Ok(value) = string.parse::<i64>() else {
+        return Err(Error::invalid_arguments(
+            &format!("string=`{string}` is not a valid Int number"),
+            args[0].range(),
+        ));
+    };
+    Ok(Expr::Int(value))
 }
 
 // #insight the bitwise functions are not that frequent, no need for operators?
@@ -52,10 +64,12 @@ pub fn setup_lib_int(context: &mut Context) {
     // module.insert_invocable("Int", Expr::foreign_func(&int_from_float));
     module.insert_invocable("Int$$Float", Expr::foreign_func(&int_from_float));
     module.insert_invocable("Int$$Bool", Expr::foreign_func(&int_from_bool));
+    module.insert_invocable("Int$$String", Expr::foreign_func(&int_from_string));
 
     // #todo Add bit-checking functions.
     // #todo Introduce more bitwise operators (xor, etc...)
     // #todo Consider other names and/or operators (&, |)
+    // #todo Constrain with Int?
     module.insert_invocable("bit-and", Expr::foreign_func(&int_bitwise_and));
     module.insert_invocable("bit-or", Expr::foreign_func(&int_bitwise_or));
 }
