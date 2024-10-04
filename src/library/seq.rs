@@ -4,7 +4,7 @@ use crate::{
     eval::{invoke, invoke_func},
     expr::{expr_clone, format_value, Expr},
     util::{
-        args::{unpack_array_arg, unpack_int_arg},
+        args::{unpack_arg, unpack_array_arg, unpack_int_arg},
         module_util::require_module,
     },
 };
@@ -327,11 +327,40 @@ pub fn array_filter(_args: &[Expr]) -> Result<Expr, Error> {
 
 // #todo implement first, last
 
+#[inline]
+fn sort_array_items(array_items: &mut [Expr], func: &Expr, context: &mut Context) {
+    // #todo validate func is a comparator.
+    // #todo validate that params has the correct structure.
+
+    array_items.sort_by(|x, y| {
+        // #todo how to handle errors here?
+        // #todo should we evaluate array items?
+        // #insight args are already evaluated!
+        // let args = vec![eval(x, context).unwrap(), eval(y, context).unwrap()];
+        let args = vec![x.clone(), y.clone()];
+        let tan_ordering = invoke_func(func, args, context).unwrap();
+        rust_ordering_from_tan_ordering(&tan_ordering).unwrap()
+    });
+}
+
+pub fn array_sort(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+    // #todo Find a good name for the array argument.
+    let xs = unpack_array_arg(args, 0, "xs")?;
+    let func = unpack_arg(args, 1, "func")?;
+
+    let mut xs_sorted = xs.clone();
+
+    sort_array_items(&mut xs_sorted, func, context);
+
+    Ok(Expr::array(xs_sorted))
+}
+
+// #todo Use (sort #mut arr (Func [a b] (- a b)))
 // #todo implement sort!, sort, sort-by!, sort-by
 // #todo need to introduce Comparable trait and (cmp ...) or (compare ...)
 // #todo need to introduce Ordering trait
-// (sort [9 2 7] (Func [a b] (- a b)))
-// (sort [9 2 7] (-> [a b] (- a b)))
+// (sort! [9 2 7] (Func [a b] (- a b)))
+// (sort! [9 2 7] (-> [a b] (- a b)))
 pub fn array_sort_mut(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     let [array, func] = args else {
         return Err(Error::invalid_arguments(
@@ -347,18 +376,9 @@ pub fn array_sort_mut(args: &[Expr], context: &mut Context) -> Result<Expr, Erro
         ));
     };
 
-    // #todo validate func is a comparator.
-    // #todo validate that params has the correct structure.
+    sort_array_items(&mut array_items, func, context);
 
-    array_items.sort_by(|x, y| {
-        // #todo how to handle errors here?
-        // #todo should we evaluate array items?
-        // #insight args are already evaluated!
-        // let args = vec![eval(x, context).unwrap(), eval(y, context).unwrap()];
-        let args = vec![x.clone(), y.clone()];
-        let tan_ordering = invoke_func(func, args, context).unwrap();
-        rust_ordering_from_tan_ordering(&tan_ordering).unwrap()
-    });
+    // #todo Don't return the array, skip the clone!!
 
     // #insight interesting that we are also returning the input.
 
@@ -479,6 +499,7 @@ pub fn setup_lib_seq(context: &mut Context) {
         Expr::foreign_func(&array_contains),
     );
     module.insert_invocable("is-empty?", Expr::foreign_func(&array_is_empty));
+    module.insert_invocable("sort", Expr::foreign_func_mut_context(&array_sort));
     module.insert_invocable("sort!", Expr::foreign_func_mut_context(&array_sort_mut));
 
     // #todo slice is to general works both as noun and verb, try to find an explicit verb? e.g. `cut` or `carve`
