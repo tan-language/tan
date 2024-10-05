@@ -332,6 +332,9 @@ fn sort_array_items(array_items: &mut [Expr], func: &Expr, context: &mut Context
     // #todo validate func is a comparator.
     // #todo validate that params has the correct structure.
 
+    // #todo #IMPORTANT, only sorts Int arrays!
+    // #hint Use e.g. (sort a (Func [a b] (Int (- a b))))
+
     array_items.sort_by(|x, y| {
         // #todo how to handle errors here?
         // #todo should we evaluate array items?

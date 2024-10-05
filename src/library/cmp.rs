@@ -9,10 +9,7 @@ use crate::{
 use super::{arithmetic, string::string_compare};
 
 pub fn rust_ordering_from_tan_ordering(tan_ordering: &Expr) -> Option<Ordering> {
-    let Expr::Int(ordering) = tan_ordering else {
-        return None;
-    };
-
+    let ordering = tan_ordering.as_int()?;
     Some(ordering.cmp(&0))
 }
 
