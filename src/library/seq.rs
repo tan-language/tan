@@ -64,6 +64,17 @@ pub fn list_count(args: &[Expr]) -> Result<Expr, Error> {
 
 // #todo implement generically for all iterables/countables, etc.
 
+pub fn array_eq(args: &[Expr]) -> Result<Expr, Error> {
+    // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
+    // #todo support overloading,
+    // #todo support multiple arguments.
+
+    let a = unpack_array_arg(args, 0, "a")?;
+    let b = unpack_array_arg(args, 1, "b")?;
+
+    Ok(Expr::Bool(*a == *b))
+}
+
 // #todo version that returns a new sequence
 // #todo also consider insert, insert-back, append names
 // #todo item or element?
@@ -467,6 +478,8 @@ pub fn array_roll(args: &[Expr]) -> Result<Expr, Error> {
 pub fn setup_lib_seq(context: &mut Context) {
     // #todo should put in `seq` module and then into `prelude`.
     let module = require_module("prelude", context);
+
+    module.insert_invocable("=$$Array$$Array", Expr::foreign_func(&array_eq));
 
     // #todo introduce `++` overload?
     module.insert_invocable("cons", Expr::foreign_func(&list_cons));

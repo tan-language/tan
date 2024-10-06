@@ -8,6 +8,8 @@ use crate::{
     },
 };
 
+use super::seq::array_eq;
+
 // #todo support all types!
 
 // #todo add support for eq_array, eq_map
@@ -23,6 +25,7 @@ pub fn eq_polymorphic(args: &[Expr]) -> Result<Expr, Error> {
         Expr::Float(..) => eq_float(args),
         Expr::String(..) => eq_string(args),
         Expr::Symbol(..) | Expr::KeySymbol(..) | Expr::Type(..) => eq_symbol(args),
+        Expr::Array(..) => array_eq(args),
         _ => Err(Error::invalid_arguments("malformed equality test", None)),
     }
 }
@@ -281,7 +284,7 @@ pub fn float_lte(args: &[Expr]) -> Result<Expr, Error> {
 pub fn setup_lib_eq(context: &mut Context) {
     let module = require_module("prelude", context);
 
-    module.insert_invocable("=", Expr::foreign_func(&eq_int));
+    // module.insert_invocable("=", Expr::foreign_func(&eq_int));
     module.insert_invocable("=$$Int$$Int", Expr::foreign_func(&eq_int));
     module.insert_invocable("=$$Bool$$Bool", Expr::foreign_func(&eq_bool));
     module.insert_invocable("=$$Float$$Float", Expr::foreign_func(&eq_float));
