@@ -1,4 +1,8 @@
-use crate::{context::Context, error::Error, expr::Expr, library::eq::eq_polymorphic};
+use crate::{
+    context::Context,
+    error::Error,
+    expr::{expr_clone, Expr},
+};
 
 // #todo Should extract the implementation into an assert foreign library, should make a macro.
 
@@ -60,13 +64,21 @@ pub fn eval_assert_eq(op: &Expr, args: &[Expr], context: &mut Context) -> Result
     };
 
     // #todo don't throw the error, include in failures!
-    let left = eval(left_expr, context)?;
-    let right = eval(right_expr, context)?;
-
-    // #todo don't throw the error, include in failures!
     // #todo Rename *test-count* -> *assertion-count*, *test-failures* -> *assertion-failures*
 
-    let predicate = eq_polymorphic(&[left, right])?.as_bool().unwrap();
+    // #todo Optimize this, have a precreated predicate or something.
+    // #todo REALLY get read of excessive clones.
+    let predicate = Expr::List(vec![
+        Expr::symbol("="),
+        expr_clone(left_expr),
+        expr_clone(right_expr),
+    ]);
+    // #todo #optimize No need for full eval here, we should use something specialized!
+    // #todo What is the correct name here?
+    let predicate = eval(&predicate, context)?;
+    let Expr::Bool(predicate) = predicate else {
+        unreachable!()
+    };
 
     if predicate {
         // #todo Update *test-count*.

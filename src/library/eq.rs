@@ -8,27 +8,26 @@ use crate::{
     },
 };
 
-use super::seq::array_eq;
-
 // #todo support all types!
 
 // #todo add support for eq_array, eq_map
 
+// #todo Not needed any more, remove it!
 // #todo #temp hackish polymorphism helper!
-pub fn eq_polymorphic(args: &[Expr]) -> Result<Expr, Error> {
-    let Some(expr) = args.first() else {
-        return Err(Error::invalid_arguments("malformed equality test", None));
-    };
-    match expr.unpack() {
-        Expr::Int(..) => eq_int(args),
-        Expr::Bool(..) => eq_bool(args),
-        Expr::Float(..) => eq_float(args),
-        Expr::String(..) => eq_string(args),
-        Expr::Symbol(..) | Expr::KeySymbol(..) | Expr::Type(..) => eq_symbol(args),
-        Expr::Array(..) => array_eq(args),
-        _ => Err(Error::invalid_arguments("malformed equality test", None)),
-    }
-}
+// pub fn eq_polymorphic(args: &[Expr]) -> Result<Expr, Error> {
+//     let Some(expr) = args.first() else {
+//         return Err(Error::invalid_arguments("malformed equality test", None));
+//     };
+//     match expr.unpack() {
+//         Expr::Int(..) => eq_int(args),
+//         Expr::Bool(..) => eq_bool(args),
+//         Expr::Float(..) => eq_float(args),
+//         Expr::String(..) => eq_string(args),
+//         Expr::Symbol(..) | Expr::KeySymbol(..) | Expr::Type(..) => eq_symbol(args),
+//         Expr::Array(..) => array_eq(args),
+//         _ => Err(Error::invalid_arguments("malformed equality test", None)),
+//     }
+// }
 
 pub fn eq_int(args: &[Expr]) -> Result<Expr, Error> {
     // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
