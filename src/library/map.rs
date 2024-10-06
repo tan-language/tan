@@ -3,12 +3,23 @@ use crate::{
     error::Error,
     expr::{expr_clone, format_value, Expr},
     util::{
-        args::{unpack_map_mut_arg, unpack_stringable_arg},
+        args::{unpack_map_arg, unpack_map_mut_arg, unpack_stringable_arg},
         module_util::require_module,
     },
 };
 
 // #todo implement some of those functions: https://www.programiz.com/python-programming/methods/mapionary
+
+pub fn map_eq(args: &[Expr]) -> Result<Expr, Error> {
+    // Use macros to monomorphise functions? or can we leverage Rust's generics? per viariant? maybe with cost generics?
+    // #todo support overloading,
+    // #todo support multiple arguments.
+
+    let a = unpack_map_arg(args, 0, "a")?;
+    let b = unpack_map_arg(args, 1, "b")?;
+
+    Ok(Expr::Bool(*a == *b))
+}
 
 // #insight use `contains-key` so that `contains` refers to the value, consistent with other collections.
 // #todo consider other names: has, has-key, contains-key, includes, etc.
@@ -245,6 +256,8 @@ pub fn setup_lib_map(context: &mut Context) {
     let module = require_module("prelude", context);
 
     // #todo add something like `get-or-init`` or `update-with-default` or `get-and-update`
+
+    module.insert_invocable("=$$Map$$Map", Expr::foreign_func(&map_eq));
 
     // #todo add type qualifiers!
     module.insert_invocable("contains-key?", Expr::foreign_func(&map_contains_key));
