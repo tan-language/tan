@@ -9,12 +9,12 @@ use crate::{
     eval::eval,
     expr::Expr,
     lexer::{token::Token, Lexer},
-    library::path::get_full_extension,
     macro_expand::macro_expand,
     optimize::optimize,
     parser::Parser,
     prune::prune,
     range::Position,
+    util::fs::get_full_extension,
 };
 
 pub const TAN_FILE_EXTENSION: &str = "tan";
