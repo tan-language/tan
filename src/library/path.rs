@@ -1,10 +1,11 @@
-use std::path::Path;
-
 use crate::{
     context::Context,
     error::Error,
     expr::Expr,
-    util::{fs::get_full_extension, module_util::require_module},
+    util::{
+        fs::{get_dirname, get_full_extension},
+        module_util::require_module,
+    },
 };
 
 // #todo consider to associate most functions to the `Path` type.
@@ -13,14 +14,6 @@ use crate::{
 // #todo support (path :filename)
 // #todo support (path :directory)
 // #todo implement (get-parent ..)
-
-fn get_dirname(path: &str) -> Option<&str> {
-    if let Some(slash_position) = path.rfind('/') {
-        Some(&path[0..slash_position])
-    } else {
-        None
-    }
-}
 
 // #todo should it include the final `/`?
 /// Returns the directory part of a path.
