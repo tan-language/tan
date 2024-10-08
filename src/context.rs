@@ -3,7 +3,7 @@
 use std::{collections::HashMap, sync::Arc};
 
 use crate::{
-    eval::util::canonicalize_path, expr::Expr, library::setup_lib, module::Module, scope::Scope,
+    eval::util::canonicalize_path, expr::Expr, module::Module, scope::Scope,
     util::standard_names::PROFILE,
 };
 
@@ -61,45 +61,13 @@ impl Context {
 
         let top_scope = Arc::new(Scope::default());
 
-        let mut context = Self {
+        Self {
             root_path,
             module_registry: HashMap::new(),
             scope: top_scope.clone(),
             dynamic_scope: Arc::new(Scope::default()),
             top_scope: top_scope.clone(),
-        };
-
-        // #todo Should setup_std externally, but where?
-        // #todo Refactor the remaining!
-
-        setup_lib(&mut context);
-
-        // Setup prelude as the ultimate scope.
-
-        // let prelude_path = format!("{}/std/prelude", context.root_path);
-        // let prelude = context.module_registry.get(&prelude_path).unwrap();
-
-        // #todo Just use `prelude` scope as top-level scope.
-
-        // #todo Could use a non-mut version of require_module.
-        let prelude = context
-            .get_module("prelude")
-            .expect("prelude should be defined")
-            .clone();
-
-        // #todo Reuse `use` code here or extract helper!
-        let bindings = prelude.scope.bindings.read().expect("poisoned lock");
-        for (name, value) in bindings.iter() {
-            top_scope.insert(name, value.clone());
         }
-
-        // #todo Nasty, temp hack, makes older api functions work, CLEANUP!
-
-        // #todo We need scope-stack visualization.
-        // #todo Do we really need this intermediate scope? for some reason this is needed! investigate why!
-        context.scope = Arc::new(Scope::new(top_scope.clone()));
-
-        context
     }
 
     // #todo Use it for all prelude insertions.
