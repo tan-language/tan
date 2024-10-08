@@ -5,7 +5,6 @@ pub mod error;
 pub mod eval;
 pub mod expr;
 pub mod lexer;
-pub mod library;
 pub mod macro_expand;
 pub mod module;
 pub mod optimize;

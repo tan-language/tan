@@ -9,7 +9,6 @@ use std::{
     sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard},
 };
 
-#[cfg(feature = "dec")]
 use rust_decimal::Decimal;
 
 use crate::{
@@ -131,7 +130,6 @@ pub enum Expr {
     U8(u8),
     Int(i64),
     Float(f64),
-    #[cfg(feature = "dec")]
     Dec(Decimal),
     Symbol(String),    // #todo consider renaming to Expr::Sym
     KeySymbol(String), // #todo consider renaming to Expr::Key
@@ -304,7 +302,6 @@ impl fmt::Debug for Expr {
             Expr::U8(num) => format!("U8({num})"),
             Expr::Int(num) => format!("Int({num})"),
             Expr::Float(num) => format!("Float({})", format_float(*num)),
-            #[cfg(feature = "dec")]
             Expr::Dec(num) => format!("Dec({num})"),
             Expr::Do => "do".to_owned(),
             Expr::List(terms) => {
@@ -360,7 +357,6 @@ impl fmt::Display for Expr {
                 Expr::U8(n) => n.to_string(),
                 Expr::Int(n) => n.to_string(),
                 Expr::Float(n) => format_float(*n),
-                #[cfg(feature = "dec")]
                 Expr::Dec(n) => format!("(Dec {n})"), // #todo 'literal', e.f. 1.23d or #Dec 1.23
                 Expr::Symbol(s) => s.clone(),
                 Expr::KeySymbol(s) => format!(":{s}"),
@@ -646,7 +642,6 @@ impl Expr {
         Some(*min..*max)
     }
 
-    #[cfg(feature = "dec")]
     pub fn as_decimal(&self) -> Option<Decimal> {
         let Expr::Dec(n) = self.unpack() else {
             return None;

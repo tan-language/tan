@@ -1,6 +1,5 @@
 pub mod util;
 
-#[cfg(feature = "dec")]
 use rust_decimal::prelude::*;
 use util::desugar_key_path;
 
@@ -366,23 +365,16 @@ impl<'a> Parser<'a> {
                         // Numbers ending with a 'd' postfix are Dec (decimal) literals.
                         // #todo A proper regular expression to match decimals is needed.
 
-                        #[cfg(feature = "dec")]
-                        {
-                            let lexeme = &lexeme[0..lexeme.len() - 1];
-                            match Decimal::from_str(lexeme) {
-                                Ok(num) => Some(Expr::Dec(num)),
-                                Err(dec_error) => {
-                                    let mut error = Error::new(ErrorVariant::MalformedFloat); // #todo Introduce MalformedDec?
-                                    error.push_note(&format!("{dec_error}"), Some(range));
-                                    self.errors.push(error);
-                                    None
-                                }
+                        let lexeme = &lexeme[0..lexeme.len() - 1];
+                        match Decimal::from_str(lexeme) {
+                            Ok(num) => Some(Expr::Dec(num)),
+                            Err(dec_error) => {
+                                let mut error = Error::new(ErrorVariant::MalformedFloat); // #todo Introduce MalformedDec?
+                                error.push_note(&format!("{dec_error}"), Some(range));
+                                self.errors.push(error);
+                                None
                             }
                         }
-
-                        // #todo Return error instead!
-                        #[cfg(not(feature = "dec"))]
-                        panic!("Dec not supported in this build");
                     } else {
                         // #todo find a better name for 'non-integer'.
                         match lexeme.parse::<f64>() {
