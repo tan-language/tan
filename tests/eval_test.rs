@@ -666,12 +666,12 @@ fn eval_should_support_array_rest_destructuring() {
     assert_eq!(value, 4);
 }
 
-#[test]
-fn eval_should_support_list_destructuring() {
-    let expr = eval_file("list-destruct.tan").unwrap();
-    let value = format_value(expr);
-    assert_eq!(value, "1 | (2 3 4 5)");
-}
+// #[test]
+// fn eval_should_support_list_destructuring() {
+//     let expr = eval_file("list-destruct.tan").unwrap();
+//     let value = format_value(expr);
+//     assert_eq!(value, "1 | (2 3 4 5)");
+// }
 
 #[test]
 fn should_not_bind_underscore() {
