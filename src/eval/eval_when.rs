@@ -110,55 +110,54 @@ pub fn eval_when(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     }
 }
 
-// #todo also add tan tests.
+// Converted to tan test.
+// #[cfg(test)]
+// mod tests {
+//     use crate::{api::eval_string, context::Context, expr::format_value};
 
-#[cfg(test)]
-mod tests {
-    use crate::{api::eval_string, context::Context, expr::format_value};
+//     #[test]
+//     fn eval_when_usage() {
+//         let mut context = Context::new();
 
-    #[test]
-    fn eval_when_usage() {
-        let mut context = Context::new();
+//         let input = r#"
+//         (let value "not-int")
+//         (when value
+//             (Int n) "integer: ${n}"
+//             _       "unknown"
+//         )
+//         "#;
+//         let value = eval_string(input, &mut context).unwrap();
+//         assert_eq!(format_value(&value), "unknown");
 
-        let input = r#"
-        (let value "not-int")
-        (when value
-            (Int n) "integer: ${n}"
-            _       "unknown"
-        )
-        "#;
-        let value = eval_string(input, &mut context).unwrap();
-        assert_eq!(format_value(&value), "unknown");
+//         let input = r#"
+//         (let value ())
+//         (when value
+//             None "nothing"
+//             _    "unknown"
+//         )
+//         "#;
+//         let value = eval_string(input, &mut context).unwrap();
+//         assert_eq!(format_value(&value), "nothing");
 
-        let input = r#"
-        (let value ())
-        (when value
-            None "nothing"
-            _    "unknown"
-        )
-        "#;
-        let value = eval_string(input, &mut context).unwrap();
-        assert_eq!(format_value(&value), "nothing");
+//         let input = r#"
+//         (let value 5)
+//         (when value
+//             (Int n) "integer: ${n}"
+//                   _ "unknown" ; <-- #insight interesting formatting!
+//         )
+//         "#;
+//         let value = eval_string(input, &mut context).unwrap();
+//         assert_eq!(format_value(&value), "integer: 5");
 
-        let input = r#"
-        (let value 5)
-        (when value
-            (Int n) "integer: ${n}"
-                  _ "unknown" ; <-- #insight interesting formatting!
-        )
-        "#;
-        let value = eval_string(input, &mut context).unwrap();
-        assert_eq!(format_value(&value), "integer: 5");
-
-        let input = r#"
-        (let result (Error "invalid value"))
-        (when result
-            (Error reason)
-                "error: ${reason}"
-            _   "OK"
-        )
-        "#;
-        let value = eval_string(input, &mut context).unwrap();
-        assert_eq!(format_value(&value), "error: invalid value");
-    }
-}
+//         let input = r#"
+//         (let result (Error "invalid value"))
+//         (when result
+//             (Error reason)
+//                 "error: ${reason}"
+//             _   "OK"
+//         )
+//         "#;
+//         let value = eval_string(input, &mut context).unwrap();
+//         assert_eq!(format_value(&value), "error: invalid value");
+//     }
+// }

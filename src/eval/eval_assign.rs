@@ -65,30 +65,31 @@ pub fn eval_assign(args: &[Expr], context: &mut Context) -> Result<Expr, Error> 
 //     todo!()
 // }
 
-// #todo convert these tests to Tan.
-#[cfg(test)]
-mod tests {
-    use crate::{api::eval_string, context::Context, expr::format_value};
+// #insight `+<-` and other assignment operators are expanded in macro_expand.
+// #insight `plus` is a more general name than `add` for the operator.
 
-    // #insight `+<-` and other assignment operators are expanded in macro_expand.
-    // #insight `plus` is a more general name than `add` for the operator.
-    #[test]
-    fn eval_assign_plus_usage() {
-        let mut context = Context::new();
+// This is converted to a tan-test.
+// #[cfg(test)]
+// mod tests {
+//     use crate::{api::eval_string, context::Context, expr::format_value};
 
-        let input = r#"
-        (let #var a 1)
-        (+<- a 5)
-        a
-        "#;
-        let value = eval_string(input, &mut context).unwrap();
-        assert_eq!(format_value(&value), "6");
+//     #[test]
+//     fn eval_assign_plus_usage() {
+//         let mut context = Context::new();
 
-        let input = r#"
-        (+<- a 3)
-        a
-        "#;
-        let value = eval_string(input, &mut context).unwrap();
-        assert_eq!(format_value(&value), "9");
-    }
-}
+//         let input = r#"
+//         (let #var a 1)
+//         (+<- a 5)
+//         a
+//         "#;
+//         let value = eval_string(input, &mut context).unwrap();
+//         assert_eq!(format_value(&value), "6");
+
+//         let input = r#"
+//         (+<- a 3)
+//         a
+//         "#;
+//         let value = eval_string(input, &mut context).unwrap();
+//         assert_eq!(format_value(&value), "9");
+//     }
+// }
