@@ -47,6 +47,7 @@ pub fn eval_use(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
         return Err(Error::invalid_arguments("malformed use expression", None));
     };
 
+    // #todo Make sure recursive `uses` (imports) are reported.
     // #todo make sure paths are relative to the current file.
     let result = eval_module(module_path, context, false);
     if let Err(errors) = result {

@@ -110,4 +110,29 @@ pub fn eval_assert_eq(op: &Expr, args: &[Expr], context: &mut Context) -> Result
     }
 }
 
+// #todo have a combined assert for Ok/Some <> Err/None.
+// #todo have a combined assert for Try (Success/Fail) expressions.
+
+// #insight We will stop returning Rust errors from most functions, so in the
+// future this will not be as useful.
+// #todo Consider `assert-err`, compatible with naming conventions.
+// (assert-error (Char ""))
+// (assert-error (Char "") <err>)
+pub fn eval_assert_error(op: &Expr, args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
+    // #todo Implement optional error matching.
+
+    let [expr, ..] = args else {
+        return Err(Error::invalid_arguments(
+            "requires `expr` argument",
+            op.range(),
+        ));
+    };
+
+    let result = eval(expr, context);
+
+    // #todo Also implement error-matching.
+
+    Ok(Expr::Bool(result.is_err()))
+}
+
 // #todo add unit-tests!

@@ -27,6 +27,7 @@ pub mod util;
 
 use std::{collections::HashMap, sync::Arc};
 
+use eval_assertions::eval_assert_error;
 use eval_else::eval_else;
 use eval_is_defined::eval_is_defined;
 use eval_pipe::eval_pipe;
@@ -884,6 +885,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         // #todo #temp temporary solution.
                         "assert" => anchor_error(eval_assert(op, &args, context), expr),
                         "assert-eq" => anchor_error(eval_assert_eq(op, &args, context), expr),
+                        "assert-error" => anchor_error(eval_assert_error(op, &args, context), expr),
                         "is-defined?" => anchor_error(eval_is_defined(&args, context), expr),
                         // #todo for-each or overload for?
                         "for-each" => anchor_error(eval_for_each(&args, context), expr),
