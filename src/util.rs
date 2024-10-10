@@ -74,6 +74,7 @@ pub fn is_reserved_symbol(sym: &str) -> bool {
             | "|>" // aka pipe #todo find another name, e.g. fpipe, func-pipe or something.
             | "assert" // #todo temp solution.
             | "assert-eq" // #todo temp solution.
+            | "assert-error" // #todo temp solution.
             | "panic!"
             | "quot"
             | "scope-update" // #todo rename to `let*` or `let..` or `let-all` or something.

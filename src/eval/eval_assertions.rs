@@ -129,10 +129,31 @@ pub fn eval_assert_error(op: &Expr, args: &[Expr], context: &mut Context) -> Res
     };
 
     let result = eval(expr, context);
-
+    if result.is_err() {
+        // #todo Update *test-count*.
+        Ok(Expr::Bool(true))
+    } else {
+        if let Some(value) = context.get("*test-failures*", true) {
+            if let Some(mut failures) = value.as_array_mut() {
+                let file_path = get_current_file_path(context);
+                let location = if let Some(range) = op.range() {
+                    format!(":{}:{}", range.start.line + 1, range.start.col + 1)
+                } else {
+                    String::new()
+                };
+                // msg.push_str(&format!("\n>>> {left_value} != {right_value}"));
+                let mut msg = "Expected error not returned".to_string();
+                msg.push_str(&format!("\n  at {file_path}{location}"));
+                msg.push_str(&format!("\n>>> {expr}"));
+                failures.push(Expr::string(msg));
+            }
+        }
+        Ok(Expr::Bool(false))
+    }
     // #todo Also implement error-matching.
-
-    Ok(Expr::Bool(result.is_err()))
 }
 
-// #todo add unit-tests!
+// #todo Implement assert-not-error/assert-not-err.
+// #todo Refactor, extract common functionality.
+
+// #todo Add unit-tests!
