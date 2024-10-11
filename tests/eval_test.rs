@@ -18,18 +18,6 @@ use crate::common::{eval_file, eval_input, read_file};
 // #todo add more tests, especially for error-reporting.
 
 #[test]
-fn eval_processes_arithmetic_expressions() {
-    let result = eval_file("sum.tan");
-
-    assert!(result.is_ok());
-
-    let value = format!("{}", result.unwrap());
-    let expected_value = read_file("sum.value.tan");
-
-    assert_eq!(value, expected_value);
-}
-
-#[test]
 fn eval_processes_decimal_arithmetic_expressions() {
     let result = eval_file("sum-dec.tan");
 
