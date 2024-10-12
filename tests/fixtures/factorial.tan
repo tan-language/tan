@@ -1,9 +1,0 @@
-; Computes `x!`, the factorial of `x`.
-(let fact (Func [x]
-    (if (= x 0)
-        1
-        (else (* (fact (- x 1)) x))
-    )
-))
-
-(fact 5)

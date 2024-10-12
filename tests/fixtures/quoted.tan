@@ -1,7 +1,0 @@
-(do
-    (let a 2)
-    '(do
-        (write "hello")
-        (* (+ a 1))
-    )
-)

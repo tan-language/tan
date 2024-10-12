@@ -1,2 +1,0 @@
-; Unfortunatelly, method dispatching with varargs is not supported at the moment.
-(+ 1.0 2.0)

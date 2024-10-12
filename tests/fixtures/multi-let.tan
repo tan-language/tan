@@ -1,8 +1,0 @@
-(do
-    (let
-        a (+ 1 2) ; 3, keep the comment, it triggers a bug.
-        b (+ 3 4) ; 7
-    )
-
-    (+ a b) ; 10
-)

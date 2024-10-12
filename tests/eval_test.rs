@@ -7,27 +7,14 @@ use tan::{
     context::Context,
     error::{Error, ErrorVariant},
     eval::eval,
-    expr::{format_value, Expr},
-    util::fmt::format_float,
+    expr::Expr,
 };
 
 use crate::common::{eval_file, eval_input, read_file};
 
-// #todo add more tests, especially for error-reporting.
-
-#[test]
-fn eval_processes_decimal_arithmetic_expressions() {
-    let result = eval_file("sum-dec.tan");
-
-    dbg!(&result);
-
-    assert!(result.is_ok());
-
-    let value = format!("{}", result.unwrap());
-    let expected_value = read_file("sum-dec.value.tan");
-
-    assert_eq!(value, expected_value);
-}
+// #todo Add more tests, especially for error-reporting.
+// #todo Prefer adding tan tests.
+// #todo Convert the remaining tests to Tan.
 
 #[test]
 fn do_reports_intermediate_errors() {
@@ -54,6 +41,7 @@ fn eval_processes_keyword_symbols() {
     assert_matches!(result.unpack(), Expr::KeySymbol(x) if x == "key");
 }
 
+// #keep
 #[test]
 fn eval_processes_empty_list() {
     let expr = Expr::List(Vec::new());
@@ -64,29 +52,7 @@ fn eval_processes_empty_list() {
     assert_matches!(value.unpack(), Expr::None);
 }
 
-#[test]
-fn eval_processes_let() {
-    let result = eval_input("(do (let a (+ 1 2 3)) a)");
-    dbg!(&result);
-
-    // #todo add asserts!
-}
-
-#[test]
-fn eval_processes_booleans() {
-    let value = eval_input("(do (let flag true) flag)").unwrap();
-    assert_matches!(value.unpack(), Expr::Bool(x) if *x);
-
-    let value = eval_input("(do (let flag false) flag)").unwrap();
-    assert_matches!(value.unpack(), Expr::Bool(x) if !x);
-}
-
-#[test]
-fn eval_processes_chars() {
-    let value = eval_input(r#"(let ch (Char "r")) ch"#).unwrap();
-    assert_matches!(value.unpack(), Expr::Char(c) if *c == 'r');
-}
-
+// #keep
 #[test]
 fn eval_reports_let_errors() {
     let result = eval_input("(do (let if (+ 1 2 3)) a)");
@@ -112,133 +78,6 @@ fn eval_reports_let_errors() {
 
     assert_eq!(range.start.index, 9);
     assert_eq!(range.end.index, 11);
-}
-
-// #todo extract full testing from file.
-
-#[test]
-fn eval_processes_quoted_expressions() {
-    let result = eval_file("quoted.tan");
-
-    assert!(result.is_ok());
-
-    let value = format!("{}", result.unwrap());
-    let expected_value = read_file("quoted.value.tan");
-
-    assert_eq!(value, expected_value);
-}
-
-#[test]
-fn eval_handles_unquoting() {
-    let result = eval_file("unquoting.tan");
-
-    assert!(result.is_ok());
-
-    let value = format!("{}", result.unwrap());
-    let expected_value = read_file("unquoting.value.tan");
-
-    assert_eq!(value, expected_value);
-}
-
-#[test]
-fn eval_handles_recursive_unquoting() {
-    let result = eval_file("unquoting-recursive.tan");
-
-    assert!(result.is_ok());
-
-    let value = format!("{}", result.unwrap());
-    let expected_value = read_file("unquoting-recursive.value.tan");
-
-    assert_eq!(value, expected_value);
-}
-
-#[test]
-fn do_creates_new_lexical_scope() {
-    let result = eval_input(
-        "
-    (do
-        (let a 1)
-        (do
-            (let a (+ 1 2))
-        )
-        a
-    )",
-    );
-    assert!(result.is_ok());
-
-    let value = format!("{}", result.unwrap());
-    let expected_value = "1";
-
-    assert_eq!(value, expected_value);
-}
-
-#[test]
-fn ensure_a_infinite_recursion_is_fixed() {
-    let result = eval_input(
-        "
-    (do
-        (let a 1)
-        (let a (+ a 2))
-        a
-    )",
-    );
-    assert!(result.is_ok());
-
-    let value = format!("{}", result.unwrap());
-    let expected_value = "3";
-
-    assert_eq!(value, expected_value);
-}
-
-#[test]
-fn quot_handles_lists() {
-    let result = eval_input("'(let a 1)");
-    assert!(result.is_ok());
-
-    let value = format!("{}", result.unwrap());
-    let expected_value = "(let a 1)";
-
-    assert_eq!(value, expected_value);
-
-    // #todo cannot quote if expressions (and more)
-    let result = eval_input("'(if \"a\" b 1)");
-    assert!(result.is_ok());
-
-    let value = format!("{}", result.unwrap());
-    let expected_value = "(if \"a\" b 1)";
-
-    assert_eq!(value, expected_value);
-}
-
-#[test]
-fn quot_handles_interpolation() {
-    let input = "'(hello world (+ 1 0) $(+ 1 2))";
-    let result = eval_input(input);
-    assert!(result.is_ok());
-
-    let value = format!("{}", result.unwrap());
-    let expected_value = "(hello world (+ 1 0) 3)";
-    assert_eq!(value, expected_value);
-}
-
-#[test]
-fn eval_processes_function_definition_and_application() {
-    let result = eval_file("factorial.tan");
-    assert!(result.is_ok());
-
-    let value = format!("{}", result.unwrap());
-    let expected_value = read_file("factorial.value.tan");
-
-    assert_eq!(value, expected_value);
-
-    let result = eval_file("fibonacci.tan");
-
-    assert!(result.is_ok());
-
-    let value = format!("{}", result.unwrap());
-    let expected_value = read_file("fibonacci.value.tan");
-
-    assert_eq!(value, expected_value);
 }
 
 #[test]
@@ -311,81 +150,6 @@ fn eval_processes_deep_data() {
     assert_eq!(value, expected_value);
 }
 
-// #todo fix this test.
-#[test]
-fn eval_processes_macros() {
-    let result = eval_file("macro.tan");
-
-    assert!(result.is_ok());
-
-    let value = format!("{}", result.unwrap());
-    let expected_value = read_file("macro.value.tan");
-
-    assert_eq!(value, expected_value);
-}
-
-#[test]
-fn eval_resolves_function_methods() {
-    // assert Int method.
-
-    let result = eval_file("add-int.tan");
-
-    assert!(result.is_ok());
-
-    let value = format!("{}", result.unwrap());
-    let expected_value = read_file("add-int.value.tan");
-
-    assert_eq!(value, expected_value);
-
-    // assert Float method.
-
-    let result = eval_file("add-float.tan");
-
-    assert!(result.is_ok());
-
-    let value = format_float(result.unwrap().as_float().unwrap());
-    let expected_value = read_file("add-float.value.tan");
-
-    assert_eq!(value, expected_value);
-}
-
-#[test]
-fn eval_resolves_multi_let() {
-    let result = eval_file("multi-let.tan");
-
-    assert!(result.is_ok());
-
-    let value = format!("{}", result.unwrap());
-    let expected_value = read_file("multi-let.value.tan");
-
-    assert_eq!(value, expected_value);
-}
-
-#[test]
-fn eval_handles_functions_with_multiple_expressions() {
-    let result = eval_file("block-function.tan");
-
-    dbg!(&result);
-    assert!(result.is_ok());
-
-    let value = format!("{}", result.unwrap());
-    let expected_value = read_file("block-function.value.tan");
-
-    assert_eq!(value, expected_value);
-}
-
-#[test]
-fn eval_handles_nested_resolve() {
-    let result = eval_file("nested-resolve.tan");
-
-    assert!(result.is_ok());
-
-    let value = format_value(result.unwrap());
-    let expected_value = read_file("nested-resolve.value.tan");
-
-    assert_eq!(value, expected_value);
-}
-
 #[test]
 fn should_eval_panic() {
     let result = eval_file("panic.tan");
@@ -433,16 +197,6 @@ fn eval_should_support_map_destructuring() {
     let value = result.unwrap();
     let value = value.as_string().unwrap();
     assert_eq!(value, "George");
-}
-
-#[test]
-fn eval_should_support_for_map() {
-    let result = eval_file("for-map.tan");
-    let value = result.unwrap();
-    let value = value.as_array().unwrap();
-    let items: Vec<&str> = value.iter().map(|x| x.as_string().unwrap()).collect();
-    assert!(items.contains(&"given-name=George"));
-    assert!(items.contains(&"family-name=Moschovitis"));
 }
 
 #[test]

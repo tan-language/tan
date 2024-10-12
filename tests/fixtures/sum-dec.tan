@@ -1,2 +1,0 @@
-; Decimal addition test
-(+ 0.1d  0.2d)
