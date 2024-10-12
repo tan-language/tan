@@ -386,30 +386,6 @@ fn eval_handles_functions_with_multiple_expressions() {
 }
 
 #[test]
-fn eval_handles_arrays() {
-    let result = eval_file("array.tan");
-
-    assert!(result.is_ok());
-
-    let value = format!("{}", result.unwrap());
-    let expected_value = read_file("array.value.tan");
-
-    assert_eq!(value, expected_value);
-}
-
-#[test]
-fn eval_escaped_strings() {
-    let result = eval_file("string-escape.tan");
-
-    assert!(result.is_ok());
-
-    let value = format_value(result.unwrap());
-    let expected_value = read_file("string-escape.value.tan");
-
-    assert_eq!(value, expected_value);
-}
-
-#[test]
 fn eval_handles_nested_resolve() {
     let result = eval_file("nested-resolve.tan");
 

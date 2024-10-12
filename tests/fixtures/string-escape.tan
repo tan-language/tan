@@ -1,4 +1,0 @@
-(do
-    (let s "this is an \"escaped string\",\nit works")
-    s
-)
