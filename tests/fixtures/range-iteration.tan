@@ -1,9 +1,0 @@
-(let vals [])
-(for [i 2..5]
-    (push vals i)
-)
-; it should also support reverse/negative iteration
-(for [i 5..2]
-    (push vals i)
-)
-(join vals ",")

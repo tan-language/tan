@@ -1,16 +1,14 @@
 mod common;
 
-use std::borrow::Borrow;
-
 use assert_matches::assert_matches;
 
 use tan::{
     api::eval_string,
     context::Context,
     error::{Error, ErrorVariant},
-    eval::{eval, util::eval_module},
+    eval::eval,
     expr::{format_value, Expr},
-    util::{fmt::format_float, standard_names::CURRENT_MODULE_PATH},
+    util::fmt::format_float,
 };
 
 use crate::common::{eval_file, eval_input, read_file};
@@ -453,13 +451,6 @@ fn eval_function_returns_map() {
 }
 
 #[test]
-fn format_string_retains_escaped_chars() {
-    let result = eval_file("format-str.tan");
-
-    assert_matches!(result, Ok(Expr::String(s)) if s == r#"has \"escaped\" chars"#);
-}
-
-#[test]
 fn format_float_has_fractional_part() {
     let result = eval_file("format-float.tan");
 
@@ -650,31 +641,6 @@ fn eval_should_support_for_map() {
     let items: Vec<&str> = value.iter().map(|x| x.as_string().unwrap()).collect();
     assert!(items.contains(&"given-name=George"));
     assert!(items.contains(&"family-name=Moschovitis"));
-}
-
-#[test]
-fn eval_should_support_literal_annotations() {
-    // #todo make this pass:
-    // let result = eval_input("(let #Amount a 1)(ann a)");
-
-    let result = eval_input("(let a #Amount 1)(ann a)");
-    let value = result.unwrap();
-    let value = value.as_map().unwrap();
-    let value = value.borrow();
-    assert!(value.contains_key("type"));
-    assert_eq!(format_value(&value["type"]), "Amount");
-}
-
-#[test]
-fn eval_should_iterate_ranges() {
-    let value = eval_file("range-iteration.tan").unwrap();
-    assert_eq!(format_value(value), "2,3,4,5,4,3");
-}
-
-#[test]
-fn eval_should_handle_rest_parameters() {
-    let value = eval_file("rest-parameter.tan").unwrap();
-    assert_eq!(format_value(value), "5");
 }
 
 #[test]

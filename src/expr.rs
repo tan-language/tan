@@ -137,6 +137,7 @@ pub enum Expr {
     String(String),
     // #todo currently a special String for types.
     // #todo consider Typ
+    // #todo Make sure types are unpacked as strings, not symbols.
     Type(String),
     // #todo better name for 'generic' List, how about `Cons` or `ConsList` or `Cell`?
     // #todo add 'quoted' List -> Array!
