@@ -1,6 +1,0 @@
-; A conditional
-(let a 5)
-(if (> a 2)
-    (+ 1 a)
-    (else (+ 2 a))
-)

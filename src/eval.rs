@@ -69,6 +69,8 @@ use self::{
 
 // #insight Not a pure evaluator, performs side-effects.
 
+// #todo make closures work, we need true lexical-scoping.
+
 // #insight I don't like the name `interpreter`.
 
 // #todo Move excessive error-checking/linting to the resolve/typecheck pass.

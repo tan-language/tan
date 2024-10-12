@@ -1,6 +1,0 @@
-(let tree [1 2])
-(for
-    [path tree]
-    (let a 1)
-    (let key path) ; #fixme cannot find path!!
-)

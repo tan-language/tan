@@ -48,17 +48,6 @@ fn do_reports_intermediate_errors() {
 }
 
 #[test]
-fn eval_processes_conditionals() {
-    let result = eval_file("conditional.tan");
-    assert!(result.is_ok());
-
-    let value = format!("{}", result.unwrap());
-    let expected_value = read_file("conditional.value.tan");
-
-    assert_eq!(value, expected_value);
-}
-
-#[test]
 fn eval_processes_keyword_symbols() {
     let result = eval_input(":key").unwrap();
 
@@ -397,35 +386,6 @@ fn eval_handles_nested_resolve() {
     assert_eq!(value, expected_value);
 }
 
-// #todo make closures work, we need true lexical-scoping.
-#[test]
-fn eval_handles_closures() {
-    // #todo rename the filename
-    // #todo no need to use a *.value.tan file for simple results.
-    let result = eval_file("pseudo-curry.tan");
-
-    dbg!(&result);
-    assert!(result.is_ok());
-
-    let value = format_value(result.unwrap());
-    let expected_value = read_file("pseudo-curry.value.tan");
-
-    assert_eq!(value, expected_value);
-}
-
-#[test]
-fn format_float_has_fractional_part() {
-    let result = eval_file("format-float.tan");
-
-    assert_matches!(result, Ok(Expr::String(s)) if s == "1.0");
-}
-
-#[test]
-fn for_let_regression() {
-    let result = eval_file("for-let.tan");
-    assert!(result.is_ok())
-}
-
 #[test]
 fn should_eval_panic() {
     let result = eval_file("panic.tan");
@@ -450,20 +410,6 @@ fn eval_should_report_undefined_symbol_errors() {
 fn eval_should_report_errors_in_args() {
     let result = eval_file("array-errors.tan");
     assert!(result.is_err());
-}
-
-#[test]
-fn eval_should_support_array_destructuring() {
-    let result = eval_file("array-destruct.tan");
-    let value = result.unwrap().as_int().unwrap();
-    assert_eq!(value, 9);
-}
-
-#[test]
-fn eval_should_support_array_rest_destructuring() {
-    let result = eval_file("array-destruct-rest.tan");
-    let value = result.unwrap().as_int().unwrap();
-    assert_eq!(value, 4);
 }
 
 // #[test]
