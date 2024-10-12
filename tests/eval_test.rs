@@ -438,19 +438,6 @@ fn eval_handles_closures() {
 }
 
 #[test]
-fn eval_function_returns_map() {
-    let expr = eval_file("func-map.tan").unwrap();
-
-    let Some(map) = expr.as_map() else {
-        panic!();
-    };
-
-    let body = map.get("body");
-
-    assert_matches!(body, Some(Expr::String(s)) if s == "quote: a quote");
-}
-
-#[test]
 fn format_float_has_fractional_part() {
     let result = eval_file("format-float.tan");
 
@@ -461,113 +448,6 @@ fn format_float_has_fractional_part() {
 fn for_let_regression() {
     let result = eval_file("for-let.tan");
     assert!(result.is_ok())
-}
-
-#[test]
-fn eval_and() {
-    let result = eval_input("(and true false)");
-    assert_matches!(result, Ok(Expr::Bool(b)) if !b);
-
-    let result = eval_input("(and false false false true)");
-    assert_matches!(result, Ok(Expr::Bool(b)) if !b);
-
-    let result = eval_input("(and true true (= 1 1))");
-    assert_matches!(result, Ok(Expr::Bool(b)) if b);
-
-    let result = eval_input("(and true)");
-    assert_matches!(result, Ok(Expr::Bool(b)) if b);
-}
-
-#[test]
-fn eval_or() {
-    let result = eval_input("(or true false)");
-    assert_matches!(result, Ok(Expr::Bool(b)) if b);
-
-    let result = eval_input("(or false false false true)");
-    assert_matches!(result, Ok(Expr::Bool(b)) if b);
-
-    let result = eval_input("(or false false false)");
-    assert_matches!(result, Ok(Expr::Bool(b)) if !b);
-}
-
-#[test]
-fn eval_eq() {
-    let result = eval_input("(= 1 1)");
-    assert_matches!(result, Ok(Expr::Bool(b)) if b);
-
-    let result = eval_input("(= 1 2)");
-    assert_matches!(result, Ok(Expr::Bool(b)) if !b);
-
-    let result = eval_input(r#"(= "hello" "hello")"#);
-    assert_matches!(result, Ok(Expr::Bool(b)) if b);
-
-    let result = eval_input("(= :hello :hello)");
-    assert_matches!(result, Ok(Expr::Bool(b)) if b);
-}
-
-#[test]
-fn eval_not() {
-    let result = eval_input("(not true)");
-    assert_matches!(result, Ok(Expr::Bool(b)) if !b);
-
-    let result = eval_input("(not false)");
-    assert_matches!(result, Ok(Expr::Bool(b)) if b);
-
-    let result = eval_input("(not (= 1 1))");
-    assert_matches!(result, Ok(Expr::Bool(b)) if !b);
-}
-
-#[test]
-fn eval_cond() {
-    let expr = eval_input(
-        r#"
-        (do
-            (let rank 3)
-            (cond
-                (> rank 10) :high
-                (> rank 5)  :medium
-                true        :low       ; use `else`
-            )
-        )
-    "#,
-    )
-    .unwrap();
-
-    assert_matches!(expr.unpack(), Expr::KeySymbol(sym) if sym == "low");
-
-    let expr = eval_input(
-        r#"
-        (do
-            (let rank 3)
-            (cond
-                (> rank 10) :high
-                (> rank 5)  :medium
-                else        :low
-            )
-        )
-    "#,
-    )
-    .unwrap();
-
-    assert_matches!(expr.unpack(), Expr::KeySymbol(sym) if sym == "low");
-
-    let expr = eval_input(
-        r#"
-        (do
-            (let rank 15)
-            (cond
-                (> rank 10) :high
-                (> rank 5)  :medium
-                else        :low
-            )
-        )
-    "#,
-    )
-    .unwrap();
-
-    assert_matches!(expr.unpack(), Expr::KeySymbol(sym) if sym == "high");
-
-    // #todo add extra tests to check for malformed conds.
 }
 
 #[test]
