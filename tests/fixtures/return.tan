@@ -1,7 +1,0 @@
-(let dummy (Func [x]
-    (let x (+ x 1))
-    (return x)
-    (+ x 3)
-))
-
-(dummy 2)

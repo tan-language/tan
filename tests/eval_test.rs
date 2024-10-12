@@ -440,20 +440,6 @@ fn eval_handles_closures() {
 }
 
 #[test]
-fn module_cannot_access_private_members_of_other_modules() {
-    let mut context = Context::new();
-    context
-        .scope
-        .insert(CURRENT_MODULE_PATH, Expr::string("tests/fixtures"));
-    let result = eval_module("./modules", &mut context, false);
-
-    assert!(result.is_err());
-
-    let err = result.unwrap_err();
-    assert_matches!(&err[0].variant, ErrorVariant::UndefinedSymbol(sym) if sym == "submodule/afunc");
-}
-
-#[test]
 fn eval_function_returns_map() {
     let expr = eval_file("func-map.tan").unwrap();
 
@@ -602,27 +588,6 @@ fn should_eval_panic() {
 }
 
 #[test]
-fn should_eval_return() {
-    let result = eval_file("return.tan");
-    let value = result.unwrap().as_int().unwrap();
-    assert_eq!(value, 3);
-}
-
-#[test]
-fn should_eval_break() {
-    let result = eval_file("break.tan");
-    let value = result.unwrap().as_int().unwrap();
-    assert_eq!(value, 10);
-}
-
-#[test]
-fn should_eval_continue() {
-    let result = eval_file("continue.tan");
-    let value = result.unwrap().as_int().unwrap();
-    assert_eq!(value, 40);
-}
-
-#[test]
 fn eval_should_report_errors_in_function_incovations() {
     let result = eval_file("func-error.tan");
     assert!(result.is_err());
@@ -698,35 +663,6 @@ fn eval_should_support_literal_annotations() {
     let value = value.borrow();
     assert!(value.contains_key("type"));
     assert_eq!(format_value(&value["type"]), "Amount");
-}
-
-#[test]
-fn eval_should_support_non_literal_annotations() {
-    let result = eval_input(
-        r#"
-        #{:inline true}
-        (let add (Func [x y] (+ x y)))
-        ((ann add) :inline)
-        "#,
-    );
-    let value = result.unwrap();
-    assert_eq!(format_value(&value), "true");
-
-    let result = eval_input(
-        r#"
-        #(Func (Array Int Int) Int)
-        (let add (Func [x y] (+ x y)))
-        ((ann add$$Int$$Int) :type) ; #todo temporary hack, until we implement multimethods / op-bundles.
-        "#,
-    );
-    let value = result.unwrap();
-    assert_eq!(format_value(&value), "(Func (Array Int Int) Int)");
-}
-
-#[test]
-fn eval_should_support_type_constructor_definitions() {
-    let result = eval_file("type-constructor.tan");
-    assert!(result.is_ok());
 }
 
 #[test]

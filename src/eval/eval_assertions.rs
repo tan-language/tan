@@ -128,6 +128,8 @@ pub fn eval_assert_error(op: &Expr, args: &[Expr], context: &mut Context) -> Res
         ));
     };
 
+    // let _error_name = args.get(1);
+
     let result = eval(expr, context);
     if result.is_err() {
         // #todo Update *test-count*.

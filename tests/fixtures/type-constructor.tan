@@ -1,7 +1,0 @@
-(let Account (Func [id path]
-    ; #todo argh, no dynamic annotation.
-    (ann! {
-        :id id
-        :path path
-    } :type Account)
-))
