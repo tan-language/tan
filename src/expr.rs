@@ -143,7 +143,8 @@ pub enum Expr {
     // #todo add 'quoted' List -> Array!
     // #todo do we really need Vec here? Maybe Arc<[Expr]> is enough?
     List(Vec<Expr>),
-    Array(Arc<RwLock<Vec<Expr>>>),       // #insight 'reference' type
+    Array(Arc<RwLock<Vec<Expr>>>), // #insight 'reference' type
+    // #todo Consider Vec<u8> -> Box<[u8]> to make non-resizable.
     Buffer(usize, Arc<RwLock<Vec<u8>>>), // #insight 'reference' type
     // #todo different name?
     // #todo support Expr as keys?

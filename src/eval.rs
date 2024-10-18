@@ -696,6 +696,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     // #insight The args are already evaluated here!
                     anchor_error(invoke(&head, args, context), expr)
                 }
+                // Treat array as invocable.
                 Expr::Array(arr) => {
                     // #todo What about dynamic type here?
                     // Evaluate the arguments before calling the function.
@@ -723,6 +724,7 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         Ok(Expr::None)
                     }
                 }
+                // Treat map as invocable.
                 Expr::Map(map) => {
                     // Evaluate the arguments before calling the function.
                     let args = eval_args(&args, context)?;
@@ -739,6 +741,34 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                         Ok(value.clone())
                     } else {
                         // #todo Introduce Maybe { Some, None }
+                        Ok(Expr::None)
+                    }
+                }
+                // Treat buffer as invocable.
+                Expr::Buffer(_length, buf) => {
+                    // #todo What about dynamic type here?
+                    // Evaluate the arguments before calling the function.
+                    let args = eval_args(&args, context)?;
+
+                    // #todo optimize this!
+                    // #todo error checking, one arg, etc.
+                    let index = &args[0];
+                    // #todo we need UInt, USize, Nat type
+                    let Some(index) = index.as_int() else {
+                        return Err(Error::invalid_arguments(
+                            "invalid buffer index, expecting Int",
+                            index.range(),
+                        ));
+                    };
+                    let index = index as usize;
+
+                    let buf = try_lock_read(buf, expr.range())?;
+
+                    if let Some(value) = buf.get(index) {
+                        // #todo replace the clone with the custom expr::copy/ref
+                        Ok(Expr::U8(*value))
+                    } else {
+                        // #todo introduce Maybe { Some, None }
                         Ok(Expr::None)
                     }
                 }

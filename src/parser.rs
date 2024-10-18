@@ -316,6 +316,9 @@ impl<'a> Parser<'a> {
                         // #todo Consider Expr::Key instead of Expr::KeySymbol
                         Some(Expr::KeySymbol(sym))
                     } else {
+                        // #todo The desugaring should happen later, so that
+                        // it can be skipped in formatting.
+
                         // The lexeme is a key-path.
                         // #insight The key-path segments can only be strings and ints.
                         // #todo #IMPORTANT Better error-handling is needed here.
