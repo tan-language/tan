@@ -299,7 +299,7 @@ pub fn eval_file(path: &str, context: &mut Context) -> Result<Expr, Vec<Error>> 
 /// Evaluates a language module.
 pub fn eval_module(path: &str, context: &mut Context, force: bool) -> Result<Expr, Vec<Error>> {
     // #insight Useful for debugging.
-    // println!("***** {}", path.as_ref().to_string_lossy());
+    // println!("*** {}", path);
 
     // #todo support import_map style rewriting
 

@@ -86,6 +86,26 @@ pub fn unpack_int_arg(args: &[Expr], index: usize, name: &str) -> Result<i64, Er
     Ok(n)
 }
 
+pub fn unpack_u8_arg(args: &[Expr], index: usize, name: &str) -> Result<u8, Error> {
+    let Some(expr) = args.get(index) else {
+        // #todo introduce 'missing argument' error variant.
+        // #todo also report the index.
+        return Err(Error::invalid_arguments(
+            &format!("missing required U8 argument `{name}`"),
+            None,
+        ));
+    };
+
+    let Some(n) = expr.as_u8() else {
+        return Err(Error::invalid_arguments(
+            &format!("invalid U8 argument: {name}=`{expr}`"),
+            expr.range(),
+        ));
+    };
+
+    Ok(n)
+}
+
 pub fn unpack_float_arg(args: &[Expr], index: usize, name: &str) -> Result<f64, Error> {
     let Some(expr) = args.get(index) else {
         // #todo introduce 'missing argument' error variant.
