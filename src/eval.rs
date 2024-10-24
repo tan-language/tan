@@ -708,7 +708,11 @@ pub fn eval(expr: &Expr, context: &mut Context) -> Result<Expr, Error> {
                     // #todo we need UInt, USize, Nat type
                     let Some(index) = index.as_int() else {
                         return Err(Error::invalid_arguments(
-                            "invalid array index, expecting Int",
+                            &format!(
+                                "invalid array index, expecting Int, found `{}` ({})",
+                                index,
+                                index.dyn_type(context)
+                            ),
                             index.range(),
                         ));
                     };

@@ -251,6 +251,30 @@ pub fn unpack_array_arg<'a>(
     Ok(array)
 }
 
+pub fn unpack_array_mut_arg<'a>(
+    args: &'a [Expr],
+    index: usize,
+    name: &str,
+) -> Result<RwLockWriteGuard<'a, Vec<Expr>>, Error> {
+    let Some(expr) = args.get(index) else {
+        // #todo introduce 'missing argument' error variant.
+        // #todo also report the index.
+        return Err(Error::invalid_arguments(
+            &format!("missing required Array argument `{name}`"),
+            None,
+        ));
+    };
+
+    let Some(array) = expr.as_array_mut() else {
+        return Err(Error::invalid_arguments(
+            &format!("invalid Array argument: {name}=`{expr}`"),
+            expr.range(),
+        ));
+    };
+
+    Ok(array)
+}
+
 pub fn unpack_float_range_arg(
     args: &[Expr],
     index: usize,
