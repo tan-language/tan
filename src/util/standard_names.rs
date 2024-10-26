@@ -13,10 +13,12 @@
 //     Benchmark,
 // }
 
+use crate::magic_name;
+
 // #todo consider other names: execution-profile, eval-profile, ...
 /// The execution profile
-pub const PROFILE: &str = "!PROFILE!";
+pub const PROFILE: &str = magic_name!("PROFILE");
 
-pub const CURRENT_MODULE_PATH: &str = "!CURRENT-MODULE-PATH!";
+pub const CURRENT_MODULE_PATH: &str = magic_name!("CURRENT-MODULE-PATH");
 
-pub const CURRENT_FILE_PATH: &str = "!CURRENT-FILE-PATH!";
+pub const CURRENT_FILE_PATH: &str = magic_name!("CURRENT-FILE-PATH");

@@ -13,14 +13,6 @@ tracing = "0.1"
 # libloading = "0.8"
 rust_decimal = { version = "1.32" }
 rust_decimal_macros = { version = "1.32" }
-# #todo consider chrono features and making optional
-# chrono = { version = "0.4" }
-# #todo we probably need tokio here.
-# tokio = { version = "1.0", features = ["full"] }
 
 [dev-dependencies]
 assert_matches = "1.5"
-
-# [features]
-# default = ["dec"]
-# dec = ["dep:rust_decimal", "dep:rust_decimal_macros"]

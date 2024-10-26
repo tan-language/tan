@@ -12,6 +12,7 @@ pub mod args;
 pub mod constants;
 pub mod fmt;
 pub mod fs;
+pub mod mac;
 pub mod method;
 pub mod module_util;
 pub mod put_back_iterator;

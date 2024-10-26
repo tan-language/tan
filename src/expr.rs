@@ -1088,6 +1088,8 @@ pub fn expr_to_range(expr: &Expr) -> Range {
     }
 }
 
+// #todo Better remove check for None.
+// #todo #fix Actually checking just for None is useless if we don't check for Some.
 // #insight Considering None = false, helps to simplify the code in many cases,
 // and also allows for (if (let (Some x)) ...), let can return None in failed
 // match.

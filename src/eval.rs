@@ -159,6 +159,7 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
             // #todo Report error if sym == _ or ...
             insert_symbol_binding(sym, &name.range(), value, context)?;
         }
+        // #todo Try to find a destructure function!
         Expr::List(names) => {
             // list destructuring.
             if names.len() != 2 {
