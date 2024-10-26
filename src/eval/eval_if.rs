@@ -21,12 +21,14 @@ pub fn eval_if(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     // #todo Remove unnecessary unpacks in other places also!
     let predicate = eval(predicate, context)?;
 
-    let Some(predicate) = is_truthy(&predicate) else {
-        return Err(Error::invalid_arguments(
-            "cannot determine the truthiness of the predicate, needs to be Bool or None",
-            predicate.range(),
-        ));
-    };
+    // let Some(predicate) = is_truthy(&predicate) else {
+    //     return Err(Error::invalid_arguments(
+    //         "cannot determine the truthiness of the predicate, needs to be Bool or None",
+    //         predicate.range(),
+    //     ));
+    // };
+
+    let predicate = is_truthy(&predicate);
 
     let body = &args[1..];
 

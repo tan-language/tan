@@ -1090,17 +1090,18 @@ pub fn expr_to_range(expr: &Expr) -> Range {
 
 // #todo Better remove check for None.
 // #todo #fix Actually checking just for None is useless if we don't check for Some.
-// #insight Considering None = false, helps to simplify the code in many cases,
+// #insight Considering None ~ false, helps to simplify the code in many cases,
 // and also allows for (if (let (Some x)) ...), let can return None in failed
 // match.
-/// Consider both Bool and None values for truthiness.
-pub fn is_truthy(expr: &Expr) -> Option<bool> {
+/// Consider both false and None values for not-true.
+pub fn is_truthy(expr: &Expr) -> bool {
     // #insight To be safe, the unpack is required here.
     match expr.unpack() {
-        Expr::Bool(b) => Some(*b),
-        Expr::None => Some(false),
-        // #insight Upstream code can use the None to emit errors.
-        _ => None,
+        Expr::Bool(b) => *b,
+        Expr::None | Expr::Never => false,
+        // #todo Reconsider this.
+        // #insight Currently we consider all non-None, non-false values as true.
+        _ => true,
     }
 }
 
