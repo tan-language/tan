@@ -906,6 +906,7 @@ impl Expr {
             Expr::Func(..) => Expr::typ("Func"),
             // #todo consider returning Func?
             Expr::ForeignFunc(..) => Expr::typ("ForeignFunc"),
+            Expr::Error(..) => Expr::typ("Error"),
             // #todo add more here!
             // #todo the wildcard is very error-prone, cover all cases!
             _ => {
@@ -1084,6 +1085,20 @@ pub fn expr_to_range(expr: &Expr) -> Range {
     Range {
         start: expr_to_position(&terms[0]),
         end: expr_to_position(&terms[1]),
+    }
+}
+
+// #insight Considering None = false, helps to simplify the code in many cases,
+// and also allows for (if (let (Some x)) ...), let can return None in failed
+// match.
+/// Consider both Bool and None values for truthiness.
+pub fn is_truthy(expr: &Expr) -> Option<bool> {
+    // #insight To be safe, the unpack is required here.
+    match expr.unpack() {
+        Expr::Bool(b) => Some(*b),
+        Expr::None => Some(false),
+        // #insight Upstream code can use the None to emit errors.
+        _ => None,
     }
 }
 

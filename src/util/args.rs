@@ -353,3 +353,22 @@ pub fn unpack_foreign_arg(
     // #insight Arc::clone is cheap.
     Ok(s.clone())
 }
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashMap;
+
+    use assert_matches::assert_matches;
+
+    use crate::expr::Expr;
+
+    use super::unpack_arg;
+
+    #[test]
+    fn unpack_arg_none() {
+        let expr = Expr::annotated(Expr::None, &HashMap::new());
+        let args = vec![expr];
+        let expr = unpack_arg(&args, 0, "none").unwrap();
+        assert_matches!(expr, Expr::None);
+    }
+}

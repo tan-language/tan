@@ -1,4 +1,9 @@
-use crate::{context::Context, error::Error, expr::Expr, util::args::unpack_arg};
+use crate::{
+    context::Context,
+    error::Error,
+    expr::{is_truthy, Expr},
+    util::args::unpack_arg,
+};
 
 use super::{eval, eval_do::eval_do};
 
@@ -12,12 +17,13 @@ pub fn eval_if(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     // #insight Cannot use unpack_bool_arg, this has lazy evaluation.
     // #todo Is the name `predicate` relevant here?
     let predicate = unpack_arg(args, 0, "predicate")?;
-
+    // #todo No need to unpack really, since we eval anyway!!!
+    // #todo Remove unnecessary unpacks in other places also!
     let predicate = eval(predicate, context)?;
 
-    let Some(predicate) = predicate.as_bool() else {
+    let Some(predicate) = is_truthy(&predicate) else {
         return Err(Error::invalid_arguments(
-            "the predicate is not a boolean value",
+            "cannot determine the truthiness of the predicate, needs to be Bool or None",
             predicate.range(),
         ));
     };
