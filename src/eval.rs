@@ -94,8 +94,9 @@ pub fn eval_args(args: &[Expr], context: &mut Context) -> Result<Vec<Expr>, Erro
     Ok(values)
 }
 
+// #insight Used in *_destructure_bind functions.
 // #todo Add unit test.
-fn insert_symbol_binding(
+pub fn insert_symbol_binding(
     sym: &str,
     range: &Option<Range>,
     value: Expr,
@@ -144,7 +145,7 @@ fn insert_symbol_binding(
 }
 
 // #todo find a better name.
-fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(), Error> {
+pub fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(), Error> {
     // #todo Consider special op/syntax for destructuring? e.g. ~[a b], `~` operator.
 
     // #todo Handle potential relevant annotations.
@@ -214,57 +215,68 @@ fn insert_binding(name: &Expr, value: Expr, context: &mut Context) -> Result<(),
 
             // #todo add unit tests.
         }
-        Expr::Array(names) => {
-            // array destructuring.
-            // #todo temp, nasty code.
-            // ensure that the values is also an Array.
-            let Some(values) = value.as_array() else {
-                // #todo better error message.
-                // #todo annotate the value.
-                // #todo add multiple notes to the error.
-                return Err(Error::invalid_arguments(
-                    "malformed destructuring bind, the value should be an Array",
-                    value.range(),
-                ));
-            };
+        Expr::Array(..) => {
+            let typ = value.dyn_type(context);
+            let func = context
+                .scope
+                .get(format!("destructure-bind$${}$${}", typ, typ))
+                .unwrap();
+            // #todo Emit an error if we cannot destructure!
+            // #note The order of args is reversed.
+            let args = vec![value, name.clone()];
+            // #insight Intentionally, we don't create a new context.
+            invoke(&func.clone(), args, context)?;
 
-            let names = try_lock_read(names, name.range())?;
+            // // array destructuring.
+            // // #todo temp, nasty code.
+            // // ensure that the values is also an Array.
+            // let Some(values) = value.as_array() else {
+            //     // #todo better error message.
+            //     // #todo annotate the value.
+            //     // #todo add multiple notes to the error.
+            //     return Err(Error::invalid_arguments(
+            //         "malformed destructuring bind, the value should be an Array",
+            //         value.range(),
+            //     ));
+            // };
 
-            // #todo check if the item count matches, report mismatches.
-            for (i, name) in names.iter().enumerate() {
-                let Some(sym) = name.as_symbol() else {
-                    return Err(Error::invalid_arguments(
-                        "malformed destructuring bind, array pattern should contain symbols",
-                        name.range(),
-                    ));
-                };
-                if sym == "_" {
-                    continue;
-                }
+            // let names = try_lock_read(names, name.range())?;
 
-                // #insight '...' is called `ellipsis`.
+            // // #todo check if the item count matches, report mismatches.
+            // for (i, name) in names.iter().enumerate() {
+            //     let Some(sym) = name.as_symbol() else {
+            //         return Err(Error::invalid_arguments(
+            //             "malformed destructuring bind, array pattern should contain symbols",
+            //             name.range(),
+            //         ));
+            //     };
+            //     if sym == "_" {
+            //         continue;
+            //     }
 
-                // #todo consider `..._` for ignoring?
-                if sym == "..." {
-                    break;
-                }
+            //     // #insight '...' is called `ellipsis`.
 
-                if sym.starts_with("...") {
-                    insert_symbol_binding(
-                        &sym[3..],
-                        &names[i].range(),
-                        Expr::array(&values[i..]),
-                        context,
-                    )?;
-                } else {
-                    insert_symbol_binding(
-                        sym,
-                        &name.range(),
-                        expr_clone(values.get(i).unwrap()),
-                        context,
-                    )?;
-                }
-            }
+            //     // #todo consider `..._` for ignoring?
+            //     if sym == "..." {
+            //         break;
+            //     }
+
+            //     if sym.starts_with("...") {
+            //         insert_symbol_binding(
+            //             &sym[3..],
+            //             &names[i].range(),
+            //             Expr::array(&values[i..]),
+            //             context,
+            //         )?;
+            //     } else {
+            //         insert_symbol_binding(
+            //             sym,
+            //             &name.range(),
+            //             expr_clone(values.get(i).unwrap()),
+            //             context,
+            //         )?;
+            //     }
+            // }
         }
         Expr::Map(items) => {
             // map destructuring.
