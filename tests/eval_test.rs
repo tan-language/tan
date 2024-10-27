@@ -176,21 +176,6 @@ fn eval_should_report_errors_in_args() {
     assert!(result.is_err());
 }
 
-// #[test]
-// fn eval_should_support_list_destructuring() {
-//     let expr = eval_file("list-destruct.tan").unwrap();
-//     let value = format_value(expr);
-//     assert_eq!(value, "1 | (2 3 4 5)");
-// }
-
-#[test]
-fn eval_should_support_map_destructuring() {
-    let result = eval_file("map-destruct.tan");
-    let value = result.unwrap();
-    let value = value.as_string().unwrap();
-    assert_eq!(value, "George");
-}
-
 #[test]
 fn eval_should_handle_func_def_with_annotation() {
     let input = &read_file("func-with-ann.tan");

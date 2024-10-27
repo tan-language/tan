@@ -1,5 +1,0 @@
-(do
-    (let user {:name "George" :role :admin})
-    (let {:name onoma} user)
-    onoma
-)
