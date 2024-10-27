@@ -1,7 +1,7 @@
 use crate::{
     context::Context,
     error::{Error, ErrorVariant},
-    expr::Expr,
+    expr::{is_truthy, Expr},
 };
 
 use super::eval;
@@ -32,14 +32,14 @@ pub fn eval_while(args: &[Expr], context: &mut Context) -> Result<Expr, Error> {
     loop {
         let predicate = eval(predicate, context)?;
 
-        let Some(predicate) = predicate.as_bool() else {
-            return Err(Error::invalid_arguments(
-                "the `while` predicate is not a boolean value",
-                predicate.range(),
-            ));
-        };
+        // let Some(predicate) = predicate.as_bool() else {
+        //     return Err(Error::invalid_arguments(
+        //         "the `while` predicate is not a boolean value",
+        //         predicate.range(),
+        //     ));
+        // };
 
-        if !predicate {
+        if !is_truthy(&predicate) {
             break;
         }
 

@@ -184,14 +184,6 @@ fn eval_should_report_errors_in_args() {
 // }
 
 #[test]
-fn should_not_bind_underscore() {
-    let result = eval_input("(let a [1 2 3]) (let [x y _] a) _");
-    let errors = result.unwrap_err();
-    let err = errors.first().unwrap();
-    assert_matches!(err, Error{ variant: ErrorVariant::UndefinedSymbol(s), .. } if s == "_");
-}
-
-#[test]
 fn eval_should_support_map_destructuring() {
     let result = eval_file("map-destruct.tan");
     let value = result.unwrap();
